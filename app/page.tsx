@@ -307,10 +307,10 @@ export default function Home() {
                   </tr>
               </table>
               
-              ${result.functionalitati_ai && result.functionalitati_ai.length > 0 ? `
-              <h2 style="font-family: Arial, sans-serif; color: #065f46; margin-top: 24px;">Funcționalități AI Integrate</h2>
+              ${result.functionalitati_cheie && result.functionalitati_cheie.length > 0 ? `
+              <h2 style="font-family: Arial, sans-serif; color: #065f46; margin-top: 24px;">Funcționalități Cheie</h2>
               <ul style="font-family: Arial, sans-serif; line-height: 1.6; font-size: 14px;">
-                  ${result.functionalitati_ai.map((item: any) => `<li><strong>${item.titlu}</strong><br/><span style="color:#555;">${item.descriere}</span></li>`).join('')}
+                  ${result.functionalitati_cheie.map((item: any) => `<li><strong>${item.titlu}</strong><br/><span style="color:#555;">${item.descriere}</span></li>`).join('')}
               </ul>
               ` : ''}
 
@@ -472,10 +472,9 @@ export default function Home() {
             <div className="flex flex-col gap-6">
                 <div className="bg-zinc-900 border border-zinc-800 rounded-[2rem] p-8 shadow-xl sticky top-8">
                    <h3 className="text-2xl font-black text-white mb-4 flex items-center gap-3"><span className="text-emerald-500">✨</span> Instrumente</h3>
-                   <p className="text-zinc-400 text-sm mb-6 leading-relaxed">Aici poți folosi asistentul inteligent pentru a adăuga mai multe informații, detalii și unelte IA viitoare.</p>
+                   <p className="text-zinc-400 text-sm mb-6 leading-relaxed">Aici poți folosi asistentul inteligent pentru a adăuga mai multe informații și detalii planului tău.</p>
                    
                    <div className="flex flex-col gap-3">
-                      {/* Rescrie tonul sub-menu drop-down */}
                       <div className="flex flex-col gap-2">
                         <button 
                           type="button"
@@ -688,14 +687,14 @@ export default function Home() {
                 </div>
             </div>
 
-            {/* AI FEATURES BROCHURE SECTION */}
-            {result.functionalitati_ai && result.functionalitati_ai.length > 0 && (
+            {/* KEY FEATURES BROCHURE SECTION */}
+            {result.functionalitati_cheie && result.functionalitati_cheie.length > 0 && (
               <div className="pt-10 border-t border-zinc-800 print:border-none print:pt-4">
                  <h3 className="pdf-section text-emerald-400 text-sm font-black uppercase mb-10 tracking-[0.2em] text-center drop-shadow-md print:text-emerald-800 print:drop-shadow-none">
-                   Integrare AI
+                   Funcționalități Cheie
                  </h3>
                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 print:gap-3">
-                    {result.functionalitati_ai.map((item: any, i: number) => (
+                    {result.functionalitati_cheie.map((item: any, i: number) => (
                       <div key={i} className="pdf-section bg-[#09090b] p-8 rounded-3xl border border-zinc-800 border-l-4 border-l-emerald-500 shadow-xl flex flex-col gap-3 print:border-gray-200 print:bg-transparent print:shadow-none">
                           <h4 className="text-xl font-bold text-white print:text-black">{item.titlu}</h4>
                           <p className="text-zinc-400 text-md leading-relaxed print:text-gray-700">{item.descriere}</p>
@@ -808,17 +807,17 @@ export default function Home() {
               </div>
             </div>
 
-            {/* Slide AI Features */}
-            {result.functionalitati_ai && result.functionalitati_ai.length > 0 && (
+            {/* Slide Key Features */}
+            {result.functionalitati_cheie && result.functionalitati_cheie.length > 0 && (
             <div className="presentation-slide w-[1280px] h-[720px] bg-[#09090b] flex flex-col px-24 py-16 border-[12px] border-zinc-900 box-border relative">
               <div className="flex items-center gap-6 mb-8 shrink-0">
                 <div className="w-16 h-2 bg-emerald-500"></div>
-                <h2 className="text-5xl font-black font-sans uppercase tracking-widest text-emerald-400">Integrare AI</h2>
+                <h2 className="text-5xl font-black font-sans uppercase tracking-widest text-emerald-400">Funcționalități Cheie</h2>
               </div>
               <div className="bg-zinc-900/50 p-8 border-l-8 border-emerald-500 flex flex-col gap-6 rounded-3xl flex-1 overflow-hidden">
-                <h3 className="text-4xl font-black text-white uppercase tracking-widest pb-4 border-b-2 border-zinc-800 shrink-0">Funcționalități AI</h3>
+                <h3 className="text-4xl font-black text-white uppercase tracking-widest pb-4 border-b-2 border-zinc-800 shrink-0">Funcționalități Cheie</h3>
                 <div className="grid grid-cols-2 gap-x-12 gap-y-6 overflow-hidden content-start flex-1">
-                  {result.functionalitati_ai.slice(0, 4).map((item: any, idx: number) => (
+                  {result.functionalitati_cheie.slice(0, 4).map((item: any, idx: number) => (
                     <div key={idx} className="flex flex-col gap-2">
                       <h4 className="text-2xl font-bold text-emerald-400 leading-snug">✦ {item.titlu}</h4>
                       <p className="text-lg text-zinc-300 leading-relaxed max-w-lg">{item.descriere}</p>
@@ -969,17 +968,17 @@ export default function Home() {
               </div>
             </div>
 
-            {/* Slide AI Features PDF */}
-            {result.functionalitati_ai && result.functionalitati_ai.length > 0 && (
+            {/* Slide Key Features PDF */}
+            {result.functionalitati_cheie && result.functionalitati_cheie.length > 0 && (
             <div className="pdf-presentation-slide w-[1280px] h-[720px] bg-white flex flex-col px-24 py-16 border-[12px] border-emerald-900 box-border relative">
               <div className="flex items-center gap-6 mb-8 shrink-0">
                 <div className="w-16 h-2 bg-emerald-600"></div>
-                <h2 className="text-5xl font-black font-sans uppercase tracking-widest text-emerald-800">Integrare AI</h2>
+                <h2 className="text-5xl font-black font-sans uppercase tracking-widest text-emerald-800">Funcționalități Cheie</h2>
               </div>
               <div className="bg-emerald-50/50 p-8 border-l-8 border-emerald-500 flex flex-col gap-6 flex-1 rounded-2xl overflow-hidden">
-                <h3 className="text-4xl font-black text-emerald-900 uppercase tracking-widest pb-4 border-b-2 border-emerald-200 shrink-0">Funcționalități AI</h3>
+                <h3 className="text-4xl font-black text-emerald-900 uppercase tracking-widest pb-4 border-b-2 border-emerald-200 shrink-0">Funcționalități Cheie</h3>
                 <div className="grid grid-cols-2 gap-x-12 gap-y-6 overflow-hidden content-start flex-1">
-                  {result.functionalitati_ai.slice(0, 4).map((item: any, idx: number) => (
+                  {result.functionalitati_cheie.slice(0, 4).map((item: any, idx: number) => (
                     <div key={idx} className="flex flex-col gap-2">
                        <h4 className="text-2xl font-bold text-emerald-700 leading-snug">✦ {item.titlu}</h4>
                        <p className="text-lg text-gray-600 leading-relaxed max-w-lg">{item.descriere}</p>

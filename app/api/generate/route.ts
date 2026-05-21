@@ -32,11 +32,11 @@ Return the result strictly as a valid JSON object with the following structure:
     { "item": "Equipment/Service", "explicatie": "Reasoning", "cost": "15000 LEI" },
     { "item": "Another requirement", "explicatie": "Reasoning", "cost": "2000 LEI" }
   ],
-  "functionalitati_ai": [
-    { "titlu": "AI Feature 1", "descriere": "How AI can be used to optimize this business" }
+  "functionalitati_cheie": [
+    { "titlu": "Funcționalitate Cheie 1", "descriere": "Descriere detaliată a modului în care funcționează sau cum ajută afacerea" }
   ]
 }
-Include at least 5-6 budgeted items, and 3-4 AI integration ideas. 
+Include at least 5-6 budgeted items, and 3-4 key business features or functionalities. 
 Do not include any other text besides the JSON block. Do not format with markdown block quotes (\`\`\`json) if possible, but if you do, it will be stripped out.
 `;
 

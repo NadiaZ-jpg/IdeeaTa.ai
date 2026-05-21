@@ -1,3 +1,35 @@
+import { useEffect, useRef } from "react";
+
+function AutoExpandingTextarea({ value, onChange, className, rows = 2, placeholder }: {
+  value: string;
+  onChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => void;
+  className?: string;
+  rows?: number;
+  placeholder?: string;
+}) {
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  useEffect(() => {
+    const textarea = textareaRef.current;
+    if (textarea) {
+      textarea.style.height = "auto";
+      textarea.style.height = `${textarea.scrollHeight}px`;
+    }
+  }, [value]);
+
+  return (
+    <textarea
+      ref={textareaRef}
+      value={value}
+      onChange={onChange}
+      className={className}
+      rows={rows}
+      placeholder={placeholder}
+      style={{ resize: "none", overflow: "hidden" }}
+    />
+  );
+}
+
 export function EditForm({ result, updateField }: { result: any, updateField: (path: (string|number)[], value: string) => void }) {
   if (!result) return null;
   
@@ -17,7 +49,7 @@ export function EditForm({ result, updateField }: { result: any, updateField: (p
 
       <div className="flex flex-col gap-2">
         <label className="text-sm text-zinc-400 font-bold uppercase tracking-wider">Descriere</label>
-        <textarea rows={6} value={result.descriere || ''} onChange={(e) => updateField(['descriere'], e.target.value)} className="bg-zinc-900 border border-zinc-700 p-4 rounded-xl text-base w-full leading-relaxed" />
+        <AutoExpandingTextarea rows={6} value={result.descriere || ''} onChange={(e) => updateField(['descriere'], e.target.value)} className="bg-zinc-900 border border-zinc-700 p-4 rounded-xl text-base w-full leading-relaxed" />
       </div>
 
       <h3 className="text-2xl font-black mt-8 mb-2">Analiza SWOT</h3>
@@ -28,7 +60,7 @@ export function EditForm({ result, updateField }: { result: any, updateField: (p
           {result.analiza_swot?.[cat]?.map((item: any, idx: number) => (
             <div key={idx} className="flex flex-col gap-2 bg-zinc-900/50 p-4 rounded-xl border border-zinc-800">
               <input type="text" value={item.titlu !== undefined ? item.titlu : (typeof item === 'string' ? item : '')} onChange={(e) => updateField(['analiza_swot', cat, idx, typeof item === 'string' ? ' ' : 'titlu'], e.target.value)} className="bg-black border border-zinc-700 p-2 rounded-lg font-bold" />
-              <textarea rows={2} value={item.explicatie_tehnica || ''} onChange={(e) => updateField(['analiza_swot', cat, idx, 'explicatie_tehnica'], e.target.value)} className="bg-black border border-zinc-700 p-2 rounded-lg text-sm" />
+              <AutoExpandingTextarea rows={2} value={item.explicatie_tehnica || ''} onChange={(e) => updateField(['analiza_swot', cat, idx, 'explicatie_tehnica'], e.target.value)} className="bg-black border border-zinc-700 p-2 rounded-lg text-sm w-full" />
             </div>
           ))}
         </div>
@@ -49,19 +81,19 @@ export function EditForm({ result, updateField }: { result: any, updateField: (p
           </div>
           <div className="flex flex-col gap-1">
                <label className="text-xs text-zinc-500 uppercase font-bold">Explicație</label>
-               <textarea rows={2} value={b.explicatie || ''} onChange={(e) => updateField(['buget_detaliat', idx, 'explicatie'], e.target.value)} className="bg-black border border-zinc-700 p-2 rounded-lg text-sm" />
+               <AutoExpandingTextarea rows={2} value={b.explicatie || ''} onChange={(e) => updateField(['buget_detaliat', idx, 'explicatie'], e.target.value)} className="bg-black border border-zinc-700 p-2 rounded-lg text-sm w-full" />
           </div>
         </div>
       ))}
 
-      <h3 className="text-2xl font-black mt-8 mb-2 flex items-center gap-2"><span>🤖</span> Funcționalități AI</h3>
-      {result.functionalitati_ai?.map((aiFeature: any, idx: number) => (
+      <h3 className="text-2xl font-black mt-8 mb-2 flex items-center gap-2"><span>⭐</span> Funcționalități Cheie</h3>
+      {result.functionalitati_cheie?.map((keyFeature: any, idx: number) => (
         <div key={idx} className="flex flex-col gap-2 bg-emerald-950/20 p-4 rounded-xl border border-emerald-900/50 mb-4 shadow-[inset_0_0_10px_rgba(52,211,153,0.05)]">
           <label className="text-xs text-emerald-500 uppercase font-bold">Titlu</label>
-          <input type="text" value={aiFeature.titlu || ''} onChange={(e) => updateField(['functionalitati_ai', idx, 'titlu'], e.target.value)} className="bg-black border border-emerald-900 form-input p-2 rounded-lg font-bold text-emerald-400" />
+          <input type="text" value={keyFeature.titlu || ''} onChange={(e) => updateField(['functionalitati_cheie', idx, 'titlu'], e.target.value)} className="bg-black border border-emerald-900 form-input p-2 rounded-lg font-bold text-emerald-400" />
           
           <label className="text-xs text-emerald-500 uppercase font-bold mt-2">Descriere</label>
-          <textarea rows={2} value={aiFeature.descriere || ''} onChange={(e) => updateField(['functionalitati_ai', idx, 'descriere'], e.target.value)} className="bg-black border border-emerald-900 form-input p-2 rounded-lg text-sm text-zinc-300" />
+          <AutoExpandingTextarea rows={2} value={keyFeature.descriere || ''} onChange={(e) => updateField(['functionalitati_cheie', idx, 'descriere'], e.target.value)} className="bg-black border border-emerald-900 form-input p-2 rounded-lg text-sm text-zinc-300 w-full" />
         </div>
       ))}
     </div>

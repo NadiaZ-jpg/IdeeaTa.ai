@@ -886,9 +886,12 @@ export default function Home() {
                  </h3>
                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 print:gap-3">
                     {result.functionalitati_cheie.map((item: any, i: number) => (
-                      <div key={i} className="pdf-section bg-[#09090b] p-8 rounded-3xl border border-zinc-800 border-l-4 border-l-emerald-500 shadow-xl flex flex-col gap-3 print:border-gray-200 print:bg-transparent print:shadow-none">
-                          <h4 className="text-xl font-bold text-white print:text-black">{item.titlu}</h4>
-                          <p className="text-zinc-400 text-md leading-relaxed print:text-gray-700">{item.descriere}</p>
+                      <div 
+                        key={i} 
+                        className="pdf-section bg-emerald-950/10 p-8 rounded-3xl border border-emerald-900/30 border-l-4 border-l-emerald-500 shadow-[inset_0_0_20px_rgba(52,211,153,0.05)] transition-all duration-300 hover:bg-[#960018] hover:border-[#ff4d6d] hover:border-l-[#ff4d6d] hover:-translate-y-1 hover:shadow-[0_0_20px_rgba(255,77,109,0.4)] group cursor-default print:border-gray-200 print:border-l-4 print:border-l-emerald-700 print:bg-transparent print:text-black print:break-inside-avoid print:p-4 print:shadow-none flex flex-col gap-3"
+                      >
+                        <span className="text-zinc-100 font-black text-xl block uppercase tracking-wider group-hover:text-white transition-colors print:text-black print:text-lg">✦ {item.titlu}</span>
+                        <p className="text-zinc-400 text-lg italic leading-relaxed group-hover:text-white/90 transition-colors print:text-gray-700 print:text-base">{item.descriere}</p>
                       </div>
                     ))}
                  </div>

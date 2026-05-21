@@ -21,6 +21,53 @@ export default function Home() {
   const [showPaywall, setShowPaywall] = useState(false);
   const [isPaying, setIsPaying] = useState(false);
   const [pendingDownloadMode, setPendingDownloadMode] = useState<'pdf' | 'pptx' | 'word' | null>(null);
+  const [animatedPlaceholder, setAnimatedPlaceholder] = useState("");
+
+  useEffect(() => {
+    const placeholders = [
+      "Consultanță Securitate Cibernetică...",
+      "Studio de Design Interior...",
+      "Fermă Urbană de Microplante...",
+      "Dezvoltare Soluții AI...",
+      "Cafenea de Specialitate...",
+      "Platformă de Cursuri Online...",
+      "Spălătorie Auto Ecologică..."
+    ];
+    let currentIdx = 0;
+    let currentCharIdx = 0;
+    let isDeleting = false;
+    let timeout: NodeJS.Timeout;
+
+    const tick = () => {
+      const fullText = placeholders[currentIdx];
+      
+      if (!isDeleting) {
+        setAnimatedPlaceholder(fullText.substring(0, currentCharIdx + 1));
+        currentCharIdx++;
+
+        if (currentCharIdx === fullText.length) {
+          isDeleting = true;
+          timeout = setTimeout(tick, 2000); 
+        } else {
+          timeout = setTimeout(tick, 100); 
+        }
+      } else {
+        setAnimatedPlaceholder(fullText.substring(0, currentCharIdx - 1));
+        currentCharIdx--;
+
+        if (currentCharIdx === 0) {
+          isDeleting = false;
+          currentIdx = (currentIdx + 1) % placeholders.length;
+          timeout = setTimeout(tick, 500); 
+        } else {
+          timeout = setTimeout(tick, 50); 
+        }
+      }
+    };
+
+    timeout = setTimeout(tick, 500);
+    return () => clearTimeout(timeout);
+  }, []);
 
   const startEditing = () => {
     setBackupResult(JSON.parse(JSON.stringify(result)));
@@ -345,7 +392,11 @@ export default function Home() {
   };
 
   return (
-    <main className="min-h-screen bg-[#09090b] text-white p-8 flex flex-col items-center font-sans print:bg-white print:text-black print:p-0">
+    <main className="min-h-screen bg-[#09090b] text-white p-8 flex flex-col items-center font-sans print:bg-white print:text-black print:p-0 relative overflow-x-hidden">
+      {/* Background glow orbs */}
+      <div className="absolute top-[10%] left-[-15%] w-[600px] h-[600px] rounded-full bg-emerald-500/5 blur-[120px] pointer-events-none animate-pulse duration-[8000ms] z-0"></div>
+      <div className="absolute top-[35%] right-[-15%] w-[650px] h-[650px] rounded-full bg-amber-500/5 blur-[150px] pointer-events-none animate-pulse duration-[12000ms] z-0"></div>
+
       {isDownloading && (
         <div className="fixed inset-0 bg-[#09090b]/90 backdrop-blur-sm z-[100] flex flex-col items-center justify-center">
           <div className="w-16 h-16 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin mb-6"></div>
@@ -358,13 +409,14 @@ export default function Home() {
         </div>
       )}
 
-      <div className={`${isDownloading === 'pptx' ? 'hidden' : 'flex'} flex-col items-center w-full max-w-6xl`}>
+      <div className={`${isDownloading === 'pptx' ? 'hidden' : 'flex'} flex-col items-center w-full max-w-6xl relative z-10`}>
         <h1 className="text-5xl font-black mt-12 mb-20 not-italic tracking-tighter cursor-pointer bg-gradient-to-r from-zinc-400 via-emerald-400 to-zinc-400 bg-clip-text text-transparent animate-shimmer print:hidden" onClick={resetApp}>
           IdeeaTa.ai
         </h1>
         
         {!result && (
-        <div className="w-full max-w-4xl flex flex-col items-center animate-in fade-in zoom-in duration-500 mb-16 text-center mt-6">
+          <>
+            <div className="w-full max-w-4xl flex flex-col items-center animate-in fade-in zoom-in duration-500 mb-16 text-center mt-6">
           
           <div className="inline-flex items-center gap-2.5 px-5 py-2.5 rounded-full bg-zinc-900/90 border border-emerald-500/30 text-emerald-400 text-sm font-black uppercase tracking-wider mb-8 shadow-[0_0_30px_rgba(16,185,129,0.1)] hover:border-emerald-400/50 transition-all duration-300 animate-pulse">
             <span className="text-base">✨</span> Nu începe o afacere înainte să verifici IdeeaTa.ai
@@ -393,7 +445,7 @@ export default function Home() {
               onChange={(e) => setSkill(e.target.value)}
               onKeyDown={handleKeyDown}
               disabled={loading}
-              placeholder="Ex: Consultanță Securitate, Design Interior..."
+              placeholder={animatedPlaceholder || "Ex: Consultanță Securitate, Design Interior..."}
               className="flex-1 h-full px-6 rounded-xl bg-zinc-900 border border-zinc-800 outline-none focus:border-emerald-500 transition-all text-xl shadow-inner"
             />
             <button type="submit" disabled={loading} className="h-full bg-emerald-600 px-8 rounded-xl font-black text-lg min-w-[240px] hover:bg-emerald-500 transition-all shadow-lg shadow-emerald-900/20">
@@ -447,7 +499,146 @@ export default function Home() {
             )}
           </div>
         </div>
-      )}
+
+        {/* Grid de Beneficii / Ce conține planul */}
+        <div className="mt-24 w-full max-w-5xl relative z-10">
+          <h3 className="text-2xl font-black mb-10 tracking-tight uppercase text-zinc-400 text-center">
+            Ce conține planul tău de afaceri?
+          </h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 text-left">
+            {/* Card 1: SWOT */}
+            <div className="bg-zinc-900/30 border border-zinc-800/80 rounded-2xl p-6 hover:border-emerald-500/30 hover:bg-emerald-950/5 transition-all duration-300 group flex flex-col justify-between">
+              <div>
+                <div className="w-12 h-12 rounded-xl bg-zinc-900 border border-zinc-800 text-emerald-400 flex items-center justify-center text-xl mb-4 group-hover:scale-110 transition-transform">
+                  📊
+                </div>
+                <h4 className="text-lg font-bold text-white mb-2">Analiză SWOT Completă</h4>
+                <p className="text-zinc-400 text-sm leading-relaxed">
+                  Puncte tari, slăbiciuni, oportunități și amenințări detaliate cu explicații tehnice adaptate domeniului ales.
+                </p>
+              </div>
+            </div>
+
+            {/* Card 2: Buget */}
+            <div className="bg-zinc-900/30 border border-zinc-800/80 rounded-2xl p-6 hover:border-emerald-500/30 hover:bg-emerald-950/5 transition-all duration-300 group flex flex-col justify-between">
+              <div>
+                <div className="w-12 h-12 rounded-xl bg-zinc-900 border border-zinc-800 text-emerald-400 flex items-center justify-center text-xl mb-4 group-hover:scale-110 transition-transform">
+                  💰
+                </div>
+                <h4 className="text-lg font-bold text-white mb-2">Bugetare Detaliată</h4>
+                <p className="text-zinc-400 text-sm leading-relaxed">
+                  Distribuția automată a costurilor de pornire și justificare clară pentru fiecare cheltuială estimată.
+                </p>
+              </div>
+            </div>
+
+            {/* Card 3: Fonduri Europene */}
+            <div className="bg-zinc-900/30 border border-zinc-800/80 rounded-2xl p-6 hover:border-emerald-500/30 hover:bg-emerald-950/5 transition-all duration-300 group flex flex-col justify-between">
+              <div>
+                <div className="w-12 h-12 rounded-xl bg-zinc-900 border border-zinc-800 text-emerald-400 flex items-center justify-center text-xl mb-4 group-hover:scale-110 transition-transform">
+                  🇪🇺
+                </div>
+                <h4 className="text-lg font-bold text-white mb-2">Optimizat Fonduri Europene</h4>
+                <p className="text-zinc-400 text-sm leading-relaxed">
+                  Structură și jargon specifice ghidurilor de finanțare pentru a-ți crește șansele de a obține granturi nerambursabile.
+                </p>
+              </div>
+            </div>
+
+            {/* Card 4: Formate corporate */}
+            <div className="bg-zinc-900/30 border border-zinc-800/80 rounded-2xl p-6 hover:border-emerald-500/30 hover:bg-emerald-950/5 transition-all duration-300 group flex flex-col justify-between">
+              <div>
+                <div className="w-12 h-12 rounded-xl bg-zinc-900 border border-zinc-800 text-emerald-400 flex items-center justify-center text-xl mb-4 group-hover:scale-110 transition-transform">
+                  💼
+                </div>
+                <h4 className="text-lg font-bold text-white mb-2">Export Corporate</h4>
+                <p className="text-zinc-400 text-sm leading-relaxed">
+                  Descarcă broșura de prezentare PowerPoint (.pptx), raportul PDF sau documentul editabil Word (.doc).
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Previzualizare Plan / Mockup */}
+        <div className="mt-24 w-full max-w-5xl relative z-10">
+          <h3 className="text-2xl font-black mb-10 tracking-tight uppercase text-zinc-400 text-center">
+            Cum arată un plan generat?
+          </h3>
+          
+          <div className="relative border border-zinc-800/60 rounded-[2.5rem] bg-[#09090b] overflow-hidden p-8 md:p-12 shadow-2xl">
+            {/* Blur Glassmorphic Overlay CTA */}
+            <div className="absolute inset-0 bg-gradient-to-t from-[#09090b] via-[#09090b]/80 to-transparent z-20 flex flex-col items-center justify-end pb-12 md:pb-20 px-6">
+              <div className="bg-zinc-950/80 border border-zinc-800 backdrop-blur-md px-8 py-8 rounded-[2rem] text-center max-w-md shadow-2xl flex flex-col items-center gap-4">
+                <span className="text-3xl">✨</span>
+                <h4 className="text-xl font-bold text-white">Pregătit să generezi propriul plan?</h4>
+                <p className="text-zinc-400 text-sm">
+                  Durează mai puțin de un minut. Analiză automată completă, grafice și format premium.
+                </p>
+                <button 
+                  type="button"
+                  onClick={() => {
+                    window.scrollTo({ top: 0, behavior: "smooth" });
+                    setTimeout(() => inputRef.current?.focus(), 400);
+                  }}
+                  className="mt-2 bg-emerald-600 hover:bg-emerald-500 text-white font-black text-sm uppercase tracking-wider px-8 py-3.5 rounded-xl shadow-lg shadow-emerald-950/20 active:scale-95 transition-all cursor-pointer font-bold"
+                >
+                  Generează Planul Tău
+                </button>
+              </div>
+            </div>
+
+            {/* Blurred mockup content */}
+            <div className="opacity-30 filter blur-sm pointer-events-none select-none flex flex-col gap-8 text-left">
+              {/* Header */}
+              <div className="border-b border-zinc-800 pb-8">
+                <div className="h-8 bg-zinc-800 w-1/3 rounded-lg mb-3"></div>
+                <div className="h-4 bg-zinc-800 w-1/4 rounded-lg"></div>
+              </div>
+
+              {/* Descriere */}
+              <div className="bg-zinc-900/50 p-6 rounded-2xl border-l-4 border-emerald-500">
+                <div className="h-4 bg-zinc-800 w-full rounded-md mb-2.5"></div>
+                <div className="h-4 bg-zinc-800 w-11/12 rounded-md mb-2.5"></div>
+                <div className="h-4 bg-zinc-800 w-4/5 rounded-md"></div>
+              </div>
+
+              {/* SWOT 2x2 grid */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="bg-zinc-900/30 p-6 rounded-2xl border border-zinc-800">
+                  <div className="h-5 bg-zinc-800 w-1/4 rounded-md mb-4"></div>
+                  <div className="flex flex-col gap-2">
+                    <div className="h-3 bg-zinc-800 w-5/6 rounded-sm"></div>
+                    <div className="h-3 bg-zinc-800 w-4/5 rounded-sm"></div>
+                  </div>
+                </div>
+                <div className="bg-zinc-900/30 p-6 rounded-2xl border border-zinc-800">
+                  <div className="h-5 bg-zinc-800 w-1/4 rounded-md mb-4"></div>
+                  <div className="flex flex-col gap-2">
+                    <div className="h-3 bg-zinc-800 w-5/6 rounded-sm">
+                    </div>
+                    <div className="h-3 bg-zinc-800 w-4/5 rounded-sm">
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Buget bar chart mockup */}
+              <div className="bg-zinc-900/30 p-6 rounded-2xl border border-zinc-800">
+                <div className="h-5 bg-zinc-800 w-1/3 rounded-md mb-6"></div>
+                <div className="flex items-end gap-3 h-24 pt-4 px-4">
+                  <div className="bg-emerald-600/40 w-full h-3/5 rounded-t-sm"></div>
+                  <div className="bg-emerald-600/60 w-full h-4/5 rounded-t-sm"></div>
+                  <div className="bg-emerald-600/30 w-full h-2/5 rounded-t-sm"></div>
+                  <div className="bg-emerald-500 w-full h-full rounded-t-sm"></div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </>
+    )}
 
       {isEditing && result ? (
         <div className="w-full max-w-6xl animate-in fade-in slide-in-from-bottom-10 print:hidden">

@@ -53,6 +53,6 @@ Fără niciun alt text, fără cod sursă markdown dacă se poate, doar JSON pur
     return NextResponse.json({ updatedResult: text });
   } catch (error: any) {
     console.error("Error editing content:", error);
-    return NextResponse.json({ error: "Nu s-a putut edita documentul." }, { status: 500 });
+    return NextResponse.json({ error: `Nu s-a putut edita documentul. Detalii: ${error?.message || error}` }, { status: 500 });
   }
 }

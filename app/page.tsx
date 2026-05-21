@@ -358,7 +358,7 @@ export default function Home() {
         </div>
       )}
 
-      <div className={`${isDownloading === 'pptx' ? 'hidden' : 'flex'} flex-col items-center w-full max-w-5xl`}>
+      <div className={`${isDownloading === 'pptx' ? 'hidden' : 'flex'} flex-col items-center w-full max-w-6xl`}>
         <h1 className="text-5xl font-black mt-12 mb-20 not-italic tracking-tighter cursor-pointer bg-gradient-to-r from-zinc-400 via-emerald-400 to-zinc-400 bg-clip-text text-transparent animate-shimmer print:hidden" onClick={resetApp}>
           IdeeaTa.ai
         </h1>
@@ -576,7 +576,7 @@ export default function Home() {
           </div>
         </div>
       ) : result && (
-        <div className="w-full max-w-4xl flex flex-col gap-6 animate-in fade-in slide-in-from-bottom-10">
+        <div className="w-full max-w-6xl flex flex-col gap-6 animate-in fade-in slide-in-from-bottom-10">
           <div className="flex flex-col md:flex-row justify-between items-center gap-4 w-full">
             <button onClick={resetApp} className="w-full md:flex-1 h-10 bg-zinc-800 hover:bg-zinc-700 text-white px-4 rounded-xl font-bold transition-all shadow-xl border border-zinc-700 flex items-center justify-center gap-2 text-xs whitespace-nowrap">
                🔄 Altă idee

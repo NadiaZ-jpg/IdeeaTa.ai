@@ -366,8 +366,8 @@ export default function Home() {
         {!result && (
         <div className="w-full max-w-4xl flex flex-col items-center animate-in fade-in zoom-in duration-500 mb-16 text-center mt-6">
           
-          <div className="inline-flex items-center gap-2.5 px-5 py-2.5 rounded-full bg-zinc-900/90 border border-amber-500/30 text-amber-400 text-sm font-black uppercase tracking-wider mb-8 shadow-[0_0_30px_rgba(245,158,11,0.1)] hover:border-amber-400/50 transition-all duration-300 animate-pulse">
-            <span className="text-base">🛑</span> Nu începe o afacere înainte să verifici IdeeaTa.ai
+          <div className="inline-flex items-center gap-2.5 px-5 py-2.5 rounded-full bg-zinc-900/90 border border-emerald-500/30 text-emerald-400 text-sm font-black uppercase tracking-wider mb-8 shadow-[0_0_30px_rgba(16,185,129,0.1)] hover:border-emerald-400/50 transition-all duration-300 animate-pulse">
+            <span className="text-base">✨</span> Nu începe o afacere înainte să verifici IdeeaTa.ai
           </div>
 
           <h2 className="text-4xl font-black mb-10 leading-tight max-w-3xl not-italic text-white">

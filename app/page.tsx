@@ -158,7 +158,8 @@ export default function Home() {
     setAuthError(null);
     const provider = new GoogleAuthProvider();
     try {
-      await signInWithPopup(auth, provider);
+      const result = await signInWithPopup(auth, provider);
+      setUser(result.user);
     } catch (error: any) {
       console.error("Eroare la autentificare:", error);
       if (error.code === 'auth/popup-blocked') {

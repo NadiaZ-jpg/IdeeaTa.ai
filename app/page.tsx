@@ -140,6 +140,19 @@ export default function Home() {
   const [mockupTab, setMockupTab] = useState(0);
   const [innerMockupTab, setInnerMockupTab] = useState('SWOT');
   
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [passwordInput, setPasswordInput] = useState('');
+  const [passwordError, setPasswordError] = useState(false);
+
+  const handleLogin = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (passwordInput === 'startup2026') {
+      setIsAuthenticated(true);
+    } else {
+      setPasswordError(true);
+    }
+  };
+  
   const inputRef = useRef<any>(null);
   const brochureRef = useRef<any>(null);
   const presentationRef = useRef<any>(null);
@@ -525,6 +538,36 @@ export default function Home() {
             
     </div>
   );
+
+  if (!isAuthenticated) {
+    return (
+      <div className="min-h-screen bg-[#09090b] flex flex-col items-center justify-center p-4 font-sans relative overflow-hidden">
+        {/* Background glow orbs */}
+        <div className="absolute top-[10%] left-[-15%] w-[600px] h-[600px] rounded-full bg-emerald-500/5 blur-[120px] pointer-events-none animate-pulse duration-[8000ms] z-0"></div>
+        <div className="absolute top-[35%] right-[-15%] w-[650px] h-[650px] rounded-full bg-amber-500/5 blur-[150px] pointer-events-none animate-pulse duration-[12000ms] z-0"></div>
+        
+        <div className="w-full max-w-md p-8 md:p-12 bg-zinc-900/80 backdrop-blur-md rounded-3xl border border-zinc-800 shadow-2xl relative z-10">
+          <h1 className="text-4xl font-black text-transparent bg-gradient-to-r from-zinc-400 via-emerald-400 to-zinc-400 bg-clip-text text-center mb-4 tracking-tighter">IdeeaTa.ai</h1>
+          <p className="text-zinc-400 text-center mb-10 font-medium">Platforma este în modul privat.</p>
+          <form onSubmit={handleLogin} className="flex flex-col gap-5">
+            <div>
+              <input 
+                type="password" 
+                value={passwordInput}
+                onChange={(e) => { setPasswordInput(e.target.value); setPasswordError(false); }}
+                placeholder="Introdu parola de acces..."
+                className="w-full p-4 rounded-2xl bg-[#09090b] border border-zinc-700 outline-none focus:border-emerald-500 text-white placeholder:text-zinc-600 transition-all font-medium"
+              />
+              {passwordError && <p className="text-red-400 text-sm mt-3 px-2 font-medium">Parolă incorectă. Încearcă din nou.</p>}
+            </div>
+            <button type="submit" className="w-full py-4 mt-2 bg-gradient-to-r from-emerald-500 to-emerald-400 hover:from-emerald-400 hover:to-emerald-300 text-zinc-950 font-bold rounded-2xl transition-all shadow-[0_0_30px_rgba(16,185,129,0.2)] hover:shadow-[0_0_40px_rgba(16,185,129,0.4)]">
+              Deblochează
+            </button>
+          </form>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <main className="min-h-screen bg-[#09090b] text-white p-8 flex flex-col items-center font-sans print:bg-white print:text-black print:p-0 relative overflow-x-hidden">

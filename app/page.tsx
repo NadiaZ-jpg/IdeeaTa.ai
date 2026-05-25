@@ -118,6 +118,24 @@ export default function Home() {
       return next;
     });
   };
+
+  const removeField = (path: (string|number)[]) => {
+    setResult((prev: any) => {
+      const next = JSON.parse(JSON.stringify(prev));
+      let curr = next;
+      for (let i = 0; i < path.length - 1; i++) {
+        curr = curr[path[i]];
+      }
+      const lastKey = path[path.length - 1];
+      if (Array.isArray(curr)) {
+         curr.splice(lastKey as number, 1);
+      } else {
+         delete curr[lastKey];
+      }
+      return next;
+    });
+  };
+
   const [showExamples, setShowExamples] = useState(false); 
   
   const inputRef = useRef<any>(null);
@@ -391,6 +409,115 @@ export default function Home() {
     }
   };
 
+  const renderSidebar = () => (
+    <div className="w-full lg:w-2/5 xl:w-1/3 flex flex-col gap-6 sticky top-8 print:hidden">
+      
+                <div className="bg-zinc-900 border border-zinc-800 rounded-[2rem] p-8 shadow-xl sticky top-8">
+                   <h3 className="text-2xl font-black text-white mb-4 flex items-center gap-3"><span className="text-emerald-500">✨</span> Instrumente</h3>
+                   <p className="text-zinc-400 text-sm mb-6 leading-relaxed">Aici poți folosi asistentul inteligent pentru a adăuga mai multe informații și detalii planului tău.</p>
+                   
+                   <div className="flex flex-col gap-3">
+                      <div className="flex flex-col gap-2">
+                        <button 
+                          type="button"
+                          onClick={() => setShowToneOptions(!showToneOptions)} 
+                          disabled={isEditingAi} 
+                          className="w-full bg-black hover:bg-zinc-800 border border-zinc-800 rounded-xl px-5 py-4 font-bold text-sm text-zinc-300 transition-all text-left flex items-center justify-between group disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          <span className="flex items-center gap-3">
+                            <span className="text-emerald-500 group-hover:scale-110 transition-transform">🪄</span>
+                            <span>Rescrie tonul</span>
+                          </span>
+                          <span className="text-xs text-zinc-500">{showToneOptions ? "▲" : "▼"}</span>
+                        </button>
+                        
+                        {showToneOptions && (
+                          <div className="bg-black/40 border border-zinc-800 rounded-xl p-2 flex flex-col gap-1.5 animate-in fade-in slide-in-from-top-2 duration-200">
+                            <button 
+                              type="button"
+                              onClick={() => handleAiEdit("professional_tone", "formal, corporativ și profesionist")} 
+                              disabled={isEditingAi}
+                              className="w-full text-xs text-left px-4 py-2.5 rounded-lg hover:bg-zinc-900 text-zinc-400 hover:text-white transition-all font-semibold"
+                            >
+                              💼 Profesional & Corporativ
+                            </button>
+                            <button 
+                              type="button"
+                              onClick={() => handleAiEdit("professional_tone", "entuziast, creativ și plin de energie")} 
+                              disabled={isEditingAi}
+                              className="w-full text-xs text-left px-4 py-2.5 rounded-lg hover:bg-zinc-900 text-zinc-400 hover:text-white transition-all font-semibold"
+                            >
+                              🎨 Entuziast & Creativ
+                            </button>
+                            <button 
+                              type="button"
+                              onClick={() => handleAiEdit("professional_tone", "persuasiv, orientat spre vânzări și convingător")} 
+                              disabled={isEditingAi}
+                              className="w-full text-xs text-left px-4 py-2.5 rounded-lg hover:bg-zinc-900 text-zinc-400 hover:text-white transition-all font-semibold"
+                            >
+                              📈 Persuasiv & Vânzări
+                            </button>
+                            <button 
+                              type="button"
+                              onClick={() => handleAiEdit("professional_tone", "prietenos, simplu și ușor de înțeles")} 
+                              disabled={isEditingAi}
+                              className="w-full text-xs text-left px-4 py-2.5 rounded-lg hover:bg-zinc-900 text-zinc-400 hover:text-white transition-all font-semibold"
+                            >
+                              🤝 Prietenos & Casual
+                            </button>
+                          </div>
+                        )}
+                      </div>
+
+                      <button 
+                        type="button" 
+                        onClick={() => {
+                          if (!isPaid) {
+                            setShowPaywall(true);
+                          } else {
+                            handleAiEdit("eu_funds_optimization");
+                          }
+                        }} 
+                        disabled={isEditingAi} 
+                        className={`w-full text-left flex items-center justify-between rounded-xl px-5 py-4 font-bold text-sm transition-all group disabled:opacity-50 disabled:cursor-not-allowed ${
+                          !isPaid 
+                            ? "bg-zinc-900/60 hover:bg-zinc-800/80 border border-amber-500/30 text-amber-300" 
+                            : "bg-black hover:bg-zinc-800 border border-zinc-800 text-zinc-300"
+                        }`}
+                      >
+                        <span className="flex items-center gap-3">
+                          <span className="text-amber-500 group-hover:scale-110 transition-transform">🇪🇺</span>
+                          <span>
+                            {isEditingAi ? "Se procesează..." : "Optimizat pentru Fonduri Europene"}
+                          </span>
+                        </span>
+                        {!isPaid && (
+                          <span className="text-[10px] bg-amber-500/20 border border-amber-500/40 text-amber-300 px-2 py-0.5 rounded-full font-black uppercase tracking-wider whitespace-nowrap flex items-center gap-1">
+                            🔒 PRO
+                          </span>
+                        )}
+                      </button>
+
+                      <button type="button" onClick={() => handleAiEdit("optimize_budget")} disabled={isEditingAi} className="w-full bg-black hover:bg-zinc-800 border border-zinc-800 rounded-xl px-5 py-4 font-bold text-sm text-zinc-300 transition-all text-left flex items-center gap-3 group disabled:opacity-50 disabled:cursor-not-allowed">
+                        <span className="text-emerald-500 group-hover:scale-110 transition-transform">📉</span>
+                        <span>
+                          {isEditingAi ? "Se procesează..." : (
+                            <>
+                              Optimizează Bugetul <span className="whitespace-nowrap">(-20% costuri)</span>
+                            </>
+                          )}
+                        </span>
+                      </button>
+                      <button type="button" onClick={() => handleAiEdit("add_sections")} disabled={isEditingAi} className="w-full bg-black hover:bg-zinc-800 border border-zinc-800 rounded-xl px-5 py-4 font-bold text-sm text-zinc-300 transition-all text-left flex items-center gap-3 group disabled:opacity-50 disabled:cursor-not-allowed">
+                        <span className="text-emerald-500 group-hover:scale-110 transition-transform">💡</span> 
+                        <span>{isEditingAi ? "Se procesează..." : "Adaugă secțiuni noi"}</span>
+                      </button>
+                    </div>
+                </div>
+            
+    </div>
+  );
+
   return (
     <main className="min-h-screen bg-[#09090b] text-white p-8 flex flex-col items-center font-sans print:bg-white print:text-black print:p-0 relative overflow-x-hidden">
       {/* Background glow orbs */}
@@ -641,7 +768,7 @@ export default function Home() {
     )}
 
       {isEditing && result ? (
-        <div className="w-full max-w-6xl animate-in fade-in slide-in-from-bottom-10 print:hidden">
+        <div className="w-full max-w-[98%] xl:max-w-[120rem] animate-in fade-in slide-in-from-bottom-10 print:hidden px-4 2xl:px-8">
           <div className="flex flex-col md:flex-row justify-between items-center gap-4 w-full mb-8 pb-8 border-b border-zinc-800">
             <h1 className="text-3xl font-black text-emerald-400 flex items-center gap-3">
               <span>✏️</span> Studio Editare
@@ -656,114 +783,11 @@ export default function Home() {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            <div className="lg:col-span-2 bg-[#09090b] border border-zinc-800 p-8 rounded-[2.5rem] shadow-2xl">
-              <EditForm result={result} updateField={updateField} />
+          <div className="flex flex-col lg:flex-row gap-8 items-start w-full">
+            <div className="w-full lg:w-3/5 xl:w-2/3">
+              <EditForm result={result} updateField={updateField} removeField={removeField} />
             </div>
-            <div className="flex flex-col gap-6">
-                <div className="bg-zinc-900 border border-zinc-800 rounded-[2rem] p-8 shadow-xl sticky top-8">
-                   <h3 className="text-2xl font-black text-white mb-4 flex items-center gap-3"><span className="text-emerald-500">✨</span> Instrumente</h3>
-                   <p className="text-zinc-400 text-sm mb-6 leading-relaxed">Aici poți folosi asistentul inteligent pentru a adăuga mai multe informații și detalii planului tău.</p>
-                   
-                   <div className="flex flex-col gap-3">
-                      <div className="flex flex-col gap-2">
-                        <button 
-                          type="button"
-                          onClick={() => setShowToneOptions(!showToneOptions)} 
-                          disabled={isEditingAi} 
-                          className="w-full bg-black hover:bg-zinc-800 border border-zinc-800 rounded-xl px-5 py-4 font-bold text-sm text-zinc-300 transition-all text-left flex items-center justify-between group disabled:opacity-50 disabled:cursor-not-allowed"
-                        >
-                          <span className="flex items-center gap-3">
-                            <span className="text-emerald-500 group-hover:scale-110 transition-transform">🪄</span>
-                            <span>Rescrie tonul</span>
-                          </span>
-                          <span className="text-xs text-zinc-500">{showToneOptions ? "▲" : "▼"}</span>
-                        </button>
-                        
-                        {showToneOptions && (
-                          <div className="bg-black/40 border border-zinc-800 rounded-xl p-2 flex flex-col gap-1.5 animate-in fade-in slide-in-from-top-2 duration-200">
-                            <button 
-                              type="button"
-                              onClick={() => handleAiEdit("professional_tone", "formal, corporativ și profesionist")} 
-                              disabled={isEditingAi}
-                              className="w-full text-xs text-left px-4 py-2.5 rounded-lg hover:bg-zinc-900 text-zinc-400 hover:text-white transition-all font-semibold"
-                            >
-                              💼 Profesional & Corporativ
-                            </button>
-                            <button 
-                              type="button"
-                              onClick={() => handleAiEdit("professional_tone", "entuziast, creativ și plin de energie")} 
-                              disabled={isEditingAi}
-                              className="w-full text-xs text-left px-4 py-2.5 rounded-lg hover:bg-zinc-900 text-zinc-400 hover:text-white transition-all font-semibold"
-                            >
-                              🎨 Entuziast & Creativ
-                            </button>
-                            <button 
-                              type="button"
-                              onClick={() => handleAiEdit("professional_tone", "persuasiv, orientat spre vânzări și convingător")} 
-                              disabled={isEditingAi}
-                              className="w-full text-xs text-left px-4 py-2.5 rounded-lg hover:bg-zinc-900 text-zinc-400 hover:text-white transition-all font-semibold"
-                            >
-                              📈 Persuasiv & Vânzări
-                            </button>
-                            <button 
-                              type="button"
-                              onClick={() => handleAiEdit("professional_tone", "prietenos, simplu și ușor de înțeles")} 
-                              disabled={isEditingAi}
-                              className="w-full text-xs text-left px-4 py-2.5 rounded-lg hover:bg-zinc-900 text-zinc-400 hover:text-white transition-all font-semibold"
-                            >
-                              🤝 Prietenos & Casual
-                            </button>
-                          </div>
-                        )}
-                      </div>
-
-                      <button 
-                        type="button" 
-                        onClick={() => {
-                          if (!isPaid) {
-                            setShowPaywall(true);
-                          } else {
-                            handleAiEdit("eu_funds_optimization");
-                          }
-                        }} 
-                        disabled={isEditingAi} 
-                        className={`w-full text-left flex items-center justify-between rounded-xl px-5 py-4 font-bold text-sm transition-all group disabled:opacity-50 disabled:cursor-not-allowed ${
-                          !isPaid 
-                            ? "bg-zinc-900/60 hover:bg-zinc-800/80 border border-amber-500/30 text-amber-300" 
-                            : "bg-black hover:bg-zinc-800 border border-zinc-800 text-zinc-300"
-                        }`}
-                      >
-                        <span className="flex items-center gap-3">
-                          <span className="text-amber-500 group-hover:scale-110 transition-transform">🇪🇺</span>
-                          <span>
-                            {isEditingAi ? "Se procesează..." : "Optimizat pentru Fonduri Europene"}
-                          </span>
-                        </span>
-                        {!isPaid && (
-                          <span className="text-[10px] bg-amber-500/20 border border-amber-500/40 text-amber-300 px-2 py-0.5 rounded-full font-black uppercase tracking-wider whitespace-nowrap flex items-center gap-1">
-                            🔒 PRO
-                          </span>
-                        )}
-                      </button>
-
-                      <button type="button" onClick={() => handleAiEdit("optimize_budget")} disabled={isEditingAi} className="w-full bg-black hover:bg-zinc-800 border border-zinc-800 rounded-xl px-5 py-4 font-bold text-sm text-zinc-300 transition-all text-left flex items-center gap-3 group disabled:opacity-50 disabled:cursor-not-allowed">
-                        <span className="text-emerald-500 group-hover:scale-110 transition-transform">📉</span>
-                        <span>
-                          {isEditingAi ? "Se procesează..." : (
-                            <>
-                              Optimizează Bugetul <span className="whitespace-nowrap">(-20% costuri)</span>
-                            </>
-                          )}
-                        </span>
-                      </button>
-                      <button type="button" onClick={() => handleAiEdit("add_sections")} disabled={isEditingAi} className="w-full bg-black hover:bg-zinc-800 border border-zinc-800 rounded-xl px-5 py-4 font-bold text-sm text-zinc-300 transition-all text-left flex items-center gap-3 group disabled:opacity-50 disabled:cursor-not-allowed">
-                        <span className="text-emerald-500 group-hover:scale-110 transition-transform">💡</span> 
-                        <span>{isEditingAi ? "Se procesează..." : "Adaugă secțiuni noi"}</span>
-                      </button>
-                    </div>
-                </div>
-            </div>
+            {renderSidebar()}
           </div>
         </div>
       ) : result && (
@@ -898,8 +922,8 @@ export default function Home() {
               </div>
             )}
             
-          </div>
-        </div>
+              </div>
+            </div>
       )}
       </div>
 

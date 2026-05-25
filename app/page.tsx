@@ -147,12 +147,6 @@ export default function Home() {
   const [authError, setAuthError] = useState<string | null>(null);
 
   useEffect(() => {
-    // Verificăm dacă ne-am întors dintr-un redirect Google și dacă a fost eroare
-    getRedirectResult(auth).catch((error) => {
-      console.error("Eroare la redirect:", error);
-      setAuthError(error.message || "A apărut o eroare necunoscută.");
-    });
-
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       setUser(currentUser);
       setIsAuthLoading(false);
@@ -164,10 +158,14 @@ export default function Home() {
     setAuthError(null);
     const provider = new GoogleAuthProvider();
     try {
-      await signInWithRedirect(auth, provider);
+      await signInWithPopup(auth, provider);
     } catch (error: any) {
       console.error("Eroare la autentificare:", error);
-      setAuthError(error.message || "A apărut o eroare necunoscută.");
+      if (error.code === 'auth/popup-blocked') {
+        setAuthError("Fereastra a fost blocată de browser. Te rugăm să permiți Pop-up-urile (sus în bara de adresă) și să încerci din nou.");
+      } else {
+        setAuthError(error.message || "A apărut o eroare necunoscută.");
+      }
     }
   };
   

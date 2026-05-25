@@ -154,20 +154,24 @@ export default function Home() {
     return () => unsubscribe();
   }, []);
 
-  const handleGoogleLogin = async () => {
-    setAuthError(null);
+  const handleGoogleLogin = () => {
     const provider = new GoogleAuthProvider();
-    try {
-      const result = await signInWithPopup(auth, provider);
-      setUser(result.user);
-    } catch (error: any) {
-      console.error("Eroare la autentificare:", error);
-      if (error.code === 'auth/popup-blocked') {
-        setAuthError("Browserul tău a blocat fereastra de logare! Te rugăm să permiți Pop-up-urile (sus în bara de adresă) și să încerci din nou.");
-      } else {
-        setAuthError(error.message || "A apărut o eroare necunoscută.");
-      }
-    }
+    
+    // Este CRITIC să chemăm signInWithPopup direct, fără niciun setState înainte. 
+    // Altfel, React 18 întârzie execuția, iar Chrome crede că e un pop-up automat (spam) și îl blochează!
+    signInWithPopup(auth, provider)
+      .then((result) => {
+        setUser(result.user);
+        setAuthError(null);
+      })
+      .catch((error: any) => {
+        console.error("Eroare la autentificare:", error);
+        if (error.code === 'auth/popup-blocked') {
+          setAuthError("Browserul tău a blocat fereastra de logare! Te rugăm să permiți Pop-up-urile (sus în bara de adresă) și să încerci din nou.");
+        } else {
+          setAuthError(error.message || "A apărut o eroare necunoscută.");
+        }
+      });
   };
   
   const inputRef = useRef<any>(null);

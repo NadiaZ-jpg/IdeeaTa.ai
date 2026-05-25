@@ -6,7 +6,7 @@ import pptxgen from "pptxgenjs";
 import { EditForm } from "./EditForm";
 import { BudgetBarChart } from "./BudgetChart";
 import { auth } from '@/lib/firebase';
-import { signInWithPopup, GoogleAuthProvider, onAuthStateChanged, User } from 'firebase/auth';
+import { signInWithRedirect, GoogleAuthProvider, onAuthStateChanged, User, getRedirectResult } from 'firebase/auth';
 
 export default function Home() {
   const [skill, setSkill] = useState("");
@@ -147,6 +147,12 @@ export default function Home() {
   const [authError, setAuthError] = useState<string | null>(null);
 
   useEffect(() => {
+    // Verificăm dacă ne-am întors dintr-un redirect Google și dacă a fost eroare
+    getRedirectResult(auth).catch((error) => {
+      console.error("Eroare la redirect:", error);
+      setAuthError(error.message || "A apărut o eroare necunoscută.");
+    });
+
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       setUser(currentUser);
       setIsAuthLoading(false);
@@ -158,7 +164,7 @@ export default function Home() {
     setAuthError(null);
     const provider = new GoogleAuthProvider();
     try {
-      await signInWithPopup(auth, provider);
+      await signInWithRedirect(auth, provider);
     } catch (error: any) {
       console.error("Eroare la autentificare:", error);
       setAuthError(error.message || "A apărut o eroare necunoscută.");

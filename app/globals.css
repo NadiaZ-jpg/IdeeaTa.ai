@@ -17,3 +17,29 @@
   background-size: 200% auto;
   animation: shimmer 4s linear infinite;
 }
+
+@keyframes scaleUpY {
+  0% { transform: scaleY(0); opacity: 0.5; }
+  100% { transform: scaleY(1); opacity: 1; }
+}
+.animate-scale-y {
+  animation: scaleUpY 1.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  transform-origin: bottom;
+}
+
+@keyframes scaleUpX {
+  0% { transform: scaleX(0); opacity: 0.5; }
+  100% { transform: scaleX(1); opacity: 1; }
+}
+.animate-scale-x {
+  animation: scaleUpX 1.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  transform-origin: left;
+}
+
+@keyframes float-number {
+  0% { transform: translateY(10px); opacity: 0; }
+  100% { transform: translateY(0); opacity: 1; }
+}
+.animate-float-number {
+  animation: float-number 1.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}

@@ -137,6 +137,8 @@ export default function Home() {
   };
 
   const [showExamples, setShowExamples] = useState(false); 
+  const [mockupTab, setMockupTab] = useState(0);
+  const [innerMockupTab, setInnerMockupTab] = useState('SWOT');
   
   const inputRef = useRef<any>(null);
   const brochureRef = useRef<any>(null);
@@ -154,8 +156,14 @@ export default function Home() {
     "Platformă de Cursuri Online",
     "Studio de Design Interior",
     "Magazin Online de Produse Bio",
-    "Aplicație de Fitness Personalizat",
-    "Consultanță Nutriție"
+    "Aplicație de Fitness",
+    "Consultanță Nutriție",
+    "Servicii de Contabilitate",
+    "Clinică Stomatologică",
+    "Cafenea de Specialitate",
+    "Service Auto Hibrid",
+    "Organizare Evenimente",
+    "Agenție de Recrutare IT"
   ];
 
   const randomIdeas = [
@@ -536,235 +544,653 @@ export default function Home() {
         </div>
       )}
 
-      <div className={`${isDownloading === 'pptx' ? 'hidden' : 'flex'} flex-col items-center w-full max-w-6xl relative z-10`}>
-        <h1 className="text-5xl font-black mt-12 mb-20 not-italic tracking-tighter cursor-pointer bg-gradient-to-r from-zinc-400 via-emerald-400 to-zinc-400 bg-clip-text text-transparent animate-shimmer print:hidden" onClick={resetApp}>
+      <div className={`${isDownloading === 'pptx' ? 'hidden' : 'flex'} flex-col items-center w-full max-w-[1600px] px-4 md:px-12 relative z-10`}>
+        <h1 className="text-4xl md:text-6xl lg:text-[5rem] font-black mt-4 lg:mt-12 mb-6 lg:mb-8 not-italic tracking-tighter cursor-pointer bg-gradient-to-r from-zinc-400 via-emerald-400 to-zinc-400 bg-clip-text text-transparent animate-shimmer print:hidden self-start lg:self-center" onClick={resetApp}>
           IdeeaTa.ai
         </h1>
         
         {!result && (
           <>
-            <div className="w-full max-w-4xl flex flex-col items-center animate-in fade-in zoom-in duration-500 mb-16 text-center mt-6">
-          
-          <div className="inline-flex items-center gap-2.5 px-5 py-2.5 rounded-full bg-zinc-900/90 border border-emerald-500/30 text-emerald-400 text-sm font-black uppercase tracking-wider mb-8 shadow-[0_0_30px_rgba(16,185,129,0.1)] hover:border-emerald-400/50 transition-all duration-300 animate-pulse">
-            <span className="text-base">✨</span> Nu începe o afacere înainte să verifici IdeeaTa.ai
+          <div className="w-full flex flex-col items-center justify-center mb-12 lg:mb-16 relative">
+            <div className="inline-flex items-center gap-2.5 px-5 py-2.5 rounded-full bg-zinc-900/90 border border-emerald-500/30 text-emerald-400 text-sm font-black uppercase tracking-wider shadow-[0_0_30px_rgba(16,185,129,0.1)] hover:border-emerald-400/50 transition-all duration-300 animate-pulse relative z-10">
+              <span className="text-base">✨</span> Nu începe o afacere înainte să verifici IdeeaTa.ai
+            </div>
+            {/* Elegant curved line bridging the gap below the pill */}
+            <div className="w-full max-w-2xl mt-4 opacity-50 relative -top-6 -z-10 hidden md:block">
+              <svg viewBox="0 0 600 80" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full h-auto">
+                <path d="M 0 10 C 150 10, 200 70, 300 70 C 400 70, 450 10, 600 10" stroke="url(#paint0_linear)" strokeWidth="1" strokeDasharray="4 4" />
+                <defs>
+                  <linearGradient id="paint0_linear" x1="0" y1="0" x2="600" y2="0" gradientUnits="userSpaceOnUse">
+                    <stop stopColor="#10b981" stopOpacity="0" />
+                    <stop offset="0.5" stopColor="#10b981" />
+                    <stop offset="1" stopColor="#10b981" stopOpacity="0" />
+                  </linearGradient>
+                </defs>
+              </svg>
+            </div>
+          </div>
+            <div className="w-full grid grid-cols-1 xl:grid-cols-2 gap-12 xl:gap-20 items-stretch animate-in fade-in zoom-in duration-500 mb-32 mt-4 lg:mt-8">
+          {/* Left Column */}
+          <div className="flex flex-col justify-between text-left min-h-full">
+            
+            <div>
+              <h2 className="text-3xl md:text-4xl lg:text-[3.5rem] font-black mb-8 leading-[1.1] not-italic text-white tracking-tighter text-left max-w-[90%]">
+                Transformă-ți <span className="text-emerald-400">experiența</span> într-un business validat.
+              </h2>
+              
+              <p className="text-zinc-400 text-xl lg:text-2xl leading-relaxed not-italic font-medium text-left">
+                Descrie la ce ești bun, iar noi îți vom genera un plan de afaceri complet.
+              </p>
+              <p className="text-zinc-400 text-xl lg:text-2xl mt-4 leading-relaxed not-italic font-medium text-left">
+                Analiză SWOT, proiecții financiare și strategie de piață.
+              </p>
+            </div>
+
+            {/* Animated wave lines - decorative */}
+            <div className="relative w-full overflow-hidden my-8 opacity-70">
+              <svg viewBox="0 0 500 260" xmlns="http://www.w3.org/2000/svg" className="w-full h-auto">
+                <defs>
+                  <style>{`
+                    @keyframes waveShift {
+                      0% { transform: translateX(0px); }
+                      100% { transform: translateX(-60px); }
+                    }
+                    @keyframes waveShift2 {
+                      0% { transform: translateX(0px); }
+                      100% { transform: translateX(60px); }
+                    }
+                    .wv1 { animation: waveShift 7s ease-in-out infinite alternate; }
+                    .wv2 { animation: waveShift2 9s ease-in-out infinite alternate; }
+                    .wv3 { animation: waveShift 11s ease-in-out infinite alternate-reverse; }
+                    .wv4 { animation: waveShift2 13s ease-in-out infinite alternate; }
+                    .wv5 { animation: waveShift 15s ease-in-out infinite alternate-reverse; }
+                  `}</style>
+                </defs>
+                {/* Group 1 - bright green, top waves */}
+                <g className="wv1" stroke="#10b981" strokeWidth="1" fill="none" opacity="0.8">
+                  <path d="M-60,18 C-10,-10 60,55 130,15 C200,-25 270,60 340,10 C400,-20 460,45 560,12" />
+                  <path d="M-60,36 C-5,5 65,70 135,30 C205,-10 275,75 345,25 C405,-5 462,62 560,28" />
+                  <path d="M-60,54 C0,22 70,85 140,45 C210,5 280,90 350,40 C410,10 465,78 560,44" />
+                </g>
+                {/* Group 2 - mid green, middle waves */}
+                <g className="wv2" stroke="#10b981" strokeWidth="0.8" fill="none" opacity="0.5">
+                  <path d="M-60,72 C5,40 75,100 145,60 C215,20 285,105 355,55 C415,25 468,92 560,60" />
+                  <path d="M-60,90 C10,58 80,115 150,75 C220,35 290,118 360,70 C418,40 470,108 560,76" />
+                  <path d="M-60,108 C15,76 85,130 155,90 C225,50 295,132 365,85 C422,55 472,124 560,92" />
+                </g>
+                {/* Group 3 - light green, bottom waves */}
+                <g className="wv3" stroke="#6ee7b7" strokeWidth="0.6" fill="none" opacity="0.28">
+                  <path d="M-60,124 C20,92 90,145 160,105 C230,65 300,148 370,100 C426,70 474,138 560,108" />
+                  <path d="M-60,140 C25,108 95,160 165,120 C235,80 305,162 375,115 C430,85 476,152 560,124" />
+                  <path d="M-60,156 C30,124 100,175 170,135 C240,95 310,175 380,130 C434,100 478,165 560,140" />
+                </g>
+                {/* Group 4 - extra waves */}
+                <g className="wv4" stroke="#6ee7b7" strokeWidth="0.4" fill="none" opacity="0.15">
+                  <path d="M-60,172 C35,140 105,190 175,150 C245,110 315,190 385,145 C440,115 480,180 560,156" />
+                  <path d="M-60,188 C40,156 110,205 180,165 C250,125 320,205 390,160 C445,130 484,195 560,172" />
+                  <path d="M-60,204 C45,172 115,220 185,180 C255,140 325,220 395,175 C450,145 488,210 560,188" />
+                </g>
+                {/* Group 5 - extra waves, very faded */}
+                <g className="wv5" stroke="#34d399" strokeWidth="0.3" fill="none" opacity="0.08">
+                  <path d="M-60,220 C50,188 120,235 190,195 C260,155 330,235 400,190 C455,160 492,225 560,204" />
+                  <path d="M-60,236 C55,204 125,250 195,210 C265,170 335,250 405,205 C460,175 496,240 560,220" />
+                  <path d="M-60,252 C60,220 130,265 200,225 C270,185 340,265 410,220 C465,190 500,255 560,236" />
+                </g>
+              </svg>
+            </div>
+
+            <div className="flex flex-col gap-6 mt-2">
+
+              <div className="flex flex-col gap-2">
+                <div className="w-full h-px bg-gradient-to-r from-emerald-500/40 via-zinc-700/40 to-transparent"></div>
+                <div className="flex items-center justify-between">
+                  <p className="text-zinc-400 text-sm font-semibold uppercase tracking-widest">Timp de generare</p>
+                  <p className="text-emerald-400 text-sm font-black">Sub 60 sec</p>
+                </div>
+              </div>
+
+              <div className="flex flex-col gap-2">
+                <div className="w-full h-px bg-gradient-to-r from-emerald-500/30 via-zinc-700/40 to-transparent"></div>
+                <div className="flex items-center justify-between">
+                  <p className="text-zinc-400 text-sm font-semibold uppercase tracking-widest">Format export</p>
+                  <p className="text-emerald-400 text-sm font-black">PDF · PPTX · DOCX</p>
+                </div>
+              </div>
+
+              <div className="flex flex-col gap-2">
+                <div className="w-full h-px bg-gradient-to-r from-emerald-500/20 via-zinc-700/40 to-transparent"></div>
+                <div className="flex items-center justify-between">
+                  <p className="text-zinc-400 text-sm font-semibold uppercase tracking-widest">Conținut</p>
+                  <p className="text-emerald-400 text-sm font-black">SWOT · Buget · Piață</p>
+                </div>
+              </div>
+
+              <div className="flex flex-col gap-2">
+                <div className="w-full h-px bg-gradient-to-r from-emerald-500/10 via-zinc-700/30 to-transparent"></div>
+                <div className="flex items-center justify-between">
+                  <p className="text-zinc-400 text-sm font-semibold uppercase tracking-widest">Fonduri europene</p>
+                  <p className="text-emerald-400 text-sm font-black">Optimizat</p>
+                </div>
+              </div>
+
+            </div>
+
           </div>
 
-          <h2 className="text-4xl font-black mb-10 leading-tight max-w-3xl not-italic text-white">
-            Transformă-ți <span className="text-emerald-400">experiența</span><br />într-un business validat.
-          </h2>
-          
-          <p className="text-zinc-300 text-lg mb-16 leading-relaxed max-w-2xl not-italic font-medium text-center">
-            Descrie la ce ești bun, iar noi îți vom genera un plan de afaceri complet.<br />Analiză SWOT, proiecții financiare și strategie de piață.
-          </p>
-
-          <form onSubmit={generate} className="flex gap-4 w-full max-w-2xl h-16 relative group z-10 w-full">
-            {skill.length > 35 && (
-              <div className="absolute bottom-full mb-3 left-0 right-0 bg-zinc-800 text-zinc-100 p-4 rounded-xl text-base shadow-2xl opacity-0 group-hover:opacity-100 transition-all duration-300 z-50 text-center whitespace-normal break-words border border-zinc-600 pointer-events-none font-medium leading-relaxed">
-                {skill}
-                <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-4 h-4 bg-zinc-800 transform rotate-45 border-b border-r border-zinc-600"></div>
+          {/* Right Column (Floating Studio UI) */}
+          <div className="relative w-full">
+            {/* Glow behind the box */}
+            <div className="absolute inset-0 bg-emerald-500/10 blur-[120px] rounded-full pointer-events-none"></div>
+            
+            {/* Glassmorphism Container */}
+            <div className="bg-[#09090b]/60 backdrop-blur-3xl border border-zinc-800/80 rounded-[2rem] p-6 sm:p-10 shadow-[0_0_60px_rgba(16,185,129,0.1)] relative z-10 flex flex-col gap-6 ring-1 ring-white/5">
+              
+              {/* Fake window controls & Header */}
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex gap-2">
+                  <div className="w-3 h-3 rounded-full bg-zinc-700"></div>
+                  <div className="w-3 h-3 rounded-full bg-zinc-700"></div>
+                  <div className="w-3 h-3 rounded-full bg-zinc-700"></div>
+                </div>
+                <h2 className="text-2xl md:text-3xl font-black tracking-tighter bg-gradient-to-r from-zinc-400 via-emerald-400 to-zinc-400 bg-clip-text text-transparent animate-shimmer">IdeeaTa Studio</h2>
+                <div className="w-8"></div>
               </div>
-            )}
-            <input
-              type="text"
-              ref={inputRef}
-              value={skill}
-              title={skill}
-              onChange={(e) => setSkill(e.target.value)}
-              onKeyDown={handleKeyDown}
-              disabled={loading}
-              placeholder={animatedPlaceholder || "Ex: Consultanță Securitate, Design Interior..."}
-              className="flex-1 h-full px-6 rounded-xl bg-zinc-900 border border-zinc-800 outline-none focus:border-emerald-500 transition-all text-xl shadow-inner"
-            />
-            <button type="submit" disabled={loading} className="h-full bg-emerald-600 px-8 rounded-xl font-black text-lg min-w-[240px] hover:bg-emerald-500 transition-all shadow-lg shadow-emerald-900/20">
-              {loading ? loadingMessages[messageIndex] : "Generează Planul"}
-            </button>
-          </form>
+              
+              <p className="text-zinc-400 font-medium text-lg text-center sm:text-left">
+                Construiește planul tău de afaceri inteligent
+              </p>
+              
+              <form onSubmit={generate} className="flex flex-col gap-4 w-full relative group z-10">
+                {skill.length > 35 && (
+                  <div className="absolute bottom-full mb-3 left-0 right-0 bg-zinc-800 text-zinc-100 p-4 rounded-xl text-base shadow-2xl opacity-0 group-hover:opacity-100 transition-all duration-300 z-50 text-center whitespace-normal break-words border border-zinc-600 pointer-events-none font-medium leading-relaxed">
+                    {skill}
+                    <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-4 h-4 bg-zinc-800 transform rotate-45 border-b border-r border-zinc-600"></div>
+                  </div>
+                )}
+                
+                <div className="relative group/input">
+                  <div className="absolute -inset-0.5 bg-gradient-to-r from-emerald-600 to-emerald-400 rounded-2xl blur opacity-20 group-focus-within/input:opacity-50 transition duration-500"></div>
+                  <textarea
+                    ref={inputRef as any}
+                    value={skill}
+                    title={skill}
+                    onChange={(e) => setSkill(e.target.value)}
+                    onKeyDown={handleKeyDown}
+                    disabled={loading}
+                    placeholder={animatedPlaceholder || "Crează un plan pentru... (ex: Consultanță securitate)"}
+                    className="relative w-full h-32 p-6 rounded-2xl bg-[#09090b] border border-zinc-700 outline-none focus:border-emerald-500 transition-all text-xl shadow-inner resize-none placeholder:text-zinc-600 font-medium text-white"
+                  />
+                </div>
+                
+                <div className="flex flex-col sm:flex-row gap-4 items-center justify-between mt-4">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const randomIndex = Math.floor(Math.random() * randomIdeas.length);
+                      setSkill(randomIdeas[randomIndex]);
+                      setShowExamples(false);
+                      setTimeout(() => inputRef.current?.focus(), 50);
+                    }}
+                    className="text-zinc-400 font-bold text-lg px-4 py-3 rounded-xl transition-all duration-300 hover:bg-zinc-800/50 hover:text-emerald-400 flex items-center gap-2 w-full sm:w-auto justify-center border border-transparent hover:border-zinc-700/50"
+                  >
+                    ✨ Inspiră-mă
+                  </button>
 
-          <div className="mt-16 flex flex-col items-center w-full">
-            <button 
-              type="button"
-              onClick={() => setShowExamples(!showExamples)}
-              className="flex items-center gap-2 text-sm text-zinc-400 hover:text-emerald-400 transition-colors font-bold tracking-widest uppercase mb-8"
-            >
-              Exemple de afaceri
-              <span className={`text-xs transform transition-transform duration-300 ${showExamples ? "rotate-180" : "rotate-0"}`}>
-                ▼
-              </span>
-            </button>
-
-            {showExamples && (
-              <div className="flex flex-wrap justify-center gap-4 max-w-3xl animate-in fade-in slide-in-from-top-2">
+                  <button type="submit" disabled={loading} className="w-full sm:w-auto bg-white text-black px-8 py-4 rounded-xl font-black text-lg hover:bg-zinc-200 transition-all shadow-[0_0_20px_rgba(255,255,255,0.2)] flex items-center justify-center gap-2">
+                    {loading ? loadingMessages[messageIndex] : "Generează Planul"}
+                    {!loading && <span>&rarr;</span>}
+                  </button>
+                </div>
+              </form>
+            </div>
+          <div className="mt-8 relative w-full">
+            <div className="absolute inset-0 bg-emerald-500/5 blur-[120px] rounded-full pointer-events-none"></div>
+            
+            <div className="bg-[#09090b]/60 backdrop-blur-3xl border border-zinc-800/80 rounded-[2rem] p-6 sm:p-8 shadow-[0_0_60px_rgba(16,185,129,0.05)] relative z-10 flex flex-col gap-4 ring-1 ring-white/5">
+              
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex gap-2">
+                  <div className="w-3 h-3 rounded-full bg-zinc-700"></div>
+                  <div className="w-3 h-3 rounded-full bg-zinc-700"></div>
+                  <div className="w-3 h-3 rounded-full bg-zinc-700"></div>
+                </div>
+                <h3 className="text-xl font-bold tracking-tight text-white">💡 Exemple de Afaceri</h3>
+                <div className="w-8"></div>
+              </div>
+              
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
                 {examplesList.map((ex, idx) => (
                   <button
                     key={idx}
                     type="button"
                     onClick={() => {
                       setSkill(ex);
-                      setShowExamples(false);
                       setTimeout(() => inputRef.current?.focus(), 50);
                     }}
-                    className="bg-emerald-950/20 border border-emerald-800/40 text-emerald-400 font-bold text-sm px-6 py-4 rounded-full transition-all duration-300 hover:bg-[#960018] hover:text-white hover:border-[#ff4d6d] hover:scale-105 hover:shadow-[0_0_20px_rgba(255,77,109,0.4)]"
+                    className="bg-zinc-900/80 border border-zinc-700/80 text-zinc-300 font-medium text-xs sm:text-sm px-2 py-3 rounded-xl transition-all duration-300 hover:bg-emerald-900/60 hover:text-emerald-400 hover:border-emerald-500 hover:scale-[1.02] text-center w-full shadow-sm leading-snug"
                   >
                     {ex}
                   </button>
                 ))}
-                
-                {/* RESTAURAT: Bula aurie cu logica de randomizare și efectele originale */}
-                <button
-                  type="button"
-                  onClick={() => {
-                    const randomIndex = Math.floor(Math.random() * randomIdeas.length);
-                    setSkill(randomIdeas[randomIndex]);
-                    setShowExamples(false);
-                    setTimeout(() => inputRef.current?.focus(), 50);
-                  }}
-                  className="bg-amber-950/30 border border-amber-500/60 text-amber-400 font-black text-sm px-6 py-4 rounded-full transition-all duration-300 hover:bg-amber-500 hover:text-black hover:border-amber-400 hover:scale-105 hover:shadow-[0_0_20px_rgba(245,158,11,0.5)] flex items-center gap-2"
-                >
-                  🎲 Surprinde-mă <span className="whitespace-nowrap">(Altă idee)</span>
-                </button>
               </div>
-            )}
+            </div>
+          </div>
+
           </div>
         </div>
 
         {/* Grid de Beneficii / Ce conține planul */}
-        <div className="mt-24 w-full max-w-5xl relative z-10">
-          <h3 className="text-2xl font-black mb-10 tracking-tight uppercase text-zinc-400 text-center">
+        <div className="mt-10 w-full max-w-5xl relative z-10">
+          <h3 className="text-2xl md:text-3xl font-black mb-10 tracking-tighter bg-gradient-to-r from-zinc-400 via-emerald-400 to-zinc-400 bg-clip-text text-transparent animate-shimmer text-center">
             Ce conține planul tău de afaceri?
           </h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 text-left">
-            {/* Card 1: SWOT */}
-            <div className="bg-zinc-900/30 border border-zinc-800/80 rounded-2xl p-6 hover:border-emerald-500/30 hover:bg-emerald-950/5 transition-all duration-300 group flex flex-col justify-between">
-              <div>
-                <div className="w-12 h-12 rounded-xl bg-zinc-900 border border-zinc-800 text-emerald-400 flex items-center justify-center text-xl mb-4 group-hover:scale-110 transition-transform">
-                  📊
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 text-left">
+            <div className="relative w-full h-full group">
+              <div className="absolute inset-0 bg-emerald-500/10 blur-[60px] rounded-full pointer-events-none group-hover:bg-emerald-500/20 transition-all duration-500"></div>
+              
+              <div className="bg-[#09090b]/60 backdrop-blur-3xl border border-zinc-800/80 rounded-[2rem] p-6 sm:p-8 shadow-[0_0_60px_rgba(16,185,129,0.05)] relative z-10 flex flex-col justify-between h-full ring-1 ring-white/5 hover:border-emerald-500/50 hover:shadow-[0_0_80px_rgba(16,185,129,0.15)] transition-all duration-300">
+                <div>
+                  
+                  <div className="flex gap-1.5 mb-6">
+                    <div className="w-2.5 h-2.5 rounded-full bg-zinc-700"></div>
+                    <div className="w-2.5 h-2.5 rounded-full bg-zinc-700"></div>
+                    <div className="w-2.5 h-2.5 rounded-full bg-zinc-700"></div>
+                  </div>
+                  
+                  <div className="w-12 h-12 rounded-xl bg-zinc-900 border border-zinc-800 text-emerald-400 flex items-center justify-center text-2xl mb-4 group-hover:scale-125 group-hover:rotate-12 group-hover:-translate-y-1 transition-all duration-300 shadow-inner">
+                    🧠
+                  </div>
+                  <h4 className="text-2xl font-bold text-white mb-3">Analiză SWOT Completă</h4>
+                  <p className="text-zinc-400 text-base md:text-lg leading-relaxed">
+                    Puncte tari, slăbiciuni, oportunități și amenințări detaliate cu explicații tehnice adaptate domeniului ales.
+                  </p>
                 </div>
-                <h4 className="text-lg font-bold text-white mb-2">Analiză SWOT Completă</h4>
-                <p className="text-zinc-400 text-sm leading-relaxed">
-                  Puncte tari, slăbiciuni, oportunități și amenințări detaliate cu explicații tehnice adaptate domeniului ales.
-                </p>
               </div>
             </div>
-
-            {/* Card 2: Buget */}
-            <div className="bg-zinc-900/30 border border-zinc-800/80 rounded-2xl p-6 hover:border-emerald-500/30 hover:bg-emerald-950/5 transition-all duration-300 group flex flex-col justify-between">
-              <div>
-                <div className="w-12 h-12 rounded-xl bg-zinc-900 border border-zinc-800 text-emerald-400 flex items-center justify-center text-xl mb-4 group-hover:scale-110 transition-transform">
-                  💰
+            <div className="relative w-full h-full group">
+              <div className="absolute inset-0 bg-emerald-500/10 blur-[60px] rounded-full pointer-events-none group-hover:bg-emerald-500/20 transition-all duration-500"></div>
+              
+              <div className="bg-[#09090b]/60 backdrop-blur-3xl border border-zinc-800/80 rounded-[2rem] p-6 sm:p-8 shadow-[0_0_60px_rgba(16,185,129,0.05)] relative z-10 flex flex-col justify-between h-full ring-1 ring-white/5 hover:border-emerald-500/50 hover:shadow-[0_0_80px_rgba(16,185,129,0.15)] transition-all duration-300">
+                <div>
+                  
+                  <div className="flex gap-1.5 mb-6">
+                    <div className="w-2.5 h-2.5 rounded-full bg-zinc-700"></div>
+                    <div className="w-2.5 h-2.5 rounded-full bg-zinc-700"></div>
+                    <div className="w-2.5 h-2.5 rounded-full bg-zinc-700"></div>
+                  </div>
+                  
+                  <div className="w-12 h-12 rounded-xl bg-zinc-900 border border-zinc-800 text-emerald-400 flex items-center justify-center text-2xl mb-4 group-hover:scale-125 group-hover:rotate-12 group-hover:-translate-y-1 transition-all duration-300 shadow-inner">
+                    💸
+                  </div>
+                  <h4 className="text-2xl font-bold text-white mb-3">Bugetare Detaliată</h4>
+                  <p className="text-zinc-400 text-base md:text-lg leading-relaxed">
+                    Distribuția automată a costurilor de pornire și justificare clară pentru fiecare cheltuială estimată.
+                  </p>
                 </div>
-                <h4 className="text-lg font-bold text-white mb-2">Bugetare Detaliată</h4>
-                <p className="text-zinc-400 text-sm leading-relaxed">
-                  Distribuția automată a costurilor de pornire și justificare clară pentru fiecare cheltuială estimată.
-                </p>
               </div>
             </div>
-
-            {/* Card 3: Fonduri Europene */}
-            <div className="bg-zinc-900/30 border border-zinc-800/80 rounded-2xl p-6 hover:border-emerald-500/30 hover:bg-emerald-950/5 transition-all duration-300 group flex flex-col justify-between">
-              <div>
-                <div className="w-12 h-12 rounded-xl bg-zinc-900 border border-zinc-800 text-emerald-400 flex items-center justify-center text-xl mb-4 group-hover:scale-110 transition-transform">
-                  🇪🇺
+            <div className="relative w-full h-full group">
+              <div className="absolute inset-0 bg-emerald-500/10 blur-[60px] rounded-full pointer-events-none group-hover:bg-emerald-500/20 transition-all duration-500"></div>
+              
+              <div className="bg-[#09090b]/60 backdrop-blur-3xl border border-zinc-800/80 rounded-[2rem] p-6 sm:p-8 shadow-[0_0_60px_rgba(16,185,129,0.05)] relative z-10 flex flex-col justify-between h-full ring-1 ring-white/5 hover:border-emerald-500/50 hover:shadow-[0_0_80px_rgba(16,185,129,0.15)] transition-all duration-300">
+                <div>
+                  
+                  <div className="flex gap-1.5 mb-6">
+                    <div className="w-2.5 h-2.5 rounded-full bg-zinc-700"></div>
+                    <div className="w-2.5 h-2.5 rounded-full bg-zinc-700"></div>
+                    <div className="w-2.5 h-2.5 rounded-full bg-zinc-700"></div>
+                  </div>
+                  
+                  <div className="w-12 h-12 rounded-xl bg-zinc-900 border border-zinc-800 text-emerald-400 flex items-center justify-center text-2xl mb-4 group-hover:scale-125 group-hover:rotate-12 group-hover:-translate-y-1 transition-all duration-300 shadow-inner">
+                    🌟
+                  </div>
+                  <h4 className="text-2xl font-bold text-white mb-3">Optimizat Fonduri Europene</h4>
+                  <p className="text-zinc-400 text-base md:text-lg leading-relaxed">
+                    Structură și jargon specifice ghidurilor de finanțare pentru a-ți crește șansele de a obține granturi nerambursabile.
+                  </p>
                 </div>
-                <h4 className="text-lg font-bold text-white mb-2">Optimizat Fonduri Europene</h4>
-                <p className="text-zinc-400 text-sm leading-relaxed">
-                  Structură și jargon specifice ghidurilor de finanțare pentru a-ți crește șansele de a obține granturi nerambursabile.
-                </p>
               </div>
             </div>
-
-            {/* Card 4: Formate corporate */}
-            <div className="bg-zinc-900/30 border border-zinc-800/80 rounded-2xl p-6 hover:border-emerald-500/30 hover:bg-emerald-950/5 transition-all duration-300 group flex flex-col justify-between">
-              <div>
-                <div className="w-12 h-12 rounded-xl bg-zinc-900 border border-zinc-800 text-emerald-400 flex items-center justify-center text-xl mb-4 group-hover:scale-110 transition-transform">
-                  💼
+            <div className="relative w-full h-full group">
+              <div className="absolute inset-0 bg-emerald-500/10 blur-[60px] rounded-full pointer-events-none group-hover:bg-emerald-500/20 transition-all duration-500"></div>
+              
+              <div className="bg-[#09090b]/60 backdrop-blur-3xl border border-zinc-800/80 rounded-[2rem] p-6 sm:p-8 shadow-[0_0_60px_rgba(16,185,129,0.05)] relative z-10 flex flex-col justify-between h-full ring-1 ring-white/5 hover:border-emerald-500/50 hover:shadow-[0_0_80px_rgba(16,185,129,0.15)] transition-all duration-300">
+                <div>
+                  
+                  <div className="flex gap-1.5 mb-6">
+                    <div className="w-2.5 h-2.5 rounded-full bg-zinc-700"></div>
+                    <div className="w-2.5 h-2.5 rounded-full bg-zinc-700"></div>
+                    <div className="w-2.5 h-2.5 rounded-full bg-zinc-700"></div>
+                  </div>
+                  
+                  <div className="w-12 h-12 rounded-xl bg-zinc-900 border border-zinc-800 text-emerald-400 flex items-center justify-center text-2xl mb-4 group-hover:scale-125 group-hover:rotate-12 group-hover:-translate-y-1 transition-all duration-300 shadow-inner">
+                    🚀
+                  </div>
+                  <h4 className="text-2xl font-bold text-white mb-3">Export Corporate</h4>
+                  <p className="text-zinc-400 text-base md:text-lg leading-relaxed">
+                    Descarcă broșura de prezentare PowerPoint (.pptx), raportul PDF sau documentul editabil Word (.doc).
+                  </p>
                 </div>
-                <h4 className="text-lg font-bold text-white mb-2">Export Corporate</h4>
-                <p className="text-zinc-400 text-sm leading-relaxed">
-                  Descarcă broșura de prezentare PowerPoint (.pptx), raportul PDF sau documentul editabil Word (.doc).
-                </p>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Previzualizare Plan / Mockup */}
+        {/* Previzualizare Plan / Mockup - 5 Taburi */}
         <div className="mt-24 w-full max-w-5xl relative z-10">
-          <h3 className="text-2xl font-black mb-10 tracking-tight uppercase text-zinc-400 text-center">
+          <h3 className="text-2xl md:text-3xl font-black mb-4 tracking-tighter bg-gradient-to-r from-zinc-400 via-emerald-400 to-zinc-400 bg-clip-text text-transparent animate-shimmer text-center">
             Cum arată un plan generat?
           </h3>
-          
-          <div className="relative border border-zinc-800/60 rounded-[2.5rem] bg-[#09090b] overflow-hidden p-8 md:p-12 shadow-2xl">
-            {/* Blur Glassmorphic Overlay CTA */}
-            <div className="absolute inset-0 bg-gradient-to-t from-[#09090b] via-[#09090b]/80 to-transparent z-20 flex flex-col items-center justify-end pb-12 md:pb-20 px-6">
-              <div className="bg-zinc-950/80 border border-zinc-800 backdrop-blur-md px-8 py-8 rounded-[2rem] text-center max-w-md shadow-2xl flex flex-col items-center gap-4">
-                <span className="text-3xl">✨</span>
-                <h4 className="text-xl font-bold text-white">Pregătit să generezi propriul plan?</h4>
-                <p className="text-zinc-400 text-sm">
-                  Durează mai puțin de un minut. Analiză automată completă, grafice și format premium.
-                </p>
-                <button 
-                  type="button"
-                  onClick={() => {
-                    window.scrollTo({ top: 0, behavior: "smooth" });
-                    setTimeout(() => inputRef.current?.focus(), 400);
-                  }}
-                  className="mt-2 bg-emerald-600 hover:bg-emerald-500 text-white font-black text-sm uppercase tracking-wider px-8 py-3.5 rounded-xl shadow-lg shadow-emerald-950/20 active:scale-95 transition-all cursor-pointer font-bold"
-                >
-                  Generează Planul Tău
-                </button>
-              </div>
-            </div>
+          <p className="text-xl lg:text-2xl font-medium text-zinc-400 text-center mb-10">Perspectivă</p>
 
-            {/* Blurred mockup content */}
-            <div className="opacity-30 filter blur-sm pointer-events-none select-none flex flex-col gap-8 text-left">
-              {/* Header */}
-              <div className="border-b border-zinc-800 pb-8">
-                <div className="h-8 bg-zinc-800 w-1/3 rounded-lg mb-3"></div>
-                <div className="h-4 bg-zinc-800 w-1/4 rounded-lg"></div>
-              </div>
-
-              {/* Descriere */}
-              <div className="bg-zinc-900/50 p-6 rounded-2xl border-l-4 border-emerald-500">
-                <div className="h-4 bg-zinc-800 w-full rounded-md mb-2.5"></div>
-                <div className="h-4 bg-zinc-800 w-11/12 rounded-md mb-2.5"></div>
-                <div className="h-4 bg-zinc-800 w-4/5 rounded-md"></div>
-              </div>
-
-              {/* SWOT 2x2 grid */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="bg-zinc-900/30 p-6 rounded-2xl border border-zinc-800">
-                  <div className="h-5 bg-zinc-800 w-1/4 rounded-md mb-4"></div>
-                  <div className="flex flex-col gap-2">
-                    <div className="h-3 bg-zinc-800 w-5/6 rounded-sm"></div>
-                    <div className="h-3 bg-zinc-800 w-4/5 rounded-sm"></div>
-                  </div>
-                </div>
-                <div className="bg-zinc-900/30 p-6 rounded-2xl border border-zinc-800">
-                  <div className="h-5 bg-zinc-800 w-1/4 rounded-md mb-4"></div>
-                  <div className="flex flex-col gap-2">
-                    <div className="h-3 bg-zinc-800 w-5/6 rounded-sm">
-                    </div>
-                    <div className="h-3 bg-zinc-800 w-4/5 rounded-sm">
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Buget bar chart mockup */}
-              <div className="bg-zinc-900/30 p-6 rounded-2xl border border-zinc-800">
-                <div className="h-5 bg-zinc-800 w-1/3 rounded-md mb-6"></div>
-                <div className="flex items-end gap-3 h-24 pt-4 px-4">
-                  <div className="bg-emerald-600/40 w-full h-3/5 rounded-t-sm"></div>
-                  <div className="bg-emerald-600/60 w-full h-4/5 rounded-t-sm"></div>
-                  <div className="bg-emerald-600/30 w-full h-2/5 rounded-t-sm"></div>
-                  <div className="bg-emerald-500 w-full h-full rounded-t-sm"></div>
-                </div>
-              </div>
-            </div>
-
+          {/* Tab buttons */}
+          <div className="flex flex-wrap justify-center gap-2 mb-8">
+            {[
+              { id: 0, label: '🎬 Preview cu tabs' },
+              { id: 1, label: '📊 Grafice animate' },
+              { id: 2, label: '🖥️ Typing live' },
+              { id: 4, label: '✨ Înainte & După' },
+            ].map((tab) => (
+              <button
+                key={tab.id}
+                type="button"
+                onClick={() => setMockupTab(tab.id)}
+                className={`px-4 py-2.5 rounded-xl text-sm font-bold transition-all duration-300 border ${
+                  mockupTab === tab.id
+                    ? 'bg-emerald-500/20 border-emerald-500/60 text-emerald-400 shadow-[0_0_20px_rgba(16,185,129,0.2)]'
+                    : 'bg-zinc-900/60 border-zinc-800/80 text-zinc-400 hover:border-zinc-700 hover:text-zinc-200'
+                }`}
+              >
+                {tab.label}
+              </button>
+            ))}
           </div>
+
+          {/* Tab 0: Preview cu tabs */}
+          {mockupTab === 0 && (
+            <div className="relative border border-zinc-800/60 rounded-[2.5rem] bg-[#09090b] overflow-hidden shadow-2xl ring-1 ring-white/5 min-h-[500px]">
+              {/* Tab bar */}
+              <div className="flex gap-1 border-b border-zinc-800/80 px-6 pt-5 pb-0 bg-zinc-900/40">
+                <div className="flex gap-2 mr-4 items-center pb-4">
+                  <div className="w-2.5 h-2.5 rounded-full bg-zinc-700"></div>
+                  <div className="w-2.5 h-2.5 rounded-full bg-zinc-700"></div>
+                  <div className="w-2.5 h-2.5 rounded-full bg-zinc-700"></div>
+                </div>
+                {['Rezumat', 'SWOT', 'Buget', 'Strategie'].map((t) => (
+                  <div 
+                    key={t} 
+                    onClick={() => setInnerMockupTab(t)}
+                    className={`cursor-pointer transition-all px-4 py-3 text-sm font-semibold rounded-t-xl border-t border-l border-r -mb-px ${
+                      innerMockupTab === t 
+                        ? 'bg-[#09090b] border-zinc-700/60 text-emerald-400' 
+                        : 'bg-transparent border-transparent text-zinc-500 hover:text-zinc-300 hover:bg-zinc-800/30'
+                    }`}
+                  >
+                    {t}
+                  </div>
+                ))}
+              </div>
+              
+              {/* Content */}
+              <div className="p-8 md:p-12 animate-in fade-in duration-300">
+                <div className="mb-8">
+                  <div className="text-emerald-500 font-bold text-sm tracking-wider uppercase mb-2">Exemplu generat</div>
+                  <h4 className="text-2xl font-black text-white">Cafenea de Specialitate "Urban Beans"</h4>
+                </div>
+                
+                {innerMockupTab === 'Rezumat' && (
+                  <div className="text-zinc-400 leading-relaxed text-lg animate-in slide-in-from-bottom-2">
+                    <p className="mb-4">
+                      <strong>Urban Beans</strong> este o cafenea de specialitate modernă, situată în inima centrului istoric. 
+                      Ne propunem să oferim nu doar cafea de origine prăjită local, ci și o experiență senzorială completă, 
+                      într-un mediu cu un design industrial minimalist.
+                    </p>
+                    <p>
+                      Misiunea noastră este să educăm consumatorii despre procesul de la bob la ceașcă, 
+                      sprijinind fermierii independenți prin comerț echitabil (Fairtrade).
+                    </p>
+                  </div>
+                )}
+
+                {innerMockupTab === 'SWOT' && (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 animate-in slide-in-from-bottom-2">
+                    {/* Puncte Tari */}
+                    <div className="cursor-pointer hover:scale-[1.02] transition-transform p-6 rounded-2xl border border-emerald-500/40 bg-emerald-500/10 hover:border-emerald-400/60">
+                      <h5 className="font-bold text-emerald-400 mb-3 text-lg">Puncte Tari</h5>
+                      <ul className="text-zinc-300 space-y-2 text-sm">
+                        <li>• Locație premium cu trafic pietonal intens</li>
+                        <li>• Baristi certificați SCA (Specialty Coffee Association)</li>
+                        <li>• Exclusivitate pentru un prăjitor local renumit</li>
+                      </ul>
+                    </div>
+                    {/* Puncte Slabe */}
+                    <div className="cursor-pointer hover:scale-[1.02] transition-transform p-6 rounded-2xl border border-red-500/30 bg-red-500/10 hover:border-red-400/60">
+                      <h5 className="font-bold text-red-400 mb-3 text-lg">Puncte Slabe</h5>
+                      <ul className="text-zinc-300 space-y-2 text-sm">
+                        <li>• Costuri mari de chirie în zona centrală</li>
+                        <li>• Lipsa unei istorii/notorietăți pe piață (brand nou)</li>
+                        <li>• Prețuri mai mari față de lanțurile comerciale</li>
+                      </ul>
+                    </div>
+                    {/* Oportunitati */}
+                    <div className="cursor-pointer hover:scale-[1.02] transition-transform p-6 rounded-2xl border border-blue-500/30 bg-blue-500/10 hover:border-blue-400/60">
+                      <h5 className="font-bold text-blue-400 mb-3 text-lg">Oportunități</h5>
+                      <ul className="text-zinc-300 space-y-2 text-sm">
+                        <li>• Creșterea cererii pentru cafea de specialitate</li>
+                        <li>• Parteneriate B2B cu birourile din zonă</li>
+                        <li>• Lansarea unui abonament lunar pentru boabe de cafea</li>
+                      </ul>
+                    </div>
+                    {/* Amenintari */}
+                    <div className="cursor-pointer hover:scale-[1.02] transition-transform p-6 rounded-2xl border border-orange-500/30 bg-orange-500/10 hover:border-orange-400/60">
+                      <h5 className="font-bold text-orange-400 mb-3 text-lg">Amenințări</h5>
+                      <ul className="text-zinc-300 space-y-2 text-sm">
+                        <li>• Fluctuația prețului cafelei verzi pe bursa globală</li>
+                        <li>• Deschiderea unei noi francize majore în apropiere</li>
+                        <li>• Reticența clienților tradiționaliști la cafeaua acidă/fructată</li>
+                      </ul>
+                    </div>
+                  </div>
+                )}
+
+                {innerMockupTab === 'Buget' && (
+                  <div className="animate-in slide-in-from-bottom-2 bg-zinc-900/50 rounded-2xl p-6 border border-zinc-800">
+                    <h5 className="font-bold text-emerald-400 mb-6 text-lg">Buget de Investiții Inițiale</h5>
+                    <div className="space-y-4">
+                      <div className="flex justify-between items-center pb-3 border-b border-zinc-800">
+                        <span className="text-zinc-400">Echipamente (Espressor, Râșnițe)</span>
+                        <span className="font-mono text-zinc-200">62.000 lei</span>
+                      </div>
+                      <div className="flex justify-between items-center pb-3 border-b border-zinc-800">
+                        <span className="text-zinc-400">Amenajare locație & Design</span>
+                        <span className="font-mono text-zinc-200">85.000 lei</span>
+                      </div>
+                      <div className="flex justify-between items-center pb-3 border-b border-zinc-800">
+                        <span className="text-zinc-400">Stoc inițial marfă & Consumabile</span>
+                        <span className="font-mono text-zinc-200">17.000 lei</span>
+                      </div>
+                      <div className="flex justify-between items-center pt-2">
+                        <span className="text-zinc-300 font-bold">Total Investiție Estimată</span>
+                        <span className="font-mono text-emerald-400 font-bold text-xl">164.000 lei</span>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {innerMockupTab === 'Strategie' && (
+                  <div className="animate-in slide-in-from-bottom-2 text-zinc-400 space-y-6">
+                    <div className="flex gap-4 items-start">
+                      <div className="w-8 h-8 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center font-bold shrink-0">1</div>
+                      <div>
+                        <h6 className="text-white font-bold mb-1">Pre-lansare & Teasing</h6>
+                        <p className="text-sm">Campanie Social Media axată pe procesul de amenajare, prezentarea echipei de baristi și dezvăluirea prăjitorului partener.</p>
+                      </div>
+                    </div>
+                    <div className="flex gap-4 items-start">
+                      <div className="w-8 h-8 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center font-bold shrink-0">2</div>
+                      <div>
+                        <h6 className="text-white font-bold mb-1">Soft Opening</h6>
+                        <p className="text-sm">O săptămână dedicată exclusiv comunității locale și influencerilor din nișa culinară, cu un meniu limitat la 50% reducere.</p>
+                      </div>
+                    </div>
+                    <div className="flex gap-4 items-start">
+                      <div className="w-8 h-8 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center font-bold shrink-0">3</div>
+                      <div>
+                        <h6 className="text-white font-bold mb-1">Fidelizare B2B</h6>
+                        <p className="text-sm">Pachete speciale pentru angajații birourilor din proximitate: badge-uri de companie care oferă 15% discount permanent.</p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+              </div>
+            </div>
+          )}
+
+          {/* Tab 1: Grafice animate */}
+          {mockupTab === 1 && (
+            <div className="relative border border-zinc-800/60 rounded-[2.5rem] bg-[#09090b] overflow-hidden shadow-2xl ring-1 ring-white/5 p-8 md:p-12 min-h-[420px] animate-in fade-in duration-300">
+              <div>
+                <h4 className="text-xl font-bold text-white mb-2">Proiecții Financiare: Anul 1</h4>
+                <p className="text-zinc-400 mb-8 text-sm">Estimare a veniturilor și a distribuției costurilor operaționale (în RON).</p>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+                  {/* Bar Chart Section */}
+                  <div className="bg-zinc-900/50 rounded-2xl border border-zinc-800 p-6 flex flex-col justify-between">
+                    <h5 className="text-emerald-400 font-bold mb-6 text-sm uppercase tracking-wider">Evoluție Venituri</h5>
+                    <div className="grid grid-cols-4 gap-4 h-48 items-end">
+                      {[
+                        { val: 30, label: 'T1' },
+                        { val: 55, label: 'T2' },
+                        { val: 80, label: 'T3' },
+                        { val: 95, label: 'T4' }
+                      ].map((bar, i) => (
+                        <div key={i} className="flex flex-col items-center gap-3 h-full justify-end group">
+                          <span className="text-xs text-zinc-500 group-hover:text-white transition-colors opacity-0 group-hover:opacity-100 absolute -translate-y-8 animate-float-number" style={{animationDelay: `${i * 150 + 500}ms`}}>{bar.val * 5}k lei</span>
+                          <div className="w-full bg-zinc-800 rounded-t-xl overflow-hidden flex items-end shadow-inner relative group-hover:bg-zinc-700 transition-colors" style={{ height: '80%' }}>
+                            <div 
+                              className={`w-full rounded-t-xl animate-scale-y ${i===3?'bg-emerald-400':i===2?'bg-emerald-500':'bg-emerald-600/80'}`} 
+                              style={{ height: `${bar.val}%`, animationDelay: `${i * 150}ms` }}
+                            ></div>
+                          </div>
+                          <div className="text-sm font-bold text-zinc-400">{bar.label}</div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Horizontal Bars & Donut */}
+                  <div className="flex flex-col gap-6">
+                    <div className="flex-1 bg-zinc-900/50 rounded-2xl border border-zinc-800 p-6">
+                      <h5 className="text-orange-400 font-bold mb-4 text-sm uppercase tracking-wider">Distribuție Costuri</h5>
+                      {[
+                        { label: 'Salarii', w: 85, color: 'bg-orange-500' },
+                        { label: 'Chirie & Utilități', w: 60, color: 'bg-orange-400/80' },
+                        { label: 'Stoc Marfă', w: 45, color: 'bg-orange-300/60' },
+                        { label: 'Marketing', w: 25, color: 'bg-orange-200/40' },
+                      ].map((item, i) => (
+                        <div key={i} className="flex items-center gap-4 mb-3 last:mb-0 group cursor-pointer">
+                          <div className="w-28 text-xs font-semibold text-zinc-400 group-hover:text-zinc-200 transition-colors truncate">{item.label}</div>
+                          <div className="flex-1 bg-zinc-800 rounded-full h-3 overflow-hidden shadow-inner">
+                            <div className={`${item.color} h-full rounded-full animate-scale-x group-hover:brightness-125`} style={{ width: `${item.w}%`, animationDelay: `${i * 150 + 400}ms` }}></div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                    
+                    <div className="bg-zinc-900/50 rounded-2xl border border-zinc-800 p-6 flex items-center justify-between">
+                      <div>
+                        <h5 className="text-blue-400 font-bold mb-1 text-sm uppercase tracking-wider">Marjă Profit</h5>
+                        <p className="text-3xl font-black text-white">24<span className="text-lg text-zinc-500">%</span></p>
+                      </div>
+                      <div className="w-24 h-24 rounded-full border-[8px] border-zinc-800 relative flex items-center justify-center shrink-0 shadow-[0_0_20px_rgba(59,130,246,0.1)]">
+                        <div className="absolute inset-0 rounded-full animate-spin-slow" style={{ background: 'conic-gradient(#3b82f6 0% 24%, transparent 24% 100%)' }}></div>
+                        <div className="w-16 h-16 bg-[#09090b] rounded-full z-10 flex items-center justify-center">
+                          <span className="text-blue-400 text-sm font-bold">T4</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Tab 2: Typing live */}
+          {mockupTab === 2 && (
+            <div className="relative border border-zinc-800/60 rounded-[2.5rem] bg-[#09090b] overflow-hidden shadow-2xl ring-1 ring-white/5 p-8 md:p-12 min-h-[420px] font-mono animate-in fade-in duration-300">
+              <div className="text-sm leading-loose">
+                <div className="text-emerald-400 mb-2"># Plan de Afaceri — Cafenea de Specialitate "Urban Beans"</div>
+                <div className="text-zinc-400">{'>'} Generând proiecții financiare (în LEI)...</div>
+                <div className="text-zinc-300 mt-4 pl-4 border-l-2 border-emerald-500/50 animate-in slide-in-from-left-2 duration-500">
+                  <div className="text-emerald-400 mb-1">## Venituri Estimate</div>
+                  <div className="text-zinc-400">— Trimestrul 1: 150.000 lei (creștere organică)</div>
+                  <div className="text-zinc-400">— Trimestrul 2: 275.000 lei (sezon cald)</div>
+                  <div className="text-zinc-400">— Trimestrul 3: 400.000 lei (B2B stabilizat)<span className="animate-pulse">█</span></div>
+                </div>
+                <div className="mt-4 pl-4 border-l-2 border-red-500/40 animate-in slide-in-from-left-2 duration-700 delay-150">
+                  <div className="text-red-400 mb-1">## Costuri Operaționale</div>
+                  <div className="text-zinc-500">— Salarii: 35.000 lei / lună</div>
+                  <div className="text-zinc-500">— Chirie: 15.000 lei / lună</div>
+                </div>
+                <div className="mt-4 pl-4 border-l-2 border-blue-500/40 animate-in slide-in-from-left-2 duration-1000 delay-300">
+                  <div className="text-blue-400 mb-1">## Stadiu Generare</div>
+                  <div className="flex flex-col gap-3 mt-4">
+                    <div className="flex items-center gap-4 text-xs font-mono">
+                      <div className="w-36 text-zinc-400">Analiză Competiție</div>
+                      <div className="flex-1 bg-zinc-800/50 h-1.5 rounded-full overflow-hidden">
+                        <div className="bg-emerald-500 w-full h-full"></div>
+                      </div>
+                      <div className="w-16 text-right text-emerald-400">Complet</div>
+                    </div>
+                    <div className="flex items-center gap-4 text-xs font-mono">
+                      <div className="w-36 text-zinc-400">Strategie Prețuri</div>
+                      <div className="flex-1 bg-zinc-800/50 h-1.5 rounded-full overflow-hidden">
+                        <div className="bg-yellow-500 w-[70%] h-full"></div>
+                      </div>
+                      <div className="w-16 text-right text-yellow-400">70%</div>
+                    </div>
+                    <div className="flex items-center gap-4 text-xs font-mono">
+                      <div className="w-36 text-zinc-400">Calcul ROI</div>
+                      <div className="flex-1 bg-zinc-800/50 h-1.5 rounded-full overflow-hidden">
+                        <div className="bg-blue-500 w-[40%] h-full"></div>
+                      </div>
+                      <div className="w-16 text-right text-blue-400 flex items-center justify-end gap-1">40% <span className="animate-pulse">█</span></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Tab 4: Înainte & După */}
+          {mockupTab === 4 && (
+            <div className="relative border border-zinc-800/60 rounded-[2.5rem] bg-[#09090b] overflow-hidden shadow-2xl ring-1 ring-white/5 min-h-[420px]">
+              <div className="grid grid-cols-2 h-full min-h-[360px]">
+                {/* Înainte */}
+                <div className="p-8 border-r border-zinc-800/60 opacity-60">
+                  <div className="text-zinc-500 text-xs font-bold uppercase tracking-widest mb-4">Înainte</div>
+                  <div className="bg-zinc-900 rounded-xl p-4 border border-zinc-800 text-zinc-400 text-sm leading-relaxed font-mono">
+                    "Vreau să deschid o cafenea. Am experiență de 5 ani în domeniu. Nu știu de unde să încep cu planul de afaceri."
+                  </div>
+                </div>
+                {/* După */}
+                <div className="p-8 opacity-50">
+                  <div className="text-emerald-400 text-xs font-bold uppercase tracking-widest mb-4">După ✨</div>
+                  <div className="flex flex-col gap-2">
+                    {['📊 Analiză SWOT completă', '💰 Buget detaliat pe 12 luni', '🎯 Strategie de piață', '🇪🇺 Eligibilitate fonduri UE', '📄 Export PDF + PPTX'].map((item) => (
+                      <div key={item} className="flex items-center gap-2 bg-emerald-500/10 border border-emerald-500/20 rounded-lg px-3 py-2 text-xs text-emerald-300 font-medium">{item}</div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+              {/* Divider line */}
+              <div className="absolute top-0 bottom-0 left-1/2 w-px bg-gradient-to-b from-transparent via-emerald-500/50 to-transparent z-10"></div>
+            </div>
+          )}
+
         </div>
-      </>
+            </>
     )}
 
       {isEditing && result ? (

@@ -144,6 +144,7 @@ export default function Home() {
   
   const [user, setUser] = useState<User | null>(null);
   const [isAuthLoading, setIsAuthLoading] = useState(true);
+  const [authError, setAuthError] = useState<string | null>(null);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
@@ -154,11 +155,13 @@ export default function Home() {
   }, []);
 
   const handleGoogleLogin = async () => {
+    setAuthError(null);
     const provider = new GoogleAuthProvider();
     try {
       await signInWithPopup(auth, provider);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Eroare la autentificare:", error);
+      setAuthError(error.message || "A apărut o eroare necunoscută.");
     }
   };
   
@@ -579,6 +582,12 @@ export default function Home() {
             </svg>
             Continuă cu Google
           </button>
+          
+          {authError && (
+            <div className="mt-6 w-full p-4 bg-red-500/10 border border-red-500/20 rounded-xl">
+              <p className="text-red-400 text-sm font-medium text-center break-words">{authError}</p>
+            </div>
+          )}
         </div>
       </div>
     );

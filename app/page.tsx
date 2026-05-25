@@ -958,7 +958,7 @@ export default function Home() {
               <div className="bg-zinc-900/50 p-8 border-l-8 border-emerald-500 flex flex-col gap-6 rounded-3xl flex-1 overflow-hidden">
                 <h3 className="text-4xl font-black text-white uppercase tracking-widest pb-4 border-b-2 border-zinc-800 shrink-0">Puncte Tari (Strengths)</h3>
                 <div className="grid grid-cols-2 gap-x-12 gap-y-6 overflow-hidden content-start flex-1">
-                  {result.analiza_swot?.puncte_tari?.slice(0, 4).map((item: any, idx: number) => (
+                  {result.analiza_swot?.puncte_tari?.slice(0, 8).map((item: any, idx: number) => (
                     <div key={idx} className="flex flex-col gap-2">
                       <h4 className="text-2xl font-bold text-emerald-400 leading-snug">✦ {item.titlu || item}</h4>
                       <p className="text-lg text-zinc-300 leading-relaxed max-w-lg">{item.explicatie_tehnica}</p>
@@ -977,7 +977,7 @@ export default function Home() {
               <div className="bg-zinc-900/50 p-8 border-l-8 border-[#ff4d6d] flex flex-col gap-6 rounded-3xl flex-1 overflow-hidden">
                 <h3 className="text-4xl font-black text-white uppercase tracking-widest pb-4 border-b-2 border-zinc-800 shrink-0">Slăbiciuni (Weaknesses)</h3>
                 <div className="grid grid-cols-2 gap-x-12 gap-y-6 overflow-hidden content-start flex-1">
-                  {result.analiza_swot?.puncte_slabe?.slice(0, 4).map((item: any, idx: number) => (
+                  {result.analiza_swot?.puncte_slabe?.slice(0, 8).map((item: any, idx: number) => (
                     <div key={idx} className="flex flex-col gap-2">
                       <h4 className="text-2xl font-bold text-[#ff4d6d] leading-snug">✦ {item.titlu || item}</h4>
                       <p className="text-lg text-zinc-300 leading-relaxed max-w-lg">{item.explicatie_tehnica}</p>
@@ -996,7 +996,7 @@ export default function Home() {
               <div className="bg-zinc-900/50 p-8 border-l-8 border-blue-500 flex flex-col gap-6 rounded-3xl flex-1 overflow-hidden">
                 <h3 className="text-4xl font-black text-white uppercase tracking-widest pb-4 border-b-2 border-zinc-800 shrink-0">Oportunități (Opportunities)</h3>
                 <div className="grid grid-cols-2 gap-x-12 gap-y-6 overflow-hidden content-start flex-1">
-                  {result.analiza_swot?.oportunitati?.slice(0, 4).map((item: any, idx: number) => (
+                  {result.analiza_swot?.oportunitati?.slice(0, 8).map((item: any, idx: number) => (
                     <div key={idx} className="flex flex-col gap-2">
                       <h4 className="text-2xl font-bold text-blue-400 leading-snug">✦ {item.titlu || item}</h4>
                       <p className="text-lg text-zinc-300 leading-relaxed max-w-lg">{item.explicatie_tehnica}</p>
@@ -1015,7 +1015,7 @@ export default function Home() {
               <div className="bg-zinc-900/50 p-8 border-l-8 border-orange-500 flex flex-col gap-6 rounded-3xl flex-1 overflow-hidden">
                 <h3 className="text-4xl font-black text-white uppercase tracking-widest pb-4 border-b-2 border-zinc-800 shrink-0">Amenințări (Threats)</h3>
                 <div className="grid grid-cols-2 gap-x-12 gap-y-6 overflow-hidden content-start flex-1">
-                  {result.analiza_swot?.amenintari?.slice(0, 4).map((item: any, idx: number) => (
+                  {result.analiza_swot?.amenintari?.slice(0, 8).map((item: any, idx: number) => (
                     <div key={idx} className="flex flex-col gap-2">
                       <h4 className="text-2xl font-bold text-orange-400 leading-snug">✦ {item.titlu || item}</h4>
                       <p className="text-lg text-zinc-300 leading-relaxed max-w-lg">{item.explicatie_tehnica}</p>
@@ -1035,7 +1035,7 @@ export default function Home() {
               <div className="bg-zinc-900/50 p-8 border-l-8 border-emerald-500 flex flex-col gap-6 rounded-3xl flex-1 overflow-hidden">
                 <h3 className="text-4xl font-black text-white uppercase tracking-widest pb-4 border-b-2 border-zinc-800 shrink-0">Funcționalități Cheie</h3>
                 <div className="grid grid-cols-2 gap-x-12 gap-y-6 overflow-hidden content-start flex-1">
-                  {result.functionalitati_cheie.slice(0, 4).map((item: any, idx: number) => (
+                  {result.functionalitati_cheie.slice(0, 8).map((item: any, idx: number) => (
                     <div key={idx} className="flex flex-col gap-2">
                       <h4 className="text-2xl font-bold text-emerald-400 leading-snug">✦ {item.titlu}</h4>
                       <p className="text-lg text-zinc-300 leading-relaxed max-w-lg">{item.descriere}</p>
@@ -1053,7 +1053,7 @@ export default function Home() {
                 <h2 className="text-5xl font-black font-sans uppercase tracking-widest text-emerald-400">Buget Necesar și Justificare</h2>
               </div>
               <div className="grid grid-cols-2 gap-x-12 gap-y-8 font-sans items-start content-start overflow-hidden">
-                {result.buget_detaliat?.slice(0, 4).map((b: any, i: number) => (
+                {result.buget_detaliat?.slice(0, 8).map((b: any, i: number) => (
                   <div key={i} className="flex flex-col gap-3 bg-zinc-900/50 p-6 border-l-4 border-emerald-500 rounded-2xl h-[140px]">
                     <div className="flex justify-between items-start gap-4">
                       <h4 className="text-2xl font-bold text-zinc-100 flex-1 leading-tight uppercase font-sans tracking-wide line-clamp-1">{b.item}</h4>
@@ -1119,7 +1119,7 @@ export default function Home() {
               <div className="bg-emerald-50/50 p-8 border-l-8 border-emerald-500 flex flex-col gap-6 flex-1 rounded-2xl overflow-hidden">
                 <h3 className="text-4xl font-black text-emerald-800 uppercase tracking-widest pb-4 border-b-2 border-emerald-200 shrink-0">Puncte Tari</h3>
                 <div className="grid grid-cols-2 gap-x-12 gap-y-6 overflow-hidden content-start flex-1">
-                  {result.analiza_swot?.puncte_tari?.slice(0, 4).map((item: any, idx: number) => (
+                  {result.analiza_swot?.puncte_tari?.slice(0, 8).map((item: any, idx: number) => (
                     <div key={idx} className="flex flex-col gap-2">
                       <h4 className="text-2xl font-bold text-emerald-700 leading-snug">✦ {item.titlu || item}</h4>
                       <p className="text-lg text-gray-600 leading-relaxed max-w-lg">{item.explicatie_tehnica}</p>
@@ -1138,7 +1138,7 @@ export default function Home() {
               <div className="bg-rose-50/50 p-8 border-l-8 border-[#ff4d6d] flex flex-col gap-6 flex-1 rounded-2xl overflow-hidden">
                 <h3 className="text-4xl font-black text-rose-900 uppercase tracking-widest pb-4 border-b-2 border-rose-200 shrink-0">Slăbiciuni</h3>
                 <div className="grid grid-cols-2 gap-x-12 gap-y-6 overflow-hidden content-start flex-1">
-                  {result.analiza_swot?.puncte_slabe?.slice(0, 4).map((item: any, idx: number) => (
+                  {result.analiza_swot?.puncte_slabe?.slice(0, 8).map((item: any, idx: number) => (
                     <div key={idx} className="flex flex-col gap-2">
                       <h4 className="text-2xl font-bold text-[#ff4d6d] leading-snug">✦ {item.titlu || item}</h4>
                       <p className="text-lg text-gray-600 leading-relaxed max-w-lg">{item.explicatie_tehnica}</p>
@@ -1157,7 +1157,7 @@ export default function Home() {
               <div className="bg-blue-50/50 p-8 border-l-8 border-blue-500 flex flex-col gap-6 flex-1 rounded-2xl overflow-hidden">
                 <h3 className="text-4xl font-black text-blue-900 uppercase tracking-widest pb-4 border-b-2 border-blue-200 shrink-0">Oportunități</h3>
                 <div className="grid grid-cols-2 gap-x-12 gap-y-6 overflow-hidden content-start flex-1">
-                  {result.analiza_swot?.oportunitati?.slice(0, 4).map((item: any, idx: number) => (
+                  {result.analiza_swot?.oportunitati?.slice(0, 8).map((item: any, idx: number) => (
                     <div key={idx} className="flex flex-col gap-2">
                       <h4 className="text-2xl font-bold text-blue-600 leading-snug">✦ {item.titlu || item}</h4>
                       <p className="text-lg text-gray-600 leading-relaxed max-w-lg">{item.explicatie_tehnica}</p>
@@ -1176,7 +1176,7 @@ export default function Home() {
               <div className="bg-orange-50/50 p-8 border-l-8 border-orange-500 flex flex-col gap-6 flex-1 rounded-2xl overflow-hidden">
                 <h3 className="text-4xl font-black text-orange-900 uppercase tracking-widest pb-4 border-b-2 border-orange-200 shrink-0">Amenințări</h3>
                 <div className="grid grid-cols-2 gap-x-12 gap-y-6 overflow-hidden content-start flex-1">
-                  {result.analiza_swot?.amenintari?.slice(0, 4).map((item: any, idx: number) => (
+                  {result.analiza_swot?.amenintari?.slice(0, 8).map((item: any, idx: number) => (
                     <div key={idx} className="flex flex-col gap-2">
                       <h4 className="text-2xl font-bold text-orange-600 leading-snug">✦ {item.titlu || item}</h4>
                       <p className="text-lg text-gray-600 leading-relaxed max-w-lg">{item.explicatie_tehnica}</p>
@@ -1196,7 +1196,7 @@ export default function Home() {
               <div className="bg-emerald-50/50 p-8 border-l-8 border-emerald-500 flex flex-col gap-6 flex-1 rounded-2xl overflow-hidden">
                 <h3 className="text-4xl font-black text-emerald-900 uppercase tracking-widest pb-4 border-b-2 border-emerald-200 shrink-0">Funcționalități Cheie</h3>
                 <div className="grid grid-cols-2 gap-x-12 gap-y-6 overflow-hidden content-start flex-1">
-                  {result.functionalitati_cheie.slice(0, 4).map((item: any, idx: number) => (
+                  {result.functionalitati_cheie.slice(0, 8).map((item: any, idx: number) => (
                     <div key={idx} className="flex flex-col gap-2">
                        <h4 className="text-2xl font-bold text-emerald-700 leading-snug">✦ {item.titlu}</h4>
                        <p className="text-lg text-gray-600 leading-relaxed max-w-lg">{item.descriere}</p>
@@ -1214,7 +1214,7 @@ export default function Home() {
                 <h2 className="text-5xl font-black font-sans uppercase tracking-widest text-emerald-800">Buget Necesar</h2>
               </div>
               <div className="grid grid-cols-2 gap-x-12 gap-y-8 font-sans items-start content-start overflow-hidden">
-                {result.buget_detaliat?.slice(0, 4).map((b: any, i: number) => (
+                {result.buget_detaliat?.slice(0, 8).map((b: any, i: number) => (
                   <div key={i} className="flex flex-col gap-3 bg-emerald-50/50 p-6 border-l-4 border-emerald-500 rounded-xl h-[140px]">
                     <div className="flex justify-between items-start gap-4">
                       <h4 className="text-2xl font-bold text-emerald-900 flex-1 leading-tight uppercase tracking-wide line-clamp-1">{b.item}</h4>

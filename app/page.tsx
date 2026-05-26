@@ -32,6 +32,8 @@ export default function Home() {
   const [showPricingModal, setShowPricingModal] = useState(false);
 
   const isPlanPaid = subscriptionActive || (result && unlockedPlans.includes(result.nume)) || isPaid;
+  const isStudioPaid = subscriptionActive || euFundsUnlocked || isPaid;
+  const isContentCopyProtected = !isPlanPaid && !isStudioPaid;
   const [animatedPlaceholder, setAnimatedPlaceholder] = useState("");
 
   useEffect(() => {
@@ -81,6 +83,10 @@ export default function Home() {
   }, []);
 
   const startEditing = () => {
+    if (!isStudioPaid) {
+      setShowPricingModal(true);
+      return;
+    }
     setBackupResult(JSON.parse(JSON.stringify(result)));
     setIsEditing(true);
   };
@@ -92,6 +98,13 @@ export default function Home() {
 
   const saveEditing = () => {
     setIsEditing(false);
+  };
+
+  const handleContextMenu = (e: React.MouseEvent) => {
+    if (isContentCopyProtected) {
+      e.preventDefault();
+      alert("Copierea și click-dreapta sunt dezactivate în previzualizarea protejată. Deblochează planul pentru acces complet.");
+    }
   };
 
   const handleAiEdit = async (action: string, customStyle?: string) => {
@@ -233,11 +246,12 @@ export default function Home() {
 
             if (!processedSessions.includes(sessionId)) {
               if (tier === "standard") {
+                const planToUnlock = data.planName || result?.nume || "Plan de Afaceri";
                 await setDoc(userRef, {
-                  credits: increment(3),
+                  unlockedPlans: arrayUnion(planToUnlock),
                   processedSessions: arrayUnion(sessionId)
                 }, { merge: true });
-                alert("Plată confirmată! S-au adăugat 3 credite de descărcare în contul tău.");
+                alert(`Plată confirmată! Planul "${planToUnlock}" a fost deblocat pentru descărcare.`);
               } else if (tier === "eu-funds") {
                 await setDoc(userRef, {
                   euFundsUnlocked: true,
@@ -293,6 +307,23 @@ export default function Home() {
       }
     }
   }, [result]);
+
+  // Prevenire copiere conținut dacă este protejat
+  useEffect(() => {
+    const handleCopyCut = (e: ClipboardEvent) => {
+      if (isContentCopyProtected) {
+        e.preventDefault();
+        alert("Previzualizare protejată. Achiziționează Pachetul Standard (39 lei) pentru a descărca documentele sau Pachetul Studio (99 lei) pentru a le edita și copia.");
+      }
+    };
+
+    document.addEventListener("copy", handleCopyCut);
+    document.addEventListener("cut", handleCopyCut);
+    return () => {
+      document.removeEventListener("copy", handleCopyCut);
+      document.removeEventListener("cut", handleCopyCut);
+    };
+  }, [isContentCopyProtected]);
 
   const handleGoogleLogin = async () => {
     setAuthError(null);
@@ -885,9 +916,17 @@ export default function Home() {
                 <span className="bg-emerald-500/20 border border-emerald-500/40 text-emerald-400 px-2 py-0.5 rounded-full font-black uppercase tracking-wider">
                   PRO
                 </span>
+              ) : euFundsUnlocked ? (
+                <span className="bg-amber-500/20 border border-amber-500/40 text-amber-300 px-2 py-0.5 rounded-full font-black uppercase tracking-wider">
+                  STUDIO &amp; FONDURI
+                </span>
+              ) : isPlanPaid ? (
+                <span className="bg-blue-500/20 border border-blue-500/40 text-blue-400 px-2 py-0.5 rounded-full font-black uppercase tracking-wider">
+                  STANDARD DEBLOCAT
+                </span>
               ) : (
                 <span className="bg-zinc-800 border border-zinc-700 text-zinc-300 px-2 py-0.5 rounded-full font-bold">
-                  Credite: {credits}
+                  PREVIZUALIZARE
                 </span>
               )}
               {!subscriptionActive && (
@@ -895,7 +934,7 @@ export default function Home() {
                   onClick={() => setShowPricingModal(true)}
                   className="text-emerald-400 hover:text-emerald-300 transition-colors font-bold underline cursor-pointer"
                 >
-                  Cumpără mai multe
+                  Vezi Planuri
                 </button>
               )}
               <button 
@@ -1586,7 +1625,7 @@ export default function Home() {
                🔄 Altă idee
             </button>
             <button onClick={startEditing} className="w-full md:flex-1 h-10 bg-emerald-700 hover:bg-emerald-600 text-white px-4 rounded-xl font-bold transition-all shadow-xl border border-emerald-600 flex items-center justify-center gap-2 text-xs whitespace-nowrap">
-               ✏️ Studio Editare
+               ✏️ Studio Editare {!isStudioPaid && "🔒"}
             </button>
 
             <div className="w-full md:w-auto flex flex-col md:flex-row gap-4 items-center justify-between">
@@ -1636,7 +1675,26 @@ export default function Home() {
             </div>
           </div>
 
-          <div ref={brochureRef} className={`${isEditing ? 'hidden' : 'block'} bg-[#09090b] border border-zinc-800 p-8 md:p-12 rounded-[2.5rem] shadow-2xl transition-all duration-500`}>
+          <div 
+            ref={brochureRef} 
+            className={`${isEditing ? 'hidden' : 'block'} bg-[#09090b] border border-zinc-800 p-8 md:p-12 rounded-[2.5rem] shadow-2xl transition-all duration-500 relative ${isContentCopyProtected ? 'select-none' : ''}`}
+            onContextMenu={handleContextMenu}
+          >
+            {isContentCopyProtected && (
+              <div className="bg-amber-500/10 border border-amber-500/20 text-amber-400 text-xs sm:text-sm font-semibold p-4 rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-4 mb-8">
+                <span className="flex items-center gap-2 text-left">
+                  <span>🔒</span>
+                  <span>Previzualizare protejată. Achiziționează Pachetul Standard (39 lei) pentru a descărca documentele sau Pachetul Studio (99 lei) pentru a edita și copia textul.</span>
+                </span>
+                <button 
+                  onClick={() => setShowPricingModal(true)}
+                  className="bg-amber-500 hover:bg-amber-600 text-black px-4 py-1.5 rounded-xl font-bold transition-all text-xs whitespace-nowrap cursor-pointer hover:scale-105"
+                >
+                  Deblochează
+                </button>
+              </div>
+            )}
+
             <div className="pdf-section mt-12 mb-10 border-b border-zinc-800 pb-10">
               <h2 className="text-6xl font-black mb-4 tracking-tight not-italic text-white">
                 {result.nume}
@@ -2061,6 +2119,7 @@ export default function Home() {
         userId={user?.uid || ""}
         userEmail={user?.email || ""}
         currency={currency}
+        planName={result?.nume || "Plan de Afaceri"}
       />
     </main>
   );

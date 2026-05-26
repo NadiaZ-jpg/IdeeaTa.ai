@@ -1,19 +1,20 @@
 import { useState } from "react";
-
+ 
 interface PricingModalProps {
   isOpen: boolean;
   onClose: () => void;
   userId: string;
   userEmail: string | null;
   currency: string; // "LEI" or "EUR"
+  planName?: string;
 }
-
-export function PricingModal({ isOpen, onClose, userId, userEmail, currency }: PricingModalProps) {
+ 
+export function PricingModal({ isOpen, onClose, userId, userEmail, currency, planName }: PricingModalProps) {
   const [loadingTier, setLoadingTier] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-
+ 
   if (!isOpen) return null;
-
+ 
   const handleCheckout = async (tier: string) => {
     setLoadingTier(tier);
     setError(null);
@@ -26,9 +27,10 @@ export function PricingModal({ isOpen, onClose, userId, userEmail, currency }: P
           currency,
           userId,
           email: userEmail,
+          planName: tier === "standard" ? planName : undefined,
         }),
       });
-
+ 
       const data = await res.json();
       if (data.url) {
         window.location.href = data.url;
@@ -41,15 +43,15 @@ export function PricingModal({ isOpen, onClose, userId, userEmail, currency }: P
       setLoadingTier(null);
     }
   };
-
+ 
   const getPriceDisplay = (tier: string) => {
     if (currency === "EUR") {
-      if (tier === "standard") return "10 EUR";
-      if (tier === "eu-funds") return "30 EUR";
+      if (tier === "standard") return "8 EUR";
+      if (tier === "eu-funds") return "20 EUR";
       if (tier === "pro") return "20 EUR";
     } else {
-      if (tier === "standard") return "49 RON";
-      if (tier === "eu-funds") return "149 RON";
+      if (tier === "standard") return "39 RON";
+      if (tier === "eu-funds") return "99 RON";
       if (tier === "pro") return "99 RON";
     }
     return "";
@@ -109,15 +111,15 @@ export function PricingModal({ isOpen, onClose, userId, userEmail, currency }: P
               <ul className="space-y-3 mb-8 text-sm text-zinc-400">
                 <li className="flex items-start gap-2.5">
                   <span className="text-emerald-500 font-bold">✓</span>
-                  <span>Descărcare completă <strong>3 planuri</strong></span>
+                  <span>Descărcare plan curent de afaceri</span>
                 </li>
                 <li className="flex items-start gap-2.5">
                   <span className="text-emerald-500 font-bold">✓</span>
-                  <span>Formate PDF, PowerPoint, Word</span>
+                  <span>Toate cele 3 formate: PDF, PPTX, Word</span>
                 </li>
                 <li className="flex items-start gap-2.5">
                   <span className="text-emerald-500 font-bold">✓</span>
-                  <span>Editare de bază în Studio</span>
+                  <span>Calitate maximă pentru printare</span>
                 </li>
                 <li className="flex items-start gap-2.5">
                   <span className="text-emerald-500 font-bold">✓</span>
@@ -139,15 +141,15 @@ export function PricingModal({ isOpen, onClose, userId, userEmail, currency }: P
             </button>
           </div>
 
-          {/* Tier 2: EU Funds (Popular One-time) */}
+          {/* Tier 2: Studio + EU Funds */}
           <div className="bg-zinc-950/70 border border-amber-500/30 rounded-3xl p-6 flex flex-col justify-between hover:border-amber-500/50 transition-all group relative shadow-[0_0_30px_rgba(245,158,11,0.05)]">
             <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-amber-500 text-black px-4 py-1 rounded-full text-[10px] font-black uppercase tracking-widest whitespace-nowrap">
-              Optimizat Fonduri
+              Studio &amp; Fonduri
             </div>
             
             <div>
               <div className="flex justify-between items-start mb-4 mt-2">
-                <span className="text-sm font-bold text-amber-300">Pachet Fonduri Europene</span>
+                <span className="text-sm font-bold text-amber-300">Pachet Editare + Fonduri</span>
                 <span className="text-xs bg-amber-500/20 text-amber-300 px-2.5 py-1 rounded-full font-bold uppercase tracking-wider">Unic</span>
               </div>
               <div className="flex items-baseline gap-1 mb-6">
@@ -157,19 +159,19 @@ export function PricingModal({ isOpen, onClose, userId, userEmail, currency }: P
               <ul className="space-y-3 mb-8 text-sm text-zinc-400">
                 <li className="flex items-start gap-2.5">
                   <span className="text-amber-500 font-bold">✓</span>
-                  <span className="text-zinc-200 font-medium">Deblochează <strong>Modul Fonduri Europene</strong></span>
+                  <span className="text-zinc-200 font-medium">Deblochează <strong>Studio Editare</strong> în browser</span>
                 </li>
                 <li className="flex items-start gap-2.5">
                   <span className="text-amber-500 font-bold">✓</span>
-                  <span>Optimizare automată pentru granturi</span>
+                  <span>Modifici, editezi și copiezi textul liber</span>
                 </li>
                 <li className="flex items-start gap-2.5">
                   <span className="text-amber-500 font-bold">✓</span>
-                  <span>Calcule și termeni tehnici EU standard</span>
+                  <span>Deblochează <strong>Modul Fonduri Europene</strong></span>
                 </li>
                 <li className="flex items-start gap-2.5">
                   <span className="text-amber-500 font-bold">✓</span>
-                  <span>Include descărcare plan optimizat</span>
+                  <span>Include descărcarea tuturor variantelor</span>
                 </li>
               </ul>
             </div>
@@ -182,15 +184,15 @@ export function PricingModal({ isOpen, onClose, userId, userEmail, currency }: P
               {loadingTier === "eu-funds" ? (
                 <div className="w-5 h-5 border-2 border-black border-t-transparent rounded-full animate-spin"></div>
               ) : (
-                "Alege Fonduri"
+                "Alege Studio & Fonduri"
               )}
             </button>
           </div>
 
-          {/* Tier 3: Pro Subscription (Best Value) */}
+          {/* Tier 3: Pro Subscription */}
           <div className="bg-zinc-950/50 border border-emerald-500/30 rounded-3xl p-6 flex flex-col justify-between hover:border-emerald-500/50 transition-all group relative shadow-[0_0_30px_rgba(16,185,129,0.05)]">
             <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-emerald-500 text-white px-4 py-1 rounded-full text-[10px] font-black uppercase tracking-widest whitespace-nowrap">
-              Cel Mai Bun Raport
+              Full Acces
             </div>
 
             <div>
@@ -210,15 +212,15 @@ export function PricingModal({ isOpen, onClose, userId, userEmail, currency }: P
                 </li>
                 <li className="flex items-start gap-2.5">
                   <span className="text-emerald-500 font-bold">✓</span>
-                  <span>Acces inclus la <strong>Modul Fonduri EU</strong></span>
+                  <span>Acces complet la <strong>Studio Editare</strong></span>
                 </li>
                 <li className="flex items-start gap-2.5">
                   <span className="text-emerald-500 font-bold">✓</span>
-                  <span>Editări avansate și optimizare buget (-20%)</span>
+                  <span>Acces complet la <strong>Modul Fonduri EU</strong></span>
                 </li>
                 <li className="flex items-start gap-2.5">
                   <span className="text-emerald-500 font-bold">✓</span>
-                  <span>Suport tehnic prioritar</span>
+                  <span>Suport tehnic prioritar inclus</span>
                 </li>
               </ul>
             </div>

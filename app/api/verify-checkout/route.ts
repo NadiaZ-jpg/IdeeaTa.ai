@@ -21,6 +21,7 @@ export async function GET(req: NextRequest) {
         success: true,
         tier: session.metadata?.tier,
         userId: session.metadata?.userId,
+        planName: session.metadata?.planName,
       });
     }
 

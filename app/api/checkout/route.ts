@@ -7,7 +7,7 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || "sk_test_placeholder"
 
 export async function POST(req: NextRequest) {
   try {
-    const { tier, currency, userId, email } = await req.json();
+    const { tier, currency, userId, email, planName } = await req.json();
 
     if (!userId) {
       return NextResponse.json({ error: "Utilizator neautentificat" }, { status: 401 });
@@ -20,13 +20,13 @@ export async function POST(req: NextRequest) {
     let mode: any = "payment";
 
     if (tier === "standard") {
-      const amount = selectedCurrency === "eur" ? 1000 : 4900; // 10 EUR or 49 RON
+      const amount = selectedCurrency === "eur" ? 800 : 3900; // 8 EUR or 39 RON
       lineItems = [{
         price_data: {
           currency: selectedCurrency,
           product_data: {
-            name: "IdeeaTa.ai - Pachet Standard (3 Documente)",
-            description: "Deblochează descărcarea a 3 planuri de afaceri în toate formatele premium.",
+            name: "IdeeaTa.ai - Pachet Standard (Descărcare)",
+            description: "Deblochează descărcarea planului de afaceri curent în toate formatele premium (PDF, PowerPoint, Word).",
           },
           unit_amount: amount,
         },
@@ -34,13 +34,13 @@ export async function POST(req: NextRequest) {
       }];
       mode = "payment";
     } else if (tier === "eu-funds") {
-      const amount = selectedCurrency === "eur" ? 3000 : 14900; // 30 EUR or 149 RON
+      const amount = selectedCurrency === "eur" ? 2000 : 9900; // 20 EUR or 99 RON
       lineItems = [{
         price_data: {
           currency: selectedCurrency,
           product_data: {
-            name: "IdeeaTa.ai - Pachet Optimizat Fonduri Europene",
-            description: "Deblochează instrumentul avansat de optimizare a planului pentru fonduri europene.",
+            name: "IdeeaTa.ai - Pachet Studio + Fonduri",
+            description: "Deblochează Studio de Editare în browser și modulul de optimizare pentru Fonduri Europene.",
           },
           unit_amount: amount,
         },
@@ -76,6 +76,7 @@ export async function POST(req: NextRequest) {
       metadata: {
         userId: userId,
         tier: tier,
+        planName: planName || "",
       },
       success_url: `${appUrl}?payment_success=true&session_id={CHECKOUT_SESSION_ID}&tier=${tier}`,
       cancel_url: `${appUrl}?payment_cancelled=true`,

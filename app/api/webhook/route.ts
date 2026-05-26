@@ -46,12 +46,14 @@ export async function POST(req: NextRequest) {
         const userData = userDoc.exists ? userDoc.data() : {};
 
         if (tier === "standard") {
-          const currentCredits = userData?.credits || 0;
+          const planName = session.metadata?.planName || "Plan de Afaceri";
+          const unlocked = userData?.unlockedPlans || [];
+          const updatedPlans = !unlocked.includes(planName) ? [...unlocked, planName] : unlocked;
           await userRef.set({
-            credits: currentCredits + 3,
+            unlockedPlans: updatedPlans,
             stripeCustomerId: session.customer,
           }, { merge: true });
-          console.log(`Adaugat 3 credite pentru user: ${userId}`);
+          console.log(`Deblocat planul "${planName}" pentru user: ${userId}`);
         } else if (tier === "eu-funds") {
           await userRef.set({
             euFundsUnlocked: true,

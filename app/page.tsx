@@ -31,8 +31,9 @@ export default function Home() {
   const [unlockedPlans, setUnlockedPlans] = useState<string[]>([]);
   const [showPricingModal, setShowPricingModal] = useState(false);
 
-  const isPlanPaid = subscriptionActive || (result && unlockedPlans.includes(result.nume)) || isPaid;
-  const isStudioPaid = subscriptionActive || euFundsUnlocked || isPaid;
+  const devBypass = process.env.NEXT_PUBLIC_DEV_BYPASS === 'true';
+  const isPlanPaid = devBypass || subscriptionActive || (result && unlockedPlans.includes(result.nume)) || isPaid;
+  const isStudioPaid = devBypass || subscriptionActive || euFundsUnlocked || isPaid;
   const isContentCopyProtected = !isPlanPaid && !isStudioPaid;
   const [animatedPlaceholder, setAnimatedPlaceholder] = useState("");
 

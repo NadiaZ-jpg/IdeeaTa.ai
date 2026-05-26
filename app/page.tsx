@@ -1632,15 +1632,21 @@ export default function Home() {
                  ✏️ Studio Editare {!isStudioPaid && <span className="text-amber-500">🔒</span>}
               </button>
               {/* Tooltip Studio Editare */}
-              <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2.5 w-56 pointer-events-none opacity-0 group-hover:opacity-100 transition-all duration-200 scale-95 group-hover:scale-100 z-50">
-                <div className="relative bg-zinc-950 border border-amber-500/40 rounded-xl p-3 shadow-2xl shadow-black/60">
-                  <div className="flex items-center gap-2 mb-1.5">
-                    <span className="text-amber-500 text-base">✏️</span>
-                    <span className="text-amber-400 text-xs font-black uppercase tracking-widest">Studio Editare</span>
+              <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-3 w-60 pointer-events-none opacity-0 group-hover:opacity-100 transition-all duration-250 scale-95 group-hover:scale-100 z-50">
+                <div className="relative rounded-xl p-px" style={{background: 'linear-gradient(135deg, #10b981 0%, #059669 50%, #065f46 100%)'}}>
+                  <div className="rounded-xl bg-zinc-950 px-4 py-3" style={{boxShadow: '0 0 24px 2px rgba(16,185,129,0.13)'}}>
+                    <div className="flex items-center gap-2 mb-2">
+                      <span className="text-emerald-400 text-sm">✏️</span>
+                      <span className="text-emerald-300 text-[11px] font-black uppercase tracking-widest">Studio Editare</span>
+                    </div>
+                    <div className="flex flex-col gap-1">
+                      <div className="flex items-center gap-1.5 text-zinc-400 text-[10px]"><span className="text-emerald-500">▸</span> Editare directă în browser</div>
+                      <div className="flex items-center gap-1.5 text-zinc-400 text-[10px]"><span className="text-emerald-500">▸</span> Toate instrumentele incluse</div>
+                      <div className="flex items-center gap-1.5 text-zinc-400 text-[10px]"><span className="text-emerald-500">▸</span> Optimizare fonduri europene 🇪🇺</div>
+                    </div>
                   </div>
-                  <p className="text-zinc-400 text-[10px] leading-relaxed">Editează direct în browser, folosește toate instrumentele și optimizarea pentru fonduri europene.</p>
-                  <div className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-3 h-3 bg-zinc-950 border-r border-b border-amber-500/40 rotate-45" />
                 </div>
+                <div className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-3 h-3 bg-zinc-950" style={{background: 'linear-gradient(135deg, transparent 50%, #059669 50%)', clipPath: 'polygon(0 0, 100% 100%, 0 100%)', transform: 'translateX(-50%) rotate(45deg)'}} />
               </div>
             </div>
 
@@ -1694,15 +1700,21 @@ export default function Home() {
                 )}
               </div>
               {/* Tooltip Pachet Standard */}
-              <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2.5 w-56 pointer-events-none opacity-0 group-hover:opacity-100 transition-all duration-200 scale-95 group-hover:scale-100 z-50">
-                <div className="relative bg-zinc-950 border border-amber-500/40 rounded-xl p-3 shadow-2xl shadow-black/60">
-                  <div className="flex items-center gap-2 mb-1.5">
-                    <span className="text-amber-500 text-base">📦</span>
-                    <span className="text-amber-400 text-xs font-black uppercase tracking-widest">Pachet Standard</span>
+              <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-3 w-60 pointer-events-none opacity-0 group-hover:opacity-100 transition-all duration-250 scale-95 group-hover:scale-100 z-50">
+                <div className="relative rounded-xl p-px" style={{background: 'linear-gradient(135deg, #10b981 0%, #059669 50%, #065f46 100%)'}}>
+                  <div className="rounded-xl bg-zinc-950 px-4 py-3" style={{boxShadow: '0 0 24px 2px rgba(16,185,129,0.13)'}}>
+                    <div className="flex items-center gap-2 mb-2">
+                      <span className="text-emerald-400 text-sm">⬇</span>
+                      <span className="text-emerald-300 text-[11px] font-black uppercase tracking-widest">Pachet Standard</span>
+                    </div>
+                    <div className="flex flex-col gap-1">
+                      <div className="flex items-center gap-1.5 text-zinc-400 text-[10px]"><span className="text-emerald-500">▸</span> Prezentare PDF</div>
+                      <div className="flex items-center gap-1.5 text-zinc-400 text-[10px]"><span className="text-emerald-500">▸</span> Broșură PPTX</div>
+                      <div className="flex items-center gap-1.5 text-zinc-400 text-[10px]"><span className="text-emerald-500">▸</span> Document Word</div>
+                    </div>
                   </div>
-                  <p className="text-zinc-400 text-[10px] leading-relaxed">Descarcă documentele generate — Prezentare, Broșură și Document. Conținutul este protejat și nu poate fi copiat.</p>
-                  <div className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-3 h-3 bg-zinc-950 border-r border-b border-amber-500/40 rotate-45" />
                 </div>
+                <div className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-3 h-3" style={{background: 'linear-gradient(135deg, transparent 50%, #059669 50%)', clipPath: 'polygon(0 0, 100% 100%, 0 100%)', transform: 'translateX(-50%) rotate(45deg)'}} />
               </div>
             </div>
             </div>

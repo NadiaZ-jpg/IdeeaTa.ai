@@ -81,7 +81,7 @@ export function PricingModal({ isOpen, onClose, userId, userEmail, currency }: P
             Alege Planul Potrivit Afacerii Tale
           </h2>
           <p className="text-zinc-400 text-sm mt-2 max-w-xl">
-            Deblochează instrumentele noastre de top și obține acces complet la planurile de afaceri generate de AI.
+            Deblochează instrumentele noastre de top și obține acces complet la planurile de afaceri.
           </p>
         </div>
 

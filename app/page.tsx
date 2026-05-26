@@ -262,6 +262,38 @@ export default function Home() {
     }
   }, [user]);
 
+  // Incarca planul salvat din localStorage la pornire si verifica daca s-a anulat plata
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const saved = localStorage.getItem("current_generated_plan");
+      if (saved) {
+        try {
+          setResult(JSON.parse(saved));
+        } catch (e) {
+          console.error("Eroare la incarcarea planului salvat local:", e);
+        }
+      }
+      
+      const urlParams = new URLSearchParams(window.location.search);
+      const paymentCancelled = urlParams.get("payment_cancelled") === "true";
+      if (paymentCancelled) {
+        setShowPricingModal(true);
+        window.history.replaceState({}, document.title, window.location.pathname);
+      }
+    }
+  }, []);
+
+  // Salveaza planul in localStorage cand se schimba rezultatul
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      if (result) {
+        localStorage.setItem("current_generated_plan", JSON.stringify(result));
+      } else {
+        localStorage.removeItem("current_generated_plan");
+      }
+    }
+  }, [result]);
+
   const handleGoogleLogin = async () => {
     setAuthError(null);
     const provider = new GoogleAuthProvider();
@@ -464,6 +496,9 @@ export default function Home() {
     setResult(null);
     setCurrency("LEI");
     setIsPaid(false);
+    if (typeof window !== "undefined") {
+      localStorage.removeItem("current_generated_plan");
+    }
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 

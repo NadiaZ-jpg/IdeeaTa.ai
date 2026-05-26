@@ -1633,44 +1633,47 @@ export default function Home() {
                 <button onClick={() => setCurrency("LEI")} className={`w-1/2 flex items-center justify-center rounded-lg text-xs font-bold transition-all ${currency === "LEI" ? "bg-emerald-600 text-white" : "text-zinc-500 hover:text-white"}`}>LEI</button>
                 <button onClick={() => setCurrency("EUR")} className={`w-1/2 flex items-center justify-center rounded-lg text-xs font-bold transition-all ${currency === "EUR" ? "bg-blue-600 text-white" : "text-zinc-500 hover:text-white"}`}>EUR</button>
               </div>
-              <div className="flex items-center gap-1.5 bg-zinc-900 border border-zinc-700/60 p-1 rounded-xl h-10 w-full md:w-auto flex-none overflow-x-auto md:overflow-visible">
-                <button 
-                  onClick={() => downloadAction('pdf')} 
-                  disabled={isDownloading !== null}
-                  className="flex-none hover:bg-zinc-800 text-[10px] sm:text-[11px] h-full px-3 rounded-lg font-black uppercase tracking-wider transition-all flex items-center justify-center whitespace-nowrap gap-1 cursor-pointer text-zinc-300 hover:text-white"
+              
+              <div className="flex flex-col sm:flex-row gap-3 items-center w-full md:w-auto">
+                {/* Dynamic Package Label */}
+                <button
+                  onClick={() => !isPlanPaid && setShowPricingModal(true)}
+                  className={`h-10 px-4 rounded-xl border text-[11px] font-black uppercase tracking-wider flex items-center justify-center gap-2 transition-all whitespace-nowrap ${
+                    isPlanPaid
+                      ? "bg-blue-500/10 border-blue-500/30 text-blue-400 cursor-default"
+                      : "bg-amber-500/10 hover:bg-amber-500/20 border-amber-500/30 hover:border-amber-500/50 text-amber-400 cursor-pointer shadow-[0_0_15px_rgba(245,158,11,0.05)] hover:scale-[1.02]"
+                  }`}
                 >
-                  {isDownloading === 'pdf' ? "⏳..." : "⬇ Prezentare"}
-                </button>
-                <div className="w-px h-4 bg-zinc-800 flex-none" />
-                <button 
-                  onClick={() => downloadAction('pptx')} 
-                  disabled={isDownloading !== null}
-                  className="flex-none hover:bg-zinc-800 text-[10px] sm:text-[11px] h-full px-3 rounded-lg font-black uppercase tracking-wider transition-all flex items-center justify-center whitespace-nowrap gap-1 cursor-pointer text-zinc-300 hover:text-white"
-                >
-                  {isDownloading === 'pptx' ? "⏳..." : "⬇ Broșură"}
-                </button>
-                <div className="w-px h-4 bg-zinc-800 flex-none" />
-                <button 
-                  onClick={() => downloadAction('word')} 
-                  disabled={isDownloading !== null}
-                  className="flex-none hover:bg-zinc-800 text-[10px] sm:text-[11px] h-full px-3 rounded-lg font-black uppercase tracking-wider transition-all flex items-center justify-center whitespace-nowrap gap-1 cursor-pointer text-zinc-300 hover:text-white"
-                >
-                  {isDownloading === 'word' ? "⏳..." : "⬇ Document"}
+                  <span>Pachet Standard</span>
+                  <span>{isPlanPaid ? "✓ Deblocat" : `${currency === "EUR" ? "8 EUR" : "39 RON"} 🔒`}</span>
                 </button>
 
-                {!isPlanPaid && (
-                  <>
-                    <div className="w-px h-4 bg-zinc-800 flex-none" />
-                    <button 
-                      type="button"
-                      onClick={() => setShowPricingModal(true)}
-                      className="flex-none text-xs text-amber-500 hover:text-amber-400 cursor-pointer px-3 h-full rounded-lg flex items-center justify-center hover:bg-zinc-800/50 hover:scale-110 transition-all"
-                      title="Deblochează toate formatele premium"
-                    >
-                      🔒
-                    </button>
-                  </>
-                )}
+                {/* Download Buttons Container */}
+                <div className="flex items-center gap-1.5 bg-zinc-900 border border-zinc-700/60 p-1 rounded-xl h-10 w-full md:w-auto flex-none overflow-x-auto md:overflow-visible">
+                  <button 
+                    onClick={() => downloadAction('pdf')} 
+                    disabled={isDownloading !== null}
+                    className="flex-none hover:bg-zinc-800 text-[10px] sm:text-[11px] h-full px-3 rounded-lg font-black uppercase tracking-wider transition-all flex items-center justify-center whitespace-nowrap gap-1 cursor-pointer text-zinc-300 hover:text-white"
+                  >
+                    {isDownloading === 'pdf' ? "⏳..." : "⬇ Prezentare"}
+                  </button>
+                  <div className="w-px h-4 bg-zinc-800 flex-none" />
+                  <button 
+                    onClick={() => downloadAction('pptx')} 
+                    disabled={isDownloading !== null}
+                    className="flex-none hover:bg-zinc-800 text-[10px] sm:text-[11px] h-full px-3 rounded-lg font-black uppercase tracking-wider transition-all flex items-center justify-center whitespace-nowrap gap-1 cursor-pointer text-zinc-300 hover:text-white"
+                  >
+                    {isDownloading === 'pptx' ? "⏳..." : "⬇ Broșură"}
+                  </button>
+                  <div className="w-px h-4 bg-zinc-800 flex-none" />
+                  <button 
+                    onClick={() => downloadAction('word')} 
+                    disabled={isDownloading !== null}
+                    className="flex-none hover:bg-zinc-800 text-[10px] sm:text-[11px] h-full px-3 rounded-lg font-black uppercase tracking-wider transition-all flex items-center justify-center whitespace-nowrap gap-1 cursor-pointer text-zinc-300 hover:text-white"
+                  >
+                    {isDownloading === 'word' ? "⏳..." : "⬇ Document"}
+                  </button>
+                </div>
               </div>
             </div>
           </div>
@@ -1680,20 +1683,6 @@ export default function Home() {
             className={`${isEditing ? 'hidden' : 'block'} bg-[#09090b] border border-zinc-800 p-8 md:p-12 rounded-[2.5rem] shadow-2xl transition-all duration-500 relative ${isContentCopyProtected ? 'select-none' : ''}`}
             onContextMenu={handleContextMenu}
           >
-            {isContentCopyProtected && (
-              <div className="bg-amber-500/10 border border-amber-500/20 text-amber-400 text-xs sm:text-sm font-semibold p-4 rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-4 mb-8">
-                <span className="flex items-center gap-2 text-left">
-                  <span>🔒</span>
-                  <span>Previzualizare protejată. Achiziționează Pachetul Standard (39 lei) pentru a descărca documentele sau Pachetul Studio (99 lei) pentru a edita și copia textul.</span>
-                </span>
-                <button 
-                  onClick={() => setShowPricingModal(true)}
-                  className="bg-amber-500 hover:bg-amber-600 text-black px-4 py-1.5 rounded-xl font-bold transition-all text-xs whitespace-nowrap cursor-pointer hover:scale-105"
-                >
-                  Deblochează
-                </button>
-              </div>
-            )}
 
             <div className="pdf-section mt-12 mb-10 border-b border-zinc-800 pb-10">
               <h2 className="text-6xl font-black mb-4 tracking-tight not-italic text-white">

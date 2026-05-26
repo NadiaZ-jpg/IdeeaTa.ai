@@ -5,8 +5,10 @@ import { toPng } from "html-to-image";
 import pptxgen from "pptxgenjs";
 import { EditForm } from "./EditForm";
 import { BudgetBarChart } from "./BudgetChart";
-import { auth } from '@/lib/firebase';
-import { signInWithRedirect, GoogleAuthProvider, onAuthStateChanged, User, getRedirectResult, signInWithEmailAndPassword, createUserWithEmailAndPassword } from 'firebase/auth';
+import { auth, db } from '@/lib/firebase';
+import { signInWithRedirect, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, User, getRedirectResult, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut } from 'firebase/auth';
+import { doc, onSnapshot, setDoc, getDoc, increment, arrayUnion } from 'firebase/firestore';
+import { PricingModal } from '@/components/PricingModal';
 
 export default function Home() {
   const [skill, setSkill] = useState("");
@@ -23,6 +25,13 @@ export default function Home() {
   const [showPaywall, setShowPaywall] = useState(false);
   const [isPaying, setIsPaying] = useState(false);
   const [pendingDownloadMode, setPendingDownloadMode] = useState<'pdf' | 'pptx' | 'word' | null>(null);
+  const [credits, setCredits] = useState(0);
+  const [euFundsUnlocked, setEuFundsUnlocked] = useState(false);
+  const [subscriptionActive, setSubscriptionActive] = useState(false);
+  const [unlockedPlans, setUnlockedPlans] = useState<string[]>([]);
+  const [showPricingModal, setShowPricingModal] = useState(false);
+
+  const isPlanPaid = subscriptionActive || (result && unlockedPlans.includes(result.nume)) || isPaid;
   const [animatedPlaceholder, setAnimatedPlaceholder] = useState("");
 
   useEffect(() => {
@@ -167,18 +176,105 @@ export default function Home() {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       setUser(currentUser);
       setIsAuthLoading(false);
+      if (currentUser) {
+        window.scrollTo({ top: 0 });
+      }
     });
     return () => unsubscribe();
   }, []);
+
+  useEffect(() => {
+    if (!user) {
+      setCredits(0);
+      setEuFundsUnlocked(false);
+      setSubscriptionActive(false);
+      setUnlockedPlans([]);
+      return;
+    }
+
+    const userRef = doc(db, "users", user.uid);
+    const unsubscribe = onSnapshot(userRef, (snapshot) => {
+      if (snapshot.exists()) {
+        const data = snapshot.data();
+        setCredits(data.credits || 0);
+        setEuFundsUnlocked(data.euFundsUnlocked || false);
+        setSubscriptionActive(data.subscriptionActive || false);
+        setUnlockedPlans(data.unlockedPlans || []);
+      } else {
+        setDoc(userRef, {
+          email: user.email,
+          credits: 0,
+          euFundsUnlocked: false,
+          subscriptionActive: false,
+          unlockedPlans: [],
+          createdAt: new Date().toISOString(),
+        }, { merge: true });
+      }
+    });
+
+    return () => unsubscribe();
+  }, [user]);
+
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const paymentSuccess = urlParams.get("payment_success") === "true";
+    const sessionId = urlParams.get("session_id");
+    const tier = urlParams.get("tier");
+
+    if (paymentSuccess && sessionId && user) {
+      const verifyPayment = async () => {
+        try {
+          const res = await fetch(`/api/verify-checkout?session_id=${sessionId}`);
+          const data = await res.json();
+          if (data.success && data.userId === user.uid) {
+            const userRef = doc(db, "users", user.uid);
+            const userSnap = await getDoc(userRef);
+            const processedSessions = userSnap.data()?.processedSessions || [];
+
+            if (!processedSessions.includes(sessionId)) {
+              if (tier === "standard") {
+                await setDoc(userRef, {
+                  credits: increment(3),
+                  processedSessions: arrayUnion(sessionId)
+                }, { merge: true });
+                alert("Plată confirmată! S-au adăugat 3 credite de descărcare în contul tău.");
+              } else if (tier === "eu-funds") {
+                await setDoc(userRef, {
+                  euFundsUnlocked: true,
+                  processedSessions: arrayUnion(sessionId)
+                }, { merge: true });
+                alert("Plată confirmată! Modulul de Fonduri Europene a fost deblocat.");
+              } else if (tier === "pro") {
+                await setDoc(userRef, {
+                  subscriptionActive: true,
+                  processedSessions: arrayUnion(sessionId)
+                }, { merge: true });
+                alert("Plată confirmată! Abonamentul tău Pro Nelimitat a fost activat.");
+              }
+            }
+            window.history.replaceState({}, document.title, window.location.pathname);
+          }
+        } catch (error) {
+          console.error("Eroare la verificarea plății:", error);
+        }
+      };
+      verifyPayment();
+    }
+  }, [user]);
 
   const handleGoogleLogin = async () => {
     setAuthError(null);
     const provider = new GoogleAuthProvider();
     try {
-      await signInWithRedirect(auth, provider);
+      await signInWithPopup(auth, provider);
     } catch (error: any) {
-      console.error("Eroare la autentificare:", error);
-      setAuthError(error.message || "A apărut o eroare necunoscută.");
+      console.error("Eroare la autentificare cu popup, se incearca redirect:", error);
+      try {
+        await signInWithRedirect(auth, provider);
+      } catch (redirectError: any) {
+        console.error("Eroare la autentificare cu redirect:", redirectError);
+        setAuthError(redirectError.message || "A apărut o eroare la conectare. Te rugăm să folosești formularul de email.");
+      }
     }
   };
 
@@ -313,6 +409,25 @@ export default function Home() {
           const finalResult = JSON.parse(cleanJson);
           setResult(finalResult);
           setSkill(""); 
+          
+          // Scroll dynamically to the top of the page to show the top of the new plan
+          setTimeout(() => {
+            window.scrollTo({ top: 0, behavior: "smooth" });
+          }, 100);
+          
+          if (user) {
+            try {
+              const planId = finalResult.nume.replace(/[^a-zA-Z0-9]/g, '_') + "_" + Date.now();
+              const planRef = doc(db, "users", user.uid, "plans", planId);
+              await setDoc(planRef, {
+                ...finalResult,
+                createdAt: new Date().toISOString(),
+              });
+              console.log("Plan salvat cu succes în Firestore:", planId);
+            } catch (fsError) {
+              console.error("Eroare la salvarea planului în Firestore:", fsError);
+            }
+          }
         } catch (parseError) {
           console.error("TEXTUL GENERAT DE AI A FOST:", cleanJson);
           alert("AI-ul a uitat niște ghilimele în structura de date! Apasă din nou pe „Generează” pentru a-i cere o variantă corectă.");
@@ -353,10 +468,33 @@ export default function Home() {
   };
 
   const downloadAction = async (mode: 'pdf' | 'pptx' | 'word', bypassPaymentCheck = false) => {
-    if (!isPaid && !bypassPaymentCheck) {
-      setPendingDownloadMode(mode);
-      setShowPaywall(true);
-      return;
+    const planName = result?.nume || "Plan de Afaceri";
+    const hasUnlimited = subscriptionActive;
+    const isAlreadyUnlocked = unlockedPlans.includes(planName);
+
+    if (!hasUnlimited && !isAlreadyUnlocked && !bypassPaymentCheck && !isPaid) {
+      if (credits > 0) {
+        const confirmUnlock = window.confirm(
+          `Descărcarea acestui document va consuma 1 credit din cele ${credits} disponibile. Dorești să continui?`
+        );
+        if (!confirmUnlock) return;
+
+        try {
+          const userRef = doc(db, "users", user!.uid);
+          await setDoc(userRef, {
+            credits: increment(-1),
+            unlockedPlans: arrayUnion(planName)
+          }, { merge: true });
+        } catch (e) {
+          console.error("Eroare la scaderea creditului:", e);
+          alert("A apărut o eroare la procesarea creditului. Vă rugăm reîncercați.");
+          return;
+        }
+      } else {
+        setPendingDownloadMode(mode);
+        setShowPricingModal(true);
+        return;
+      }
     }
     setIsDownloading(mode);
     try {
@@ -550,15 +688,16 @@ export default function Home() {
                       <button 
                         type="button" 
                         onClick={() => {
-                          if (!isPaid) {
-                            setShowPaywall(true);
+                          const hasEuFundsAccess = subscriptionActive || euFundsUnlocked || isPaid;
+                          if (!hasEuFundsAccess) {
+                            setShowPricingModal(true);
                           } else {
                             handleAiEdit("eu_funds_optimization");
                           }
                         }} 
                         disabled={isEditingAi} 
                         className={`w-full text-left flex items-center justify-between rounded-xl px-5 py-4 font-bold text-sm transition-all group disabled:opacity-50 disabled:cursor-not-allowed ${
-                          !isPaid 
+                          !(subscriptionActive || euFundsUnlocked || isPaid) 
                             ? "bg-zinc-900/60 hover:bg-zinc-800/80 border border-amber-500/30 text-amber-300" 
                             : "bg-black hover:bg-zinc-800 border border-zinc-800 text-zinc-300"
                         }`}
@@ -569,7 +708,7 @@ export default function Home() {
                             {isEditingAi ? "Se procesează..." : "Optimizat pentru Fonduri Europene"}
                           </span>
                         </span>
-                        {!isPaid && (
+                        {!(subscriptionActive || euFundsUnlocked || isPaid) && (
                           <span className="text-[10px] bg-amber-500/20 border border-amber-500/40 text-amber-300 px-2 py-0.5 rounded-full font-black uppercase tracking-wider whitespace-nowrap flex items-center gap-1">
                             🔒 PRO
                           </span>
@@ -702,6 +841,38 @@ export default function Home() {
       )}
 
       <div className={`${isDownloading === 'pptx' ? 'hidden' : 'flex'} flex-col items-center w-full max-w-[1600px] px-4 md:px-12 relative z-10`}>
+        {user && (
+          <div className="w-full flex justify-between items-center py-4 border-b border-zinc-800/80 mb-6 print:hidden">
+            <span className="text-zinc-500 text-xs font-semibold">Proiectul tău de afaceri inteligent</span>
+            <div className="flex items-center gap-4 text-xs font-medium">
+              <span className="text-zinc-400">{user.email}</span>
+              {subscriptionActive ? (
+                <span className="bg-emerald-500/20 border border-emerald-500/40 text-emerald-400 px-2 py-0.5 rounded-full font-black uppercase tracking-wider">
+                  PRO
+                </span>
+              ) : (
+                <span className="bg-zinc-800 border border-zinc-700 text-zinc-300 px-2 py-0.5 rounded-full font-bold">
+                  Credite: {credits}
+                </span>
+              )}
+              {!subscriptionActive && (
+                <button 
+                  onClick={() => setShowPricingModal(true)}
+                  className="text-emerald-400 hover:text-emerald-300 transition-colors font-bold underline cursor-pointer"
+                >
+                  Cumpără mai multe
+                </button>
+              )}
+              <button 
+                onClick={() => signOut(auth)}
+                className="text-zinc-500 hover:text-white transition-colors cursor-pointer"
+              >
+                Ieși din cont
+              </button>
+            </div>
+          </div>
+        )}
+
         <h1 className="text-4xl md:text-6xl lg:text-[5rem] font-black mt-4 lg:mt-12 mb-6 lg:mb-8 not-italic tracking-tighter cursor-pointer bg-gradient-to-r from-zinc-400 via-emerald-400 to-zinc-400 bg-clip-text text-transparent animate-shimmer print:hidden self-start lg:self-center" onClick={resetApp}>
           IdeeaTa.ai
         </h1>
@@ -1394,21 +1565,21 @@ export default function Home() {
                   disabled={isDownloading !== null}
                   className="flex-none bg-zinc-800 disabled:opacity-50 hover:bg-zinc-700 text-[10px] sm:text-[11px] h-full px-4 rounded-xl font-black uppercase tracking-widest border border-zinc-700 transition-all flex items-center justify-center whitespace-nowrap gap-1.5 cursor-pointer"
                 >
-                  {isDownloading === 'pdf' ? "⏳..." : `⬇ Prezentare ${!isPaid ? "🔒" : ""}`}
+                  {isDownloading === 'pdf' ? "⏳..." : `⬇ Prezentare ${!isPlanPaid ? "🔒" : ""}`}
                 </button>
                 <button 
                   onClick={() => downloadAction('pptx')} 
                   disabled={isDownloading !== null}
                   className="flex-none bg-zinc-800 disabled:opacity-50 hover:bg-zinc-700 text-[10px] sm:text-[11px] h-full px-4 rounded-xl font-black uppercase tracking-widest border border-zinc-700 transition-all flex items-center justify-center whitespace-nowrap gap-1.5 cursor-pointer"
                 >
-                  {isDownloading === 'pptx' ? "⏳..." : `⬇ Broșură ${!isPaid ? "🔒" : ""}`}
+                  {isDownloading === 'pptx' ? "⏳..." : `⬇ Broșură ${!isPlanPaid ? "🔒" : ""}`}
                 </button>
                 <button 
                   onClick={() => downloadAction('word')} 
                   disabled={isDownloading !== null}
                   className="flex-none bg-zinc-800 disabled:opacity-50 hover:bg-zinc-700 text-[10px] sm:text-[11px] h-full px-4 rounded-xl font-black uppercase tracking-widest border border-zinc-700 transition-all flex items-center justify-center whitespace-nowrap gap-1.5 cursor-pointer"
                 >
-                  {isDownloading === 'word' ? "⏳..." : `⬇ Document ${!isPaid ? "🔒" : ""}`}
+                  {isDownloading === 'word' ? "⏳..." : `⬇ Document ${!isPlanPaid ? "🔒" : ""}`}
                 </button>
               </div>
             </div>
@@ -1830,174 +2001,16 @@ export default function Home() {
           </div>
         </div>
       )}
-      {showPaywall && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-md z-[110] flex items-center justify-center p-4 overflow-y-auto animate-in fade-in duration-300">
-          <div className="bg-[#09090b] border border-zinc-800 rounded-[2.5rem] w-full max-w-lg shadow-2xl p-8 md:p-10 relative overflow-hidden flex flex-col gap-6 animate-in slide-in-from-bottom-12 duration-300 text-left">
-            
-            {/* Ambient glows inside modal */}
-            <div className="absolute -top-24 -left-24 w-48 h-48 bg-emerald-500/10 rounded-full blur-[80px] pointer-events-none"></div>
-            <div className="absolute -bottom-24 -right-24 w-48 h-48 bg-blue-500/10 rounded-full blur-[80px] pointer-events-none"></div>
-
-            {/* Header */}
-            <div className="text-center flex flex-col items-center gap-2">
-              <div className="w-16 h-16 bg-emerald-950/40 border border-emerald-500/30 text-emerald-400 rounded-2xl flex items-center justify-center text-3xl mb-2 shadow-[0_0_20px_rgba(52,211,153,0.1)]">
-                🚀
-              </div>
-              <h2 className="text-3xl font-black tracking-tight leading-tight bg-gradient-to-r from-white via-emerald-400 to-white bg-clip-text text-transparent">
-                Deblochează Planul Complet
-              </h2>
-              <p className="text-zinc-400 text-sm mt-2 max-w-sm">
-                Descarcă planul tău în toate formatele premium, editează-l nelimitat și elimină orice restricție.
-              </p>
-            </div>
-
-            {/* Benefits list */}
-            <div className="bg-zinc-900/30 border border-zinc-800/80 rounded-2xl p-5 flex flex-col gap-3 text-left">
-              <div className="flex items-start gap-3">
-                <span className="text-emerald-500 text-lg mt-0.5">✔</span>
-                <div>
-                  <h4 className="text-sm font-bold text-white">Toate cele 3 Formate incluse</h4>
-                  <p className="text-xs text-zinc-500">PDF Prezentare, Broșură PowerPoint (.pptx) și Document Word (.doc)</p>
-                </div>
-              </div>
-              <div className="flex items-start gap-3">
-                <span className="text-emerald-500 text-lg mt-0.5">✔</span>
-                <div>
-                  <h4 className="text-sm font-bold text-white">Studio Editare Nelimitat</h4>
-                  <p className="text-xs text-zinc-500">Modifică textul, bugetul și secțiunile oricând dorești, fără limite</p>
-                </div>
-              </div>
-              <div className="flex items-start gap-3">
-                <span className="text-emerald-500 text-lg mt-0.5">✔</span>
-                <div>
-                  <h4 className="text-sm font-bold text-white">Fără Watermark sau Reclame</h4>
-                  <p className="text-xs text-zinc-500">Documente curate și profesioniste, gata de prezentat partenerilor</p>
-                </div>
-              </div>
-              <div className="flex items-start gap-3">
-                <span className="text-amber-500 text-lg mt-0.5">✔</span>
-                <div>
-                  <h4 className="text-sm font-bold text-amber-300 flex items-center gap-1.5">
-                    Instrumente Premium (PRO)
-                  </h4>
-                  <p className="text-xs text-zinc-500">Accesează optimizarea automată pentru Fonduri Europene și granturi</p>
-                </div>
-              </div>
-            </div>
-
-            {/* Price section */}
-            <div className="flex items-center justify-between bg-zinc-900/60 border border-zinc-800 p-5 rounded-2xl text-left">
-              <div>
-                <span className="text-[10px] text-zinc-500 uppercase tracking-widest font-black">Acces Unic Proiect</span>
-                <div className="flex items-baseline gap-2 mt-1">
-                  <span className="text-sm text-zinc-500 line-through">120 RON</span>
-                  <span className="text-2xl font-black text-emerald-400">39 RON</span>
-                </div>
-              </div>
-              <span className="text-[10px] text-zinc-400 bg-zinc-800/80 border border-zinc-700 px-3 py-1.5 rounded-full font-black uppercase tracking-wider">
-                Fără Abonament
-              </span>
-            </div>
-
-            {/* Mock Checkout Form */}
-            <div className="flex flex-col gap-3 text-left">
-              <label className="text-[10px] text-zinc-500 uppercase tracking-wider font-bold">Informații Plată (Simulat)</label>
-              
-              <div className="border border-zinc-800 bg-black/40 rounded-xl p-4 flex flex-col gap-3">
-                {/* Card Number */}
-                <div className="flex flex-col gap-1">
-                  <span className="text-[9px] text-zinc-500 uppercase font-black">Număr Card</span>
-                  <div className="relative">
-                    <input 
-                      type="text" 
-                      placeholder="4242 4242 4242 4242" 
-                      disabled={isPaying}
-                      defaultValue="4242 4242 4242 4242"
-                      className="w-full bg-zinc-900/50 border border-zinc-800 focus:border-emerald-500/50 rounded-lg px-3 py-2 text-xs font-mono tracking-widest text-zinc-200 outline-none transition-all placeholder-zinc-700" 
-                    />
-                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-lg">💳</span>
-                  </div>
-                </div>
-
-                {/* Expiry & CVC */}
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="flex flex-col gap-1">
-                    <span className="text-[9px] text-zinc-500 uppercase font-black">Expirare</span>
-                    <input 
-                      type="text" 
-                      placeholder="12/28" 
-                      disabled={isPaying}
-                      defaultValue="12/28"
-                      className="w-full bg-zinc-900/50 border border-zinc-800 focus:border-emerald-500/50 rounded-lg px-3 py-2 text-xs font-mono text-zinc-200 outline-none transition-all placeholder-zinc-700 text-center" 
-                    />
-                  </div>
-                  <div className="flex flex-col gap-1">
-                    <span className="text-[9px] text-zinc-500 uppercase font-black">CVC / CVV</span>
-                    <input 
-                      type="password" 
-                      placeholder="•••" 
-                      disabled={isPaying}
-                      defaultValue="123"
-                      className="w-full bg-zinc-900/50 border border-zinc-800 focus:border-emerald-500/50 rounded-lg px-3 py-2 text-xs font-mono text-zinc-200 outline-none transition-all placeholder-zinc-700 text-center" 
-                    />
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Actions */}
-            <div className="flex flex-col gap-3 mt-2">
-              <button 
-                type="button"
-                onClick={async () => {
-                  if (isPaying) return;
-                  setIsPaying(true);
-                  // Simulate Stripe checkout request
-                  await new Promise(resolve => setTimeout(resolve, 1500));
-                  setIsPaying(false);
-                  setIsPaid(true);
-                  setShowPaywall(false);
-                  // If there was a pending download mode, run it
-                  if (pendingDownloadMode) {
-                    downloadAction(pendingDownloadMode, true);
-                  }
-                }}
-                disabled={isPaying}
-                className="w-full h-12 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white rounded-xl font-black text-sm uppercase tracking-wider transition-all flex items-center justify-center gap-2 shadow-lg shadow-emerald-950/20 active:scale-95 cursor-pointer"
-              >
-                {isPaying ? (
-                  <>
-                    <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                    Se procesează...
-                  </>
-                ) : (
-                  <>🔒 Simulează Plată Securizată</>
-                )}
-              </button>
-              
-              <button 
-                type="button"
-                disabled={isPaying}
-                onClick={() => {
-                  setShowPaywall(false);
-                  setPendingDownloadMode(null);
-                }}
-                className="w-full h-10 hover:bg-zinc-900/60 text-zinc-400 hover:text-white rounded-xl font-bold text-xs uppercase tracking-wider transition-all flex items-center justify-center cursor-pointer"
-              >
-                Mai târziu
-              </button>
-            </div>
-
-            {/* Security Badges */}
-            <div className="flex justify-center items-center gap-6 mt-1 opacity-55 text-[10px] text-zinc-500 border-t border-zinc-900 pt-4">
-              <span className="flex items-center gap-1.5 font-bold uppercase tracking-wider">🔒 Conexiune SSL</span>
-              <span className="flex items-center gap-1.5 font-bold uppercase tracking-wider">🛡 PCI-DSS</span>
-              <span className="flex items-center gap-1.5 font-bold uppercase tracking-wider">💳 Partener Stripe</span>
-            </div>
-
-          </div>
-        </div>
-      )}
+      <PricingModal
+        isOpen={showPricingModal}
+        onClose={() => {
+          setShowPricingModal(false);
+          setPendingDownloadMode(null);
+        }}
+        userId={user?.uid || ""}
+        userEmail={user?.email || ""}
+        currency={currency}
+      />
     </main>
   );
 }

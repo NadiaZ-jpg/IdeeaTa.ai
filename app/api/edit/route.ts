@@ -53,6 +53,21 @@ Fără niciun alt text, fără cod sursă markdown dacă se poate, doar JSON pur
     return NextResponse.json({ updatedResult: text });
   } catch (error: any) {
     console.error("Error editing content:", error);
-    return NextResponse.json({ error: `Nu s-a putut edita documentul. Detalii: ${error?.message || error}` }, { status: 500 });
+    
+    const isServiceUnavailable = error?.status === 503 || error?.message?.includes('503') || error?.message?.includes('high demand') || error?.message?.includes('UNAVAILABLE');
+    const isRateLimited = error?.status === 429 || error?.message?.includes('429') || error?.message?.includes('quota') || error?.message?.includes('RESOURCE_EXHAUSTED');
+    
+    let errorMessage = "Nu s-a putut edita documentul. Te rugăm să încerci din nou mai târziu.";
+    let statusCode = 500;
+    
+    if (isServiceUnavailable) {
+      errorMessage = "AI-ul este momentan foarte solicitat. Te rugăm să aștepți câteva momente și să încerci din nou.";
+      statusCode = 503;
+    } else if (isRateLimited) {
+      errorMessage = "Ai depășit limita de utilizare. Te rugăm să aștepți un minut și să încerci din nou.";
+      statusCode = 429;
+    }
+    
+    return NextResponse.json({ error: errorMessage }, { status: statusCode });
   }
 }

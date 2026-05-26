@@ -31,9 +31,11 @@ export default function Home() {
   const [unlockedPlans, setUnlockedPlans] = useState<string[]>([]);
   const [showPricingModal, setShowPricingModal] = useState(false);
 
+  const ADMIN_EMAILS = ['contact@ideeata.ai', 'nadiaramonaz@gmail.com'];
+  const isAdmin = user ? ADMIN_EMAILS.includes(user.email || '') : false;
   const devBypass = process.env.NEXT_PUBLIC_DEV_BYPASS === 'true';
-  const isPlanPaid = devBypass || subscriptionActive || (result && unlockedPlans.includes(result.nume)) || isPaid;
-  const isStudioPaid = devBypass || subscriptionActive || euFundsUnlocked || isPaid;
+  const isPlanPaid = isAdmin || devBypass || subscriptionActive || (result && unlockedPlans.includes(result.nume)) || isPaid;
+  const isStudioPaid = isAdmin || devBypass || subscriptionActive || euFundsUnlocked || isPaid;
   const isContentCopyProtected = !isPlanPaid && !isStudioPaid;
   const [animatedPlaceholder, setAnimatedPlaceholder] = useState("");
 
@@ -531,7 +533,7 @@ export default function Home() {
     if (typeof window !== "undefined") {
       localStorage.removeItem("current_generated_plan");
     }
-    window.scrollTo({ top: 0, behavior: "smooth" });
+    window.scrollTo({ top: 0, behavior: "instant" });
   };
 
   const downloadAction = async (mode: 'pdf' | 'pptx' | 'word', bypassPaymentCheck = false) => {

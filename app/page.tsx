@@ -1624,9 +1624,25 @@ export default function Home() {
             <button onClick={resetApp} className="w-full md:flex-1 h-10 bg-zinc-800 hover:bg-zinc-700 text-white px-4 rounded-xl font-bold transition-all shadow-xl border border-zinc-700 flex items-center justify-center gap-2 text-xs whitespace-nowrap">
                🔄 Altă idee
             </button>
-            <button onClick={startEditing} className="w-full md:flex-1 h-10 bg-emerald-700 hover:bg-emerald-600 text-white px-4 rounded-xl font-bold transition-all shadow-xl border border-emerald-600 flex items-center justify-center gap-2 text-xs whitespace-nowrap">
-               ✏️ Studio Editare {!isStudioPaid && "🔒"}
-            </button>
+            <div className="relative group w-full md:flex-1">
+              <button 
+                onClick={startEditing} 
+                className="w-full h-10 bg-zinc-900 hover:bg-zinc-800 text-zinc-300 hover:text-white px-4 rounded-xl font-bold transition-all shadow-xl border border-zinc-700/60 flex items-center justify-center gap-2 text-xs whitespace-nowrap cursor-pointer"
+              >
+                 ✏️ Studio Editare {!isStudioPaid && <span className="text-amber-500">🔒</span>}
+              </button>
+              {/* Tooltip Studio Editare */}
+              <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2.5 w-56 pointer-events-none opacity-0 group-hover:opacity-100 transition-all duration-200 scale-95 group-hover:scale-100 z-50">
+                <div className="relative bg-zinc-950 border border-amber-500/40 rounded-xl p-3 shadow-2xl shadow-black/60">
+                  <div className="flex items-center gap-2 mb-1.5">
+                    <span className="text-amber-500 text-base">✏️</span>
+                    <span className="text-amber-400 text-xs font-black uppercase tracking-widest">Studio Editare</span>
+                  </div>
+                  <p className="text-zinc-400 text-[10px] leading-relaxed">Editează direct în browser, folosește toate instrumentele și optimizarea pentru fonduri europene.</p>
+                  <div className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-3 h-3 bg-zinc-950 border-r border-b border-amber-500/40 rotate-45" />
+                </div>
+              </div>
+            </div>
 
             <div className="w-full md:w-auto flex flex-col md:flex-row gap-4 items-center justify-between">
               <div className="flex gap-2 p-1 bg-black rounded-xl border border-zinc-700 h-10 w-full md:w-32 flex-none">
@@ -1634,47 +1650,61 @@ export default function Home() {
                 <button onClick={() => setCurrency("EUR")} className={`w-1/2 flex items-center justify-center rounded-lg text-xs font-bold transition-all ${currency === "EUR" ? "bg-blue-600 text-white" : "text-zinc-500 hover:text-white"}`}>EUR</button>
               </div>
               
-              <div className="flex flex-col sm:flex-row gap-3 items-center w-full md:w-auto">
-                {/* Dynamic Package Label */}
-                <button
-                  onClick={() => !isPlanPaid && setShowPricingModal(true)}
-                  className={`h-10 px-4 rounded-xl border text-[11px] font-black uppercase tracking-wider flex items-center justify-center gap-2 transition-all whitespace-nowrap ${
-                    isPlanPaid
-                      ? "bg-blue-500/10 border-blue-500/30 text-blue-400 cursor-default"
-                      : "bg-amber-500/10 hover:bg-amber-500/20 border-amber-500/30 hover:border-amber-500/50 text-amber-400 cursor-pointer shadow-[0_0_15px_rgba(245,158,11,0.05)] hover:scale-[1.02]"
-                  }`}
+              {/* Download Buttons Container (Pachet Standard) */}
+              <div className="relative group w-full md:w-auto flex-none">
+              <div 
+                className="flex items-center gap-1.5 bg-zinc-900 border border-zinc-700/60 p-1 rounded-xl h-10 w-full md:w-auto overflow-x-auto md:overflow-visible"
+              >
+                <button 
+                  onClick={() => downloadAction('pdf')} 
+                  disabled={isDownloading !== null}
+                  className="flex-none hover:bg-zinc-800 text-[10px] sm:text-[11px] h-full px-3 rounded-lg font-black uppercase tracking-wider transition-all flex items-center justify-center whitespace-nowrap gap-1 cursor-pointer text-zinc-300 hover:text-white"
                 >
-                  <span>Pachet Standard</span>
-                  <span>{isPlanPaid ? "✓ Deblocat" : `${currency === "EUR" ? "8 EUR" : "39 RON"} 🔒`}</span>
+                  {isDownloading === 'pdf' ? "⏳..." : "⬇ Prezentare"}
+                </button>
+                <div className="w-px h-4 bg-zinc-800 flex-none" />
+                <button 
+                  onClick={() => downloadAction('pptx')} 
+                  disabled={isDownloading !== null}
+                  className="flex-none hover:bg-zinc-800 text-[10px] sm:text-[11px] h-full px-3 rounded-lg font-black uppercase tracking-wider transition-all flex items-center justify-center whitespace-nowrap gap-1 cursor-pointer text-zinc-300 hover:text-white"
+                >
+                  {isDownloading === 'pptx' ? "⏳..." : "⬇ Broșură"}
+                </button>
+                <div className="w-px h-4 bg-zinc-800 flex-none" />
+                <button 
+                  onClick={() => downloadAction('word')} 
+                  disabled={isDownloading !== null}
+                  className="flex-none hover:bg-zinc-800 text-[10px] sm:text-[11px] h-full px-3 rounded-lg font-black uppercase tracking-wider transition-all flex items-center justify-center whitespace-nowrap gap-1 cursor-pointer text-zinc-300 hover:text-white"
+                >
+                  {isDownloading === 'word' ? "⏳..." : "⬇ Document"}
                 </button>
 
-                {/* Download Buttons Container */}
-                <div className="flex items-center gap-1.5 bg-zinc-900 border border-zinc-700/60 p-1 rounded-xl h-10 w-full md:w-auto flex-none overflow-x-auto md:overflow-visible">
-                  <button 
-                    onClick={() => downloadAction('pdf')} 
-                    disabled={isDownloading !== null}
-                    className="flex-none hover:bg-zinc-800 text-[10px] sm:text-[11px] h-full px-3 rounded-lg font-black uppercase tracking-wider transition-all flex items-center justify-center whitespace-nowrap gap-1 cursor-pointer text-zinc-300 hover:text-white"
-                  >
-                    {isDownloading === 'pdf' ? "⏳..." : "⬇ Prezentare"}
-                  </button>
-                  <div className="w-px h-4 bg-zinc-800 flex-none" />
-                  <button 
-                    onClick={() => downloadAction('pptx')} 
-                    disabled={isDownloading !== null}
-                    className="flex-none hover:bg-zinc-800 text-[10px] sm:text-[11px] h-full px-3 rounded-lg font-black uppercase tracking-wider transition-all flex items-center justify-center whitespace-nowrap gap-1 cursor-pointer text-zinc-300 hover:text-white"
-                  >
-                    {isDownloading === 'pptx' ? "⏳..." : "⬇ Broșură"}
-                  </button>
-                  <div className="w-px h-4 bg-zinc-800 flex-none" />
-                  <button 
-                    onClick={() => downloadAction('word')} 
-                    disabled={isDownloading !== null}
-                    className="flex-none hover:bg-zinc-800 text-[10px] sm:text-[11px] h-full px-3 rounded-lg font-black uppercase tracking-wider transition-all flex items-center justify-center whitespace-nowrap gap-1 cursor-pointer text-zinc-300 hover:text-white"
-                  >
-                    {isDownloading === 'word' ? "⏳..." : "⬇ Document"}
-                  </button>
+                {!isPlanPaid && (
+                  <>
+                    <div className="w-px h-4 bg-zinc-800 flex-none" />
+                    <button 
+                      type="button"
+                      onClick={() => setShowPricingModal(true)}
+                      className="flex-none text-xs text-amber-500 hover:text-amber-400 cursor-pointer px-3 h-full rounded-lg flex items-center justify-center hover:bg-zinc-800/50 hover:scale-110 transition-all"
+                      title="Pachet Standard"
+                    >
+                      🔒
+                    </button>
+                  </>
+                )}
+              </div>
+              {/* Tooltip Pachet Standard */}
+              <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2.5 w-56 pointer-events-none opacity-0 group-hover:opacity-100 transition-all duration-200 scale-95 group-hover:scale-100 z-50">
+                <div className="relative bg-zinc-950 border border-amber-500/40 rounded-xl p-3 shadow-2xl shadow-black/60">
+                  <div className="flex items-center gap-2 mb-1.5">
+                    <span className="text-amber-500 text-base">📦</span>
+                    <span className="text-amber-400 text-xs font-black uppercase tracking-widest">Pachet Standard</span>
+                  </div>
+                  <p className="text-zinc-400 text-[10px] leading-relaxed">Descarcă documentele generate — Prezentare, Broșură și Document. Conținutul este protejat și nu poate fi copiat.</p>
+                  <div className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-3 h-3 bg-zinc-950 border-r border-b border-amber-500/40 rotate-45" />
                 </div>
               </div>
+            </div>
             </div>
           </div>
 

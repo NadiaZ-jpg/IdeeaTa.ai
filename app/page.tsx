@@ -6,7 +6,7 @@ import pptxgen from "pptxgenjs";
 import { EditForm } from "./EditForm";
 import { BudgetBarChart } from "./BudgetChart";
 import { auth } from '@/lib/firebase';
-import { signInWithRedirect, GoogleAuthProvider, onAuthStateChanged, User, getRedirectResult } from 'firebase/auth';
+import { signInWithRedirect, GoogleAuthProvider, onAuthStateChanged, User, getRedirectResult, signInWithEmailAndPassword, createUserWithEmailAndPassword } from 'firebase/auth';
 
 export default function Home() {
   const [skill, setSkill] = useState("");
@@ -145,6 +145,10 @@ export default function Home() {
   const [user, setUser] = useState<User | null>(null);
   const [isAuthLoading, setIsAuthLoading] = useState(true);
   const [authError, setAuthError] = useState<string | null>(null);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [isLoginMode, setIsLoginMode] = useState(true);
+  const [isEmailLoading, setIsEmailLoading] = useState(false);
 
   useEffect(() => {
     const checkRedirect = async () => {
@@ -175,6 +179,34 @@ export default function Home() {
     } catch (error: any) {
       console.error("Eroare la autentificare:", error);
       setAuthError(error.message || "A apărut o eroare necunoscută.");
+    }
+  };
+
+  const handleEmailAuth = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setAuthError(null);
+    setIsEmailLoading(true);
+
+    try {
+      if (isLoginMode) {
+        await signInWithEmailAndPassword(auth, email, password);
+      } else {
+        await createUserWithEmailAndPassword(auth, email, password);
+      }
+      // If successful, onAuthStateChanged will handle the redirect/state update
+    } catch (error: any) {
+      console.error("Eroare email auth:", error);
+      if (error.code === 'auth/invalid-credential' || error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password') {
+        setAuthError("Email sau parolă incorectă.");
+      } else if (error.code === 'auth/email-already-in-use') {
+        setAuthError("Există deja un cont cu acest email. Te rugăm să te loghezi.");
+      } else if (error.code === 'auth/weak-password') {
+        setAuthError("Parola trebuie să aibă cel puțin 6 caractere.");
+      } else {
+        setAuthError(error.message || "A apărut o eroare necunoscută la autentificare.");
+      }
+    } finally {
+      setIsEmailLoading(false);
     }
   };
   
@@ -583,9 +615,54 @@ export default function Home() {
           <h1 className="text-4xl font-black text-transparent bg-gradient-to-r from-zinc-400 via-emerald-400 to-zinc-400 bg-clip-text text-center mb-4 tracking-tighter">IdeeaTa.ai</h1>
           <p className="text-zinc-400 text-center mb-10 font-medium">Platforma necesită autentificare pentru a continua.</p>
           
+          <form onSubmit={handleEmailAuth} className="w-full mb-6 space-y-4">
+            <div>
+              <input 
+                type="email" 
+                placeholder="Adresa de email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                className="w-full bg-zinc-800/50 border border-zinc-700/50 rounded-xl px-4 py-3 text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 transition-all"
+              />
+            </div>
+            <div>
+              <input 
+                type="password" 
+                placeholder="Parola"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                className="w-full bg-zinc-800/50 border border-zinc-700/50 rounded-xl px-4 py-3 text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 transition-all"
+              />
+            </div>
+            <button 
+              type="submit" 
+              disabled={isEmailLoading}
+              className="w-full py-4 px-6 bg-emerald-500 hover:bg-emerald-600 text-white font-bold rounded-xl transition-all shadow-lg disabled:opacity-50"
+            >
+              {isEmailLoading ? "Se procesează..." : (isLoginMode ? "Intră în cont" : "Creează cont nou")}
+            </button>
+            <div className="text-center mt-4">
+              <button 
+                type="button" 
+                onClick={() => setIsLoginMode(!isLoginMode)}
+                className="text-emerald-400 text-sm font-medium hover:text-emerald-300 transition-colors"
+              >
+                {isLoginMode ? "Nu ai cont? Creează unul nou" : "Ai deja cont? Intră aici"}
+              </button>
+            </div>
+          </form>
+
+          <div className="w-full flex items-center gap-4 mb-6">
+            <div className="flex-1 h-px bg-zinc-800"></div>
+            <span className="text-zinc-500 text-sm font-medium">sau</span>
+            <div className="flex-1 h-px bg-zinc-800"></div>
+          </div>
+
           <button 
             onClick={handleGoogleLogin} 
-            className="w-full py-4 px-6 flex items-center justify-center gap-4 bg-white hover:bg-zinc-100 text-zinc-900 font-bold rounded-2xl transition-all shadow-lg"
+            className="w-full py-4 px-6 flex items-center justify-center gap-4 bg-white hover:bg-zinc-100 text-zinc-900 font-bold rounded-xl transition-all shadow-lg"
           >
             <svg viewBox="0 0 24 24" className="w-6 h-6" xmlns="http://www.w3.org/2000/svg">
               <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>

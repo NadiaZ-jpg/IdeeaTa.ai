@@ -6,7 +6,7 @@ import pptxgen from "pptxgenjs";
 import { EditForm } from "./EditForm";
 import { BudgetBarChart } from "./BudgetChart";
 import { auth } from '@/lib/firebase';
-import { signInWithPopup, GoogleAuthProvider, onAuthStateChanged, User } from 'firebase/auth';
+import { signInWithRedirect, GoogleAuthProvider, onAuthStateChanged, User, getRedirectResult } from 'firebase/auth';
 
 export default function Home() {
   const [skill, setSkill] = useState("");
@@ -147,6 +147,19 @@ export default function Home() {
   const [authError, setAuthError] = useState<string | null>(null);
 
   useEffect(() => {
+    const checkRedirect = async () => {
+      try {
+        const result = await getRedirectResult(auth);
+        if (result && result.user) {
+          setUser(result.user);
+        }
+      } catch (error: any) {
+        console.error("Eroare la redirect:", error);
+        setAuthError(error.message || "A apărut o eroare necunoscută.");
+      }
+    };
+    checkRedirect();
+
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       setUser(currentUser);
       setIsAuthLoading(false);
@@ -154,24 +167,15 @@ export default function Home() {
     return () => unsubscribe();
   }, []);
 
-  const handleGoogleLogin = () => {
+  const handleGoogleLogin = async () => {
+    setAuthError(null);
     const provider = new GoogleAuthProvider();
-    
-    // Este CRITIC să chemăm signInWithPopup direct, fără niciun setState înainte. 
-    // Altfel, React 18 întârzie execuția, iar Chrome crede că e un pop-up automat (spam) și îl blochează!
-    signInWithPopup(auth, provider)
-      .then((result) => {
-        setUser(result.user);
-        setAuthError(null);
-      })
-      .catch((error: any) => {
-        console.error("Eroare la autentificare:", error);
-        if (error.code === 'auth/popup-blocked') {
-          setAuthError("Browserul tău a blocat fereastra de logare! Te rugăm să permiți Pop-up-urile (sus în bara de adresă) și să încerci din nou.");
-        } else {
-          setAuthError(error.message || "A apărut o eroare necunoscută.");
-        }
-      });
+    try {
+      await signInWithRedirect(auth, provider);
+    } catch (error: any) {
+      console.error("Eroare la autentificare:", error);
+      setAuthError(error.message || "A apărut o eroare necunoscută.");
+    }
   };
   
   const inputRef = useRef<any>(null);

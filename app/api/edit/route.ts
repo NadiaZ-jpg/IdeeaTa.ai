@@ -1,7 +1,11 @@
 import { GoogleGenAI } from "@google/genai";
 import { NextRequest, NextResponse } from "next/server";
 
+export const maxDuration = 30; // Max execution time 30s to allow for retries
+
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+
+const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
 export async function POST(req: NextRequest) {
   try {
@@ -31,12 +35,24 @@ Returnează DOAR rezultatul ca un JSON valid, respectând fix aceeași schemă (
 Fără niciun alt text, fără cod sursă markdown dacă se poate, doar JSON pur.
 `;
 
-    const response = await ai.models.generateContent({
-      model: "gemini-2.5-flash",
-      contents: prompt,
-    });
+    let response;
+    let retries = 3;
+    while (retries > 0) {
+      try {
+        response = await ai.models.generateContent({
+          model: "gemini-2.5-flash",
+          contents: prompt,
+        });
+        break; // Succes
+      } catch (e: any) {
+        console.error(`Eroare editare Gemini. Incercari ramase: ${retries - 1}`, e.message);
+        retries--;
+        if (retries === 0) throw e;
+        await sleep(2500); // Așteaptă 2.5 secunde înainte de retry
+      }
+    }
 
-    let text = response.text || "";
+    let text = response?.text || "";
     // Curățare cod markdown
     if (text.startsWith("\`\`\`json")) {
       text = text.substring(7);

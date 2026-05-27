@@ -1,7 +1,11 @@
 import { GoogleGenAI } from "@google/genai";
 import { NextRequest, NextResponse } from "next/server";
 
+export const maxDuration = 30; // Max execution time 30s to allow for retries
+
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+
+const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
 export async function POST(req: NextRequest) {
   try {
@@ -40,12 +44,24 @@ Include at least 5-6 budgeted items, and 3-4 key business features or functional
 Do not include any other text besides the JSON block. Do not format with markdown block quotes (\`\`\`json) if possible, but if you do, it will be stripped out.
 `;
 
-    const response = await ai.models.generateContent({
-      model: "gemini-2.5-flash",
-      contents: prompt,
-    });
+    let response;
+    let retries = 3;
+    while (retries > 0) {
+      try {
+        response = await ai.models.generateContent({
+          model: "gemini-2.5-flash",
+          contents: prompt,
+        });
+        break; // Succes
+      } catch (e: any) {
+        console.error(`Eroare generare Gemini. Incercari ramase: ${retries - 1}`, e.message);
+        retries--;
+        if (retries === 0) throw e;
+        await sleep(2500); // Așteaptă 2.5 secunde înainte de retry
+      }
+    }
 
-    const text = response.text;
+    const text = response?.text || "";
 
     return NextResponse.json({
       fx_rate: 0.201, // 1 RON = 0.20 EUR approximately

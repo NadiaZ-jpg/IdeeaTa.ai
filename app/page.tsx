@@ -755,8 +755,7 @@ export default function Home() {
                       <button 
                         type="button" 
                         onClick={() => {
-                          const hasEuFundsAccess = subscriptionActive || euFundsUnlocked || isPaid;
-                          if (!hasEuFundsAccess) {
+                          if (!isStudioPaid) {
                             setShowPricingModal(true);
                           } else {
                             handleAiEdit("eu_funds_optimization");
@@ -764,7 +763,7 @@ export default function Home() {
                         }} 
                         disabled={isEditingAi} 
                         className={`w-full text-left flex items-center justify-between rounded-xl px-5 py-4 font-bold text-sm transition-all group disabled:opacity-50 disabled:cursor-not-allowed ${
-                          !(subscriptionActive || euFundsUnlocked || isPaid) 
+                          !isStudioPaid 
                             ? "bg-zinc-900/60 hover:bg-zinc-800/80 border border-amber-500/30 text-amber-300" 
                             : "bg-black hover:bg-zinc-800 border border-zinc-800 text-zinc-300"
                         }`}
@@ -775,7 +774,7 @@ export default function Home() {
                             {isEditingAi ? "Se procesează..." : "Optimizat pentru Fonduri Europene"}
                           </span>
                         </span>
-                        {!(subscriptionActive || euFundsUnlocked || isPaid) && (
+                        {!isStudioPaid && (
                           <span className="text-[10px] bg-amber-500/20 border border-amber-500/40 text-amber-300 px-2 py-0.5 rounded-full font-black uppercase tracking-wider whitespace-nowrap flex items-center gap-1">
                             🔒 PRO
                           </span>

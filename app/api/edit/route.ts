@@ -53,17 +53,10 @@ Fără niciun alt text, fără cod sursă markdown dacă se poate, doar JSON pur
     }
 
     let text = response?.text || "";
-    // Curățare cod markdown
-    if (text.startsWith("\`\`\`json")) {
-      text = text.substring(7);
-      if (text.endsWith("\`\`\`")) {
-        text = text.substring(0, text.length - 3);
-      }
-    } else if (text.startsWith("\`\`\`")) {
-      text = text.substring(3);
-      if (text.endsWith("\`\`\`")) {
-        text = text.substring(0, text.length - 3);
-      }
+    // Extrage doar bucata de JSON pentru a ignora eventualul text adaugat de Gemini
+    const jsonMatch = text.match(/\{[\s\S]*\}/);
+    if (jsonMatch) {
+      text = jsonMatch[0];
     }
     
     return NextResponse.json({ updatedResult: text });

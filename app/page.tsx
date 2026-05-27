@@ -115,15 +115,28 @@ export default function Home() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ result, action, customStyle })
       });
-      const data = await res.json();
+      let data;
+      try {
+        data = await res.json();
+      } catch (e) {
+        alert("Eroare de rețea. Te rugăm să mai încerci o dată.");
+        return;
+      }
+
       if (data.updatedResult) {
-        setResult(JSON.parse(data.updatedResult));
+        try {
+          const parsed = JSON.parse(data.updatedResult);
+          setResult(parsed);
+        } catch (err) {
+          console.error("Failed to parse JSON:", err);
+          alert("AI-ul a returnat un format invalid. Mai încearcă o dată.");
+        }
       } else if (data.error) {
         alert(data.error);
       }
     } catch (e) {
       console.error(e);
-      alert("A apărut o eroare la editarea cu AI.");
+      alert("A apărut o eroare neașteptată la editarea cu AI.");
     } finally {
       setIsEditingAi(false);
     }

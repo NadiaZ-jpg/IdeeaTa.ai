@@ -61,7 +61,13 @@ Do not include any other text besides the JSON block. Do not format with markdow
       }
     }
 
-    const text = response?.text || "";
+    let text = response?.text || "";
+
+    // Extrage doar bucata de JSON
+    const jsonMatch = text.match(/\{[\s\S]*\}/);
+    if (jsonMatch) {
+      text = jsonMatch[0];
+    }
 
     return NextResponse.json({
       fx_rate: 0.201, // 1 RON = 0.20 EUR approximately

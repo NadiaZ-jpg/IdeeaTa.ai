@@ -1829,7 +1829,7 @@ export default function Home() {
 
       {/* DOCUMENT PREZENTARE - Afișat doar la nevoie pentru a fi capturat impecabil */}
       {result && (
-        <div className={`${isDownloading === 'pptx' ? 'block relative' : 'hidden'} w-[1280px] mx-auto`}>
+        <div className="fixed top-[-9999px] left-[-9999px] w-[1280px] opacity-0 pointer-events-none z-[-50]">
           <div ref={presentationRef} className="flex flex-col gap-10 bg-[#09090b] p-10">
             {/* Slide 1: Title */}
             <div className="presentation-slide w-[1280px] h-[720px] bg-[#09090b] text-white flex flex-col justify-center items-center p-20 relative border-[12px] border-zinc-900 box-border">
@@ -1988,7 +1988,7 @@ export default function Home() {
 
       {/* PREZENTARE PDF - ALB CU VERDE, MULTIPLE SLIDES */}
       {result && (
-        <div className={`${isDownloading === 'pdf' ? 'block absolute top-0 left-0 opacity-0 pointer-events-none' : 'hidden'}`}>
+        <div className="fixed top-[-9999px] left-[-9999px] w-[1280px] opacity-0 pointer-events-none z-[-50]">
           <div ref={pdfPrintRef}>
             {/* Slide 1: Titlu */}
             <div className="pdf-presentation-slide w-[1280px] h-[720px] bg-emerald-950 text-white flex flex-col justify-center items-center p-20 relative border-[12px] border-emerald-900 box-border">

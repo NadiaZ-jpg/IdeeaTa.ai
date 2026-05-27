@@ -32,7 +32,6 @@ export default function Home() {
   const [showPricingModal, setShowPricingModal] = useState(false);
 
   const devBypass = process.env.NEXT_PUBLIC_DEV_BYPASS === 'true';
-  const isContentCopyProtected = !isPlanPaid && !isStudioPaid;
   const [animatedPlaceholder, setAnimatedPlaceholder] = useState("");
 
   useEffect(() => {
@@ -168,6 +167,7 @@ export default function Home() {
   const isAdmin = user ? ADMIN_EMAILS.includes(user.email || '') : false;
   const isPlanPaid = isAdmin || devBypass || subscriptionActive || (result && unlockedPlans.includes(result.nume)) || isPaid;
   const isStudioPaid = isAdmin || devBypass || subscriptionActive || euFundsUnlocked || isPaid;
+  const isContentCopyProtected = !isPlanPaid && !isStudioPaid;
   const [isAuthLoading, setIsAuthLoading] = useState(true);
   const [authError, setAuthError] = useState<string | null>(null);
   const [email, setEmail] = useState("");

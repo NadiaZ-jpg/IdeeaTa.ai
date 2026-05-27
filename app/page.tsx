@@ -1617,10 +1617,18 @@ export default function Home() {
       {isEditing && result ? (
         <div className="w-full max-w-[98%] xl:max-w-[120rem] animate-in fade-in slide-in-from-bottom-10 print:hidden px-4 2xl:px-8">
           <div className="flex flex-col md:flex-row justify-between items-center gap-4 w-full mb-8 pb-8 border-b border-zinc-800">
-            <h1 className="text-3xl font-black text-emerald-400 flex items-center gap-3">
-              <span>✏️</span> Studio Editare
-            </h1>
-            <div className="flex gap-4">
+            <div className="flex flex-col gap-3">
+              <h1 className="text-3xl font-black text-emerald-400 flex items-center gap-3">
+                <span>✏️</span> Studio Editare
+              </h1>
+              <div className="flex items-start gap-2 bg-emerald-500/10 border border-emerald-500/20 p-3 rounded-xl max-w-2xl">
+                <span className="text-emerald-400 mt-0.5">💡</span>
+                <p className="text-xs text-emerald-100/70 leading-relaxed">
+                  <strong>Sfat:</strong> Aici editezi textul și folosești asistentul AI. Pentru a adăuga <strong className="text-white">imagini</strong>, logo sau a schimba aranjarea în pagină, apasă <em>Confirmă și Salvează</em>, apoi <strong>Descarcă Word</strong> și deschide fișierul cu Microsoft Word sau Google Docs.
+                </p>
+              </div>
+            </div>
+            <div className="flex gap-4 shrink-0">
               <button onClick={cancelEditing} className="px-6 py-2 bg-zinc-800 hover:bg-zinc-700 text-white rounded-xl font-bold transition-all shadow-xl">
                  ❌ Anulează
               </button>

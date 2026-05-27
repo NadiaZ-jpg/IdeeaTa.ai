@@ -538,10 +538,8 @@ export default function Home() {
 
   const downloadAction = async (mode: 'pdf' | 'pptx' | 'word', bypassPaymentCheck = false) => {
     const planName = result?.nume || "Plan de Afaceri";
-    const hasUnlimited = subscriptionActive;
-    const isAlreadyUnlocked = unlockedPlans.includes(planName);
 
-    if (!hasUnlimited && !isAlreadyUnlocked && !bypassPaymentCheck && !isPaid) {
+    if (!isPlanPaid && !bypassPaymentCheck) {
       if (credits > 0) {
         const confirmUnlock = window.confirm(
           `Descărcarea acestui document va consuma 1 credit din cele ${credits} disponibile. Dorești să continui?`

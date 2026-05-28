@@ -12,11 +12,16 @@ import { PricingModal } from '@/components/PricingModal';
 
 const formatNumberedText = (text: string | undefined) => {
   if (typeof text !== 'string') return text;
+  // Remove redundant AI intro text for objectives (case insensitive)
+  let formatted = text.replace(/^(?:În primul an:?|În următorii(?:\s*\d+(?:-\d+)?\s*ani)?:?|Obiective(?:le)?[^:]*:?|Pentru primul an:?|Pe termen scurt:?|Pe termen mediu:?)\s*/i, '');
+  
   // This regex matches a space followed by digits and a dot and a space, e.g., " 1. ", " 2. "
   // It replaces it with "\n1. ", "\n2. " to render them on new lines.
-  let formatted = text.replace(/\s(\d+\.)\s/g, '\n$1 ');
+  formatted = formatted.replace(/\s(\d+\.)\s/g, '\n$1 ');
+  
   // Also add a newline before bolded subheadings like **Etapa 1:** or **Pilonul Verde:**
   formatted = formatted.replace(/\s(\*\*[^*]+\*\*)/g, '\n\n$1');
+  
   return formatted.trim();
 };
 

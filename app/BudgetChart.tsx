@@ -92,7 +92,8 @@ export function BudgetBarChart({ budget }: { budget: any[] }) {
               wrapperStyle={{ fontSize: '12px', color: '#e4e4e7', fontWeight: '500', maxWidth: '60%', paddingLeft: '20px' }} 
               formatter={(value, entry) => {
                 // Ensure we get the actual value for the slice from the entry payload, not by index
-                const itemCost = entry.payload?.value || 0;
+                const payload = entry.payload as any;
+                const itemCost = payload?.value || 0;
                 const percent = totalCost > 0 ? ((itemCost / totalCost) * 100).toFixed(0) : 0;
                 return `${value.length > 30 ? value.substring(0, 30) + '...' : value} (${percent}%)`;
               }}

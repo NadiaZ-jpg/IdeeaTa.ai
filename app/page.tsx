@@ -816,7 +816,7 @@ export default function Home() {
             <div className="mt-6 flex items-start gap-2 bg-emerald-500/10 border border-emerald-500/20 p-4 rounded-2xl w-full">
               <span className="text-emerald-400 mt-0.5 text-lg">💡</span>
               <p className="text-[13px] text-emerald-100/70 leading-relaxed">
-                <strong>Sfat:</strong> Aici editezi textul și folosești asistentul AI. Pentru a adăuga <strong className="text-white">imagini</strong>, logo sau a schimba aranjarea în pagină, apasă <em>Confirmă și Salvează</em>, apoi <strong>Descarcă Word</strong> și deschide fișierul cu Microsoft Word sau Google Docs.
+                <strong>Sfat:</strong> Aici editezi textul documentului. Pentru a adăuga <strong className="text-white">imagini</strong>, logo sau a schimba aranjarea în pagină, apasă <em>Confirmă și Salvează</em>, apoi <strong>Descarcă Word</strong> și deschide fișierul cu Microsoft Word sau Google Docs.
               </p>
             </div>
     </div>

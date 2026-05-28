@@ -1318,7 +1318,6 @@ export default function Home() {
                   <textarea
                     ref={inputRef as any}
                     value={skill}
-                    title={skill}
                     onChange={(e) => setSkill(e.target.value)}
                     onKeyDown={handleKeyDown}
                     disabled={loading}

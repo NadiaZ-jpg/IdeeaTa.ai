@@ -130,6 +130,9 @@ export default function Home() {
     } else if (action === "eu_funds_optimization") {
       const confirmEu = window.confirm("🇪🇺 Optimizare pentru Fonduri Europene\n\nAcest instrument va:\n1. Adapta vocabularul din Planul Operațional și SWOT pentru a include concepte cheie (digitalizare, sustenabilitate, economie circulară).\n2. Redenumi automat achizițiile din buget pentru a fi mai ușor încadrabile în categoriile de cheltuieli eligibile.\n\nDorești să aplici aceste modificări documentului tău?");
       if (!confirmEu) return; // Anulat
+    } else if (action === "investor_ready") {
+      const confirmInv = window.confirm("🏦 Transformare în Plan Profesionist\n\nAceastă funcție va dezvolta planul tău la un nivel avansat, așteptat de bănci și investitori privați, adăugând:\n1. Un Rezumat Executiv (Executive Summary)\n2. O Matrice de Diferențiere față de concurență\n3. Strategia 'Go-To-Market' (inclusiv CAC și LTV)\n4. Analiză detaliată de Risc și Plan de Contingență\n5. Scenarii Financiare Multiple (Pesimist/Realist/Optimist)\n\nAcțiunea va dura mai mult. Ești sigur că vrei să continui?");
+      if (!confirmInv) return;
     }
 
     setIsEditingAi(true);
@@ -859,6 +862,11 @@ export default function Home() {
                       <button type="button" onClick={() => handleAiEdit("add_sections")} disabled={isEditingAi} className="w-full bg-black hover:bg-zinc-800 border border-zinc-800 rounded-xl px-5 py-4 font-bold text-sm text-zinc-300 transition-all text-left flex items-center gap-3 group disabled:opacity-50 disabled:cursor-not-allowed">
                         <span className="text-emerald-500 group-hover:scale-110 transition-transform">💡</span> 
                         <span>{isEditingAi ? "Se procesează..." : "Adaugă secțiuni noi"}</span>
+                      </button>
+
+                      <button type="button" onClick={() => handleAiEdit("investor_ready")} disabled={isEditingAi} className="w-full bg-zinc-900/80 hover:bg-zinc-800 border border-emerald-500/30 rounded-xl px-5 py-4 font-bold text-sm text-emerald-100 transition-all text-left flex items-center gap-3 group disabled:opacity-50 disabled:cursor-not-allowed shadow-[0_0_15px_rgba(16,185,129,0.1)]">
+                        <span className="text-emerald-400 group-hover:scale-110 transition-transform text-lg">🏦</span> 
+                        <span>{isEditingAi ? "Se procesează..." : "Plan Profesionist (Investitori/Bănci)"}</span>
                       </button>
                     </div>
                 </div>

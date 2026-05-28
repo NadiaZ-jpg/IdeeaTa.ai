@@ -20,6 +20,14 @@ export async function POST(req: NextRequest) {
       instruction = `Extinde planul de afaceri adăugând informații suplimentare, argumente sau concepte noi referitoare strict la secțiunea specificată de utilizator: "${targetSection || 'oricare consideri necesară'}". Păstrează tonul existent. Nu adăuga chei noi în JSON, doar extinde array-urile sau descrierile existente în acea zonă.`;
     } else if (action === "eu_funds_optimization") {
       instruction = "Optimizează planul de afaceri pentru accesarea de Fonduri Europene. Ajustează limbajul din plan_operational și din explicațiile SWOT pentru a folosi termeni specifici ghidurilor de finanțare europene (digitalizare, inovare, sustenabilitate, economie circulară). În planul financiar, reformulează denumirile elementelor de cheltuieli pentru a reflecta clar categorii eligibile (active corporale, achiziții echipamente tehnologice, software, servicii).";
+    } else if (action === "investor_ready") {
+      instruction = `Transformă acest plan de afaceri într-un document de nivel profesionist pentru atragerea de investitori sau credite bancare, integrând logic următoarele 5 elemente lipsă:
+1. 'Rezumat Executiv (Cârligul)' (adaugă-l în 'date_generale.descriere_proiect' sau în 'viziune_strategie').
+2. 'Matricea de Diferențiere și Poziționare' față de concurență (dezvoltă secțiunea 'analiza_pietei.concurenta').
+3. 'Strategia Go-To-Market' incluzând estimări plauzibile pentru CAC și LTV (dezvoltă 'analiza_pietei.strategie_marketing' sau 'plan_operational.descriere_flux').
+4. 'Analiza de Risc și Plan de Contingență' detaliate (extinde 'amenintari' în SWOT).
+5. 'Modelare Financiară cu 3 Scenarii' - explică sumar scenariile pesimist, realist și optimist (dezvoltă 'plan_financiar.strategie_financiara').
+Păstrează tonul profesionist. Nu șterge secțiunile existente, ci îmbogățește-le cu noile analize. Răspunde exclusiv în format JSON valid care respectă exact structura inițială pe capitole.`;
     } else if (action === "shorten_for_export") {
       instruction = "Scurtează și sintetizează drastic întregul text (analiza pieței, planul operațional, elementele SWOT și strategia financiară). Menține esența, dar folosește fraze foarte scurte, la obiect. Redu volumul de text la jumătate pentru a te asigura că încape perfect vizual pe slide-uri de prezentare (PDF/PowerPoint).";
     } else {

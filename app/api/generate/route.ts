@@ -63,6 +63,9 @@ Do not include any other text besides the JSON block. Do not format with markdow
         response = await ai.models.generateContent({
           model: "gemini-2.5-flash",
           contents: prompt,
+          config: {
+            responseMimeType: "application/json",
+          }
         });
         break; // Succes
       } catch (e: any) {

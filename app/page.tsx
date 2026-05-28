@@ -1148,16 +1148,16 @@ export default function Home() {
               <div className="flex flex-col gap-2">
                 <div className="w-full h-px bg-gradient-to-r from-emerald-500/20 via-zinc-700/40 to-transparent"></div>
                 <div className="flex items-center justify-between">
-                  <p className="text-zinc-400 text-sm font-semibold uppercase tracking-widest">Conținut</p>
-                  <p className="text-emerald-400 text-sm font-black">SWOT · Buget · Piață</p>
+                  <p className="text-zinc-400 text-sm font-semibold uppercase tracking-widest">Structură Document</p>
+                  <p className="text-emerald-400 text-sm font-black">6 Capitole Standard</p>
                 </div>
               </div>
 
               <div className="flex flex-col gap-2">
                 <div className="w-full h-px bg-gradient-to-r from-emerald-500/10 via-zinc-700/30 to-transparent"></div>
                 <div className="flex items-center justify-between">
-                  <p className="text-zinc-400 text-sm font-semibold uppercase tracking-widest">Fonduri europene</p>
-                  <p className="text-emerald-400 text-sm font-black">Optimizat</p>
+                  <p className="text-zinc-400 text-sm font-semibold uppercase tracking-widest">Fonduri / Investitori</p>
+                  <p className="text-emerald-400 text-sm font-black">Plan Profesional</p>
                 </div>
               </div>
 

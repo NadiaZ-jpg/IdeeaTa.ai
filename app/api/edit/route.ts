@@ -52,6 +52,9 @@ Fără niciun alt text, fără cod sursă markdown dacă se poate, doar JSON pur
         response = await ai.models.generateContent({
           model: "gemini-2.5-flash",
           contents: prompt,
+          config: {
+            responseMimeType: "application/json",
+          }
         });
         break; // Succes
       } catch (e: any) {

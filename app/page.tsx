@@ -1294,7 +1294,7 @@ export default function Home() {
           <h3 className="text-2xl md:text-3xl font-black mb-10 tracking-tighter bg-gradient-to-r from-zinc-400 via-emerald-400 to-zinc-400 bg-clip-text text-transparent animate-shimmer text-center">
             Ce conține planul tău de afaceri?
           </h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 text-left">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 md:gap-12 text-left">
             <div className="relative w-full h-full group">
               <div className="absolute inset-0 bg-emerald-500/10 blur-[60px] rounded-full pointer-events-none group-hover:bg-emerald-500/20 transition-all duration-500"></div>
               
@@ -1354,9 +1354,53 @@ export default function Home() {
                   <div className="w-12 h-12 rounded-xl bg-zinc-900 border border-zinc-800 text-emerald-400 flex items-center justify-center text-2xl mb-4 group-hover:scale-125 group-hover:rotate-12 group-hover:-translate-y-1 transition-all duration-300 shadow-inner">
                     🌟
                   </div>
-                  <h4 className="text-2xl font-bold text-white mb-3">Optimizat Fonduri Europene</h4>
+                  <h4 className="text-2xl font-bold text-white mb-3">Optimizat Fonduri</h4>
                   <p className="text-zinc-400 text-base md:text-lg leading-relaxed">
                     Structură și jargon specifice ghidurilor de finanțare pentru a-ți crește șansele de a obține granturi nerambursabile.
+                  </p>
+                </div>
+              </div>
+            </div>
+            <div className="relative w-full h-full group">
+              <div className="absolute inset-0 bg-emerald-500/10 blur-[60px] rounded-full pointer-events-none group-hover:bg-emerald-500/20 transition-all duration-500"></div>
+              
+              <div className="bg-[#09090b]/60 backdrop-blur-3xl border border-zinc-800/80 rounded-[2rem] p-6 sm:p-8 shadow-[0_0_60px_rgba(16,185,129,0.05)] relative z-10 flex flex-col justify-between h-full ring-1 ring-white/5 hover:border-emerald-500/50 hover:shadow-[0_0_80px_rgba(16,185,129,0.15)] transition-all duration-300">
+                <div>
+                  
+                  <div className="flex gap-1.5 mb-6">
+                    <div className="w-2.5 h-2.5 rounded-full bg-zinc-700"></div>
+                    <div className="w-2.5 h-2.5 rounded-full bg-zinc-700"></div>
+                    <div className="w-2.5 h-2.5 rounded-full bg-zinc-700"></div>
+                  </div>
+                  
+                  <div className="w-12 h-12 rounded-xl bg-zinc-900 border border-zinc-800 text-emerald-400 flex items-center justify-center text-2xl mb-4 group-hover:scale-125 group-hover:rotate-12 group-hover:-translate-y-1 transition-all duration-300 shadow-inner">
+                    🏦
+                  </div>
+                  <h4 className="text-2xl font-bold text-white mb-3">Plan Profesionist</h4>
+                  <p className="text-zinc-400 text-base md:text-lg leading-relaxed">
+                    Atrage investitori și bănci cu un format extins ce include metrici CAC/LTV, plan de risc și scenarii financiare multiple.
+                  </p>
+                </div>
+              </div>
+            </div>
+            <div className="relative w-full h-full group">
+              <div className="absolute inset-0 bg-emerald-500/10 blur-[60px] rounded-full pointer-events-none group-hover:bg-emerald-500/20 transition-all duration-500"></div>
+              
+              <div className="bg-[#09090b]/60 backdrop-blur-3xl border border-zinc-800/80 rounded-[2rem] p-6 sm:p-8 shadow-[0_0_60px_rgba(16,185,129,0.05)] relative z-10 flex flex-col justify-between h-full ring-1 ring-white/5 hover:border-emerald-500/50 hover:shadow-[0_0_80px_rgba(16,185,129,0.15)] transition-all duration-300">
+                <div>
+                  
+                  <div className="flex gap-1.5 mb-6">
+                    <div className="w-2.5 h-2.5 rounded-full bg-zinc-700"></div>
+                    <div className="w-2.5 h-2.5 rounded-full bg-zinc-700"></div>
+                    <div className="w-2.5 h-2.5 rounded-full bg-zinc-700"></div>
+                  </div>
+                  
+                  <div className="w-12 h-12 rounded-xl bg-zinc-900 border border-zinc-800 text-emerald-400 flex items-center justify-center text-2xl mb-4 group-hover:scale-125 group-hover:rotate-12 group-hover:-translate-y-1 transition-all duration-300 shadow-inner">
+                    🪄
+                  </div>
+                  <h4 className="text-2xl font-bold text-white mb-3">Studio AI Interactiv</h4>
+                  <p className="text-zinc-400 text-base md:text-lg leading-relaxed">
+                    Adaptează planul din mers. Adaugă secțiuni noi, taie procente din buget sau rescrie textul cu ajutorul asistentului inteligent.
                   </p>
                 </div>
               </div>

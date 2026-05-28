@@ -14,7 +14,10 @@ const formatNumberedText = (text: string | undefined) => {
   if (typeof text !== 'string') return text;
   // This regex matches a space followed by digits and a dot and a space, e.g., " 1. ", " 2. "
   // It replaces it with "\n1. ", "\n2. " to render them on new lines.
-  return text.replace(/\s(\d+\.)\s/g, '\n$1 ').trim();
+  let formatted = text.replace(/\s(\d+\.)\s/g, '\n$1 ');
+  // Also add a newline before bolded subheadings like **Etapa 1:** or **Pilonul Verde:**
+  formatted = formatted.replace(/\s(\*\*[^*]+\*\*)/g, '\n\n$1');
+  return formatted.trim();
 };
 
 const formatObjectNumbers = (obj: any): any => {

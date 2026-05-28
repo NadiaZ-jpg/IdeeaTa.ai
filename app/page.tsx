@@ -12,15 +12,17 @@ import { PricingModal } from '@/components/PricingModal';
 
 const formatNumberedText = (text: string | undefined) => {
   if (typeof text !== 'string') return text;
+  let formatted = text;
+  
   // Remove redundant AI intro text for objectives (case insensitive)
-  let formatted = text.replace(/^(?:În primul an:?|În următorii(?:\s*\d+(?:-\d+)?\s*ani)?:?|Obiective(?:le)?[^:]*:?|Pentru primul an:?|Pe termen scurt:?|Pe termen mediu:?)\s*/i, '');
+  formatted = formatted.replace(/^(?:În primul an:?|În următorii(?:\s*\d+(?:-\d+)?\s*ani)?:?|Obiective(?:le)?[^:]*:?|Pentru primul an:?|Pe termen scurt:?|Pe termen mediu:?)\s*/i, '');
   
-  // This regex matches a space followed by digits and a dot and a space, e.g., " 1. ", " 2. "
-  // It replaces it with "\n1. ", "\n2. " to render them on new lines.
-  formatted = formatted.replace(/\s(\d+\.)\s/g, '\n$1 ');
+  // Remove Markdown bold markers entirely since they render literally in the UI
+  formatted = formatted.replace(/\*\*/g, '');
   
-  // Also add a newline before bolded subheadings like **Etapa 1:** or **Pilonul Verde:**
-  formatted = formatted.replace(/\s(\*\*[^*]+\*\*)/g, '\n\n$1');
+  // Ensure that numbers in a list (e.g., " 1. ", " 2. ") start on a new paragraph.
+  // We match a non-newline character, followed by spaces, then the number, then a space.
+  formatted = formatted.replace(/([^\n])\s+(\d+\.)\s+/g, '$1\n\n$2 ');
   
   return formatted.trim();
 };

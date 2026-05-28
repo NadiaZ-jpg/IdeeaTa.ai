@@ -33,16 +33,16 @@ export function BudgetBarChart({ budget }: { budget: any[] }) {
       {/* Bar Chart Container */}
       <div className="h-[450px] w-full lg:w-1/2 outline-none">
         <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
-          <BarChart data={data} margin={{ top: 10, right: 10, left: 0, bottom: 120 }} style={{ outline: 'none' }}>
+          <BarChart data={data} margin={{ top: 10, right: 10, left: 0, bottom: 160 }} style={{ outline: 'none' }}>
             <CartesianGrid strokeDasharray="3 3" stroke="#27272a" vertical={false} />
             <XAxis 
               dataKey="name" 
               stroke="#71717a" 
               tick={{ fill: '#a1a1aa', fontSize: 11 }} 
-              angle={-45} 
+              angle={-40} 
               textAnchor="end" 
               interval={0} 
-              tickFormatter={(val) => val.length > 25 ? val.substring(0, 25) + '...' : val} 
+              tickFormatter={(val) => val.length > 20 ? val.substring(0, 20) + '...' : val} 
             />
             <YAxis 
               stroke="#71717a" 
@@ -68,8 +68,8 @@ export function BudgetBarChart({ budget }: { budget: any[] }) {
               data={data}
               cx="35%"
               cy="50%"
-              innerRadius={65}
-              outerRadius={95}
+              innerRadius={90}
+              outerRadius={140}
               paddingAngle={3}
               dataKey="cost"
               stroke="none"
@@ -93,9 +93,10 @@ export function BudgetBarChart({ budget }: { budget: any[] }) {
               formatter={(value, entry) => {
                 // Ensure we get the actual value for the slice from the entry payload, not by index
                 const payload = entry.payload as any;
-                const itemCost = payload?.value || 0;
+                // In Recharts, the original data object is sometimes nested under payload.payload
+                const itemCost = payload?.payload?.cost || payload?.value || 0;
                 const percent = totalCost > 0 ? ((itemCost / totalCost) * 100).toFixed(0) : 0;
-                return `${value.length > 30 ? value.substring(0, 30) + '...' : value} (${percent}%)`;
+                return `${value.length > 25 ? value.substring(0, 25) + '...' : value} (${percent}%)`;
               }}
             />
           </PieChart>

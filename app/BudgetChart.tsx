@@ -90,11 +90,8 @@ export function BudgetBarChart({ budget }: { budget: any[] }) {
               verticalAlign="middle" 
               align="right" 
               wrapperStyle={{ fontSize: '12px', color: '#e4e4e7', fontWeight: '500', maxWidth: '60%', paddingLeft: '20px' }} 
-              formatter={(value, entry) => {
-                // Ensure we get the actual value for the slice from the entry payload, not by index
-                const payload = entry.payload as any;
-                // In Recharts, the original data object is sometimes nested under payload.payload
-                const itemCost = payload?.payload?.cost || payload?.value || 0;
+              formatter={(value, entry: any) => {
+                const itemCost = entry?.payload?.cost || entry?.payload?.value || 0;
                 const percent = totalCost > 0 ? ((itemCost / totalCost) * 100).toFixed(0) : 0;
                 return `${value.length > 25 ? value.substring(0, 25) + '...' : value} (${percent}%)`;
               }}

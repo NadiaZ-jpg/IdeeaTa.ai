@@ -19,10 +19,17 @@ const formatNumberedText = (text: string | undefined) => {
   
   // Remove Markdown bold markers entirely since they render literally in the UI
   formatted = formatted.replace(/\*\*/g, '');
+
+  // Remove stray asterisks (e.g. stranded bullet points) at the start or end of lines
+  formatted = formatted.replace(/^\s*\*\s*/gm, '');
+  formatted = formatted.replace(/\s*\*\s*$/gm, '');
   
-  // Ensure that numbers in a list (e.g., " 1. ", " 2. ") start on a new paragraph.
-  // We match a non-newline character, followed by spaces, then the number, then a space.
-  formatted = formatted.replace(/([^\n])\s+(\d+\.)\s+/g, '$1\n\n$2 ');
+  // Normalize spacing to fix inconsistent gaps
+  // 1. Collapse multiple newlines (even with spaces between them) into exactly 2 newlines
+  formatted = formatted.replace(/\n\s*\n+/g, '\n\n');
+  
+  // 2. Ensure list items have exactly ONE newline before them to keep lists compact and consistent
+  formatted = formatted.replace(/\n+\s*(\d+\.)\s+/g, '\n$1 ');
   
   return formatted.trim();
 };

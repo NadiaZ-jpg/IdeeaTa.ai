@@ -54,6 +54,8 @@ export default function Home() {
   const [isEditing, setIsEditing] = useState(false);
   const [backupResult, setBackupResult] = useState<any>(null);
   const [isEditingAi, setIsEditingAi] = useState(false);
+  const [activeAiPrompt, setActiveAiPrompt] = useState<{action: string, title: string, placeholder?: string, desc?: string, isConfirm?: boolean} | null>(null);
+  const [aiPromptInput, setAiPromptInput] = useState("");
   const [showToneOptions, setShowToneOptions] = useState(false);
   const [isPaid, setIsPaid] = useState(false);
   const [showPaywall, setShowPaywall] = useState(false);
@@ -139,37 +141,26 @@ export default function Home() {
     }
   };
 
-  const handleAiEdit = async (action: string, customStyle?: string) => {
+  const handleAiEdit = async (action: string, customStyle?: string, customInput?: string) => {
     if (isEditingAi) return;
 
     let targetSection = "";
     if (action === "add_sections") {
-      const userInput = window.prompt("În ce secțiune dorești să adaugi informații suplimentare?\n(ex: Plan Financiar, Analiza Pieței, SWOT, Plan Operațional)");
-      if (!userInput) return; // Anulat de utilizator
-      targetSection = userInput;
+      if (!customInput) return; // Anulat
+      targetSection = customInput;
     } else if (action === "optimize_budget") {
-      let percentStr = window.prompt("Cu ce procent dorești să reduci costurile bugetate? (ex: 10, 20, 30)");
-      if (!percentStr) return; // Anulat
-      let percent = parseInt(percentStr.replace(/%/g, ''));
+      if (!customInput) return; // Anulat
+      let percent = parseInt(customInput.replace(/%/g, ''));
       if (isNaN(percent) || percent <= 0) {
         alert("Te rog introdu un procent valid (ex: 20).");
         return;
       }
-      if (percent > 40) {
-        if (!window.confirm(`⚠️ Atenție! O reducere de ${percent}% a bugetului ar putea afecta sever fezabilitatea și calitatea echipamentelor/serviciilor achiziționate. Continuăm cu această optimizare drastică?`)) {
-          return;
-        }
-      }
-      targetSection = percent.toString(); // Refolosim variabila pentru a trimite procentul
-    } else if (action === "eu_funds_optimization") {
-      const confirmEu = window.confirm("🇪🇺 Optimizare pentru Fonduri Europene\n\nAcest instrument va:\n1. Adapta vocabularul din Planul Operațional și SWOT pentru a include concepte cheie (digitalizare, sustenabilitate, economie circulară).\n2. Redenumi automat achizițiile din buget pentru a fi mai ușor încadrabile în categoriile de cheltuieli eligibile.\n\nDorești să aplici aceste modificări documentului tău?");
-      if (!confirmEu) return; // Anulat
-    } else if (action === "investor_ready") {
-      const confirmInv = window.confirm("🏦 Transformare în Plan Profesionist\n\nAceastă funcție va dezvolta planul tău la un nivel avansat, așteptat de bănci și investitori privați, adăugând:\n1. Un Rezumat Executiv (Executive Summary)\n2. O Matrice de Diferențiere față de concurență\n3. Strategia 'Go-To-Market' (inclusiv CAC și LTV)\n4. Analiză detaliată de Risc și Plan de Contingență\n5. Scenarii Financiare Multiple (Pesimist/Realist/Optimist)\n\nAcțiunea va dura mai mult. Ești sigur că vrei să continui?");
-      if (!confirmInv) return;
-    }
+      targetSection = percent.toString(); 
+    } 
 
     setIsEditingAi(true);
+    setActiveAiPrompt(null);
+    setAiPromptInput("");
     setShowToneOptions(false);
     try {
       const res = await fetch("/api/edit", {
@@ -854,7 +845,7 @@ export default function Home() {
                           if (!isStudioPaid) {
                             setShowPricingModal(true);
                           } else {
-                            handleAiEdit("eu_funds_optimization");
+                            setActiveAiPrompt(activeAiPrompt?.action === "eu_funds_optimization" ? null : {action: "eu_funds_optimization", title: "Optimizare Fonduri Europene", isConfirm: true, desc: "Se va adapta planul pentru fonduri europene:\n1. Concepte cheie: digitalizare, sustenabilitate.\n2. Redenumirea achizițiilor pentru a fi eligibile.\n\nEști gata?"});
                           }
                         }} 
                         disabled={isEditingAi} 
@@ -877,7 +868,7 @@ export default function Home() {
                         )}
                       </button>
 
-                      <button type="button" onClick={() => handleAiEdit("optimize_budget")} disabled={isEditingAi} className="w-full bg-black hover:bg-zinc-800 border border-zinc-800 rounded-xl px-5 py-4 font-bold text-sm text-zinc-300 transition-all text-left flex items-center gap-3 group disabled:opacity-50 disabled:cursor-not-allowed">
+                      <button type="button" onClick={() => setActiveAiPrompt(activeAiPrompt?.action === "optimize_budget" ? null : {action: "optimize_budget", title: "Optimizează Bugetul", placeholder: "ex: 10, 20, 30", desc: "Cu ce procent dorești să reduci costurile bugetate?"})} disabled={isEditingAi} className="w-full bg-black hover:bg-zinc-800 border border-zinc-800 rounded-xl px-5 py-4 font-bold text-sm text-zinc-300 transition-all text-left flex items-center gap-3 group disabled:opacity-50 disabled:cursor-not-allowed">
                         <span className="text-emerald-500 group-hover:scale-110 transition-transform">📉</span>
                         <span>
                           {isEditingAi ? "Se procesează..." : (
@@ -888,16 +879,52 @@ export default function Home() {
                         </span>
                       </button>
 
-                      <button type="button" onClick={() => handleAiEdit("add_sections")} disabled={isEditingAi} className="w-full bg-black hover:bg-zinc-800 border border-zinc-800 rounded-xl px-5 py-4 font-bold text-sm text-zinc-300 transition-all text-left flex items-center gap-3 group disabled:opacity-50 disabled:cursor-not-allowed">
+                      <button type="button" onClick={() => setActiveAiPrompt(activeAiPrompt?.action === "add_sections" ? null : {action: "add_sections", title: "Adaugă Secțiuni Noi", placeholder: "ex: Plan de Marketing, Analiza Riscurilor", desc: "Ce informații suplimentare dorești să adaugi?"})} disabled={isEditingAi} className="w-full bg-black hover:bg-zinc-800 border border-zinc-800 rounded-xl px-5 py-4 font-bold text-sm text-zinc-300 transition-all text-left flex items-center gap-3 group disabled:opacity-50 disabled:cursor-not-allowed">
                         <span className="text-emerald-500 group-hover:scale-110 transition-transform">💡</span> 
                         <span>{isEditingAi ? "Se procesează..." : "Adaugă secțiuni noi"}</span>
                       </button>
 
-                      <button type="button" onClick={() => handleAiEdit("investor_ready")} disabled={isEditingAi} className="w-full bg-zinc-900/80 hover:bg-zinc-800 border border-emerald-500/30 rounded-xl px-5 py-4 font-bold text-sm text-emerald-100 transition-all text-left flex items-center gap-3 group disabled:opacity-50 disabled:cursor-not-allowed shadow-[0_0_15px_rgba(16,185,129,0.1)]">
+                      <button type="button" onClick={() => setActiveAiPrompt(activeAiPrompt?.action === "investor_ready" ? null : {action: "investor_ready", title: "Plan Profesionist", isConfirm: true, desc: "Se va genera:\n1. Rezumat Executiv\n2. Matrice Diferențiere\n3. Strategie 'Go-To-Market'\n4. Analiză Risc\n5. Scenarii Financiare"}) } disabled={isEditingAi} className="w-full bg-zinc-900/80 hover:bg-zinc-800 border border-emerald-500/30 rounded-xl px-5 py-4 font-bold text-sm text-emerald-100 transition-all text-left flex items-center gap-3 group disabled:opacity-50 disabled:cursor-not-allowed shadow-[0_0_15px_rgba(16,185,129,0.1)]">
                         <span className="text-emerald-400 group-hover:scale-110 transition-transform text-lg">🏦</span> 
                         <span>{isEditingAi ? "Se procesează..." : "Plan Profesionist (Investitori/Bănci)"}</span>
                       </button>
                     </div>
+
+                    {activeAiPrompt && (
+                      <div className="mt-4 p-4 bg-zinc-950 border border-zinc-800 rounded-xl animate-in fade-in slide-in-from-top-2 duration-200">
+                        <h4 className="text-sm font-bold text-zinc-200 mb-2">{activeAiPrompt.title}</h4>
+                        <p className="text-xs text-zinc-400 mb-3 whitespace-pre-line">{activeAiPrompt.desc}</p>
+                        
+                        {!activeAiPrompt.isConfirm && (
+                          <input 
+                            type="text" 
+                            value={aiPromptInput}
+                            onChange={(e) => setAiPromptInput(e.target.value)}
+                            placeholder={activeAiPrompt.placeholder}
+                            className="w-full bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-2 text-sm text-white mb-3 focus:outline-none focus:border-emerald-500 transition-colors"
+                            autoFocus
+                          />
+                        )}
+                        
+                        <div className="flex gap-2">
+                          <button 
+                            type="button"
+                            onClick={() => handleAiEdit(activeAiPrompt.action, undefined, aiPromptInput)}
+                            disabled={!activeAiPrompt.isConfirm && !aiPromptInput.trim()}
+                            className="flex-1 bg-emerald-600 hover:bg-emerald-500 disabled:bg-zinc-800 disabled:text-zinc-500 text-white font-bold text-xs py-2 rounded-lg transition-colors"
+                          >
+                            {activeAiPrompt.isConfirm ? "Confirmă" : "Aplică"}
+                          </button>
+                          <button 
+                            type="button"
+                            onClick={() => { setActiveAiPrompt(null); setAiPromptInput(""); }}
+                            className="flex-1 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 font-bold text-xs py-2 rounded-lg transition-colors"
+                          >
+                            Anulează
+                          </button>
+                        </div>
+                      </div>
+                    )}
                 </div>
             
             {/* User Tip */}

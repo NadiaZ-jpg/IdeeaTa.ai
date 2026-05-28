@@ -1906,8 +1906,8 @@ export default function Home() {
                   <p className="mt-2"><strong className="text-white print:text-black">Contact:</strong> {result.date_generale?.date_contact}</p>
                 </div>
                 <div>
-                  <p className="whitespace-pre-line"><strong className="text-white print:text-black">Obiective (1 an):</strong> {formatNumberedText(result.viziune_strategie?.obiective_scurt)}</p>
-                  <p className="mt-2 whitespace-pre-line"><strong className="text-white print:text-black">Obiective (3-5 ani):</strong> {formatNumberedText(result.viziune_strategie?.obiective_mediu)}</p>
+                  <p className="whitespace-pre-line"><strong className="text-white print:text-black block mb-1">Obiective (1 an):</strong>{formatNumberedText(result.viziune_strategie?.obiective_scurt)}</p>
+                  <p className="mt-4 whitespace-pre-line"><strong className="text-white print:text-black block mb-1">Obiective (3-5 ani):</strong>{formatNumberedText(result.viziune_strategie?.obiective_mediu)}</p>
                 </div>
               </div>
               <div className="mt-6 pt-6 border-t border-zinc-800/50 text-zinc-300 print:border-gray-200 print:text-gray-800 text-justify leading-relaxed">

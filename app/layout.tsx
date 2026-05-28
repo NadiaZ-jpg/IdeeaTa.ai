@@ -1,5 +1,6 @@
 import type {Metadata} from 'next';
 import './globals.css'; // Global styles
+import { ScrollToTop } from '@/components/ScrollToTop';
 
 export const metadata: Metadata = {
   title: 'IdeeaTa.ai - Nu începe o afacere înainte să ne verifici',
@@ -9,7 +10,10 @@ export const metadata: Metadata = {
 export default function RootLayout({children}: {children: React.ReactNode}) {
   return (
     <html lang="ro">
-      <body suppressHydrationWarning>{children}</body>
+      <body suppressHydrationWarning>
+        {children}
+        <ScrollToTop />
+      </body>
     </html>
   );
 }

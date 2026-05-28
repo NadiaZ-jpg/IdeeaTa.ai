@@ -636,22 +636,76 @@ export default function Home() {
       }
 
       if (mode === 'pptx') {
-        const slides = document.querySelectorAll('.presentation-slide');
-        if (slides.length === 0) {
-           setIsDownloading(null);
-           return;
-        }
-
         const pres = new pptxgen();
         pres.layout = 'LAYOUT_16x9';
 
-        for (let i = 0; i < slides.length; i++) {
-          const slideElement = slides[i] as HTMLElement;
-          const dataUrl = await toPng(slideElement, { quality: 1.0, pixelRatio: 2 });
-          
-          const pptSlide = pres.addSlide();
-          pptSlide.addImage({ data: dataUrl, x: 0, y: 0, w: '100%', h: '100%' });
-        }
+        pres.defineSlideMaster({
+          title: 'MASTER_SLIDE',
+          background: { color: '09090b' },
+          objects: [
+            { rect: { x: 0, y: 0, w: '100%', h: 0.1, fill: { color: '10b981' } } }
+          ]
+        });
+
+        const formatPptText = (text: string | undefined, color: string = 'e4e4e7') => {
+            if (!text) return [];
+            let stripped = text.replace(/^(?:În primul an:?|În următorii(?:\s*\d+(?:-\d+)?\s*ani)?:?|Obiective(?:le)?[^:]*:?|Pentru primul an:?|Pe termen scurt:?|Pe termen mediu:?)\s*/i, '').replace(/\*\*/g, '');
+            return stripped.split('\n').filter(l => l.trim().length > 0).map(l => {
+                return { text: l.trim(), options: { bullet: false, color, breakLine: true } };
+            });
+        };
+
+        const swotFormat = (arr: any[], color: string) => arr?.map((i: any) => ({ text: (i.titlu || i) + '\n' + (i.explicatie_tehnica || ''), options: { color, bullet: true, breakLine: true } })) || [];
+
+        // Slide 1: Title
+        let slide1 = pres.addSlide({ masterName: 'MASTER_SLIDE' });
+        slide1.addText(result.nume || 'IdeeaTa', { x: 0, y: 2.5, w: '100%', h: 1, fontSize: 54, bold: true, color: '10b981', align: 'center', fontFace: 'Arial' });
+        slide1.addText(result.slogan || '', { x: 0, y: 3.5, w: '100%', h: 1, fontSize: 24, italic: true, color: 'e4e4e7', align: 'center', fontFace: 'Arial' });
+
+        // Slide 2: Viziune
+        let slide2 = pres.addSlide({ masterName: 'MASTER_SLIDE' });
+        slide2.addText('DATE GENERALE ȘI VIZIUNE', { x: 0.5, y: 0.5, w: 9, h: 0.5, fontSize: 28, bold: true, color: '10b981', fontFace: 'Arial' });
+        slide2.addText('Forma juridică: ' + result.date_generale?.forma_juridica + '\nCod CAEN: ' + result.date_generale?.cod_caen + '\nContact: ' + result.date_generale?.date_contact, { x: 0.5, y: 1.2, w: 9, h: 0.8, fontSize: 14, color: 'a1a1aa' });
+        
+        slide2.addText('Obiective (1 an)', { x: 0.5, y: 2.2, w: 4.2, h: 0.4, fontSize: 18, bold: true, color: '10b981' });
+        slide2.addText(formatPptText(result.viziune_strategie?.obiective_scurt), { x: 0.5, y: 2.6, w: 4.2, h: 4, fontSize: 14, valign: 'top' });
+        
+        slide2.addText('Obiective (3-5 ani)', { x: 5.2, y: 2.2, w: 4.2, h: 0.4, fontSize: 18, bold: true, color: '10b981' });
+        slide2.addText(formatPptText(result.viziune_strategie?.obiective_mediu), { x: 5.2, y: 2.6, w: 4.2, h: 4, fontSize: 14, valign: 'top' });
+
+        // Slide 3: Misiune și Piață
+        let slide3 = pres.addSlide({ masterName: 'MASTER_SLIDE' });
+        slide3.addText('MISIUNE, VALORI ȘI PIAȚĂ', { x: 0.5, y: 0.5, w: 9, h: 0.5, fontSize: 28, bold: true, color: '10b981', fontFace: 'Arial' });
+        
+        slide3.addText('Misiune și Valori', { x: 0.5, y: 1.2, w: 4.2, h: 0.4, fontSize: 18, bold: true, color: '10b981' });
+        slide3.addText(formatPptText(result.viziune_strategie?.misiune_valori), { x: 0.5, y: 1.6, w: 4.2, h: 5.5, fontSize: 14, valign: 'top' });
+        
+        slide3.addText('Clienții Țintă', { x: 5.2, y: 1.2, w: 4.2, h: 0.4, fontSize: 18, bold: true, color: '10b981' });
+        slide3.addText(formatPptText(result.analiza_pietei?.clienti_tinta), { x: 5.2, y: 1.6, w: 4.2, h: 2, fontSize: 14, valign: 'top' });
+        
+        slide3.addText('Concurența', { x: 5.2, y: 3.8, w: 4.2, h: 0.4, fontSize: 18, bold: true, color: '10b981' });
+        slide3.addText(formatPptText(result.analiza_pietei?.concurenta), { x: 5.2, y: 4.2, w: 4.2, h: 3, fontSize: 14, valign: 'top' });
+
+        // Slide 4: SWOT
+        let slide4 = pres.addSlide({ masterName: 'MASTER_SLIDE' });
+        slide4.addText('ANALIZA SWOT', { x: 0.5, y: 0.5, w: 9, h: 0.5, fontSize: 28, bold: true, color: '10b981', fontFace: 'Arial' });
+        
+        slide4.addText('PUNCTE TARI (S)', { x: 0.5, y: 1.2, w: 4.2, h: 0.4, fontSize: 18, bold: true, color: '10b981' });
+        slide4.addText(swotFormat(result.analiza_swot?.puncte_tari, 'e4e4e7'), { x: 0.5, y: 1.6, w: 4.2, h: 2.5, fontSize: 12, valign: 'top' });
+        
+        slide4.addText('SLĂBICIUNI (W)', { x: 5.2, y: 1.2, w: 4.2, h: 0.4, fontSize: 18, bold: true, color: 'ef4444' });
+        slide4.addText(swotFormat(result.analiza_swot?.puncte_slabe, 'e4e4e7'), { x: 5.2, y: 1.6, w: 4.2, h: 2.5, fontSize: 12, valign: 'top' });
+
+        slide4.addText('OPORTUNITĂȚI (O)', { x: 0.5, y: 4.2, w: 4.2, h: 0.4, fontSize: 18, bold: true, color: '3b82f6' });
+        slide4.addText(swotFormat(result.analiza_swot?.oportunitati, 'e4e4e7'), { x: 0.5, y: 4.6, w: 4.2, h: 2.5, fontSize: 12, valign: 'top' });
+        
+        slide4.addText('AMENINȚĂRI (T)', { x: 5.2, y: 4.2, w: 4.2, h: 0.4, fontSize: 18, bold: true, color: 'eab308' });
+        slide4.addText(swotFormat(result.analiza_swot?.amenintari, 'e4e4e7'), { x: 5.2, y: 4.6, w: 4.2, h: 2.5, fontSize: 12, valign: 'top' });
+
+        // Slide 5: Plan Operațional
+        let slide5 = pres.addSlide({ masterName: 'MASTER_SLIDE' });
+        slide5.addText('PLAN OPERAȚIONAL ȘI DE MANAGEMENT', { x: 0.5, y: 0.5, w: 9, h: 0.5, fontSize: 28, bold: true, color: '10b981', fontFace: 'Arial' });
+        slide5.addText(formatPptText(result.plan_operational?.flux_tehnologic), { x: 0.5, y: 1.2, w: 9, h: 5.5, fontSize: 14, valign: 'top' });
 
         const safeName = result?.nume?.replace(/[^a-zA-Z0-9]/g, '_') || 'Business';
         await pres.writeFile({ fileName: `IdeeaTa_Brosura_${safeName}.pptx` });

@@ -1,7 +1,7 @@
 import { GoogleGenAI } from "@google/genai";
 import { NextRequest, NextResponse } from "next/server";
 
-export const maxDuration = 30; // Max execution time 30s to allow for retries
+export const maxDuration = 60; // Max execution time 60s to allow for retries and long edits
 
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 

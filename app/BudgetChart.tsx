@@ -31,28 +31,28 @@ export function BudgetBarChart({ budget }: { budget: any[] }) {
   return (
     <div className="flex flex-col lg:flex-row gap-8 w-full h-full items-center justify-center select-none outline-none pointer-events-none md:pointer-events-auto">
       {/* Bar Chart Container */}
-      <div className="h-[380px] w-full lg:w-1/2 outline-none">
+      <div className="h-[450px] w-full lg:w-1/2 outline-none">
         <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
-          <BarChart data={data} margin={{ top: 10, right: 10, left: 0, bottom: 80 }} style={{ outline: 'none' }}>
+          <BarChart data={data} margin={{ top: 10, right: 10, left: 0, bottom: 120 }} style={{ outline: 'none' }}>
             <CartesianGrid strokeDasharray="3 3" stroke="#27272a" vertical={false} />
             <XAxis 
               dataKey="name" 
               stroke="#71717a" 
-              tick={{ fill: '#a1a1aa', fontSize: 10 }} 
-              angle={-35} 
+              tick={{ fill: '#a1a1aa', fontSize: 11 }} 
+              angle={-45} 
               textAnchor="end" 
               interval={0} 
-              tickFormatter={(val) => val.length > 15 ? val.substring(0, 15) + '...' : val} 
+              tickFormatter={(val) => val.length > 25 ? val.substring(0, 25) + '...' : val} 
             />
             <YAxis 
               stroke="#71717a" 
-              tick={{ fill: '#a1a1aa', fontSize: 10 }} 
+              tick={{ fill: '#a1a1aa', fontSize: 11 }} 
               width={60}
               tickFormatter={(val) => val >= 1000 ? `${(val / 1000).toFixed(0)}k` : val}
             />
             <Tooltip 
               cursor={{ fill: 'rgba(255,255,255,0.05)' }}
-              contentStyle={{ backgroundColor: '#09090b', borderColor: '#27272a', color: '#fff', borderRadius: '12px', outline: 'none', fontSize: '12px' }}
+              contentStyle={{ backgroundColor: '#09090b', borderColor: '#27272a', color: '#fff', borderRadius: '12px', outline: 'none', fontSize: '13px' }}
               itemStyle={{ color: '#10b981', fontWeight: 'bold' }}
             />
             <Bar dataKey="cost" fill="#10b981" radius={[4, 4, 0, 0]} name="Cost (LEI)" />
@@ -61,19 +61,19 @@ export function BudgetBarChart({ budget }: { budget: any[] }) {
       </div>
 
       {/* Pie Chart Container */}
-      <div className="h-[380px] w-full lg:w-1/2 flex justify-center items-center">
+      <div className="h-[450px] w-full lg:w-1/2 flex justify-center items-center">
         <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
           <PieChart style={{ outline: 'none' }}>
             <Pie
               data={data}
               cx="35%"
               cy="50%"
-              innerRadius={55}
-              outerRadius={80}
+              innerRadius={65}
+              outerRadius={95}
               paddingAngle={3}
               dataKey="cost"
               stroke="none"
-              label={false} // Disable labels on the chart to prevent clutter/overlaps
+              label={false}
               isAnimationActive={false}
             >
               {data.map((entry, index) => (
@@ -82,19 +82,19 @@ export function BudgetBarChart({ budget }: { budget: any[] }) {
             </Pie>
             <Tooltip 
               cursor={false}
-              contentStyle={{ backgroundColor: '#09090b', borderColor: '#27272a', color: '#fff', borderRadius: '12px', outline: 'none', fontSize: '12px' }}
+              contentStyle={{ backgroundColor: '#09090b', borderColor: '#27272a', color: '#fff', borderRadius: '12px', outline: 'none', fontSize: '13px' }}
               itemStyle={{ fontWeight: 'bold' }}
             />
             <Legend 
               layout="vertical" 
               verticalAlign="middle" 
               align="right" 
-              wrapperStyle={{ fontSize: '11px', color: '#e4e4e7', fontWeight: '500', maxWidth: '55%' }} 
-              formatter={(value, entry, index) => {
-                const item = data[index];
-                if (!item) return value;
-                const percent = totalCost > 0 ? ((item.cost / totalCost) * 100).toFixed(0) : 0;
-                return `${value.length > 20 ? value.substring(0, 20) + '...' : value} (${percent}%)`;
+              wrapperStyle={{ fontSize: '12px', color: '#e4e4e7', fontWeight: '500', maxWidth: '60%', paddingLeft: '20px' }} 
+              formatter={(value, entry) => {
+                // Ensure we get the actual value for the slice from the entry payload, not by index
+                const itemCost = entry.payload?.value || 0;
+                const percent = totalCost > 0 ? ((itemCost / totalCost) * 100).toFixed(0) : 0;
+                return `${value.length > 30 ? value.substring(0, 30) + '...' : value} (${percent}%)`;
               }}
             />
           </PieChart>

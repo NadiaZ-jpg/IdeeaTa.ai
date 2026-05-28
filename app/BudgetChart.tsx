@@ -66,10 +66,10 @@ export function BudgetBarChart({ budget }: { budget: any[] }) {
           <PieChart style={{ outline: 'none' }}>
             <Pie
               data={data}
-              cx="35%"
-              cy="50%"
-              innerRadius={90}
-              outerRadius={140}
+              cx="40%"
+              cy="55%"
+              innerRadius={85}
+              outerRadius={130}
               paddingAngle={3}
               dataKey="cost"
               stroke="none"
@@ -89,7 +89,7 @@ export function BudgetBarChart({ budget }: { budget: any[] }) {
               layout="vertical" 
               verticalAlign="middle" 
               align="right" 
-              wrapperStyle={{ fontSize: '12px', color: '#e4e4e7', fontWeight: '500', maxWidth: '60%', paddingLeft: '20px' }} 
+              wrapperStyle={{ fontSize: '12px', color: '#e4e4e7', fontWeight: '500', maxWidth: '55%', paddingLeft: '15px', top: '35%' }} 
               formatter={(value, entry: any) => {
                 const itemCost = entry?.payload?.cost || entry?.payload?.value || 0;
                 const percent = totalCost > 0 ? ((itemCost / totalCost) * 100).toFixed(0) : 0;

@@ -880,11 +880,6 @@ export default function Home() {
                           )}
                         </span>
                       </button>
-                      
-                      <button type="button" onClick={() => handleAiEdit("shorten_for_export")} disabled={isEditingAi} className="w-full bg-black hover:bg-zinc-800 border border-zinc-800 rounded-xl px-5 py-4 font-bold text-sm text-zinc-300 transition-all text-left flex items-center gap-3 group disabled:opacity-50 disabled:cursor-not-allowed">
-                        <span className="text-emerald-500 group-hover:scale-110 transition-transform">✂️</span> 
-                        <span>{isEditingAi ? "Se procesează..." : "Scurtează pt. Slide-uri"}</span>
-                      </button>
 
                       <button type="button" onClick={() => handleAiEdit("add_sections")} disabled={isEditingAi} className="w-full bg-black hover:bg-zinc-800 border border-zinc-800 rounded-xl px-5 py-4 font-bold text-sm text-zinc-300 transition-all text-left flex items-center gap-3 group disabled:opacity-50 disabled:cursor-not-allowed">
                         <span className="text-emerald-500 group-hover:scale-110 transition-transform">💡</span> 

@@ -16,6 +16,24 @@ const formatNumberedText = (text: string | undefined) => {
   // It replaces it with "\n1. ", "\n2. " to render them on new lines.
   return text.replace(/\s(\d+\.)\s/g, '\n$1 ').trim();
 };
+
+const formatObjectNumbers = (obj: any): any => {
+  if (typeof obj === 'string') {
+    return formatNumberedText(obj);
+  }
+  if (Array.isArray(obj)) {
+    return obj.map(formatObjectNumbers);
+  }
+  if (obj !== null && typeof obj === 'object') {
+    const newObj: any = {};
+    for (const key in obj) {
+      newObj[key] = formatObjectNumbers(obj[key]);
+    }
+    return newObj;
+  }
+  return obj;
+};
+
 export default function Home() {
   const [skill, setSkill] = useState("");
   const [result, setResult] = useState<any>(null);
@@ -160,7 +178,7 @@ export default function Home() {
       if (data.updatedResult) {
         try {
           const parsed = JSON.parse(data.updatedResult);
-          setResult(parsed);
+          setResult(formatObjectNumbers(parsed));
         } catch (err) {
           console.error("Failed to parse JSON:", err);
           alert("AI-ul a returnat un format invalid. Mai încearcă o dată.");
@@ -330,13 +348,13 @@ export default function Home() {
   useEffect(() => {
     if (typeof window !== "undefined") {
       const saved = localStorage.getItem("current_generated_plan");
-      if (saved) {
-        try {
-          setResult(JSON.parse(saved));
-        } catch (e) {
-          console.error("Eroare la incarcarea planului salvat local:", e);
+        if (saved && saved !== "null" && saved !== "undefined") {
+          try {
+            setResult(formatObjectNumbers(JSON.parse(saved)));
+          } catch (e) {
+            console.error("Eroare la incarcarea planului salvat local:", e);
+          }
         }
-      }
       
       const urlParams = new URLSearchParams(window.location.search);
       const paymentCancelled = urlParams.get("payment_cancelled") === "true";
@@ -520,7 +538,7 @@ export default function Home() {
 
         try {
           const finalResult = JSON.parse(cleanJson);
-          setResult(finalResult);
+          setResult(formatObjectNumbers(finalResult));
           setSkill(""); 
           
           // Scroll dynamically to the top of the page to show the top of the new plan

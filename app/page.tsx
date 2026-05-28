@@ -633,10 +633,27 @@ export default function Home() {
               <h3 style="text-align:center; color: #555; font-style: italic; font-family: Arial, sans-serif;">„${result.slogan || ''}”</h3>
               <hr />
               
-              <h2 style="font-family: Arial, sans-serif; color: #065f46;">Oportunitatea și Descrierea Afacerii</h2>
-              <p style="font-family: Arial, sans-serif; line-height: 1.6; font-size: 14px;">${result.descriere || ''}</p>
-              
-              <h2 style="font-family: Arial, sans-serif; color: #065f46;">Analiza SWOT</h2>
+              <h2 style="font-family: Arial, sans-serif; color: #065f46;">I & II. Date Generale și Viziune</h2>
+              <table width="100%" cellpadding="5" cellspacing="0" style="font-family: Arial, sans-serif; font-size: 14px; margin-bottom: 20px;">
+                <tr><td width="30%"><strong>Forma Juridică:</strong></td><td>${result.date_generale?.forma_juridica}</td></tr>
+                <tr><td><strong>Cod CAEN:</strong></td><td>${result.date_generale?.cod_caen}</td></tr>
+                <tr><td><strong>Date Contact:</strong></td><td>${result.date_generale?.date_contact}</td></tr>
+              </table>
+              <h3 style="font-family: Arial, sans-serif; font-size: 16px;">Viziune și Strategie</h3>
+              <ul style="font-family: Arial, sans-serif; font-size: 14px;">
+                <li style="margin-bottom: 10px;"><strong>Obiective pe Termen Scurt:</strong><br/>${result.viziune_strategie?.obiective_scurt}</li>
+                <li style="margin-bottom: 10px;"><strong>Obiective pe Termen Mediu:</strong><br/>${result.viziune_strategie?.obiective_mediu}</li>
+                <li style="margin-bottom: 10px;"><strong>Misiune și Valori:</strong><br/>${result.viziune_strategie?.misiune_valori}</li>
+              </ul>
+
+              <h2 style="font-family: Arial, sans-serif; color: #065f46;">III. Analiza Pieței și Promovarea</h2>
+              <ul style="font-family: Arial, sans-serif; font-size: 14px;">
+                <li style="margin-bottom: 10px;"><strong>Clienții Țintă:</strong><br/>${result.analiza_pietei?.clienti_tinta}</li>
+                <li style="margin-bottom: 10px;"><strong>Concurența:</strong><br/>${result.analiza_pietei?.concurenta}</li>
+                <li style="margin-bottom: 10px;"><strong>Strategia de Marketing:</strong><br/>${result.analiza_pietei?.strategie_marketing}</li>
+              </ul>
+
+              <h2 style="font-family: Arial, sans-serif; color: #065f46;">IV. Analiza SWOT</h2>
               <table width="100%" border="1" cellpadding="10" cellspacing="0" style="border-collapse: collapse; font-family: Arial, sans-serif; width: 100%;">
                   <tr>
                       <td width="50%" valign="top">
@@ -668,19 +685,23 @@ export default function Home() {
                   </tr>
               </table>
               
-              ${result.functionalitati_cheie && result.functionalitati_cheie.length > 0 ? `
-              <h2 style="font-family: Arial, sans-serif; color: #065f46; margin-top: 24px;">Funcționalități Cheie</h2>
+              <h2 style="font-family: Arial, sans-serif; color: #065f46; margin-top: 24px;">V. Planul Operațional și de Management</h2>
               <ul style="font-family: Arial, sans-serif; line-height: 1.6; font-size: 14px;">
-                  ${result.functionalitati_cheie.map((item: any) => `<li><strong>${item.titlu}</strong><br/><span style="color:#555;">${item.descriere}</span></li>`).join('')}
+                  <li style="margin-bottom: 10px;"><strong>Descriere Flux Tehnologic:</strong><br/>${result.plan_operational?.descriere_flux}</li>
+                  <li style="margin-bottom: 10px;"><strong>Resurse Umane (Organigramă):</strong><br/>${result.plan_operational?.resurse_umane}</li>
+                  <li style="margin-bottom: 10px;"><strong>Locație și Dotări Necesare:</strong><br/>${result.plan_operational?.locatie_dotari}</li>
               </ul>
-              ` : ''}
 
-              <h2 style="font-family: Arial, sans-serif; color: #065f46;">Buget Necesar și Justificare</h2>
+              <h2 style="font-family: Arial, sans-serif; color: #065f46;">VI. Planul Financiar</h2>
+              <p style="font-family: Arial, sans-serif; line-height: 1.6; font-size: 14px; font-style: italic;">
+                  ${result.plan_financiar?.strategie_financiara}
+              </p>
+              <h3 style="font-family: Arial, sans-serif; font-size: 16px;">Buget Investiții</h3>
               <ul style="font-family: Arial, sans-serif; line-height: 1.6; font-size: 14px;">
-                  ${result.buget_detaliat?.map((b: any) => `<li><strong>${b.item}</strong> - <span style="color:#065f46;">${formatPrice(b.cost)}</span><br/><span style="color:#555; font-style:italic;">${b.explicatie}</span></li>`).join('') || ''}
+                  ${result.plan_financiar?.buget_investitii?.map((b: any) => `<li><strong>${b.item}</strong> - <span style="color:#065f46;">${formatPrice(b.cost)}</span><br/><span style="color:#555; font-style:italic;">${b.explicatie}</span></li>`).join('') || ''}
               </ul>
               <h3 style="text-align:right; font-family: Arial, sans-serif; color: #065f46;">
-                  Total Estimat: ${formatPrice(result.buget_detaliat?.reduce((sum: number, b: any) => sum + parseInt(b.cost?.toString().replace(/[^0-9]/g, '') || '0'), 0).toString())}
+                  Total Estimat: ${formatPrice(result.plan_financiar?.buget_investitii?.reduce((sum: number, b: any) => sum + parseInt(b.cost?.toString().replace(/[^0-9]/g, '') || '0'), 0).toString())}
               </h3>
           `;
           
@@ -1769,10 +1790,33 @@ export default function Home() {
               </p>
             </div>
 
-            <div className="pdf-section mb-16 bg-zinc-900/50 p-10 rounded-3xl border-l-4 border-emerald-500 shadow-inner print:shadow-none print:bg-transparent print:border-l-4 print:border-emerald-700 print:text-black">
-              <p className="text-zinc-200 text-2xl leading-relaxed font-medium text-justify not-italic print:text-black">
-                {result.descriere}
-              </p>
+            {/* Date Generale & Viziune */}
+            <div className="pdf-section mb-10 bg-zinc-900/50 p-10 rounded-3xl border-l-4 border-emerald-500 shadow-inner print:shadow-none print:bg-transparent print:border-l-4 print:border-emerald-700 print:text-black">
+              <h3 className="text-emerald-400 text-sm font-black uppercase mb-6 tracking-[0.2em]">I & II. Date Generale și Viziune</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8 text-zinc-300 print:text-gray-800">
+                <div>
+                  <p><strong className="text-white print:text-black">Forma Juridică:</strong> {result.date_generale?.forma_juridica}</p>
+                  <p className="mt-2"><strong className="text-white print:text-black">Cod CAEN:</strong> {result.date_generale?.cod_caen}</p>
+                  <p className="mt-2"><strong className="text-white print:text-black">Contact:</strong> {result.date_generale?.date_contact}</p>
+                </div>
+                <div>
+                  <p><strong className="text-white print:text-black">Obiective (1 an):</strong> {result.viziune_strategie?.obiective_scurt}</p>
+                  <p className="mt-2"><strong className="text-white print:text-black">Obiective (3-5 ani):</strong> {result.viziune_strategie?.obiective_mediu}</p>
+                </div>
+              </div>
+              <div className="mt-6 pt-6 border-t border-zinc-800/50 text-zinc-300 print:border-gray-200 print:text-gray-800">
+                  <p><strong className="text-white print:text-black">Misiune și Valori:</strong> {result.viziune_strategie?.misiune_valori}</p>
+              </div>
+            </div>
+
+            {/* Analiza Pietei */}
+            <div className="pdf-section mb-10 bg-zinc-900/50 p-10 rounded-3xl border-l-4 border-emerald-500 shadow-inner print:shadow-none print:bg-transparent print:border-l-4 print:border-emerald-700 print:text-black">
+              <h3 className="text-emerald-400 text-sm font-black uppercase mb-6 tracking-[0.2em]">III. Analiza Pieței și Promovarea</h3>
+              <div className="space-y-6 text-zinc-300 print:text-gray-800">
+                <div><strong className="text-white print:text-black block mb-1">Clienții Țintă:</strong> <span className="italic">{result.analiza_pietei?.clienti_tinta}</span></div>
+                <div><strong className="text-white print:text-black block mb-1">Concurența:</strong> <span className="italic">{result.analiza_pietei?.concurenta}</span></div>
+                <div><strong className="text-white print:text-black block mb-1">Strategia de Marketing:</strong> <span className="italic">{result.analiza_pietei?.strategie_marketing}</span></div>
+              </div>
             </div>
             
             <div className="grid grid-cols-1 gap-6 mb-14 print:gap-4">
@@ -1802,18 +1846,32 @@ export default function Home() {
               ))}
             </div>
 
+            {/* Operational */}
+            <div className="pdf-section mb-10 bg-zinc-900/50 p-10 rounded-3xl border-l-4 border-emerald-500 shadow-inner print:shadow-none print:bg-transparent print:border-l-4 print:border-emerald-700 print:text-black">
+              <h3 className="text-emerald-400 text-sm font-black uppercase mb-6 tracking-[0.2em]">V. Planul Operațional și de Management</h3>
+              <div className="space-y-6 text-zinc-300 print:text-gray-800">
+                <div><strong className="text-white print:text-black block mb-1">Descriere Flux Tehnologic:</strong> <span className="italic">{result.plan_operational?.descriere_flux}</span></div>
+                <div><strong className="text-white print:text-black block mb-1">Resurse Umane:</strong> <span className="italic">{result.plan_operational?.resurse_umane}</span></div>
+                <div><strong className="text-white print:text-black block mb-1">Locație și Dotări:</strong> <span className="italic">{result.plan_operational?.locatie_dotari}</span></div>
+              </div>
+            </div>
+
             <div className="pt-10 border-t border-zinc-800 print:border-none print:pt-4">
-               <h3 className="pdf-section text-emerald-400 text-sm font-black uppercase mb-10 tracking-[0.2em] text-center drop-shadow-md print:text-emerald-800 print:drop-shadow-none">
-                 Buget și Justificare (Curs actualizat)
+               <h3 className="pdf-section text-emerald-400 text-sm font-black uppercase mb-6 tracking-[0.2em] text-center drop-shadow-md print:text-emerald-800 print:drop-shadow-none">
+                 VI. Planul Financiar
                </h3>
                
+               <div className="pdf-section text-zinc-300 italic text-center max-w-4xl mx-auto mb-10 print:text-gray-700">
+                 {result.plan_financiar?.strategie_financiara}
+               </div>
+
                <div className="mb-16">
                  <h4 className="text-zinc-500 font-bold uppercase tracking-wider mb-6 text-sm">Distribuția costurilor</h4>
-                 <BudgetBarChart budget={result.buget_detaliat} />
+                 <BudgetBarChart budget={result.plan_financiar?.buget_investitii} />
                </div>
 
                <div className="grid grid-cols-1 gap-6 print:gap-3">
-                  {result.buget_detaliat?.map((b: any, i: number) => (
+                  {result.plan_financiar?.buget_investitii?.map((b: any, i: number) => (
                     <div 
                       key={i} 
                       className="pdf-section bg-emerald-950/10 p-8 rounded-3xl border border-emerald-900/30 border-l-4 border-l-emerald-500 shadow-[inset_0_0_20px_rgba(52,211,153,0.05)] flex flex-col md:flex-row justify-between items-center gap-8 transition-all duration-300 hover:bg-[#960018] hover:border-[#ff4d6d] hover:border-l-[#ff4d6d] hover:-translate-y-1 hover:shadow-[0_0_20px_rgba(255,77,109,0.4)] group cursor-default print:border-gray-200 print:border-l-4 print:border-l-emerald-700 print:bg-transparent print:text-black print:break-inside-avoid print:p-4 print:shadow-none"
@@ -1829,26 +1887,6 @@ export default function Home() {
                   ))}
                 </div>
             </div>
-
-            {/* KEY FEATURES BROCHURE SECTION */}
-            {result.functionalitati_cheie && result.functionalitati_cheie.length > 0 && (
-              <div className="pt-10 border-t border-zinc-800 print:border-none print:pt-4">
-                 <h3 className="pdf-section text-emerald-400 text-sm font-black uppercase mb-10 tracking-[0.2em] text-center drop-shadow-md print:text-emerald-800 print:drop-shadow-none">
-                   Funcționalități Cheie
-                 </h3>
-                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 print:gap-3">
-                    {result.functionalitati_cheie.map((item: any, i: number) => (
-                      <div 
-                        key={i} 
-                        className="pdf-section bg-emerald-950/10 p-8 rounded-3xl border border-emerald-900/30 border-l-4 border-l-emerald-500 shadow-[inset_0_0_20px_rgba(52,211,153,0.05)] transition-all duration-300 hover:bg-[#960018] hover:border-[#ff4d6d] hover:border-l-[#ff4d6d] hover:-translate-y-1 hover:shadow-[0_0_20px_rgba(255,77,109,0.4)] group cursor-default print:border-gray-200 print:border-l-4 print:border-l-emerald-700 print:bg-transparent print:text-black print:break-inside-avoid print:p-4 print:shadow-none flex flex-col gap-3"
-                      >
-                        <span className="text-zinc-100 font-black text-xl block uppercase tracking-wider group-hover:text-white transition-colors print:text-black print:text-lg">✦ {item.titlu}</span>
-                        <p className="text-zinc-400 text-lg italic leading-relaxed group-hover:text-white/90 transition-colors print:text-gray-700 print:text-base">{item.descriere}</p>
-                      </div>
-                    ))}
-                 </div>
-              </div>
-            )}
             
               </div>
             </div>
@@ -1866,14 +1904,39 @@ export default function Home() {
               <div className="absolute bottom-8 right-8 text-zinc-600 font-bold uppercase tracking-widest text-sm">IdeeaTa.ai</div>
             </div>
 
-            {/* Slide 2: Descriere */}
+            {/* Slide 2: Viziune */}
             <div className="presentation-slide w-[1280px] h-[720px] bg-[#09090b] text-white flex flex-col justify-center p-24 border-[12px] border-zinc-900 box-border relative">
               <div className="flex items-center gap-6 mb-12">
                 <div className="w-16 h-2 bg-emerald-500"></div>
-                <h2 className="text-5xl font-black font-sans uppercase tracking-widest text-emerald-400">Conceptul Afacerii</h2>
+                <h2 className="text-5xl font-black font-sans uppercase tracking-widest text-emerald-400">Viziune și Strategie</h2>
               </div>
-              <div className="text-4xl font-sans leading-normal text-zinc-200 text-justify">
-                {result.descriere}
+              <div className="grid grid-cols-2 gap-12 font-sans leading-normal text-zinc-200">
+                <div>
+                  <h3 className="text-3xl font-bold text-emerald-500 mb-4">Obiective (1 an)</h3>
+                  <p className="text-2xl line-clamp-4">{result.viziune_strategie?.obiective_scurt}</p>
+                  <h3 className="text-3xl font-bold text-emerald-500 mb-4 mt-8">Obiective (3-5 ani)</h3>
+                  <p className="text-2xl line-clamp-4">{result.viziune_strategie?.obiective_mediu}</p>
+                </div>
+                <div>
+                  <h3 className="text-3xl font-bold text-emerald-500 mb-4">Misiune și Valori</h3>
+                  <p className="text-2xl line-clamp-8">{result.viziune_strategie?.misiune_valori}</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Slide 2b: Analiza Pietei */}
+            <div className="presentation-slide w-[1280px] h-[720px] bg-[#09090b] text-white flex flex-col justify-center p-24 border-[12px] border-zinc-900 box-border relative">
+              <div className="flex items-center gap-6 mb-8">
+                <div className="w-16 h-2 bg-emerald-500"></div>
+                <h2 className="text-5xl font-black font-sans uppercase tracking-widest text-emerald-400">Analiza Pieței</h2>
+              </div>
+              <div className="flex flex-col gap-6 font-sans leading-normal text-zinc-200">
+                  <div><h3 className="text-3xl font-bold text-emerald-500 mb-2">Clienții Țintă</h3>
+                  <p className="text-2xl line-clamp-3">{result.analiza_pietei?.clienti_tinta}</p></div>
+                  <div><h3 className="text-3xl font-bold text-emerald-500 mb-2">Concurența</h3>
+                  <p className="text-2xl line-clamp-3">{result.analiza_pietei?.concurenta}</p></div>
+                  <div><h3 className="text-3xl font-bold text-emerald-500 mb-2">Strategia de Marketing</h3>
+                  <p className="text-2xl line-clamp-3">{result.analiza_pietei?.strategie_marketing}</p></div>
               </div>
             </div>
 
@@ -1954,34 +2017,37 @@ export default function Home() {
             </div>
 
             {/* Slide Key Features */}
-            {result.functionalitati_cheie && result.functionalitati_cheie.length > 0 && (
             <div className="presentation-slide w-[1280px] h-[720px] bg-[#09090b] flex flex-col px-24 py-16 border-[12px] border-zinc-900 box-border relative">
               <div className="flex items-center gap-6 mb-8 shrink-0">
                 <div className="w-16 h-2 bg-emerald-500"></div>
-                <h2 className="text-5xl font-black font-sans uppercase tracking-widest text-emerald-400">Funcționalități Cheie</h2>
+                <h2 className="text-5xl font-black font-sans uppercase tracking-widest text-emerald-400">Planul Operațional</h2>
               </div>
               <div className="bg-zinc-900/50 p-8 border-l-8 border-emerald-500 flex flex-col gap-6 rounded-3xl flex-1 overflow-hidden">
-                <h3 className="text-4xl font-black text-white uppercase tracking-widest pb-4 border-b-2 border-zinc-800 shrink-0">Funcționalități Cheie</h3>
-                <div className="grid grid-cols-2 gap-x-12 gap-y-6 overflow-hidden content-start flex-1">
-                  {result.functionalitati_cheie.slice(0, 8).map((item: any, idx: number) => (
-                    <div key={idx} className="flex flex-col gap-2">
-                      <h4 className="text-2xl font-bold text-emerald-400 leading-snug">✦ {item.titlu}</h4>
-                      <p className="text-lg text-zinc-300 leading-relaxed max-w-lg">{item.descriere}</p>
+                <div className="flex flex-col gap-6 overflow-hidden content-start flex-1">
+                    <div className="flex flex-col gap-2">
+                      <h4 className="text-2xl font-bold text-emerald-400 leading-snug">✦ Descriere Flux (Sustenabilitate / Verde)</h4>
+                      <p className="text-lg text-zinc-300 leading-relaxed line-clamp-3">{result.plan_operational?.descriere_flux}</p>
                     </div>
-                  ))}
+                    <div className="flex flex-col gap-2">
+                      <h4 className="text-2xl font-bold text-emerald-400 leading-snug">✦ Resurse Umane</h4>
+                      <p className="text-lg text-zinc-300 leading-relaxed line-clamp-3">{result.plan_operational?.resurse_umane}</p>
+                    </div>
+                    <div className="flex flex-col gap-2">
+                      <h4 className="text-2xl font-bold text-emerald-400 leading-snug">✦ Locație și Dotări</h4>
+                      <p className="text-lg text-zinc-300 leading-relaxed line-clamp-3">{result.plan_operational?.locatie_dotari}</p>
+                    </div>
                 </div>
               </div>
             </div>
-            )}
 
             {/* Slide 7: Buget */}
             <div className="presentation-slide w-[1280px] h-[720px] bg-[#09090b] flex flex-col p-24 border-[12px] border-zinc-900 box-border relative">
               <div className="flex items-center gap-6 mb-12 shrink-0">
                 <div className="w-16 h-2 bg-emerald-500"></div>
-                <h2 className="text-5xl font-black font-sans uppercase tracking-widest text-emerald-400">Buget Necesar și Justificare</h2>
+                <h2 className="text-5xl font-black font-sans uppercase tracking-widest text-emerald-400">Buget Investiții</h2>
               </div>
               <div className="grid grid-cols-2 gap-x-12 gap-y-8 font-sans items-start content-start overflow-hidden">
-                {result.buget_detaliat?.slice(0, 8).map((b: any, i: number) => (
+                {result.plan_financiar?.buget_investitii?.slice(0, 8).map((b: any, i: number) => (
                   <div key={i} className="flex flex-col gap-3 bg-zinc-900/50 p-6 border-l-4 border-emerald-500 rounded-2xl h-[140px]">
                     <div className="flex justify-between items-start gap-4">
                       <h4 className="text-2xl font-bold text-zinc-100 flex-1 leading-tight uppercase font-sans tracking-wide line-clamp-1">{b.item}</h4>
@@ -1995,7 +2061,7 @@ export default function Home() {
               <div className="absolute bottom-12 right-24">
                  <div className="bg-emerald-600 text-white px-12 py-6 flex items-center rounded-3xl shadow-2xl">
                    <span className="text-3xl font-bold uppercase tracking-wider mr-6">Total Estimat:</span>
-                   <span className="text-5xl font-black text-zinc-900">{formatPrice(result.buget_detaliat?.reduce((sum: number, b: any) => sum + parseInt(b.cost?.toString().replace(/[^0-9]/g, '') || '0'), 0).toString())}</span>
+                   <span className="text-5xl font-black text-zinc-900">{formatPrice(result.plan_financiar?.buget_investitii?.reduce((sum: number, b: any) => sum + parseInt(b.cost?.toString().replace(/[^0-9]/g, '') || '0'), 0).toString())}</span>
                  </div>
               </div>
             </div>
@@ -2007,7 +2073,7 @@ export default function Home() {
                 <h2 className="text-5xl font-black font-sans uppercase tracking-widest text-emerald-400">Distribuția Costurilor</h2>
               </div>
               <div className="flex-1 w-full bg-zinc-900/50 p-8 rounded-3xl border border-zinc-800">
-                  <BudgetBarChart budget={result.buget_detaliat} />
+                  <BudgetBarChart budget={result.plan_financiar?.buget_investitii} />
               </div>
             </div>
           </div>
@@ -2026,15 +2092,39 @@ export default function Home() {
               <div className="absolute bottom-8 right-8 text-emerald-700/50 font-bold uppercase tracking-widest text-sm">IdeeaTa.ai</div>
             </div>
 
-            {/* Slide 2: Descriere */}
+            {/* Slide 2: Viziune */}
             <div className="pdf-presentation-slide w-[1280px] h-[720px] bg-white text-emerald-950 flex flex-col justify-center p-24 border-[12px] border-emerald-900 box-border relative">
               <div className="flex items-center gap-6 mb-12">
                 <div className="w-16 h-2 bg-emerald-600"></div>
-                <h2 className="text-5xl font-black font-sans uppercase tracking-widest text-emerald-800">Conceptul Afacerii</h2>
+                <h2 className="text-5xl font-black font-sans uppercase tracking-widest text-emerald-800">Viziune și Strategie</h2>
               </div>
-              <div className="text-4xl font-serif leading-normal text-gray-800 text-justify">
-                <span className="float-left text-9xl text-emerald-700 pr-6 pt-4 font-black leading-none">{result.descriere.charAt(0)}</span>
-                {result.descriere.substring(1)}
+              <div className="grid grid-cols-2 gap-12 font-serif leading-normal text-gray-800">
+                <div>
+                  <h3 className="text-3xl font-bold text-emerald-700 mb-4">Obiective (1 an)</h3>
+                  <p className="text-2xl line-clamp-4">{result.viziune_strategie?.obiective_scurt}</p>
+                  <h3 className="text-3xl font-bold text-emerald-700 mb-4 mt-8">Obiective (3-5 ani)</h3>
+                  <p className="text-2xl line-clamp-4">{result.viziune_strategie?.obiective_mediu}</p>
+                </div>
+                <div>
+                  <h3 className="text-3xl font-bold text-emerald-700 mb-4">Misiune și Valori</h3>
+                  <p className="text-2xl line-clamp-8">{result.viziune_strategie?.misiune_valori}</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Slide 2b: Analiza Pietei */}
+            <div className="pdf-presentation-slide w-[1280px] h-[720px] bg-white text-emerald-950 flex flex-col justify-center p-24 border-[12px] border-emerald-900 box-border relative">
+              <div className="flex items-center gap-6 mb-8">
+                <div className="w-16 h-2 bg-emerald-600"></div>
+                <h2 className="text-5xl font-black font-sans uppercase tracking-widest text-emerald-800">Analiza Pieței</h2>
+              </div>
+              <div className="flex flex-col gap-6 font-serif leading-normal text-gray-800">
+                  <div><h3 className="text-3xl font-bold text-emerald-700 mb-2">Clienții Țintă</h3>
+                  <p className="text-2xl line-clamp-3">{result.analiza_pietei?.clienti_tinta}</p></div>
+                  <div><h3 className="text-3xl font-bold text-emerald-700 mb-2">Concurența</h3>
+                  <p className="text-2xl line-clamp-3">{result.analiza_pietei?.concurenta}</p></div>
+                  <div><h3 className="text-3xl font-bold text-emerald-700 mb-2">Strategia de Marketing</h3>
+                  <p className="text-2xl line-clamp-3">{result.analiza_pietei?.strategie_marketing}</p></div>
               </div>
             </div>
 
@@ -2115,34 +2205,37 @@ export default function Home() {
             </div>
 
             {/* Slide Key Features PDF */}
-            {result.functionalitati_cheie && result.functionalitati_cheie.length > 0 && (
             <div className="pdf-presentation-slide w-[1280px] h-[720px] bg-white flex flex-col px-24 py-16 border-[12px] border-emerald-900 box-border relative">
               <div className="flex items-center gap-6 mb-8 shrink-0">
                 <div className="w-16 h-2 bg-emerald-600"></div>
-                <h2 className="text-5xl font-black font-sans uppercase tracking-widest text-emerald-800">Funcționalități Cheie</h2>
+                <h2 className="text-5xl font-black font-sans uppercase tracking-widest text-emerald-800">Planul Operațional</h2>
               </div>
               <div className="bg-emerald-50/50 p-8 border-l-8 border-emerald-500 flex flex-col gap-6 flex-1 rounded-2xl overflow-hidden">
-                <h3 className="text-4xl font-black text-emerald-900 uppercase tracking-widest pb-4 border-b-2 border-emerald-200 shrink-0">Funcționalități Cheie</h3>
-                <div className="grid grid-cols-2 gap-x-12 gap-y-6 overflow-hidden content-start flex-1">
-                  {result.functionalitati_cheie.slice(0, 8).map((item: any, idx: number) => (
-                    <div key={idx} className="flex flex-col gap-2">
-                       <h4 className="text-2xl font-bold text-emerald-700 leading-snug">✦ {item.titlu}</h4>
-                       <p className="text-lg text-gray-600 leading-relaxed max-w-lg">{item.descriere}</p>
+                <div className="flex flex-col gap-6 overflow-hidden content-start flex-1">
+                    <div className="flex flex-col gap-2">
+                       <h4 className="text-2xl font-bold text-emerald-700 leading-snug">✦ Descriere Flux (Sustenabilitate / Verde)</h4>
+                       <p className="text-lg text-gray-600 leading-relaxed line-clamp-3">{result.plan_operational?.descriere_flux}</p>
                     </div>
-                  ))}
+                    <div className="flex flex-col gap-2">
+                       <h4 className="text-2xl font-bold text-emerald-700 leading-snug">✦ Resurse Umane</h4>
+                       <p className="text-lg text-gray-600 leading-relaxed line-clamp-3">{result.plan_operational?.resurse_umane}</p>
+                    </div>
+                    <div className="flex flex-col gap-2">
+                       <h4 className="text-2xl font-bold text-emerald-700 leading-snug">✦ Locație și Dotări</h4>
+                       <p className="text-lg text-gray-600 leading-relaxed line-clamp-3">{result.plan_operational?.locatie_dotari}</p>
+                    </div>
                 </div>
               </div>
             </div>
-            )}
 
             {/* Slide 7: Buget */}
             <div className="pdf-presentation-slide w-[1280px] h-[720px] bg-white flex flex-col p-24 border-[12px] border-emerald-900 box-border relative">
               <div className="flex items-center gap-6 mb-12">
                 <div className="w-16 h-2 bg-emerald-600"></div>
-                <h2 className="text-5xl font-black font-sans uppercase tracking-widest text-emerald-800">Buget Necesar</h2>
+                <h2 className="text-5xl font-black font-sans uppercase tracking-widest text-emerald-800">Buget Investiții</h2>
               </div>
               <div className="grid grid-cols-2 gap-x-12 gap-y-8 font-sans items-start content-start overflow-hidden">
-                {result.buget_detaliat?.slice(0, 8).map((b: any, i: number) => (
+                {result.plan_financiar?.buget_investitii?.slice(0, 8).map((b: any, i: number) => (
                   <div key={i} className="flex flex-col gap-3 bg-emerald-50/50 p-6 border-l-4 border-emerald-500 rounded-xl h-[140px]">
                     <div className="flex justify-between items-start gap-4">
                       <h4 className="text-2xl font-bold text-emerald-900 flex-1 leading-tight uppercase tracking-wide line-clamp-1">{b.item}</h4>
@@ -2156,7 +2249,7 @@ export default function Home() {
               <div className="absolute bottom-12 right-24">
                  <div className="bg-emerald-900 text-white px-12 py-6 flex items-center rounded-2xl shadow-xl">
                    <span className="text-3xl font-bold uppercase tracking-wider mr-6 text-emerald-200">Total Estimat:</span>
-                   <span className="text-5xl font-black">{formatPrice(result.buget_detaliat?.reduce((sum: number, b: any) => sum + parseInt(b.cost?.toString().replace(/[^0-9]/g, '') || '0'), 0).toString())}</span>
+                   <span className="text-5xl font-black">{formatPrice(result.plan_financiar?.buget_investitii?.reduce((sum: number, b: any) => sum + parseInt(b.cost?.toString().replace(/[^0-9]/g, '') || '0'), 0).toString())}</span>
                  </div>
               </div>
             </div>
@@ -2168,7 +2261,7 @@ export default function Home() {
                 <h2 className="text-5xl font-black font-sans uppercase tracking-widest text-emerald-800">Distribuția Costurilor</h2>
               </div>
               <div className="flex-1 w-full bg-emerald-50/50 p-8 rounded-2xl border border-emerald-100">
-                  <BudgetBarChart budget={result.buget_detaliat} />
+                  <BudgetBarChart budget={result.plan_financiar?.buget_investitii} />
               </div>
             </div>
 

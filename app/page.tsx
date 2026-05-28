@@ -815,7 +815,6 @@ export default function Home() {
                         <span>{isEditingAi ? "Se procesează..." : "Adaugă secțiuni noi"}</span>
                       </button>
                     </div>
-                    </div>
                 </div>
             
             {/* User Tip */}

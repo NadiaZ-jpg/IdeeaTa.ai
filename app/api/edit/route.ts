@@ -20,6 +20,8 @@ export async function POST(req: NextRequest) {
       instruction = "Adaugă 2 concepte suplimentare la 'functionalitati_cheie' și extinde secțiunea 'amenintari' din analiza_swot cu încă o amenințare relevantă. Păstrează tonul existent. Nu adăuga chei noi în JSON care nu sunt în modelul inițial.";
     } else if (action === "eu_funds_optimization") {
       instruction = "Optimizează planul de afaceri pentru accesarea de Fonduri Europene. Ajustează limbajul din descriere și din explicațiile SWOT pentru a folosi termeni specifici ghidurilor de finanțare europene (cum ar fi digitalizare, inovare, sustenabilitate, economie circulară, impact regional și crearea de noi locuri de muncă). În bugetul detaliat, reformulează denumirile elementelor de cheltuieli pentru a reflecta clar categorii eligibile (cum ar fi active corporale, achiziții echipamente tehnologice, software, servicii de consultanță). Păstrează structura JSON exactă.";
+    } else if (action === "shorten_for_export") {
+      instruction = "Scurtează și sintetizează drastic întregul text (descrierea afacerii, explicațiile bugetului, elementele SWOT și funcționalitățile). Menține esența, dar folosește fraze foarte scurte, la obiect. Redu volumul de text la jumătate pentru a te asigura că încape perfect vizual pe slide-uri de prezentare (PDF/PowerPoint). Nu elimina elemente din liste, doar scurtează-le explicațiile considerabil.";
     } else {
       instruction = "Oprează mici îmbunătățiri de corectură și fluență pe text.";
     }

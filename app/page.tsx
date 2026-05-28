@@ -1804,7 +1804,7 @@ export default function Home() {
                   <p className="mt-2"><strong className="text-white print:text-black">Obiective (3-5 ani):</strong> {result.viziune_strategie?.obiective_mediu}</p>
                 </div>
               </div>
-              <div className="mt-6 pt-6 border-t border-zinc-800/50 text-zinc-300 print:border-gray-200 print:text-gray-800">
+              <div className="mt-6 pt-6 border-t border-zinc-800/50 text-zinc-300 print:border-gray-200 print:text-gray-800 text-justify leading-relaxed">
                   <p><strong className="text-white print:text-black">Misiune și Valori:</strong> {result.viziune_strategie?.misiune_valori}</p>
               </div>
             </div>
@@ -1812,7 +1812,7 @@ export default function Home() {
             {/* Analiza Pietei */}
             <div className="pdf-section mb-10 bg-zinc-900/50 p-10 rounded-3xl border-l-4 border-emerald-500 shadow-inner print:shadow-none print:bg-transparent print:border-l-4 print:border-emerald-700 print:text-black">
               <h3 className="text-emerald-400 text-sm font-black uppercase mb-6 tracking-[0.2em]">III. Analiza Pieței și Promovarea</h3>
-              <div className="space-y-6 text-zinc-300 print:text-gray-800">
+              <div className="space-y-6 text-zinc-300 print:text-gray-800 text-justify leading-relaxed">
                 <div><strong className="text-white print:text-black block mb-1">Clienții Țintă:</strong> <span className="italic">{result.analiza_pietei?.clienti_tinta}</span></div>
                 <div><strong className="text-white print:text-black block mb-1">Concurența:</strong> <span className="italic">{result.analiza_pietei?.concurenta}</span></div>
                 <div><strong className="text-white print:text-black block mb-1">Strategia de Marketing:</strong> <span className="italic">{result.analiza_pietei?.strategie_marketing}</span></div>
@@ -1838,7 +1838,7 @@ export default function Home() {
                         className="bg-emerald-950/10 p-5 rounded-2xl border border-emerald-900/30 border-l-4 border-l-emerald-500 shadow-[inset_0_0_20px_rgba(52,211,153,0.05)] transition-all duration-300 hover:bg-[#960018] hover:border-[#ff4d6d] hover:border-l-[#ff4d6d] hover:-translate-y-1 hover:shadow-[0_0_20px_rgba(255,77,109,0.4)] group cursor-default print:border-gray-200 print:border-l-4 print:border-l-emerald-700 print:bg-transparent print:text-black print:break-inside-avoid print:p-3 print:shadow-none"
                       >
                         <span className="text-zinc-100 font-black text-xl block mb-2 group-hover:text-white transition-colors print:text-black uppercase tracking-wider print:text-lg">✦ {item.titlu || item}</span>
-                        <p className="text-zinc-400 text-lg italic leading-relaxed group-hover:text-white/90 transition-colors print:text-gray-700 print:text-base">{item.explicatie_tehnica}</p>
+                        <p className="text-zinc-400 text-lg italic leading-relaxed text-justify group-hover:text-white/90 transition-colors print:text-gray-700 print:text-base">{item.explicatie_tehnica}</p>
                       </div>
                     ))}
                   </div>
@@ -1849,7 +1849,7 @@ export default function Home() {
             {/* Operational */}
             <div className="pdf-section mb-10 bg-zinc-900/50 p-10 rounded-3xl border-l-4 border-emerald-500 shadow-inner print:shadow-none print:bg-transparent print:border-l-4 print:border-emerald-700 print:text-black">
               <h3 className="text-emerald-400 text-sm font-black uppercase mb-6 tracking-[0.2em]">V. Planul Operațional și de Management</h3>
-              <ol className="space-y-6 text-zinc-300 print:text-gray-800 list-decimal pl-6">
+              <ol className="space-y-6 text-zinc-300 print:text-gray-800 list-decimal pl-6 text-justify leading-relaxed">
                 <li className="pl-2"><strong className="text-white print:text-black block mb-1">Descriere Flux Tehnologic:</strong> <span className="italic">{result.plan_operational?.descriere_flux}</span></li>
                 <li className="pl-2"><strong className="text-white print:text-black block mb-1">Resurse Umane:</strong> <span className="italic">{result.plan_operational?.resurse_umane}</span></li>
                 <li className="pl-2"><strong className="text-white print:text-black block mb-1">Locație și Dotări:</strong> <span className="italic">{result.plan_operational?.locatie_dotari}</span></li>
@@ -1861,7 +1861,7 @@ export default function Home() {
                  VI. Planul Financiar
                </h3>
                
-               <div className="pdf-section text-zinc-300 italic text-center max-w-4xl mx-auto mb-10 print:text-gray-700">
+               <div className="pdf-section text-zinc-300 italic text-justify leading-relaxed max-w-4xl mx-auto mb-10 print:text-gray-700">
                  {result.plan_financiar?.strategie_financiara}
                </div>
 
@@ -1919,7 +1919,7 @@ export default function Home() {
                 </div>
                 <div>
                   <h3 className="text-3xl font-bold text-emerald-500 mb-4">Misiune și Valori</h3>
-                  <p className="text-2xl line-clamp-8">{result.viziune_strategie?.misiune_valori}</p>
+                  <p className="text-2xl line-clamp-8 text-justify">{result.viziune_strategie?.misiune_valori}</p>
                 </div>
               </div>
             </div>
@@ -1930,7 +1930,7 @@ export default function Home() {
                 <div className="w-16 h-2 bg-emerald-500"></div>
                 <h2 className="text-5xl font-black font-sans uppercase tracking-widest text-emerald-400">Analiza Pieței</h2>
               </div>
-              <div className="flex flex-col gap-6 font-sans leading-normal text-zinc-200">
+              <div className="flex flex-col gap-6 font-sans leading-normal text-zinc-200 text-justify">
                   <div><h3 className="text-3xl font-bold text-emerald-500 mb-2">Clienții Țintă</h3>
                   <p className="text-2xl line-clamp-3">{result.analiza_pietei?.clienti_tinta}</p></div>
                   <div><h3 className="text-3xl font-bold text-emerald-500 mb-2">Concurența</h3>
@@ -1952,7 +1952,7 @@ export default function Home() {
                   {result.analiza_swot?.puncte_tari?.slice(0, 8).map((item: any, idx: number) => (
                     <div key={idx} className="flex flex-col gap-2">
                       <h4 className="text-2xl font-bold text-emerald-400 leading-snug">✦ {item.titlu || item}</h4>
-                      <p className="text-lg text-zinc-300 leading-relaxed max-w-lg">{item.explicatie_tehnica}</p>
+                      <p className="text-lg text-zinc-300 leading-relaxed max-w-lg text-justify">{item.explicatie_tehnica}</p>
                     </div>
                   ))}
                 </div>
@@ -2023,7 +2023,7 @@ export default function Home() {
                 <h2 className="text-5xl font-black font-sans uppercase tracking-widest text-emerald-400">Planul Operațional</h2>
               </div>
               <div className="bg-zinc-900/50 p-8 border-l-8 border-emerald-500 flex flex-col gap-6 rounded-3xl flex-1 overflow-hidden">
-                <div className="flex flex-col gap-6 overflow-hidden content-start flex-1 pl-4">
+                <div className="flex flex-col gap-6 overflow-hidden content-start flex-1 pl-4 text-justify">
                     <div className="flex flex-col gap-2">
                       <h4 className="text-2xl font-bold text-emerald-400 leading-snug">1. Descriere Flux (Sustenabilitate / Verde)</h4>
                       <p className="text-lg text-zinc-300 leading-relaxed line-clamp-3">{result.plan_operational?.descriere_flux}</p>
@@ -2107,7 +2107,7 @@ export default function Home() {
                 </div>
                 <div>
                   <h3 className="text-3xl font-bold text-emerald-700 mb-4">Misiune și Valori</h3>
-                  <p className="text-2xl line-clamp-8">{result.viziune_strategie?.misiune_valori}</p>
+                  <p className="text-2xl line-clamp-8 text-justify">{result.viziune_strategie?.misiune_valori}</p>
                 </div>
               </div>
             </div>
@@ -2118,7 +2118,7 @@ export default function Home() {
                 <div className="w-16 h-2 bg-emerald-600"></div>
                 <h2 className="text-5xl font-black font-sans uppercase tracking-widest text-emerald-800">Analiza Pieței</h2>
               </div>
-              <div className="flex flex-col gap-6 font-serif leading-normal text-gray-800">
+              <div className="flex flex-col gap-6 font-serif leading-normal text-gray-800 text-justify">
                   <div><h3 className="text-3xl font-bold text-emerald-700 mb-2">Clienții Țintă</h3>
                   <p className="text-2xl line-clamp-3">{result.analiza_pietei?.clienti_tinta}</p></div>
                   <div><h3 className="text-3xl font-bold text-emerald-700 mb-2">Concurența</h3>
@@ -2140,7 +2140,7 @@ export default function Home() {
                   {result.analiza_swot?.puncte_tari?.slice(0, 8).map((item: any, idx: number) => (
                     <div key={idx} className="flex flex-col gap-2">
                       <h4 className="text-2xl font-bold text-emerald-700 leading-snug">✦ {item.titlu || item}</h4>
-                      <p className="text-lg text-gray-600 leading-relaxed max-w-lg">{item.explicatie_tehnica}</p>
+                      <p className="text-lg text-gray-600 leading-relaxed max-w-lg text-justify">{item.explicatie_tehnica}</p>
                     </div>
                   ))}
                 </div>
@@ -2159,7 +2159,7 @@ export default function Home() {
                   {result.analiza_swot?.puncte_slabe?.slice(0, 8).map((item: any, idx: number) => (
                     <div key={idx} className="flex flex-col gap-2">
                       <h4 className="text-2xl font-bold text-[#ff4d6d] leading-snug">✦ {item.titlu || item}</h4>
-                      <p className="text-lg text-gray-600 leading-relaxed max-w-lg">{item.explicatie_tehnica}</p>
+                      <p className="text-lg text-gray-600 leading-relaxed max-w-lg text-justify">{item.explicatie_tehnica}</p>
                     </div>
                   ))}
                 </div>
@@ -2178,7 +2178,7 @@ export default function Home() {
                   {result.analiza_swot?.oportunitati?.slice(0, 8).map((item: any, idx: number) => (
                     <div key={idx} className="flex flex-col gap-2">
                       <h4 className="text-2xl font-bold text-blue-600 leading-snug">✦ {item.titlu || item}</h4>
-                      <p className="text-lg text-gray-600 leading-relaxed max-w-lg">{item.explicatie_tehnica}</p>
+                      <p className="text-lg text-gray-600 leading-relaxed max-w-lg text-justify">{item.explicatie_tehnica}</p>
                     </div>
                   ))}
                 </div>
@@ -2197,7 +2197,7 @@ export default function Home() {
                   {result.analiza_swot?.amenintari?.slice(0, 8).map((item: any, idx: number) => (
                     <div key={idx} className="flex flex-col gap-2">
                       <h4 className="text-2xl font-bold text-orange-600 leading-snug">✦ {item.titlu || item}</h4>
-                      <p className="text-lg text-gray-600 leading-relaxed max-w-lg">{item.explicatie_tehnica}</p>
+                      <p className="text-lg text-gray-600 leading-relaxed max-w-lg text-justify">{item.explicatie_tehnica}</p>
                     </div>
                   ))}
                 </div>
@@ -2211,7 +2211,7 @@ export default function Home() {
                 <h2 className="text-5xl font-black font-sans uppercase tracking-widest text-emerald-800">Planul Operațional</h2>
               </div>
               <div className="bg-emerald-50/50 p-8 border-l-8 border-emerald-500 flex flex-col gap-6 flex-1 rounded-2xl overflow-hidden">
-                <div className="flex flex-col gap-6 overflow-hidden content-start flex-1 pl-4">
+                <div className="flex flex-col gap-6 overflow-hidden content-start flex-1 pl-4 text-justify">
                     <div className="flex flex-col gap-2">
                        <h4 className="text-2xl font-bold text-emerald-700 leading-snug">1. Descriere Flux (Sustenabilitate / Verde)</h4>
                        <p className="text-lg text-gray-600 leading-relaxed line-clamp-3">{result.plan_operational?.descriere_flux}</p>

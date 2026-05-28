@@ -107,13 +107,38 @@ export default function Home() {
 
   const handleAiEdit = async (action: string, customStyle?: string) => {
     if (isEditingAi) return;
+
+    let targetSection = "";
+    if (action === "add_sections") {
+      const userInput = window.prompt("În ce secțiune dorești să adaugi informații suplimentare?\n(ex: Plan Financiar, Analiza Pieței, SWOT, Plan Operațional)");
+      if (!userInput) return; // Anulat de utilizator
+      targetSection = userInput;
+    } else if (action === "optimize_budget") {
+      let percentStr = window.prompt("Cu ce procent dorești să reduci costurile bugetate? (ex: 10, 20, 30)");
+      if (!percentStr) return; // Anulat
+      let percent = parseInt(percentStr.replace(/%/g, ''));
+      if (isNaN(percent) || percent <= 0) {
+        alert("Te rog introdu un procent valid (ex: 20).");
+        return;
+      }
+      if (percent > 40) {
+        if (!window.confirm(`⚠️ Atenție! O reducere de ${percent}% a bugetului ar putea afecta sever fezabilitatea și calitatea echipamentelor/serviciilor achiziționate. Continuăm cu această optimizare drastică?`)) {
+          return;
+        }
+      }
+      targetSection = percent.toString(); // Refolosim variabila pentru a trimite procentul
+    } else if (action === "eu_funds_optimization") {
+      const confirmEu = window.confirm("🇪🇺 Optimizare pentru Fonduri Europene\n\nAcest instrument va:\n1. Adapta vocabularul din Planul Operațional și SWOT pentru a include concepte cheie (digitalizare, sustenabilitate, economie circulară).\n2. Redenumi automat achizițiile din buget pentru a fi mai ușor încadrabile în categoriile de cheltuieli eligibile.\n\nDorești să aplici aceste modificări documentului tău?");
+      if (!confirmEu) return; // Anulat
+    }
+
     setIsEditingAi(true);
     setShowToneOptions(false);
     try {
       const res = await fetch("/api/edit", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ result, action, customStyle })
+        body: JSON.stringify({ result, action, customStyle, targetSection })
       });
       let data;
       try {
@@ -820,7 +845,7 @@ export default function Home() {
                         <span>
                           {isEditingAi ? "Se procesează..." : (
                             <>
-                              Optimizează Bugetul <span className="whitespace-nowrap">(-20% costuri)</span>
+                              Optimizează Bugetul <span className="whitespace-nowrap">(Personalizat)</span>
                             </>
                           )}
                         </span>

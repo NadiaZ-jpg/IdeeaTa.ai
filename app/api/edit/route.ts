@@ -9,15 +9,15 @@ const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
 export async function POST(req: NextRequest) {
   try {
-    const { result, action, customStyle } = await req.json();
+    const { result, action, customStyle, targetSection } = await req.json();
 
     let instruction = "";
     if (action === "professional_tone") {
       instruction = `Rescrie conținutul textual pentru a avea un ton mult mai ${customStyle || 'formal, corporativ și profesionist'}, păstrând structura exactă. Nu modifica cifrele din planul financiar.`;
     } else if (action === "optimize_budget") {
-      instruction = "Redu costurile din 'plan_financiar.buget_investitii' cu aproximativ 20% și ajustează explicațiile arătând cum s-a făcut economia (de exemplu prin închiriere sau alternative mai ieftine). Păstrează restul documentului neatins.";
+      instruction = `Redu costurile din 'plan_financiar.buget_investitii' cu aproximativ ${targetSection}% și ajustează explicațiile arătând cum s-a făcut economia (de exemplu prin închiriere sau alternative mai ieftine conform datelor reale din piața actuală din România). Păstrează restul documentului neatins.`;
     } else if (action === "add_sections") {
-      instruction = "Adaugă 2 concepte suplimentare la 'plan_operational' și extinde secțiunea 'amenintari' din 'analiza_swot' cu încă o amenințare relevantă. Păstrează tonul existent. Nu adăuga chei noi în JSON care nu sunt în modelul inițial.";
+      instruction = `Extinde planul de afaceri adăugând informații suplimentare, argumente sau concepte noi referitoare strict la secțiunea specificată de utilizator: "${targetSection || 'oricare consideri necesară'}". Păstrează tonul existent. Nu adăuga chei noi în JSON, doar extinde array-urile sau descrierile existente în acea zonă.`;
     } else if (action === "eu_funds_optimization") {
       instruction = "Optimizează planul de afaceri pentru accesarea de Fonduri Europene. Ajustează limbajul din plan_operational și din explicațiile SWOT pentru a folosi termeni specifici ghidurilor de finanțare europene (digitalizare, inovare, sustenabilitate, economie circulară). În planul financiar, reformulează denumirile elementelor de cheltuieli pentru a reflecta clar categorii eligibile (active corporale, achiziții echipamente tehnologice, software, servicii).";
     } else if (action === "shorten_for_export") {

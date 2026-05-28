@@ -686,11 +686,11 @@ export default function Home() {
               </table>
               
               <h2 style="font-family: Arial, sans-serif; color: #065f46; margin-top: 24px;">V. Planul Operațional și de Management</h2>
-              <ul style="font-family: Arial, sans-serif; line-height: 1.6; font-size: 14px;">
+              <ol style="font-family: Arial, sans-serif; line-height: 1.6; font-size: 14px; padding-left: 20px;">
                   <li style="margin-bottom: 10px;"><strong>Descriere Flux Tehnologic:</strong><br/>${result.plan_operational?.descriere_flux}</li>
                   <li style="margin-bottom: 10px;"><strong>Resurse Umane (Organigramă):</strong><br/>${result.plan_operational?.resurse_umane}</li>
                   <li style="margin-bottom: 10px;"><strong>Locație și Dotări Necesare:</strong><br/>${result.plan_operational?.locatie_dotari}</li>
-              </ul>
+              </ol>
 
               <h2 style="font-family: Arial, sans-serif; color: #065f46;">VI. Planul Financiar</h2>
               <p style="font-family: Arial, sans-serif; line-height: 1.6; font-size: 14px; font-style: italic;">
@@ -1849,11 +1849,11 @@ export default function Home() {
             {/* Operational */}
             <div className="pdf-section mb-10 bg-zinc-900/50 p-10 rounded-3xl border-l-4 border-emerald-500 shadow-inner print:shadow-none print:bg-transparent print:border-l-4 print:border-emerald-700 print:text-black">
               <h3 className="text-emerald-400 text-sm font-black uppercase mb-6 tracking-[0.2em]">V. Planul Operațional și de Management</h3>
-              <div className="space-y-6 text-zinc-300 print:text-gray-800">
-                <div><strong className="text-white print:text-black block mb-1">Descriere Flux Tehnologic:</strong> <span className="italic">{result.plan_operational?.descriere_flux}</span></div>
-                <div><strong className="text-white print:text-black block mb-1">Resurse Umane:</strong> <span className="italic">{result.plan_operational?.resurse_umane}</span></div>
-                <div><strong className="text-white print:text-black block mb-1">Locație și Dotări:</strong> <span className="italic">{result.plan_operational?.locatie_dotari}</span></div>
-              </div>
+              <ol className="space-y-6 text-zinc-300 print:text-gray-800 list-decimal pl-6">
+                <li className="pl-2"><strong className="text-white print:text-black block mb-1">Descriere Flux Tehnologic:</strong> <span className="italic">{result.plan_operational?.descriere_flux}</span></li>
+                <li className="pl-2"><strong className="text-white print:text-black block mb-1">Resurse Umane:</strong> <span className="italic">{result.plan_operational?.resurse_umane}</span></li>
+                <li className="pl-2"><strong className="text-white print:text-black block mb-1">Locație și Dotări:</strong> <span className="italic">{result.plan_operational?.locatie_dotari}</span></li>
+              </ol>
             </div>
 
             <div className="pt-10 border-t border-zinc-800 print:border-none print:pt-4">
@@ -2023,17 +2023,17 @@ export default function Home() {
                 <h2 className="text-5xl font-black font-sans uppercase tracking-widest text-emerald-400">Planul Operațional</h2>
               </div>
               <div className="bg-zinc-900/50 p-8 border-l-8 border-emerald-500 flex flex-col gap-6 rounded-3xl flex-1 overflow-hidden">
-                <div className="flex flex-col gap-6 overflow-hidden content-start flex-1">
+                <div className="flex flex-col gap-6 overflow-hidden content-start flex-1 pl-4">
                     <div className="flex flex-col gap-2">
-                      <h4 className="text-2xl font-bold text-emerald-400 leading-snug">✦ Descriere Flux (Sustenabilitate / Verde)</h4>
+                      <h4 className="text-2xl font-bold text-emerald-400 leading-snug">1. Descriere Flux (Sustenabilitate / Verde)</h4>
                       <p className="text-lg text-zinc-300 leading-relaxed line-clamp-3">{result.plan_operational?.descriere_flux}</p>
                     </div>
                     <div className="flex flex-col gap-2">
-                      <h4 className="text-2xl font-bold text-emerald-400 leading-snug">✦ Resurse Umane</h4>
+                      <h4 className="text-2xl font-bold text-emerald-400 leading-snug">2. Resurse Umane</h4>
                       <p className="text-lg text-zinc-300 leading-relaxed line-clamp-3">{result.plan_operational?.resurse_umane}</p>
                     </div>
                     <div className="flex flex-col gap-2">
-                      <h4 className="text-2xl font-bold text-emerald-400 leading-snug">✦ Locație și Dotări</h4>
+                      <h4 className="text-2xl font-bold text-emerald-400 leading-snug">3. Locație și Dotări</h4>
                       <p className="text-lg text-zinc-300 leading-relaxed line-clamp-3">{result.plan_operational?.locatie_dotari}</p>
                     </div>
                 </div>
@@ -2211,17 +2211,17 @@ export default function Home() {
                 <h2 className="text-5xl font-black font-sans uppercase tracking-widest text-emerald-800">Planul Operațional</h2>
               </div>
               <div className="bg-emerald-50/50 p-8 border-l-8 border-emerald-500 flex flex-col gap-6 flex-1 rounded-2xl overflow-hidden">
-                <div className="flex flex-col gap-6 overflow-hidden content-start flex-1">
+                <div className="flex flex-col gap-6 overflow-hidden content-start flex-1 pl-4">
                     <div className="flex flex-col gap-2">
-                       <h4 className="text-2xl font-bold text-emerald-700 leading-snug">✦ Descriere Flux (Sustenabilitate / Verde)</h4>
+                       <h4 className="text-2xl font-bold text-emerald-700 leading-snug">1. Descriere Flux (Sustenabilitate / Verde)</h4>
                        <p className="text-lg text-gray-600 leading-relaxed line-clamp-3">{result.plan_operational?.descriere_flux}</p>
                     </div>
                     <div className="flex flex-col gap-2">
-                       <h4 className="text-2xl font-bold text-emerald-700 leading-snug">✦ Resurse Umane</h4>
+                       <h4 className="text-2xl font-bold text-emerald-700 leading-snug">2. Resurse Umane</h4>
                        <p className="text-lg text-gray-600 leading-relaxed line-clamp-3">{result.plan_operational?.resurse_umane}</p>
                     </div>
                     <div className="flex flex-col gap-2">
-                       <h4 className="text-2xl font-bold text-emerald-700 leading-snug">✦ Locație și Dotări</h4>
+                       <h4 className="text-2xl font-bold text-emerald-700 leading-snug">3. Locație și Dotări</h4>
                        <p className="text-lg text-gray-600 leading-relaxed line-clamp-3">{result.plan_operational?.locatie_dotari}</p>
                     </div>
                 </div>

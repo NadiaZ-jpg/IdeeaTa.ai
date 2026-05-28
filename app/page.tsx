@@ -1988,10 +1988,23 @@ export default function Home() {
             <div className="pdf-section mb-10 bg-zinc-900/50 p-10 rounded-3xl border-l-4 border-emerald-500 shadow-inner print:shadow-none print:bg-transparent print:border-l-4 print:border-emerald-700 print:text-black">
               <h3 className="text-emerald-400 text-sm font-black uppercase mb-6 tracking-[0.2em]">I & II. Date Generale și Viziune</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8 text-zinc-300 print:text-gray-800">
-                <div>
-                  <p><strong className="text-white print:text-black">Forma Juridică:</strong> {result.date_generale?.forma_juridica}</p>
-                  <p className="mt-2"><strong className="text-white print:text-black">Cod CAEN:</strong> {result.date_generale?.cod_caen}</p>
-                  <p className="mt-2"><strong className="text-white print:text-black">Contact:</strong> {result.date_generale?.date_contact}</p>
+                <div className="flex flex-col relative overflow-hidden">
+                  <div>
+                    <p><strong className="text-white print:text-black">Forma Juridică:</strong> {result.date_generale?.forma_juridica}</p>
+                    <p className="mt-2"><strong className="text-white print:text-black">Cod CAEN:</strong> {result.date_generale?.cod_caen}</p>
+                    <p className="mt-2"><strong className="text-white print:text-black">Contact:</strong> {result.date_generale?.date_contact}</p>
+                  </div>
+                  
+                  {/* Decorative curved lines to fill empty space */}
+                  <div className="mt-auto pt-16 pb-4 w-full flex-grow flex items-end opacity-[0.15] select-none pointer-events-none hidden md:block print:hidden relative h-40">
+                    <svg viewBox="0 0 500 150" className="w-full absolute bottom-[-10px] left-[-20px] transform scale-110" preserveAspectRatio="none">
+                      <g stroke="#10b981" strokeWidth="1.5" fill="none">
+                        <path d="M-50,80 C50,150 150,20 250,80 C350,140 450,10 550,80" />
+                        <path d="M-50,100 C60,170 160,40 260,100 C360,160 460,30 550,100" />
+                        <path d="M-50,120 C70,190 170,60 270,120 C370,180 470,50 550,120" />
+                      </g>
+                    </svg>
+                  </div>
                 </div>
                 <div>
                   <p className="whitespace-pre-line"><strong className="text-white print:text-black block mb-1">Obiective (1 an):</strong>{formatNumberedText(result.viziune_strategie?.obiective_scurt)}</p>

@@ -6,7 +6,7 @@ import pptxgen from "pptxgenjs";
 import { EditForm } from "./EditForm";
 import { BudgetBarChart } from "./BudgetChart";
 import { auth, db } from '@/lib/firebase';
-import { signInWithRedirect, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, User, getRedirectResult, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut } from 'firebase/auth';
+import { signInWithPopup, GoogleAuthProvider, FacebookAuthProvider, onAuthStateChanged, User, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut } from 'firebase/auth';
 import { doc, onSnapshot, setDoc, getDoc, increment, arrayUnion } from 'firebase/firestore';
 import { PricingModal } from '@/components/PricingModal';
 
@@ -73,6 +73,7 @@ export default function Home() {
   const [subscriptionActive, setSubscriptionActive] = useState(false);
   const [unlockedPlans, setUnlockedPlans] = useState<string[]>([]);
   const [showPricingModal, setShowPricingModal] = useState(false);
+  const [showQrModal, setShowQrModal] = useState(false);
 
   const devBypass = process.env.NEXT_PUBLIC_DEV_BYPASS === 'true';
   const [animatedPlaceholder, setAnimatedPlaceholder] = useState("");
@@ -404,13 +405,20 @@ export default function Home() {
   const handleGoogleLogin = () => {
     const provider = new GoogleAuthProvider();
     signInWithPopup(auth, provider)
-      .then((result) => {
-        // Succesul este preluat automat de onAuthStateChanged
-        setAuthError(null);
-      })
+      .then(() => { setAuthError(null); })
       .catch((error: any) => {
-        console.error("Eroare la autentificare cu popup:", error);
-        setAuthError(error.message || "A aparut o eroare la conectare.");
+        console.error("Eroare Google login:", error);
+        setAuthError("Nu s-a putut conecta cu Google. Încearcă din nou.");
+      });
+  };
+
+  const handleFacebookLogin = () => {
+    const provider = new FacebookAuthProvider();
+    signInWithPopup(auth, provider)
+      .then(() => { setAuthError(null); })
+      .catch((error: any) => {
+        console.error("Eroare Facebook login:", error);
+        setAuthError("Nu s-a putut conecta cu Facebook. Încearcă din nou.");
       });
   };
 
@@ -1077,19 +1085,77 @@ export default function Home() {
             <div className="flex-1 h-px bg-zinc-800"></div>
           </div>
 
-          {/* Google Login */}
-          <button
-            onClick={handleGoogleLogin}
-            className="w-full py-3 px-5 flex items-center justify-center gap-3 bg-white hover:bg-zinc-100 text-zinc-900 font-semibold rounded-xl transition-all shadow-md text-sm"
-          >
-            <svg viewBox="0 0 24 24" className="w-5 h-5" xmlns="http://www.w3.org/2000/svg">
-              <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
-              <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
-              <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
-              <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
-            </svg>
-            Continuă cu Google
-          </button>
+          {/* Social Login Buttons */}
+          <div className="w-full flex flex-col gap-3">
+
+            {/* Google */}
+            <button
+              onClick={handleGoogleLogin}
+              className="w-full py-3 px-5 flex items-center justify-center gap-3 bg-white hover:bg-zinc-100 text-zinc-900 font-semibold rounded-xl transition-all shadow-md text-sm"
+            >
+              <svg viewBox="0 0 24 24" className="w-5 h-5" xmlns="http://www.w3.org/2000/svg">
+                <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+                <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+                <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
+                <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+              </svg>
+              Continuă cu Google
+            </button>
+
+            {/* Facebook */}
+            <button
+              onClick={handleFacebookLogin}
+              className="w-full py-3 px-5 flex items-center justify-center gap-3 bg-[#1877F2] hover:bg-[#166fe5] text-white font-semibold rounded-xl transition-all shadow-md text-sm"
+            >
+              <svg viewBox="0 0 24 24" className="w-5 h-5" fill="white" xmlns="http://www.w3.org/2000/svg">
+                <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+              </svg>
+              Continuă cu Facebook
+            </button>
+
+            {/* QR Code */}
+            <button
+              onClick={() => setShowQrModal(true)}
+              className="w-full py-3 px-5 flex items-center justify-center gap-3 bg-zinc-800 hover:bg-zinc-700 text-white font-semibold rounded-xl transition-all shadow-md text-sm border border-zinc-700"
+            >
+              <svg viewBox="0 0 24 24" className="w-5 h-5" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                <path d="M3 3h7v7H3V3zm2 2v3h3V5H5zm9-2h7v7h-7V3zm2 2v3h3V5h-3zM3 14h7v7H3v-7zm2 2v3h3v-3H5zm11 0h2v2h-2v-2zm2 2h2v2h-2v-2zm-2 2h2v2h-2v-2zm-4-4h2v2h-2v-2zm2 2h2v2h-2v-2zm2-2h2v2h-2v-2z"/>
+              </svg>
+              Scanează cu telefonul (QR)
+            </button>
+
+          </div>
+
+          {/* QR Code Modal */}
+          {showQrModal && (
+            <div
+              className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+              onClick={() => setShowQrModal(false)}
+            >
+              <div
+                className="bg-zinc-900 border border-zinc-700 rounded-2xl p-8 flex flex-col items-center gap-5 max-w-sm w-full shadow-2xl"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <h3 className="text-white font-bold text-lg">Deschide pe telefon</h3>
+                <p className="text-zinc-400 text-sm text-center">Scanează codul QR cu camera telefonului tău pentru a accesa platforma direct pe mobil.</p>
+                <div className="bg-white p-4 rounded-xl">
+                  <img
+                    src={`https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=https://ideea-ta-ai.vercel.app&bgcolor=ffffff&color=000000`}
+                    alt="QR Code IdeeaTa.ai"
+                    width={180}
+                    height={180}
+                  />
+                </div>
+                <p className="text-emerald-400 text-xs font-semibold tracking-wide">ideea-ta-ai.vercel.app</p>
+                <button
+                  onClick={() => setShowQrModal(false)}
+                  className="text-zinc-500 hover:text-white text-sm transition-colors"
+                >
+                  Închide
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     );

@@ -1017,7 +1017,7 @@ export default function Home() {
           <h1 className="text-4xl font-black text-transparent bg-gradient-to-r from-zinc-400 via-emerald-400 to-zinc-400 bg-clip-text text-center mb-4 tracking-tighter">IdeeaTa.ai</h1>
           <p className="text-zinc-400 text-center mb-10 font-medium">Platforma necesită autentificare pentru a continua.</p>
           
-          <form onSubmit={handleEmailAuth} className="w-full mb-6 space-y-4">
+          <form onSubmit={handleEmailAuth} className="w-full mb-6 space-y-4" data-1p-ignore>
             <div>
               <input 
                 type="email" 
@@ -1026,8 +1026,8 @@ export default function Home() {
                 onChange={(e) => setEmail(e.target.value)}
                 required
                 autoComplete="off"
-                data-bwignore="true"
-                data-1p-ignore="true"
+                data-bwignore
+                data-1p-ignore
                 className="w-full bg-zinc-800/50 border border-zinc-700/50 rounded-xl px-4 py-3 text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 transition-all"
               />
             </div>
@@ -1039,8 +1039,8 @@ export default function Home() {
                 onChange={(e) => setPassword(e.target.value)}
                 required
                 autoComplete="new-password"
-                data-bwignore="true"
-                data-1p-ignore="true"
+                data-bwignore
+                data-1p-ignore
                 className="w-full bg-zinc-800/50 border border-zinc-700/50 rounded-xl px-4 py-3 text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 transition-all"
               />
             </div>

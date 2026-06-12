@@ -6,7 +6,7 @@ import pptxgen from "pptxgenjs";
 import { EditForm } from "./EditForm";
 import { BudgetBarChart } from "./BudgetChart";
 import { auth, db } from '@/lib/firebase';
-import { signInWithPopup, GoogleAuthProvider, FacebookAuthProvider, onAuthStateChanged, User, getRedirectResult, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut } from 'firebase/auth';
+import { signInWithPopup, GoogleAuthProvider, FacebookAuthProvider, onAuthStateChanged, User, getRedirectResult, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, sendPasswordResetEmail } from 'firebase/auth';
 import { doc, onSnapshot, setDoc, getDoc, increment, arrayUnion } from 'firebase/firestore';
 import { PricingModal } from '@/components/PricingModal';
 
@@ -248,6 +248,8 @@ export default function Home() {
   const [password, setPassword] = useState("");
   const [isLoginMode, setIsLoginMode] = useState(true);
   const [isEmailLoading, setIsEmailLoading] = useState(false);
+  const [isForgotMode, setIsForgotMode] = useState(false);
+  const [resetEmailSent, setResetEmailSent] = useState(false);
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       setUser(currentUser);
@@ -406,6 +408,28 @@ export default function Home() {
         console.error("Eroare Facebook login:", error);
         setAuthError("Nu s-a putut conecta cu Facebook. Încearcă din nou.");
       });
+  };
+
+  const handleForgotPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!email) {
+      setAuthError("Introdu adresa de email pentru a primi link-ul de resetare.");
+      return;
+    }
+    setIsEmailLoading(true);
+    setAuthError(null);
+    try {
+      await sendPasswordResetEmail(auth, email);
+      setResetEmailSent(true);
+    } catch (error: any) {
+      if (error.code === 'auth/user-not-found') {
+        setAuthError("Nu există niciun cont cu această adresă de email.");
+      } else {
+        setAuthError(error.message || "A apărut o eroare. Încearcă din nou.");
+      }
+    } finally {
+      setIsEmailLoading(false);
+    }
   };
 
   const handleEmailAuth = async (e: React.FormEvent) => {
@@ -1022,39 +1046,75 @@ export default function Home() {
                 className="w-full bg-zinc-800/50 border border-zinc-700/50 rounded-xl px-4 py-3 text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 transition-all"
               />
             </div>
-            <div>
-              <input 
-                type="password" 
-                placeholder="Parola"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                autoComplete="new-password"
-                data-bwignore
-                data-1p-ignore
-                className="w-full bg-zinc-800/50 border border-zinc-700/50 rounded-xl px-4 py-3 text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 transition-all"
-              />
-            </div>
+            {!isForgotMode && (
+              <div>
+                <input 
+                  type="password" 
+                  placeholder="Parola"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  autoComplete="new-password"
+                  data-bwignore
+                  data-1p-ignore
+                  className="w-full bg-zinc-800/50 border border-zinc-700/50 rounded-xl px-4 py-3 text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 transition-all"
+                />
+              </div>
+            )}
             <button 
-              type="submit" 
+              type={isForgotMode ? "button" : "submit"}
+              onClick={isForgotMode ? handleForgotPassword : undefined}
               disabled={isEmailLoading}
               className="w-full py-4 px-6 bg-emerald-500 hover:bg-emerald-600 text-white font-bold rounded-xl transition-all shadow-lg disabled:opacity-50"
             >
-              {isEmailLoading ? "Se procesează..." : (isLoginMode ? "Intră în cont" : "Creează cont nou")}
+              {isEmailLoading 
+                ? "Se procesează..." 
+                : isForgotMode 
+                  ? "Trimite link de resetare" 
+                  : (isLoginMode ? "Intră în cont" : "Creează cont nou")}
             </button>
-            <div className="text-center mt-4">
-              <button 
-                type="button" 
-                onClick={() => {
-                  setIsLoginMode(!isLoginMode);
-                  setEmail("");
-                  setPassword("");
-                  setAuthError(null);
-                }}
-                className="text-emerald-400 text-sm font-medium hover:text-emerald-300 transition-colors"
-              >
-                {isLoginMode ? "Nu ai cont? Creează unul nou" : "Ai deja cont? Intră aici"}
-              </button>
+
+            {resetEmailSent && (
+              <div className="w-full p-4 bg-emerald-500/10 border border-emerald-500/20 rounded-xl">
+                <p className="text-emerald-400 text-sm font-medium text-center">
+                  ✅ Link-ul de resetare a fost trimis! Verifică-ți emailul.
+                </p>
+              </div>
+            )}
+
+            <div className="flex justify-between items-center mt-2 text-sm">
+              {isLoginMode && !isForgotMode && (
+                <button 
+                  type="button" 
+                  onClick={() => { setIsForgotMode(true); setAuthError(null); setResetEmailSent(false); }}
+                  className="text-zinc-500 hover:text-zinc-300 transition-colors"
+                >
+                  Ai uitat parola?
+                </button>
+              )}
+              {isForgotMode && (
+                <button 
+                  type="button" 
+                  onClick={() => { setIsForgotMode(false); setAuthError(null); setResetEmailSent(false); }}
+                  className="text-zinc-500 hover:text-zinc-300 transition-colors"
+                >
+                  ← Înapoi la login
+                </button>
+              )}
+              {!isForgotMode && (
+                <button 
+                  type="button" 
+                  onClick={() => {
+                    setIsLoginMode(!isLoginMode);
+                    setEmail("");
+                    setPassword("");
+                    setAuthError(null);
+                  }}
+                  className="text-emerald-400 font-medium hover:text-emerald-300 transition-colors ml-auto"
+                >
+                  {isLoginMode ? "Nu ai cont? Creează unul nou" : "Ai deja cont? Intră aici"}
+                </button>
+              )}
             </div>
           </form>
           
@@ -1171,7 +1231,11 @@ export default function Home() {
             <span className="text-zinc-500 text-xs font-semibold">Proiectul tău de afaceri inteligent</span>
             <div className="flex items-center gap-4 text-xs font-medium">
               <span className="text-zinc-400">{user.email}</span>
-              {subscriptionActive ? (
+              {isAdmin ? (
+                <span className="bg-amber-500/20 border border-amber-500/40 text-amber-300 px-2 py-0.5 rounded-full font-black uppercase tracking-wider">
+                  ADMIN ★
+                </span>
+              ) : subscriptionActive ? (
                 <span className="bg-emerald-500/20 border border-emerald-500/40 text-emerald-400 px-2 py-0.5 rounded-full font-black uppercase tracking-wider">
                   PRO
                 </span>

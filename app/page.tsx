@@ -404,16 +404,11 @@ export default function Home() {
   const handleGoogleLogin = async () => {
     const provider = new GoogleAuthProvider();
     try {
-      const result = await signInWithRedirect(auth, provider);
+      const result = await signInWithPopup(auth, provider);
       setAuthError(null);
     } catch (error: any) {
-      console.error("Eroare la autentificare cu popup, se incearca redirect:", error);
-      try {
-        await signInWithRedirect(auth, provider);
-      } catch (redirectError: any) {
-        console.error("Eroare la autentificare cu redirect:", redirectError);
-        setAuthError(redirectError.message || "A apărut o eroare la conectare. Te rugăm să folosești formularul de email.");
-      }
+      console.error("Eroare la autentificare cu popup:", error);
+      setAuthError(error.message || "A aparut o eroare la conectare.");
     }
   };
 

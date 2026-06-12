@@ -401,15 +401,17 @@ export default function Home() {
     };
   }, [isContentCopyProtected]);
 
-  const handleGoogleLogin = async () => {
+  const handleGoogleLogin = () => {
     const provider = new GoogleAuthProvider();
-    try {
-      const result = await signInWithPopup(auth, provider);
-      setAuthError(null);
-    } catch (error: any) {
-      console.error("Eroare la autentificare cu popup:", error);
-      setAuthError(error.message || "A aparut o eroare la conectare.");
-    }
+    signInWithPopup(auth, provider)
+      .then((result) => {
+        // Succesul este preluat automat de onAuthStateChanged
+        setAuthError(null);
+      })
+      .catch((error: any) => {
+        console.error("Eroare la autentificare cu popup:", error);
+        setAuthError(error.message || "A aparut o eroare la conectare.");
+      });
   };
 
   const handleEmailAuth = async (e: React.FormEvent) => {

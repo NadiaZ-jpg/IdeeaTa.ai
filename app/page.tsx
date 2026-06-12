@@ -1054,7 +1054,12 @@ export default function Home() {
             <div className="text-center mt-4">
               <button 
                 type="button" 
-                onClick={() => setIsLoginMode(!isLoginMode)}
+                onClick={() => {
+                  setIsLoginMode(!isLoginMode);
+                  setEmail("");
+                  setPassword("");
+                  setAuthError(null);
+                }}
                 className="text-emerald-400 text-sm font-medium hover:text-emerald-300 transition-colors"
               >
                 {isLoginMode ? "Nu ai cont? Creează unul nou" : "Ai deja cont? Intră aici"}

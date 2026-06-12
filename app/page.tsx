@@ -404,7 +404,7 @@ export default function Home() {
   const handleGoogleLogin = async () => {
     const provider = new GoogleAuthProvider();
     try {
-      const result = await signInWithPopup(auth, provider);
+      const result = await signInWithRedirect(auth, provider);
       setAuthError(null);
     } catch (error: any) {
       console.error("Eroare la autentificare cu popup, se incearca redirect:", error);

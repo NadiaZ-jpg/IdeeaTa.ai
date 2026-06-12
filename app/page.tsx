@@ -402,10 +402,10 @@ export default function Home() {
   }, [isContentCopyProtected]);
 
   const handleGoogleLogin = async () => {
-    setAuthError(null);
     const provider = new GoogleAuthProvider();
     try {
-      await signInWithPopup(auth, provider);
+      const result = await signInWithPopup(auth, provider);
+      setAuthError(null);
     } catch (error: any) {
       console.error("Eroare la autentificare cu popup, se incearca redirect:", error);
       try {

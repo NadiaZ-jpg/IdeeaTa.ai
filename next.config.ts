@@ -21,6 +21,15 @@ const nextConfig: NextConfig = {
   },
   output: 'standalone',
   transpilePackages: ['motion'],
+  // Firebase Auth Reverse Proxy - bypasses third-party cookie & popup blockers
+  async rewrites() {
+    return [
+      {
+        source: '/__/auth/:path*',
+        destination: 'https://ideeata.firebaseapp.com/__/auth/:path*',
+      },
+    ];
+  },
   webpack: (config, {dev, isServer, webpack}) => {
     // HMR is disabled in AI Studio via DISABLE_HMR env var.
     // Do not modify—file watching is disabled to prevent flickering during agent edits.

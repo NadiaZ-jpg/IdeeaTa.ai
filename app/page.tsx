@@ -6,7 +6,7 @@ import pptxgen from "pptxgenjs";
 import { EditForm } from "./EditForm";
 import { BudgetBarChart } from "./BudgetChart";
 import { auth, db } from '@/lib/firebase';
-import { signInWithPopup, GoogleAuthProvider, FacebookAuthProvider, onAuthStateChanged, User, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut } from 'firebase/auth';
+import { signInWithPopup, GoogleAuthProvider, FacebookAuthProvider, onAuthStateChanged, User, getRedirectResult, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut } from 'firebase/auth';
 import { doc, onSnapshot, setDoc, getDoc, increment, arrayUnion } from 'firebase/firestore';
 import { PricingModal } from '@/components/PricingModal';
 
@@ -248,21 +248,7 @@ export default function Home() {
   const [password, setPassword] = useState("");
   const [isLoginMode, setIsLoginMode] = useState(true);
   const [isEmailLoading, setIsEmailLoading] = useState(false);
-
   useEffect(() => {
-    const checkRedirect = async () => {
-      try {
-        const result = await getRedirectResult(auth);
-        if (result && result.user) {
-          setUser(result.user);
-        }
-      } catch (error: any) {
-        console.error("Eroare la redirect:", error);
-        setAuthError(error.message || "A apărut o eroare necunoscută.");
-      }
-    };
-    checkRedirect();
-
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       setUser(currentUser);
       setIsAuthLoading(false);

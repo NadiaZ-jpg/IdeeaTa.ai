@@ -1294,6 +1294,18 @@ export default function Home() {
         </div>
       )}
 
+      {isEditingAi && (
+        <div className="fixed inset-0 bg-[#09090b]/90 backdrop-blur-sm z-[100] flex flex-col items-center justify-center">
+          <div className="w-16 h-16 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin mb-6"></div>
+          <p className="text-2xl font-bold text-white tracking-widest uppercase text-center">
+            AI-ul rescrie documentul...
+          </p>
+          <p className="text-emerald-400 font-medium mt-3 text-center">
+            Acest proces durează 15-20 de secunde, deoarece rescriem integral secțiunile planului tău de afaceri.
+          </p>
+        </div>
+      )}
+
       <div className={`${isDownloading === 'pptx' ? 'hidden' : 'flex'} flex-col items-center w-full max-w-[1600px] px-4 md:px-12 relative z-10`}>
         {user && (
           <div className="w-full flex justify-between items-start sm:items-center py-4 border-b border-zinc-800/80 mb-6 print:hidden">

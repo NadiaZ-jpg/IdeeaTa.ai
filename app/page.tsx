@@ -1385,9 +1385,20 @@ export default function Home() {
                 <div className="w-8"></div>
               </div>
               
-              <p className="text-zinc-400 font-medium text-lg text-center sm:text-left">
-                Construiește planul tău de afaceri inteligent
-              </p>
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+                <p className="text-zinc-400 font-medium text-lg text-center sm:text-left">
+                  Construiește planul tău de afaceri inteligent
+                </p>
+                <a 
+                  href="https://buymeacoffee.com/ideeata-ai" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="bg-[#FFDD00] text-black px-4 py-2 rounded-xl font-bold text-sm hover:bg-[#FFEA4D] hover:scale-105 transition-all flex items-center gap-2 shadow-lg whitespace-nowrap"
+                  title="Susține IdeeaTa.ai"
+                >
+                  <span className="text-lg">☕</span> Buy me a coffee
+                </a>
+              </div>
               
               <form onSubmit={generate} className="flex flex-col gap-4 w-full relative group z-10">
                 {skill.length > 35 && (

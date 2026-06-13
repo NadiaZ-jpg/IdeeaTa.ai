@@ -82,7 +82,7 @@ Returnează DOAR JSON valid cu aceeași structură ca inputul. Fără text extra
     while (retries > 0) {
       try {
         response = await ai.models.generateContent({
-          model: "gemini-2.0-flash",
+          model: "gemini-2.5-flash",
           contents: prompt,
           config: {
             responseMimeType: "application/json",

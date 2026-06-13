@@ -187,7 +187,8 @@ export default function Home() {
   }, []);
 
   const startEditing = () => {
-    setShowAdModal(true);
+    setBackupResult(JSON.parse(JSON.stringify(result)));
+    setIsEditing(true);
   };
 
   const cancelEditing = () => {
@@ -1823,21 +1824,33 @@ export default function Home() {
             <div className="flex flex-col gap-3">
               <h1 className="text-3xl font-black text-emerald-400 flex items-center gap-3">
                 <span>✏️</span> Studio Editare
+                {!isPaid && <span className="ml-3 text-sm font-bold text-amber-400 bg-amber-400/10 border border-amber-400/30 px-3 py-1 rounded-full">🔒 Demo – Read Only</span>}
               </h1>
             </div>
             <div className="flex gap-4 shrink-0">
               <button onClick={cancelEditing} className="px-6 py-2 bg-zinc-800 hover:bg-zinc-700 text-white rounded-xl font-bold transition-all shadow-xl">
                  ❌ Anulează
               </button>
-              <button onClick={saveEditing} className="px-6 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl font-bold transition-all shadow-xl border border-emerald-500">
-                 ✅ Confirmă și Salvează
+              <button
+                onClick={isPaid ? saveEditing : () => setShowAdModal(true)}
+                className="px-6 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl font-bold transition-all shadow-xl border border-emerald-500"
+              >
+                {isPaid ? '✅ Confirmă și Salvează' : '🔓 Creează Cont ca să Salvezi'}
               </button>
             </div>
           </div>
 
           <div className="flex flex-col lg:flex-row gap-8 items-start w-full">
-            <div className="w-full lg:w-3/5 xl:w-2/3">
-              <EditForm result={result} updateField={updateField} removeField={removeField} />
+            <div className="w-full lg:w-3/5 xl:w-2/3 relative">
+              <EditForm result={result} updateField={updateField} removeField={removeField} readOnly={!isPaid} />
+              {!isPaid && (
+                <div
+                  className="absolute inset-0 z-20 rounded-[2.5rem] cursor-not-allowed"
+                  style={{ userSelect: 'none', WebkitUserSelect: 'none' }}
+                  onMouseDown={e => e.preventDefault()}
+                  onClick={() => setShowAdModal(true)}
+                />
+              )}
             </div>
             {renderSidebar()}
           </div>

@@ -61,7 +61,7 @@ Do not include any other text besides the JSON block. Do not format with markdow
     while (retries > 0) {
       try {
         response = await ai.models.generateContent({
-          model: "gemini-2.5-flash",
+          model: "gemini-2.0-flash",
           contents: prompt,
           config: {
             responseMimeType: "application/json",
@@ -72,7 +72,7 @@ Do not include any other text besides the JSON block. Do not format with markdow
         console.error(`Eroare generare Gemini. Incercari ramase: ${retries - 1}`, e.message);
         retries--;
         if (retries === 0) throw e;
-        await sleep(2500); // Așteaptă 2.5 secunde înainte de retry
+        await sleep(1500); // Retry mai rapid
       }
     }
 

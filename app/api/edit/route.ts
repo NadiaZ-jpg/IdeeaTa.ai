@@ -1,11 +1,43 @@
 import { GoogleGenAI } from "@google/genai";
 import { NextRequest, NextResponse } from "next/server";
 
-export const maxDuration = 60; // Max execution time 60s to allow for retries and long edits
+export const maxDuration = 60;
 
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
 const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
+// Returns only the subset of the plan needed for a given action
+function extractRelevantSection(result: any, action: string) {
+  switch (action) {
+    case "optimize_budget":
+      return { plan_financiar: result.plan_financiar };
+    case "professional_tone":
+      return {
+        viziune_strategie: result.viziune_strategie,
+        analiza_pietei: result.analiza_pietei,
+        plan_operational: result.plan_operational,
+        plan_financiar: { strategie_financiara: result.plan_financiar?.strategie_financiara },
+        analiza_swot: result.analiza_swot,
+      };
+    case "eu_funds_optimization":
+      return {
+        plan_operational: result.plan_operational,
+        analiza_swot: result.analiza_swot,
+        plan_financiar: result.plan_financiar,
+      };
+    case "shorten_for_export":
+      return {
+        viziune_strategie: result.viziune_strategie,
+        analiza_pietei: result.analiza_pietei,
+        analiza_swot: result.analiza_swot,
+        plan_operational: result.plan_operational,
+        plan_financiar: { strategie_financiara: result.plan_financiar?.strategie_financiara },
+      };
+    default:
+      return result;
+  }
+}
 
 export async function POST(req: NextRequest) {
   try {
@@ -13,83 +45,102 @@ export async function POST(req: NextRequest) {
 
     let instruction = "";
     if (action === "professional_tone") {
-      instruction = `Rescrie conținutul textual pentru a avea un ton mult mai ${customStyle || 'formal, corporativ și profesionist'}, păstrând structura exactă. Nu modifica cifrele din planul financiar.`;
+      instruction = `Rescrie conținutul textual pentru a avea un ton ${customStyle || 'formal, corporativ și profesionist'}, păstrând structura exactă. Nu modifica cifrele.`;
     } else if (action === "optimize_budget") {
-      instruction = `Redu costurile din 'plan_financiar.buget_investitii' cu aproximativ ${targetSection}% și ajustează explicațiile arătând cum s-a făcut economia (de exemplu prin închiriere sau alternative mai ieftine conform datelor reale din piața actuală din România). Păstrează restul documentului neatins.`;
+      instruction = `Redu costurile din 'plan_financiar.buget_investitii' cu aproximativ ${targetSection}% și ajustează explicațiile arătând cum s-a făcut economia. Păstrează restul neatins.`;
     } else if (action === "add_sections") {
-      instruction = `Extinde planul de afaceri adăugând informații suplimentare, argumente sau concepte noi referitoare strict la secțiunea specificată de utilizator: "${targetSection || 'oricare consideri necesară'}". Păstrează tonul existent. Nu adăuga chei noi în JSON, doar extinde array-urile sau descrierile existente în acea zonă.`;
+      instruction = `Extinde planul adăugând informații suplimentare referitoare strict la: "${targetSection || 'orice consideri necesar'}". Nu adăuga chei noi în JSON, doar extinde array-urile sau descrierile existente.`;
     } else if (action === "eu_funds_optimization") {
-      instruction = "Optimizează planul de afaceri pentru accesarea de Fonduri Europene. Ajustează limbajul din plan_operational și din explicațiile SWOT pentru a folosi termeni specifici ghidurilor de finanțare europene (digitalizare, inovare, sustenabilitate, economie circulară). În planul financiar, reformulează denumirile elementelor de cheltuieli pentru a reflecta clar categorii eligibile (active corporale, achiziții echipamente tehnologice, software, servicii).";
+      instruction = "Optimizează planul pentru Fonduri Europene. Ajustează limbajul din plan_operational și SWOT (digitalizare, inovare, sustenabilitate). Reformulează elementele din planul financiar pentru categorii eligibile UE.";
     } else if (action === "investor_ready") {
-      instruction = `Transformă acest plan de afaceri într-un document de nivel profesionist pentru atragerea de investitori sau credite bancare, integrând logic următoarele 5 elemente lipsă:
-1. 'Rezumat Executiv (Cârligul)' (adaugă-l în 'date_generale.descriere_proiect' sau în 'viziune_strategie').
-2. 'Matricea de Diferențiere și Poziționare' față de concurență (dezvoltă secțiunea 'analiza_pietei.concurenta').
-3. 'Strategia Go-To-Market' incluzând estimări plauzibile pentru CAC și LTV (dezvoltă 'analiza_pietei.strategie_marketing' sau 'plan_operational.descriere_flux').
-4. 'Analiza de Risc și Plan de Contingență' detaliate (extinde 'amenintari' în SWOT).
-5. 'Modelare Financiară cu 3 Scenarii' - explică sumar scenariile pesimist, realist și optimist (dezvoltă 'plan_financiar.strategie_financiara').
-Păstrează tonul profesionist. Nu șterge secțiunile existente, ci îmbogățește-le cu noile analize. Răspunde exclusiv în format JSON valid care respectă exact structura inițială pe capitole.`;
+      instruction = `Transformă planul într-un document pentru investitori sau credite bancare integrând:
+1. Rezumat Executiv în 'viziune_strategie'.
+2. Matrice de diferențiere în 'analiza_pietei.concurenta'.
+3. Go-To-Market cu CAC/LTV în 'analiza_pietei.strategie_marketing'.
+4. Plan de Contingență în 'analiza_swot.amenintari'.
+5. 3 Scenarii Financiare (pesimist/realist/optimist) în 'plan_financiar.strategie_financiara'.`;
     } else if (action === "shorten_for_export") {
-      instruction = "Scurtează și sintetizează drastic întregul text (analiza pieței, planul operațional, elementele SWOT și strategia financiară). Menține esența, dar folosește fraze foarte scurte, la obiect. Redu volumul de text la jumătate pentru a te asigura că încape perfect vizual pe slide-uri de prezentare (PDF/PowerPoint).";
+      instruction = "Scurtează și sintetizează drastic textul (analiza pieței, planul operațional, SWOT, strategia financiară). Menține esența dar folosește fraze scurte. Redu volumul la jumătate pentru slide-uri.";
     } else {
-      instruction = "Oprează mici îmbunătățiri de corectură și fluență pe text.";
+      instruction = "Operează mici îmbunătățiri de corectură și fluență pe text.";
     }
 
-    const prompt = `
-Ai primit următorul plan de afaceri în format JSON:
-${JSON.stringify(result, null, 2)}
+    // Use only the relevant section for most actions to reduce token usage
+    const relevantData = extractRelevantSection(result, action);
+    const isFullPlan = action === "investor_ready" || action === "add_sections";
+    const inputData = isFullPlan ? result : relevantData;
 
-Sarcina ta:
-${instruction}
+    const prompt = `Plan de afaceri (JSON):
+${JSON.stringify(inputData)}
 
-Returnează DOAR rezultatul ca un JSON valid, respectând fix aceeași schemă a modelului original (date_generale, viziune_strategie, analiza_pietei, analiza_swot, plan_operational, plan_financiar). Include toate lucrurile existente, doar că modificate sau îmbogățite conform instrucțiunii.
-Fără niciun alt text, fără cod sursă markdown dacă se poate, doar JSON pur.
-`;
+Sarcina: ${instruction}
+
+Returnează DOAR JSON valid cu aceeași structură ca inputul. Fără text extra, fără markdown.`;
 
     let response;
     let retries = 3;
     while (retries > 0) {
       try {
         response = await ai.models.generateContent({
-          model: "gemini-2.5-flash",
+          model: "gemini-2.0-flash",
           contents: prompt,
           config: {
             responseMimeType: "application/json",
           }
         });
-        break; // Succes
+        break;
       } catch (e: any) {
         console.error(`Eroare editare Gemini. Incercari ramase: ${retries - 1}`, e.message);
         retries--;
         if (retries === 0) throw e;
-        await sleep(2500); // Așteaptă 2.5 secunde înainte de retry
+        await sleep(1500);
       }
     }
 
     let text = response?.text || "";
-    // Extrage doar bucata de JSON pentru a ignora eventualul text adaugat de Gemini
     const jsonMatch = text.match(/\{[\s\S]*\}/);
     if (jsonMatch) {
       text = jsonMatch[0];
     }
-    
-    return NextResponse.json({ updatedResult: text });
+
+    // Merge the partial result back into the full plan
+    let mergedResult = result;
+    try {
+      const parsed = JSON.parse(text);
+      if (!isFullPlan) {
+        // Deep merge only modified sections back into original
+        mergedResult = { ...result, ...parsed };
+        // Preserve nested objects properly
+        if (parsed.plan_financiar) mergedResult.plan_financiar = { ...result.plan_financiar, ...parsed.plan_financiar };
+        if (parsed.analiza_swot) mergedResult.analiza_swot = { ...result.analiza_swot, ...parsed.analiza_swot };
+        if (parsed.viziune_strategie) mergedResult.viziune_strategie = { ...result.viziune_strategie, ...parsed.viziune_strategie };
+        if (parsed.analiza_pietei) mergedResult.analiza_pietei = { ...result.analiza_pietei, ...parsed.analiza_pietei };
+        if (parsed.plan_operational) mergedResult.plan_operational = { ...result.plan_operational, ...parsed.plan_operational };
+      } else {
+        mergedResult = parsed;
+      }
+    } catch {
+      return NextResponse.json({ updatedResult: text });
+    }
+
+    return NextResponse.json({ updatedResult: JSON.stringify(mergedResult) });
   } catch (error: any) {
     console.error("Error editing content:", error);
-    
-    const isServiceUnavailable = error?.status === 503 || error?.message?.includes('503') || error?.message?.includes('high demand') || error?.message?.includes('UNAVAILABLE');
-    const isRateLimited = error?.status === 429 || error?.message?.includes('429') || error?.message?.includes('quota') || error?.message?.includes('RESOURCE_EXHAUSTED');
-    
-    let errorMessage = "Nu s-a putut edita documentul. Te rugăm să încerci din nou mai târziu.";
+
+    const isServiceUnavailable = error?.status === 503 || error?.message?.includes('503') || error?.message?.includes('UNAVAILABLE');
+    const isRateLimited = error?.status === 429 || error?.message?.includes('429') || error?.message?.includes('RESOURCE_EXHAUSTED');
+
+    let errorMessage = "Nu s-a putut edita documentul. Te rugăm să încerci din nou.";
     let statusCode = 500;
-    
+
     if (isServiceUnavailable) {
-      errorMessage = "Sistemul este momentan foarte solicitat. Te rugăm să dai refresh (🔄) la pagină și să încerci din nou.";
+      errorMessage = "Sistemul este momentan solicitat. Te rugăm să încerci din nou.";
       statusCode = 503;
     } else if (isRateLimited) {
-      errorMessage = "Ai depășit limita de utilizare. Te rugăm să dai refresh (🔄) la pagină și să încerci din nou.";
+      errorMessage = "Limită de utilizare depășită. Te rugăm să aștepți un minut.";
       statusCode = 429;
     }
-    
+
     return NextResponse.json({ error: errorMessage }, { status: statusCode });
   }
 }

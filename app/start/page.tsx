@@ -722,6 +722,12 @@ export default function Home() {
           pdf.addImage(dataUrl, 'PNG', 0, 0, 1280, 720);
         }
         
+        if (mode === 'pdf-summary') {
+          // Add invisible clickable link over the "Vino pe IdeeaTa" button on the last page
+          pdf.setPage(pdf.getNumberOfPages());
+          pdf.link(1280/2 - 200, 720 - 180, 400, 100, { url: 'https://ideeata.ai/' });
+        }
+        
         const safeName = result?.nume?.replace(/[^a-zA-Z0-9]/g, '_') || 'Business';
         const suffix = mode === 'pdf-summary' ? '_Sumar_Gratuit' : '';
         pdf.save(`IdeeaTa_Prezentare_${safeName}${suffix}.pdf`);
@@ -2322,13 +2328,13 @@ export default function Home() {
               <h2 className="text-5xl font-black text-white mb-6">Acesta a fost doar un scurt rezumat.</h2>
               
               <div className="bg-emerald-900/50 p-8 rounded-3xl border border-emerald-500/30 w-full max-w-5xl mb-8 shadow-xl">
-                <h3 className="text-3xl font-bold text-emerald-400 mb-6 uppercase tracking-wider">Ce primești în aplicația principală?</h3>
+                <h3 className="text-3xl font-bold text-emerald-400 mb-6 uppercase tracking-wider">Ce primești în aplicația IdeeaTa?</h3>
                 <div className="grid grid-cols-2 gap-x-12 gap-y-8 text-left">
                   <div className="flex items-start gap-4">
                     <span className="text-4xl">🪄</span>
                     <div>
                       <h4 className="text-2xl font-bold text-white mb-1">Studio Editare Text</h4>
-                      <p className="text-emerald-200 text-[19px] leading-tight">Editează documentul cu asistentul AI: profesional, creativ, sau orientat spre vânzări.</p>
+                      <p className="text-emerald-200 text-[19px] leading-tight">Editează documentul cu asistentul tău: profesional, creativ, sau orientat spre vânzări.</p>
                     </div>
                   </div>
                   <div className="flex items-start gap-4">
@@ -2356,7 +2362,7 @@ export default function Home() {
               </div>
               
               <div className="flex items-center gap-4 bg-emerald-500 text-white px-10 py-5 rounded-full text-3xl font-bold shadow-[0_0_30px_rgba(16,185,129,0.4)] mt-2">
-                <span>Vino pe IdeeaTa.ai</span>
+                <span>Vino pe IdeeaTa</span>
                 <span className="text-4xl">🚀</span>
               </div>
             </div>

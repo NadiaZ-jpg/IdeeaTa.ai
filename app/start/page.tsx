@@ -187,8 +187,7 @@ export default function Home() {
   }, []);
 
   const startEditing = () => {
-    setBackupResult(JSON.parse(JSON.stringify(result)));
-    setIsEditing(true);
+    setShowAdModal(true);
   };
 
   const cancelEditing = () => {
@@ -2049,37 +2048,37 @@ export default function Home() {
 
             {/* Slide 2: Viziune */}
             <div className="presentation-slide w-[1280px] h-[720px] bg-[#09090b] text-white flex flex-col justify-center p-24 border-[12px] border-zinc-900 box-border relative">
-              <div className="flex items-center gap-6 mb-12">
+              <div className="flex items-center gap-6 mb-8">
                 <div className="w-16 h-2 bg-emerald-500"></div>
                 <h2 className="text-5xl font-black font-sans uppercase tracking-widest text-emerald-400">Viziune și Strategie</h2>
               </div>
-              <div className="grid grid-cols-2 gap-12 font-sans leading-normal text-zinc-200">
+              <div className="grid grid-cols-2 gap-12 font-sans leading-relaxed text-zinc-200">
                 <div>
-                  <h3 className="text-3xl font-bold text-emerald-500 mb-4">Obiective (1 an)</h3>
-                  <p className="text-2xl line-clamp-4">{result.viziune_strategie?.obiective_scurt}</p>
-                  <h3 className="text-3xl font-bold text-emerald-500 mb-4 mt-8">Obiective (3-5 ani)</h3>
-                  <p className="text-2xl line-clamp-4">{result.viziune_strategie?.obiective_mediu}</p>
+                  <h3 className="text-2xl font-bold text-emerald-500 mb-3">Obiective (1 an)</h3>
+                  <p className="text-xl overflow-hidden" style={{ maxHeight: '180px' }}>{result.viziune_strategie?.obiective_scurt}</p>
+                  <h3 className="text-2xl font-bold text-emerald-500 mb-3 mt-6">Obiective (3-5 ani)</h3>
+                  <p className="text-xl overflow-hidden" style={{ maxHeight: '180px' }}>{result.viziune_strategie?.obiective_mediu}</p>
                 </div>
                 <div>
-                  <h3 className="text-3xl font-bold text-emerald-500 mb-4">Misiune și Valori</h3>
-                  <p className="text-2xl line-clamp-8 text-justify">{result.viziune_strategie?.misiune_valori}</p>
+                  <h3 className="text-2xl font-bold text-emerald-500 mb-3">Misiune și Valori</h3>
+                  <p className="text-xl text-justify overflow-hidden" style={{ maxHeight: '420px' }}>{result.viziune_strategie?.misiune_valori}</p>
                 </div>
               </div>
             </div>
 
             {/* Slide 2b: Analiza Pietei */}
             <div className="presentation-slide w-[1280px] h-[720px] bg-[#09090b] text-white flex flex-col justify-center p-24 border-[12px] border-zinc-900 box-border relative">
-              <div className="flex items-center gap-6 mb-8">
+              <div className="flex items-center gap-6 mb-6">
                 <div className="w-16 h-2 bg-emerald-500"></div>
                 <h2 className="text-5xl font-black font-sans uppercase tracking-widest text-emerald-400">Analiza Pieței</h2>
               </div>
-              <div className="flex flex-col gap-6 font-sans leading-normal text-zinc-200 text-justify">
-                  <div><h3 className="text-3xl font-bold text-emerald-500 mb-2">Clienții Țintă</h3>
-                  <p className="text-2xl line-clamp-3">{result.analiza_pietei?.clienti_tinta}</p></div>
-                  <div><h3 className="text-3xl font-bold text-emerald-500 mb-2">Concurența</h3>
-                  <p className="text-2xl line-clamp-3">{result.analiza_pietei?.concurenta}</p></div>
-                  <div><h3 className="text-3xl font-bold text-emerald-500 mb-2">Strategia de Marketing</h3>
-                  <p className="text-2xl line-clamp-3">{result.analiza_pietei?.strategie_marketing}</p></div>
+              <div className="flex flex-col gap-4 font-sans leading-relaxed text-zinc-200 text-justify">
+                  <div><h3 className="text-2xl font-bold text-emerald-500 mb-1">Clienții Țintă</h3>
+                  <p className="text-xl overflow-hidden" style={{ maxHeight: '120px' }}>{result.analiza_pietei?.clienti_tinta}</p></div>
+                  <div><h3 className="text-2xl font-bold text-emerald-500 mb-1">Concurența</h3>
+                  <p className="text-xl overflow-hidden" style={{ maxHeight: '120px' }}>{result.analiza_pietei?.concurenta}</p></div>
+                  <div><h3 className="text-2xl font-bold text-emerald-500 mb-1">Strategia de Marketing</h3>
+                  <p className="text-xl overflow-hidden" style={{ maxHeight: '120px' }}>{result.analiza_pietei?.strategie_marketing}</p></div>
               </div>
             </div>
 

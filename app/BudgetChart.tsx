@@ -44,7 +44,7 @@ export function BudgetPieChart({ budget }: { budget: any[] }) {
               ))}
             </Pie>
             <Tooltip 
-              formatter={(value: number) => [`${value.toLocaleString()} LEI`, "Cost"]}
+              formatter={(value: any) => [`${Number(value).toLocaleString()} LEI`, "Cost"]}
               contentStyle={{ backgroundColor: '#09090b', borderColor: '#27272a', color: '#fff', borderRadius: '12px', outline: 'none', fontSize: '13px' }}
               itemStyle={{ color: '#10b981', fontWeight: 'bold' }}
             />

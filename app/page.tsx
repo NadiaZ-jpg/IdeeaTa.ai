@@ -752,6 +752,21 @@ export default function Home() {
     }
     setIsDownloading(mode as any);
     try {
+      let generatedShareId: string | null = null;
+      if (mode === 'pdf-summary' || mode === 'pdf') {
+        try {
+          const res = await fetch('/api/share', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ planData: result })
+          });
+          const data = await res.json();
+          if (data.id) generatedShareId = data.id;
+        } catch (err) {
+          console.error("Eroare generare share link:", err);
+        }
+      }
+
       if (mode === 'pptx' || mode === 'pdf' || mode === 'pdf-summary') {
         await new Promise(resolve => setTimeout(resolve, 800));
       }
@@ -852,7 +867,7 @@ export default function Home() {
         });
 
         let pdfUrl = 'https://ideea-ta-ai.vercel.app/';
-        const currentShareId = result?.id;
+        const currentShareId = result?.id || generatedShareId;
         if (currentShareId) {
           pdfUrl = `https://ideea-ta-ai.vercel.app/shared/${currentShareId}`;
         }

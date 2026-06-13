@@ -2485,7 +2485,6 @@ export default function Home() {
                 Descarcă Sumarul
               </button>
             </div>
-            </div>
           </div>
         </div>
       )}

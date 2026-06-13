@@ -725,7 +725,7 @@ export default function Home() {
         if (mode === 'pdf-summary') {
           // Add invisible clickable link over the "Vino pe IdeeaTa" button on the last page
           pdf.setPage(pdf.getNumberOfPages());
-          pdf.link(1280/2 - 200, 720 - 180, 400, 100, { url: 'https://ideeata.ai/' });
+          pdf.link(1280/2 - 200, 720 - 180, 400, 100, { url: 'https://ideea-ta-ai.vercel.app/' });
         }
         
         const safeName = result?.nume?.replace(/[^a-zA-Z0-9]/g, '_') || 'Business';

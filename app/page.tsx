@@ -549,8 +549,10 @@ export default function Home() {
   const loadingMessages = [
     "Se inițiază analiza de piață...",
     "Se calculează necesarul financiar...",
+    "Se structurează planul operațional...",
     "Se preia cursul valutar actualizat...",
     "Se definitivează strategia S.W.O.T...",
+    "Se finisează documentul inteligent...",
     "Aproape gata..."
   ];
   const [messageIndex, setMessageIndex] = useState(0);
@@ -560,7 +562,7 @@ export default function Home() {
     if (loading) {
       interval = setInterval(() => {
         setMessageIndex((prev) => (prev < loadingMessages.length - 1 ? prev + 1 : prev));
-      }, 2500); 
+      }, 4000); 
     }
     return () => clearInterval(interval);
   }, [loading, loadingMessages.length]);

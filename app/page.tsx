@@ -1104,9 +1104,22 @@ export default function Home() {
                         <span>{isEditingAi ? "Se procesează..." : "Adaugă secțiuni noi"}</span>
                       </button>
 
-                      <button type="button" onClick={() => setActiveAiPrompt(activeAiPrompt?.action === "investor_ready" ? null : {action: "investor_ready", title: "Plan Profesionist", isConfirm: true, desc: "Se va genera:\n1. Rezumat Executiv\n2. Matrice Diferențiere\n3. Strategie 'Go-To-Market'\n4. Analiză Risc\n5. Scenarii Financiare"}) } disabled={isEditingAi} className="w-full bg-zinc-900/80 hover:bg-zinc-800 border border-emerald-500/30 rounded-xl px-5 py-4 font-bold text-sm text-emerald-100 transition-all text-left flex items-center gap-3 group disabled:opacity-50 disabled:cursor-not-allowed shadow-[0_0_15px_rgba(16,185,129,0.1)]">
-                        <span className="text-emerald-400 group-hover:scale-110 transition-transform text-lg">🏦</span> 
-                        <span>{isEditingAi ? "Se procesează..." : "Plan Profesionist (Investitori/Bănci)"}</span>
+                      <button type="button" onClick={() => {
+                        if (!isStudioPaid) {
+                          setShowPricingModal(true);
+                          return;
+                        }
+                        setActiveAiPrompt(activeAiPrompt?.action === "investor_ready" ? null : {action: "investor_ready", title: "Plan Profesionist", isConfirm: true, desc: "Se va genera:\n1. Rezumat Executiv\n2. Matrice Diferențiere\n3. Strategie 'Go-To-Market'\n4. Analiză Risc\n5. Scenarii Financiare"});
+                      }} disabled={isEditingAi} className="w-full bg-zinc-900/80 hover:bg-zinc-800 border border-emerald-500/30 rounded-xl px-5 py-4 font-bold text-sm text-emerald-100 transition-all text-left flex items-center justify-between group disabled:opacity-50 disabled:cursor-not-allowed shadow-[0_0_15px_rgba(16,185,129,0.1)]">
+                        <span className="flex items-center gap-3">
+                          <span className="text-emerald-400 group-hover:scale-110 transition-transform text-lg">🏦</span> 
+                          <span>{isEditingAi ? "Se procesează..." : "Plan Profesionist (Investitori/Bănci)"}</span>
+                        </span>
+                        {!isStudioPaid && (
+                          <span className="text-xs font-black bg-amber-500/20 text-amber-400 px-2.5 py-1 rounded-md border border-amber-500/20 group-hover:bg-amber-500/30 transition-colors flex items-center gap-1.5 shadow-[0_0_10px_rgba(245,158,11,0.2)]">
+                            🔒 PRO
+                          </span>
+                        )}
                       </button>
                     </div>
 

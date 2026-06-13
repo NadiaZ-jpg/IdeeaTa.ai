@@ -30,6 +30,20 @@ const formatNumberedText = (text: string | undefined) => {
   
   // 2. Ensure list items have exactly ONE newline before them to keep lists compact and consistent
   formatted = formatted.replace(/\n+\s*(\d+\.)\s+/g, '\n$1 ');
+
+  // Grammatical fixes
+  // 1. Remove leading commas or punctuation left over from prefixes
+  formatted = formatted.replace(/^[\s,;.-]+/, '');
+  
+  // 2. Capitalize the first letter of the sentence
+  if (formatted.length > 0) {
+    formatted = formatted.charAt(0).toUpperCase() + formatted.slice(1);
+  }
+
+  // 3. Lowercase letters following a semicolon (enumeration)
+  formatted = formatted.replace(/;\s+([A-ZĂÂÎȘȚ])/g, (match, letter) => {
+    return '; ' + letter.toLowerCase();
+  });
   
   return formatted.trim();
 };

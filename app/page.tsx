@@ -581,14 +581,18 @@ export default function Home() {
     return () => clearInterval(interval);
   }, [loading, loadingMessages.length]);
 
-  const generate = async (e?: React.FormEvent) => {
+  const generate = async (e?: React.FormEvent, retryCount = 0) => {
     if (e) e.preventDefault(); 
-    if (!skill.trim() || loading) return;
+    if (!skill.trim() || (loading && retryCount === 0)) return;
 
-    setLoading(true);
-    setMessageIndex(0);
-    setResult(null);
-    setIsPaid(false);
+    let shouldStopLoading = true;
+
+    if (retryCount === 0) {
+      setLoading(true);
+      setMessageIndex(0);
+      setResult(null);
+      setIsPaid(false);
+    }
 
     try {
       const res = await fetch("/api/generate", {
@@ -647,14 +651,20 @@ export default function Home() {
           }
         } catch (parseError) {
           console.error("TEXTUL GENERAT DE AI A FOST:", cleanJson);
-          alert("AI-ul a uitat niște ghilimele în structura de date! Apasă din nou pe „Generează” pentru a-i cere o variantă corectă.");
+          if (retryCount < 2) {
+            console.log("Retrying generation due to invalid JSON...", retryCount + 1);
+            shouldStopLoading = false;
+            generate(undefined, retryCount + 1);
+            return;
+          }
+          alert("Sistemul AI este momentan supraîncărcat și a generat un răspuns incomplet. Te rugăm să mai încerci o dată!");
         }
       }
     } catch (error: any) {
       console.error("Eroare:", error);
       alert(error.message || "A apărut o eroare la generarea planului. Te rugăm să încerci din nou mai târziu.");
     } finally {
-      setLoading(false);
+      if (shouldStopLoading) setLoading(false);
     }
   };
 

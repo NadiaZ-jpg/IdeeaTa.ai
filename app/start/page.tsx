@@ -548,9 +548,18 @@ export default function Home() {
     return () => clearInterval(interval);
   }, [loading, loadingMessages.length]);
 
-  const generate = async (e?: React.FormEvent) => {
+  const generate = async (e?: React.FormEvent, retryCount = 0) => {
     if (e) e.preventDefault(); 
-    if (!skill.trim() || loading) return;
+    if (!skill.trim() || (loading && retryCount === 0)) return;
+
+    let shouldStopLoading = true;
+
+    if (retryCount === 0) {
+      setLoading(true);
+      setMessageIndex(0);
+      setResult(null);
+      setIsPaid(true);
+    }
 
     const isDevQuery = typeof window !== 'undefined' && window.location.search.includes('dev=true');
     if (typeof window !== 'undefined' && !devBypass && !isDevQuery) {
@@ -623,16 +632,24 @@ export default function Home() {
               console.error("Eroare la salvarea planului în Firestore:", fsError);
             }
           }
-        } catch (parseError) {
-          console.error("TEXTUL GENERAT DE AI A FOST:", cleanJson);
-          alert("AI-ul a uitat niște ghilimele în structura de date! Apasă din nou pe „Generează” pentru a-i cere o variantă corectă.");
+        } catch (error) {
+          console.error("Failed to parse JSON:", error);
+          if (retryCount < 2) {
+            console.log("Retrying generation due to invalid JSON...", retryCount + 1);
+            shouldStopLoading = false;
+            generate(undefined, retryCount + 1);
+            return;
+          }
+          alert("Sistemul AI este momentan supraîncărcat și a generat un răspuns incomplet. Te rugăm să mai încerci o dată!");
+          setLoading(false);
+          setLoadingProgress(0);
         }
       }
     } catch (error: any) {
       console.error("Eroare:", error);
       alert(error.message || "A apărut o eroare la generarea planului. Te rugăm să încerci din nou mai târziu.");
     } finally {
-      setLoading(false);
+      if (shouldStopLoading) setLoading(false);
     }
   };
 
@@ -2043,12 +2060,12 @@ export default function Home() {
                   </div>
                 </div>
                 <div>
-                  <p className="whitespace-pre-line"><strong className="text-white print:text-black block mb-1">Obiective (1 an):</strong>{formatNumberedText(result.viziune_strategie?.obiective_scurt)}</p>
-                  <p className="mt-4 whitespace-pre-line"><strong className="text-white print:text-black block mb-1">Obiective (3-5 ani):</strong>{formatNumberedText(result.viziune_strategie?.obiective_mediu)}</p>
+                  <p className="whitespace-pre-line text-justify leading-relaxed"><strong className="text-white print:text-black block mb-1">Obiective (1 an):</strong>{formatNumberedText(result.viziune_strategie?.obiective_scurt)}</p>
+                  <p className="mt-4 whitespace-pre-line text-justify leading-relaxed"><strong className="text-white print:text-black block mb-1">Obiective (3-5 ani):</strong>{formatNumberedText(result.viziune_strategie?.obiective_mediu)}</p>
                 </div>
               </div>
               <div className="mt-6 pt-6 border-t border-zinc-800/50 text-zinc-300 print:border-gray-200 print:text-gray-800 text-justify leading-relaxed">
-                  <p className="whitespace-pre-line"><strong className="text-white print:text-black">Misiune și Valori:</strong> {formatNumberedText(result.viziune_strategie?.misiune_valori)}</p>
+                  <p className="whitespace-pre-line text-justify leading-relaxed"><strong className="text-white print:text-black">Misiune și Valori:</strong> {formatNumberedText(result.viziune_strategie?.misiune_valori)}</p>
               </div>
             </div>
 
@@ -2056,9 +2073,9 @@ export default function Home() {
             <div className="pdf-section mb-10 bg-zinc-900/50 p-10 rounded-3xl border-l-4 border-emerald-500 shadow-inner print:shadow-none print:bg-transparent print:border-l-4 print:border-emerald-700 print:text-black">
               <h3 className="text-emerald-400 text-sm font-black uppercase mb-6 tracking-[0.2em]">III. Analiza Pieței și Promovarea</h3>
               <div className="space-y-6 text-zinc-300 print:text-gray-800 text-justify leading-relaxed">
-                <div><strong className="text-white print:text-black block mb-1">Clienții Țintă:</strong> <span className="italic whitespace-pre-line">{formatNumberedText(result.analiza_pietei?.clienti_tinta)}</span></div>
-                <div><strong className="text-white print:text-black block mb-1">Concurența:</strong> <span className="italic whitespace-pre-line">{formatNumberedText(result.analiza_pietei?.concurenta)}</span></div>
-                <div><strong className="text-white print:text-black block mb-1">Strategia de Marketing:</strong> <span className="italic whitespace-pre-line">{formatNumberedText(result.analiza_pietei?.strategie_marketing)}</span></div>
+                <div className="text-justify"><strong className="text-white print:text-black block mb-1">Clienții Țintă:</strong> <span className="italic whitespace-pre-line">{formatNumberedText(result.analiza_pietei?.clienti_tinta)}</span></div>
+                <div className="text-justify"><strong className="text-white print:text-black block mb-1">Concurența:</strong> <span className="italic whitespace-pre-line">{formatNumberedText(result.analiza_pietei?.concurenta)}</span></div>
+                <div className="text-justify"><strong className="text-white print:text-black block mb-1">Strategia de Marketing:</strong> <span className="italic whitespace-pre-line">{formatNumberedText(result.analiza_pietei?.strategie_marketing)}</span></div>
               </div>
             </div>
             
@@ -2093,9 +2110,9 @@ export default function Home() {
             <div className="pdf-section mb-10 bg-zinc-900/50 p-10 rounded-3xl border-l-4 border-emerald-500 shadow-inner print:shadow-none print:bg-transparent print:border-l-4 print:border-emerald-700 print:text-black">
               <h3 className="text-emerald-400 text-sm font-black uppercase mb-6 tracking-[0.2em]">V. Planul Operațional și de Management</h3>
               <ol className="space-y-6 text-zinc-300 print:text-gray-800 list-decimal pl-6 text-justify leading-relaxed">
-                <li className="pl-2"><strong className="text-white print:text-black block mb-1">Descriere Flux Tehnologic:</strong> <span className="italic whitespace-pre-line">{formatNumberedText(result.plan_operational?.descriere_flux)}</span></li>
-                <li className="pl-2"><strong className="text-white print:text-black block mb-1">Resurse Umane:</strong> <span className="italic whitespace-pre-line">{formatNumberedText(result.plan_operational?.resurse_umane)}</span></li>
-                <li className="pl-2"><strong className="text-white print:text-black block mb-1">Locație și Dotări:</strong> <span className="italic whitespace-pre-line">{formatNumberedText(result.plan_operational?.locatie_dotari)}</span></li>
+                <li className="pl-2 text-justify"><strong className="text-white print:text-black block mb-1">Descriere Flux Tehnologic:</strong> <span className="italic whitespace-pre-line">{formatNumberedText(result.plan_operational?.descriere_flux)}</span></li>
+                <li className="pl-2 text-justify"><strong className="text-white print:text-black block mb-1">Resurse Umane:</strong> <span className="italic whitespace-pre-line">{formatNumberedText(result.plan_operational?.resurse_umane)}</span></li>
+                <li className="pl-2 text-justify"><strong className="text-white print:text-black block mb-1">Locație și Dotări:</strong> <span className="italic whitespace-pre-line">{formatNumberedText(result.plan_operational?.locatie_dotari)}</span></li>
               </ol>
             </div>
 

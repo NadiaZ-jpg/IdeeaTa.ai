@@ -76,7 +76,6 @@ export default function Home() {
   const [showPricingModal, setShowPricingModal] = useState(false);
   const [showQrModal, setShowQrModal] = useState(false);
   const [showAdModal, setShowAdModal] = useState(false);
-  const [showShareOverlay, setShowShareOverlay] = useState(false);
   const [showWelcomeModal, setShowWelcomeModal] = useState(false);
   const [showLimitModal, setShowLimitModal] = useState<{show: boolean, message: string}>({show: false, message: ""});
 
@@ -120,28 +119,8 @@ export default function Home() {
           if (data.data) {
             setResult(data.data);
             
-            // Logic to trigger modal on scroll or after 12 seconds
-            let triggered = false;
-            const triggerOverlay = () => {
-              if (!triggered) {
-                triggered = true;
-                setShowShareOverlay(true);
-              }
-            };
-
-            const handleScroll = () => {
-              const scrollPosition = window.innerHeight + window.scrollY;
-              const threshold = document.documentElement.scrollHeight * 0.85; // 85% of page
-              if (scrollPosition >= threshold) {
-                triggerOverlay();
-              }
-            };
-
-            window.addEventListener('scroll', handleScroll);
-
-            return () => {
-              window.removeEventListener('scroll', handleScroll);
-            };
+            // Push query param so refresh works
+            window.history.replaceState({}, '', window.location.pathname + '?continue=true');
           }
           setLoading(false);
         })
@@ -344,10 +323,15 @@ export default function Home() {
 
 
 
-  // Incarca planul salvat din localStorage la pornire si verifica daca s-a anulat plata
+  // Incarca planul salvat din localStorage la pornire
   useEffect(() => {
     if (typeof window !== "undefined") {
+      const urlParams = new URLSearchParams(window.location.search);
+      const shouldLoad = urlParams.get("continue") === "true" || urlParams.get("from_pdf") === "true" || urlParams.get("sharedId");
+      
       const saved = localStorage.getItem("current_generated_plan");
+      
+      if (shouldLoad) {
         if (saved && saved !== "null" && saved !== "undefined") {
           try {
             setResult(formatObjectNumbers(JSON.parse(saved)));
@@ -355,6 +339,10 @@ export default function Home() {
             console.error("Eroare la incarcarea planului salvat local:", e);
           }
         }
+      } else {
+        // If they navigate directly to /start, clear any cached plan to start fresh
+        localStorage.removeItem("current_generated_plan");
+      }
     }
   }, []);
 
@@ -2554,36 +2542,7 @@ export default function Home() {
         </div>
       )}
 
-      {showShareOverlay && result && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[200] flex items-center justify-center p-4 overflow-y-auto">
-          <div className="bg-zinc-900 border border-zinc-800 rounded-3xl p-8 max-w-xl w-full flex flex-col items-center text-center shadow-2xl my-auto">
-            <div className="w-20 h-20 bg-gradient-to-tr from-emerald-500 to-teal-400 rounded-full flex items-center justify-center mb-6 shadow-lg shadow-emerald-500/20">
-              <span className="text-4xl">🚀</span>
-            </div>
-            <h3 className="text-2xl md:text-3xl font-black text-white mb-2 leading-tight">
-              Continuă dezvoltarea planului pentru <span className="text-emerald-400">"{result.nume}"</span>
-            </h3>
-            <p className="text-zinc-400 mb-8 text-lg">
-              Pentru a folosi asistentul inteligent și a finaliza editarea, te rugăm să te autentifici!
-            </p>
-            
-            {/* AdSense Banner */}
-            <div className="w-full h-[250px] bg-zinc-900/50 rounded-xl flex items-center justify-center mb-8 overflow-hidden">
-              <AdBanner dataAdSlot="AUTO_AD_SLOT" />
-            </div>
 
-            <button 
-              onClick={() => {
-                localStorage.setItem("current_generated_plan", JSON.stringify(result));
-                window.location.href = "/";
-              }}
-              className="w-full px-8 py-4 rounded-xl font-black text-white bg-emerald-600 hover:bg-emerald-500 transition-colors shadow-[0_0_30px_rgba(16,185,129,0.3)] text-lg uppercase tracking-wider hover:scale-105 active:scale-95 duration-200"
-            >
-              Creează Cont / Logare
-            </button>
-          </div>
-        </div>
-      )}
 
       {/* Limit Reached Modal */}
       {showLimitModal.show && (

@@ -33,16 +33,16 @@ export function BudgetBarChart({ budget }: { budget: any[] }) {
       {/* Bar Chart Container */}
       <div className="h-[450px] w-full lg:w-1/2 outline-none">
         <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
-          <BarChart data={data} margin={{ top: 10, right: 10, left: 0, bottom: 160 }} style={{ outline: 'none' }}>
+          <BarChart data={data} margin={{ top: 10, right: 10, left: 60, bottom: 180 }} style={{ outline: 'none' }}>
             <CartesianGrid strokeDasharray="3 3" stroke="#27272a" vertical={false} />
             <XAxis 
               dataKey="name" 
               stroke="#71717a" 
-              tick={{ fill: '#a1a1aa', fontSize: 11 }} 
+              tick={{ fill: '#a1a1aa', fontSize: 10 }} 
               angle={-45} 
               textAnchor="end" 
               interval={0} 
-              tickFormatter={(val) => val.length > 45 ? val.substring(0, 45) + '...' : val} 
+              tickFormatter={(val) => val.length > 50 ? val.substring(0, 50) + '...' : val} 
             />
             <YAxis 
               stroke="#71717a" 
@@ -89,11 +89,23 @@ export function BudgetBarChart({ budget }: { budget: any[] }) {
               layout="vertical" 
               verticalAlign="middle" 
               align="right" 
-              wrapperStyle={{ fontSize: '12px', color: '#e4e4e7', fontWeight: '500', maxWidth: '55%', paddingLeft: '15px', top: '35%' }} 
-              formatter={(value, entry: any) => {
-                const itemCost = entry?.payload?.cost || entry?.payload?.value || 0;
-                const percent = totalCost > 0 ? ((itemCost / totalCost) * 100).toFixed(0) : 0;
-                return `${value.length > 50 ? value.substring(0, 50) + '...' : value} (${percent}%)`;
+              wrapperStyle={{ width: '50%', paddingLeft: '20px' }} 
+              content={(props: any) => {
+                const { payload } = props;
+                return (
+                  <ul className="flex flex-col gap-3 p-0 m-0 w-full justify-center max-h-[400px] overflow-y-auto">
+                    {payload.map((entry: any, index: number) => {
+                      const itemCost = entry?.payload?.cost || entry?.payload?.value || 0;
+                      const percent = totalCost > 0 ? ((itemCost / totalCost) * 100).toFixed(0) : 0;
+                      return (
+                        <li key={`item-${index}`} className="flex items-start gap-2 text-[11px] text-zinc-300">
+                          <div className="w-3 h-3 rounded-[3px] mt-0.5 shrink-0" style={{ backgroundColor: entry.color }} />
+                          <span className="leading-tight">{entry.value} ({percent}%)</span>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                );
               }}
             />
           </PieChart>

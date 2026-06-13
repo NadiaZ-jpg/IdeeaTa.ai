@@ -49,7 +49,7 @@ export async function POST(req: NextRequest) {
     } else if (action === "optimize_budget") {
       instruction = `Redu costurile din 'plan_financiar.buget_investitii' cu aproximativ ${targetSection}% și ajustează explicațiile arătând cum s-a făcut economia. Păstrează restul neatins.`;
     } else if (action === "add_sections") {
-      instruction = `Extinde planul adăugând informații suplimentare referitoare strict la: "${targetSection || 'orice consideri necesar'}". Nu adăuga chei noi în JSON, doar extinde array-urile sau descrierile existente.`;
+      instruction = `Extinde planul adăugând o secțiune NOUĂ referitoare strict la: "${targetSection || 'orice consideri necesar'}". Adaugă la nivelul root al JSON-ului (lângă analiza_pietei etc.) o cheie "sectiuni_aditionale" care să fie un array de obiecte: [{ "titlu": "Titlu Secțiune", "continut": "Detalii complete formatate cu \\n" }]. Dacă există deja, adaugă la el.`;
     } else if (action === "eu_funds_optimization") {
       instruction = "Optimizează planul pentru Fonduri Europene. Ajustează limbajul din plan_operational și SWOT (digitalizare, inovare, sustenabilitate). Reformulează elementele din planul financiar pentru categorii eligibile UE.";
     } else if (action === "investor_ready") {
@@ -116,6 +116,7 @@ Returnează DOAR JSON valid cu aceeași structură ca inputul. Fără text extra
         if (parsed.viziune_strategie) mergedResult.viziune_strategie = { ...result.viziune_strategie, ...parsed.viziune_strategie };
         if (parsed.analiza_pietei) mergedResult.analiza_pietei = { ...result.analiza_pietei, ...parsed.analiza_pietei };
         if (parsed.plan_operational) mergedResult.plan_operational = { ...result.plan_operational, ...parsed.plan_operational };
+        if (parsed.sectiuni_aditionale) mergedResult.sectiuni_aditionale = parsed.sectiuni_aditionale;
       } else {
         mergedResult = parsed;
       }

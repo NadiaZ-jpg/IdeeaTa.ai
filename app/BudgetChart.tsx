@@ -9,7 +9,7 @@ import {
   Cell
 } from 'recharts';
 
-export function BudgetPieChart({ budget }: { budget: any[] }) {
+export function BudgetPieChart({ budget, currency = "LEI" }: { budget: any[], currency?: string }) {
   if (!budget || budget.length === 0) return null;
 
   const data = budget.map((b) => ({
@@ -44,7 +44,7 @@ export function BudgetPieChart({ budget }: { budget: any[] }) {
               ))}
             </Pie>
             <Tooltip 
-              formatter={(value: any) => [`${Number(value).toLocaleString()} LEI`, "Cost"]}
+              formatter={(value: any) => [`${Number(value).toLocaleString()} ${currency}`, "Cost"]}
               contentStyle={{ backgroundColor: '#09090b', borderColor: '#27272a', color: '#fff', borderRadius: '12px', outline: 'none', fontSize: '13px' }}
               itemStyle={{ color: '#10b981', fontWeight: 'bold' }}
             />

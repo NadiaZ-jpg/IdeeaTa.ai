@@ -222,7 +222,7 @@ export default function Home() {
             let targetId = "";
             if (action === "eu_funds_optimization") targetId = "section-general";
             else if (action === "optimize_budget") targetId = "section-financial";
-            else if (action === "add_sections") targetId = "section-market";
+            else if (action === "add_sections") targetId = "section-custom";
             else if (action === "professional_tone") targetId = "section-general";
             
             if (targetId) {
@@ -2270,7 +2270,7 @@ export default function Home() {
                   
                   {/* Decorative curved lines to fill empty space */}
                   <div className="mt-auto pt-16 pb-4 w-full flex-grow flex items-end opacity-[0.25] select-none pointer-events-none hidden md:block print:hidden relative h-56 overflow-hidden">
-                    <svg viewBox="0 0 500 250" className="w-full absolute bottom-[-10px] left-[-20px] animate-wave-move" preserveAspectRatio="none">
+                    <svg viewBox="0 0 500 250" className="w-full absolute bottom-[-10px] left-[-20px] animate-wave-move" style={{ animation: 'wave-move 12s ease-in-out infinite' }} preserveAspectRatio="none">
                       <g stroke="#10b981" strokeWidth="1.2" fill="none">
                         <path d="M-50,20 C50,90 150,-40 250,20 C350,80 450,-50 550,20" />
                         <path d="M-50,40 C60,110 160,-20 260,40 C360,100 460,-30 550,40" />
@@ -2347,6 +2347,18 @@ export default function Home() {
               </ol>
             </div>
 
+            {/* Additional AI Sections */}
+            <div id="section-custom">
+              {result.sectiuni_aditionale?.map((sec: any, idx: number) => (
+                <div key={`custom-${idx}`} className="pdf-section mb-10 bg-zinc-900/50 p-10 rounded-3xl border-l-4 border-emerald-500 shadow-inner print:shadow-none print:bg-transparent print:border-l-4 print:border-emerald-700 print:text-black">
+                  <h3 className="text-emerald-400 text-sm font-black uppercase mb-6 tracking-[0.2em]">{sec.titlu}</h3>
+                  <p className="text-zinc-300 italic text-left leading-relaxed print:text-gray-800 whitespace-pre-line">
+                    {formatNumberedText(sec.continut)}
+                  </p>
+                </div>
+              ))}
+            </div>
+
             <div id="section-financial" className="pt-10 border-t border-zinc-800 print:border-none print:pt-4">
                <h3 className="pdf-section text-emerald-400 text-sm font-black uppercase mb-6 tracking-[0.2em] text-center drop-shadow-md print:text-emerald-800 print:drop-shadow-none">
                  VI. Planul Financiar
@@ -2358,7 +2370,7 @@ export default function Home() {
 
                <div className="mb-16">
                  <h4 className="text-zinc-500 font-bold uppercase tracking-wider mb-6 text-sm">Distribuția costurilor</h4>
-                 <BudgetPieChart budget={result.plan_financiar?.buget_investitii} />
+                 <BudgetPieChart budget={result.plan_financiar?.buget_investitii} currency={currency} />
                </div>
 
                <div className="grid grid-cols-1 gap-6 print:gap-3">
@@ -2564,7 +2576,7 @@ export default function Home() {
                 <h2 className="text-5xl font-black font-sans uppercase tracking-widest text-emerald-400">Distribuția Costurilor</h2>
               </div>
               <div className="flex-1 w-full bg-zinc-900/50 p-8 rounded-3xl border border-zinc-800">
-                  <BudgetPieChart budget={result.plan_financiar?.buget_investitii} />
+                  <BudgetPieChart budget={result.plan_financiar?.buget_investitii} currency={currency} />
               </div>
             </div>
           </div>
@@ -2752,7 +2764,7 @@ export default function Home() {
                 <h2 className="text-5xl font-black font-sans uppercase tracking-widest text-emerald-800">Distribuția Costurilor</h2>
               </div>
               <div className="flex-1 w-full bg-emerald-50/50 p-8 rounded-2xl border border-emerald-100">
-                  <BudgetPieChart budget={result.plan_financiar?.buget_investitii} />
+                  <BudgetPieChart budget={result.plan_financiar?.buget_investitii} currency={currency} />
               </div>
             </div>
 

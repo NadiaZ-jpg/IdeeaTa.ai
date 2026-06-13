@@ -654,10 +654,10 @@ export default function Home() {
     window.scrollTo({ top: 0, behavior: "instant" });
   };
 
-  const downloadAction = async (mode: 'pdf' | 'pptx' | 'word', bypassPaymentCheck = false) => {
+  const downloadAction = async (mode: 'pdf' | 'pptx' | 'word' | 'pdf-summary', bypassPaymentCheck = false) => {
     const planName = result?.nume || "Plan de Afaceri";
 
-    if (!isPlanPaid && !bypassPaymentCheck) {
+    if (mode !== 'pdf-summary' && !isAdmin && !isPlanPaid && !subscriptionActive && !euFundsUnlocked && !bypassPaymentCheck) {
       if (credits > 0) {
         const confirmUnlock = window.confirm(
           `Descărcarea acestui document va consuma 1 credit din cele ${credits} disponibile. Dorești să continui?`
@@ -676,14 +676,14 @@ export default function Home() {
           return;
         }
       } else {
-        setPendingDownloadMode(mode);
+        setPendingDownloadMode(mode as any);
         setShowPricingModal(true);
         return;
       }
     }
-    setIsDownloading(mode);
+    setIsDownloading(mode as any);
     try {
-      if (mode === 'pptx' || mode === 'pdf') {
+      if (mode === 'pptx' || mode === 'pdf' || mode === 'pdf-summary') {
         await new Promise(resolve => setTimeout(resolve, 800));
       }
 
@@ -761,28 +761,37 @@ export default function Home() {
 
         const safeName = result?.nume?.replace(/[^a-zA-Z0-9]/g, '_') || 'Business';
         await pres.writeFile({ fileName: `IdeeaTa_Brosura_${safeName}.pptx` });
-      } else if (mode === 'pdf') {
-        const slides = document.querySelectorAll('.pdf-presentation-slide');
-        if (slides.length === 0) {
+      } else if (mode === 'pdf' || mode === 'pdf-summary') {
+        let slidesArray = Array.from(document.querySelectorAll('.pdf-presentation-slide'));
+        if (slidesArray.length === 0) {
            setIsDownloading(null);
            return;
         }
         
+        if (mode === 'pdf-summary') {
+          slidesArray = slidesArray.slice(0, 3);
+          const ctaSlide = document.querySelector('.pdf-cta-slide');
+          if (ctaSlide) {
+            slidesArray.push(ctaSlide as Element);
+          }
+        }
+
         const pdf = new jsPDF({
           orientation: "landscape",
           unit: "pt",
           format: [1280, 720]
         });
 
-        for (let i = 0; i < slides.length; i++) {
-          const slideElement = slides[i] as HTMLElement;
+        for (let i = 0; i < slidesArray.length; i++) {
+          const slideElement = slidesArray[i] as HTMLElement;
           const dataUrl = await toPng(slideElement, { quality: 1.0, pixelRatio: 2 });
           if (i > 0) pdf.addPage([1280, 720], "landscape");
           pdf.addImage(dataUrl, 'PNG', 0, 0, 1280, 720);
         }
         
         const safeName = result?.nume?.replace(/[^a-zA-Z0-9]/g, '_') || 'Business';
-        pdf.save(`IdeeaTa_Prezentare_${safeName}.pdf`);
+        const suffix = mode === 'pdf-summary' ? '_Sumar_Gratuit' : '';
+        pdf.save(`IdeeaTa_Prezentare_${safeName}${suffix}.pdf`);
       } else if (mode === 'word') {
           const preHtml = "<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'><head><meta charset='utf-8'><title>Plan de Afaceri</title></head><body>";
           const postHtml = "</body></html>";
@@ -2062,10 +2071,18 @@ export default function Home() {
                   <>
                     <div className="w-px h-4 bg-zinc-800 flex-none" />
                     <button 
+                      onClick={() => downloadAction('pdf-summary')} 
+                      disabled={isDownloading !== null}
+                      className="flex-none hover:bg-emerald-900/50 text-emerald-400 text-[10px] sm:text-[11px] h-full px-3 rounded-lg font-black uppercase tracking-wider transition-all flex items-center justify-center whitespace-nowrap gap-1 cursor-pointer shadow-[0_0_15px_rgba(16,185,129,0.15)]"
+                    >
+                      {isDownloading === 'pdf-summary' ? "⏳..." : "🎁 Sumar Gratuit"}
+                    </button>
+                    <div className="w-px h-4 bg-zinc-800 flex-none" />
+                    <button 
                       type="button"
                       onClick={() => setShowPricingModal(true)}
                       className="flex-none text-xs text-amber-500 hover:text-amber-400 cursor-pointer px-3 h-full rounded-lg flex items-center justify-center hover:bg-zinc-800/50 hover:scale-110 transition-all"
-                      title="Pachet Standard"
+                      title="Deblochează Descărcările Complete (Pachet Standard)"
                     >
                       🔒
                     </button>
@@ -2593,6 +2610,17 @@ export default function Home() {
               </div>
               <div className="flex-1 w-full bg-emerald-50/50 p-8 rounded-2xl border border-emerald-100">
                   <BudgetBarChart budget={result.plan_financiar?.buget_investitii} />
+              </div>
+            </div>
+
+            {/* CTA Slide (For PDF Summary) */}
+            <div className="pdf-cta-slide w-[1280px] h-[720px] bg-emerald-950 flex flex-col justify-center items-center p-24 border-[12px] border-emerald-900 box-border relative text-center">
+              <h2 className="text-6xl font-black text-white mb-8">Acesta a fost doar un scurt rezumat.</h2>
+              <p className="text-3xl text-emerald-200 mb-12 max-w-4xl leading-relaxed">
+                Pentru a obține <strong>Analiza SWOT detaliată, Bugetul de investiții, Strategia de Piață completă și Planul Operațional</strong>, deblochează pachetul complet!
+              </p>
+              <div className="bg-emerald-500 text-white px-12 py-6 rounded-2xl text-4xl font-bold shadow-2xl">
+                Vizitează IdeeaTa.ai
               </div>
             </div>
 

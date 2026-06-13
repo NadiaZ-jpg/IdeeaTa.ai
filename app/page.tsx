@@ -4,7 +4,7 @@ import { jsPDF } from "jspdf";
 import { toPng } from "html-to-image";
 import pptxgen from "pptxgenjs";
 import { EditForm } from "./EditForm";
-import { BudgetBarChart } from "./BudgetChart";
+import { BudgetPieChart } from "./BudgetChart";
 import { auth, db } from '@/lib/firebase';
 import { signInWithPopup, GoogleAuthProvider, FacebookAuthProvider, onAuthStateChanged, User, getRedirectResult, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, sendPasswordResetEmail } from 'firebase/auth';
 import { doc, onSnapshot, setDoc, getDoc, increment, arrayUnion } from 'firebase/firestore';
@@ -2330,7 +2330,7 @@ export default function Home() {
 
                <div className="mb-16">
                  <h4 className="text-zinc-500 font-bold uppercase tracking-wider mb-6 text-sm">Distribuția costurilor</h4>
-                 <BudgetBarChart budget={result.plan_financiar?.buget_investitii} />
+                 <BudgetPieChart budget={result.plan_financiar?.buget_investitii} />
                </div>
 
                <div className="grid grid-cols-1 gap-6 print:gap-3">
@@ -2536,7 +2536,7 @@ export default function Home() {
                 <h2 className="text-5xl font-black font-sans uppercase tracking-widest text-emerald-400">Distribuția Costurilor</h2>
               </div>
               <div className="flex-1 w-full bg-zinc-900/50 p-8 rounded-3xl border border-zinc-800">
-                  <BudgetBarChart budget={result.plan_financiar?.buget_investitii} />
+                  <BudgetPieChart budget={result.plan_financiar?.buget_investitii} />
               </div>
             </div>
           </div>
@@ -2724,7 +2724,7 @@ export default function Home() {
                 <h2 className="text-5xl font-black font-sans uppercase tracking-widest text-emerald-800">Distribuția Costurilor</h2>
               </div>
               <div className="flex-1 w-full bg-emerald-50/50 p-8 rounded-2xl border border-emerald-100">
-                  <BudgetBarChart budget={result.plan_financiar?.buget_investitii} />
+                  <BudgetPieChart budget={result.plan_financiar?.buget_investitii} />
               </div>
             </div>
 

@@ -2,18 +2,14 @@
 
 import React from 'react';
 import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
+  PieChart,
+  Pie,
   Tooltip,
   ResponsiveContainer,
   Cell
 } from 'recharts';
 
-
-export function BudgetBarChart({ budget }: { budget: any[] }) {
+export function BudgetPieChart({ budget }: { budget: any[] }) {
   if (!budget || budget.length === 0) return null;
 
   const data = budget.map((b) => ({
@@ -28,34 +24,31 @@ export function BudgetBarChart({ budget }: { budget: any[] }) {
 
   return (
     <div className="flex flex-col lg:flex-row gap-8 w-full h-full items-center justify-center select-none outline-none pointer-events-none md:pointer-events-auto">
-      {/* Bar Chart Container */}
-      <div className="h-[450px] w-full lg:w-1/2 outline-none">
+      {/* Pie Chart Container */}
+      <div className="h-[450px] w-full lg:w-1/2 outline-none flex justify-center items-center">
         <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
-          <BarChart data={data} margin={{ top: 10, right: 10, left: 10, bottom: 20 }} style={{ outline: 'none' }}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#27272a" vertical={false} />
-            <XAxis 
-              dataKey="name" 
-              stroke="#71717a" 
-              tick={false}
-              axisLine={true}
-            />
-            <YAxis 
-              stroke="#71717a" 
-              tick={{ fill: '#a1a1aa', fontSize: 11 }} 
-              width={50}
-              tickFormatter={(val) => val >= 1000 ? `${(val / 1000).toFixed(0)}k` : val}
-            />
-            <Tooltip 
-              cursor={{ fill: 'rgba(255,255,255,0.05)' }}
-              contentStyle={{ backgroundColor: '#09090b', borderColor: '#27272a', color: '#fff', borderRadius: '12px', outline: 'none', fontSize: '13px' }}
-              itemStyle={{ color: '#10b981', fontWeight: 'bold' }}
-            />
-            <Bar dataKey="cost" radius={[4, 4, 0, 0]} name="Cost (LEI)">
+          <PieChart style={{ outline: 'none' }}>
+            <Pie
+              data={data}
+              cx="50%"
+              cy="50%"
+              innerRadius={90}
+              outerRadius={160}
+              paddingAngle={3}
+              dataKey="cost"
+              stroke="none"
+              nameKey="name"
+            >
               {data.map((entry, index) => (
                 <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
               ))}
-            </Bar>
-          </BarChart>
+            </Pie>
+            <Tooltip 
+              formatter={(value: number) => [`${value.toLocaleString()} LEI`, "Cost"]}
+              contentStyle={{ backgroundColor: '#09090b', borderColor: '#27272a', color: '#fff', borderRadius: '12px', outline: 'none', fontSize: '13px' }}
+              itemStyle={{ color: '#10b981', fontWeight: 'bold' }}
+            />
+          </PieChart>
         </ResponsiveContainer>
       </div>
 

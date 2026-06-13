@@ -92,10 +92,10 @@ export function BudgetBarChart({ budget }: { budget: any[] }) {
           <PieChart style={{ outline: 'none' }}>
             <Pie
               data={data}
-              cx="35%"
+              cx="30%"
               cy="50%"
-              innerRadius="55%"
-              outerRadius="80%"
+              innerRadius={75}
+              outerRadius={110}
               paddingAngle={3}
               dataKey="cost"
               stroke="none"
@@ -115,7 +115,7 @@ export function BudgetBarChart({ budget }: { budget: any[] }) {
               layout="vertical" 
               verticalAlign="middle" 
               align="right" 
-              wrapperStyle={{ width: '60%', paddingLeft: '20px', right: 0 }} 
+              wrapperStyle={{ position: 'absolute', right: 0, top: '50%', transform: 'translateY(-50%)', width: '60%', paddingLeft: '20px' }} 
               content={(props: any) => {
                 const { payload } = props;
                 return (

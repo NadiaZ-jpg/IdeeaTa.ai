@@ -823,10 +823,14 @@ export default function Home() {
           if (i > 0) pdf.addPage([1280, 720], "landscape");
           pdf.addImage(dataUrl, 'PNG', 0, 0, 1280, 720);
           
+          let pdfUrl = 'https://ideea-ta-ai.vercel.app/';
+          const currentShareId = result?.id || shareId;
+          if (currentShareId) {
+            pdfUrl = `https://ideea-ta-ai.vercel.app/shared/${currentShareId}`;
+          }
+
           if (i === slidesArray.length - 1 && mode === 'pdf-summary') {
-            const url = new URL(window.location.href);
-            url.searchParams.set("from_pdf", "true");
-            pdf.link(0, 0, 1280, 720, { url: url.toString() });
+            pdf.link(0, 0, 1280, 720, { url: pdfUrl });
           }
 
           // Stamp footer on every page
@@ -834,11 +838,6 @@ export default function Home() {
           pdf.setFontSize(14);
           pdf.text("Plan generat inteligent de IdeeaTa.ai", 640, 700, { align: 'center' });
           
-          let pdfUrl = 'https://ideea-ta-ai.vercel.app/';
-          if (shareId) {
-            pdfUrl = `https://ideea-ta-ai.vercel.app/shared/${shareId}`;
-          }
-
           // Add invisible link covering the footer area on every page
           pdf.link(300, 680, 680, 40, { url: pdfUrl });
         }
@@ -847,8 +846,9 @@ export default function Home() {
           // Add invisible clickable link over the "Vino pe IdeeaTa" button on the last page
           pdf.setPage(pdf.getNumberOfPages());
           let pdfUrl = 'https://ideea-ta-ai.vercel.app/';
-          if (shareId) {
-            pdfUrl = `https://ideea-ta-ai.vercel.app/shared/${shareId}`;
+          const currentShareId = result?.id || shareId;
+          if (currentShareId) {
+            pdfUrl = `https://ideea-ta-ai.vercel.app/shared/${currentShareId}`;
           }
           pdf.link(1280/2 - 200, 720 - 180, 400, 100, { url: pdfUrl });
         }

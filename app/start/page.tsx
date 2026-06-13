@@ -798,6 +798,19 @@ export default function Home() {
           const dataUrl = await toPng(slideElement, { quality: 1.0, pixelRatio: 2 });
           if (i > 0) pdf.addPage([1280, 720], "landscape");
           pdf.addImage(dataUrl, 'PNG', 0, 0, 1280, 720);
+          
+          // Add invisible link covering the entire page if it's the CTA slide
+          if (i === slidesArray.length - 1 && mode === 'pdf-summary') {
+            pdf.link(0, 0, 1280, 720, { url: 'https://ideea-ta-ai.vercel.app/' });
+          }
+
+          // Stamp footer on every page
+          pdf.setTextColor(150, 150, 150); // Gray color
+          pdf.setFontSize(14);
+          pdf.text("Plan generat inteligent de IdeeaTa.ai", 640, 700, { align: 'center' });
+          
+          // Add invisible link covering the footer area on every page
+          pdf.link(300, 680, 680, 40, { url: 'https://ideea-ta-ai.vercel.app/' });
         }
         
         if (mode === 'pdf-summary') {
@@ -2426,45 +2439,13 @@ export default function Home() {
 
             {/* CTA Slide (For PDF Summary) */}
             <div className="pdf-cta-slide w-[1280px] h-[720px] bg-emerald-950 flex flex-col justify-center items-center p-16 border-[12px] border-emerald-900 box-border relative text-center">
-              <h2 className="text-5xl font-black text-white mb-6">Acesta a fost doar un scurt rezumat.</h2>
+              <h2 className="text-6xl font-black text-white mb-16 px-12 leading-tight">
+                Vrei să generezi și alte idei de afaceri?
+              </h2>
               
-              <div className="bg-emerald-900/50 p-8 rounded-3xl border border-emerald-500/30 w-full max-w-5xl mb-8 shadow-xl">
-                <h3 className="text-3xl font-bold text-emerald-400 mb-6 uppercase tracking-wider">Ce primești în aplicația IdeeaTa.ai?</h3>
-                <div className="grid grid-cols-2 gap-x-12 gap-y-8 text-left">
-                  <div className="flex items-start gap-4">
-                    <span className="text-4xl">🪄</span>
-                    <div>
-                      <h4 className="text-2xl font-bold text-white mb-1">Studio Editare Text</h4>
-                      <p className="text-emerald-200 text-[19px] leading-tight">Editează documentul cu asistentul tău: profesional, creativ, sau orientat spre vânzări.</p>
-                    </div>
-                  </div>
-                  <div className="flex items-start gap-4">
-                    <span className="text-4xl">🇪🇺</span>
-                    <div>
-                      <h4 className="text-2xl font-bold text-white mb-1">Optimizare Fonduri UE</h4>
-                      <p className="text-emerald-200 text-[19px] leading-tight">Adaptează automat termenii planului tău pentru a fi eligibil la finanțări.</p>
-                    </div>
-                  </div>
-                  <div className="flex items-start gap-4">
-                    <span className="text-4xl">📉</span>
-                    <div>
-                      <h4 className="text-2xl font-bold text-white mb-1">Ajustare Buget</h4>
-                      <p className="text-emerald-200 text-[19px] leading-tight">Taie sau crește instant toate costurile din planul tău cu procentajul dorit.</p>
-                    </div>
-                  </div>
-                  <div className="flex items-start gap-4">
-                    <span className="text-4xl">📄</span>
-                    <div>
-                      <h4 className="text-2xl font-bold text-white mb-1">Descărcări Nelimitate</h4>
-                      <p className="text-emerald-200 text-[19px] leading-tight">Exportă planul complet în format PDF, Word și Prezentare PPTX detaliată.</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              
-              <div className="flex items-center gap-4 bg-emerald-500 text-white px-10 py-5 rounded-full text-3xl font-bold shadow-[0_0_30px_rgba(16,185,129,0.4)] mt-2">
-                <span>Vino pe IdeeaTa.ai</span>
-                <span className="text-4xl">🚀</span>
+              <div className="flex items-center gap-6 bg-emerald-500 text-white px-12 py-8 rounded-full text-5xl font-black shadow-[0_0_60px_rgba(16,185,129,0.5)]">
+                <span>Întoarce-te pe IdeeaTa.ai!</span>
+                <span className="text-6xl">🚀</span>
               </div>
             </div>
 

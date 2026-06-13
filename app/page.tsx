@@ -804,6 +804,11 @@ export default function Home() {
           const dataUrl = await toPng(slideElement, { quality: 1.0, pixelRatio: 2 });
           if (i > 0) pdf.addPage([1280, 720], "landscape");
           pdf.addImage(dataUrl, 'PNG', 0, 0, 1280, 720);
+          
+          // Dacă este ultimul slide (CTA), adăugăm un link invizibil peste toată pagina
+          if (i === slidesArray.length - 1 && mode === 'pdf-summary') {
+            pdf.link(0, 0, 1280, 720, { url: 'https://ideea-ta-ai.vercel.app/' });
+          }
         }
         
         const safeName = result?.nume?.replace(/[^a-zA-Z0-9]/g, '_') || 'Business';

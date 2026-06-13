@@ -78,6 +78,7 @@ export default function Home() {
   const [showAdModal, setShowAdModal] = useState(false);
   const [showShareOverlay, setShowShareOverlay] = useState(false);
   const [showWelcomeModal, setShowWelcomeModal] = useState(false);
+  const [showLimitModal, setShowLimitModal] = useState<{show: boolean, message: string}>({show: false, message: ""});
 
   const devBypass = process.env.NEXT_PUBLIC_DEV_BYPASS === 'true';
   const usedIdeasRef = useRef<number[]>([]);
@@ -227,7 +228,7 @@ export default function Home() {
     if (typeof window !== 'undefined' && !devBypass && !isDevQuery) {
       const editCount = parseInt(localStorage.getItem('demoEditCount') || '0');
       if (editCount >= 2) {
-        alert("Ai atins limita de editări gratuite din Demo. Pentru a continua editarea, te rugăm să creezi un cont gratuit!");
+        setShowLimitModal({show: true, message: "Ai atins limita de editări gratuite din Demo. Pentru a continua editarea, te rugăm să creezi un cont gratuit!"});
         window.location.href = "/";
         return;
       }
@@ -553,7 +554,7 @@ export default function Home() {
     if (typeof window !== 'undefined' && !devBypass && !isDevQuery) {
       const generateCount = parseInt(localStorage.getItem('demoGenerateCount') || '0');
       if (generateCount >= 100) {
-        alert("Ai atins limita de generări gratuite pe Demo. Creează un cont pentru a continua.");
+        setShowLimitModal({show: true, message: "Ai atins limita de generări gratuite pe Demo. Creează un cont pentru a continua."});
         window.location.href = "/";
         return;
       }
@@ -2580,6 +2581,38 @@ export default function Home() {
             >
               Creează Cont / Logare
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* Limit Reached Modal */}
+      {showLimitModal.show && (
+        <div className="fixed inset-0 bg-black/90 backdrop-blur-md z-[200] flex items-center justify-center p-4">
+          <div className="bg-zinc-900 border border-zinc-800 rounded-3xl p-8 max-w-md w-full flex flex-col shadow-2xl items-center text-center">
+            <div className="w-20 h-20 bg-emerald-950/50 rounded-full flex items-center justify-center mb-6">
+              <span className="text-4xl">⚠️</span>
+            </div>
+            
+            <h3 className="text-2xl font-black text-white mb-3">Limita a fost atinsă</h3>
+            <p className="text-zinc-400 mb-8">{showLimitModal.message}</p>
+            
+            <div className="flex flex-col gap-3 w-full">
+              <button 
+                onClick={() => {
+                  setShowLimitModal({show: false, message: ""});
+                  setShowPricingModal(true);
+                }} 
+                className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3.5 rounded-xl transition-all shadow-[0_0_20px_rgba(16,185,129,0.3)]"
+              >
+                Creează Cont / Vezi Planuri
+              </button>
+              <button 
+                onClick={() => setShowLimitModal({show: false, message: ""})} 
+                className="w-full bg-zinc-800 hover:bg-zinc-700 text-white font-bold py-3.5 rounded-xl transition-all text-sm border border-zinc-700"
+              >
+                Închide
+              </button>
+            </div>
           </div>
         </div>
       )}

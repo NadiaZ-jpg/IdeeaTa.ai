@@ -150,7 +150,8 @@ export default function Home() {
   const handleAiEdit = async (action: string, customStyle?: string, customInput?: string) => {
     if (isEditingAi) return;
 
-    if (typeof window !== 'undefined') {
+    const isDevQuery = typeof window !== 'undefined' && window.location.search.includes('dev=true');
+    if (typeof window !== 'undefined' && !devBypass && !isDevQuery) {
       const editCount = parseInt(localStorage.getItem('demoEditCount') || '0');
       if (editCount >= 2) {
         alert("Ai atins limita de editări gratuite din Demo. Pentru a continua editarea, te rugăm să creezi un cont gratuit!");
@@ -473,7 +474,8 @@ export default function Home() {
     if (e) e.preventDefault(); 
     if (!skill.trim() || loading) return;
 
-    if (typeof window !== 'undefined') {
+    const isDevQuery = typeof window !== 'undefined' && window.location.search.includes('dev=true');
+    if (typeof window !== 'undefined' && !devBypass && !isDevQuery) {
       const generateCount = parseInt(localStorage.getItem('demoGenerateCount') || '0');
       if (generateCount >= 1) {
         alert("Ai atins limita de generări gratuite pe Demo. Creează un cont pentru a continua.");

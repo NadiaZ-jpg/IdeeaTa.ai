@@ -537,7 +537,7 @@ export default function Home() {
     const isDevQuery = typeof window !== 'undefined' && window.location.search.includes('dev=true');
     if (typeof window !== 'undefined' && !devBypass && !isDevQuery) {
       const generateCount = parseInt(localStorage.getItem('demoGenerateCount') || '0');
-      if (generateCount >= 1) {
+      if (generateCount >= 100) {
         alert("Ai atins limita de generări gratuite pe Demo. Creează un cont pentru a continua.");
         window.location.href = "/";
         return;

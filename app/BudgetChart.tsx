@@ -15,7 +15,7 @@ export function BudgetPieChart({ budget }: { budget: any[] }) {
   const data = budget.map((b) => ({
     name: b.item,
     cost: parseInt(b.cost?.toString().replace(/[^0-9]/g, '') || '0')
-  }));
+  })).sort((a, b) => b.cost - a.cost);
 
   const totalCost = data.reduce((sum, item) => sum + item.cost, 0);
 

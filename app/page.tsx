@@ -158,10 +158,6 @@ export default function Home() {
   }, []);
 
   const startEditing = () => {
-    if (!isStudioPaid) {
-      setShowPricingModal(true);
-      return;
-    }
     setBackupResult(JSON.parse(JSON.stringify(result)));
     setIsEditing(true);
   };
@@ -2147,7 +2143,7 @@ export default function Home() {
                 onClick={startEditing} 
                 className="w-full h-10 bg-zinc-900 hover:bg-zinc-800 text-zinc-300 hover:text-white px-4 rounded-xl font-bold transition-all shadow-xl border border-zinc-700/60 flex items-center justify-center gap-2 text-xs whitespace-nowrap cursor-pointer"
               >
-                 ✏️ Studio Editare {!isStudioPaid && <span className="text-amber-500">🔒</span>}
+                 ✏️ Studio Editare
               </button>
               {/* Tooltip Studio Editare */}
               <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-3 w-60 pointer-events-none opacity-0 group-hover:opacity-100 transition-all duration-250 scale-95 group-hover:scale-100 z-50">
@@ -2274,7 +2270,7 @@ export default function Home() {
                   
                   {/* Decorative curved lines to fill empty space */}
                   <div className="mt-auto pt-16 pb-4 w-full flex-grow flex items-end opacity-[0.25] select-none pointer-events-none hidden md:block print:hidden relative h-56 overflow-hidden">
-                    <svg viewBox="0 0 500 250" className="w-full absolute bottom-[-10px] left-[-20px] transform scale-110" preserveAspectRatio="none">
+                    <svg viewBox="0 0 500 250" className="w-full absolute bottom-[-10px] left-[-20px] animate-wave-move" preserveAspectRatio="none">
                       <g stroke="#10b981" strokeWidth="1.2" fill="none">
                         <path d="M-50,20 C50,90 150,-40 250,20 C350,80 450,-50 550,20" />
                         <path d="M-50,40 C60,110 160,-20 260,40 C360,100 460,-30 550,40" />

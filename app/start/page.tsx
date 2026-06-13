@@ -93,6 +93,7 @@ export default function Home() {
   const [showWelcomeModal, setShowWelcomeModal] = useState(false);
   const [showLimitModal, setShowLimitModal] = useState<{show: boolean, message: string}>({show: false, message: ""});
   const [hasEdited, setHasEdited] = useState(false);
+  const [showAuthModal, setShowAuthModal] = useState(false);
 
   const devBypass = process.env.NEXT_PUBLIC_DEV_BYPASS === 'true';
   const usedIdeasRef = useRef<number[]>([]);
@@ -175,6 +176,10 @@ export default function Home() {
   }, []);
 
   const startEditing = () => {
+    if (!user) {
+      setShowAuthModal(true);
+      return;
+    }
     setBackupResult(JSON.parse(JSON.stringify(result)));
     setIsEditing(true);
   };
@@ -702,8 +707,12 @@ export default function Home() {
           return;
         }
       } else {
-        setPendingDownloadMode(mode as any);
-        setShowPricingModal(true);
+        if (!user) {
+          setShowAuthModal(true);
+        } else {
+          setPendingDownloadMode(mode as any);
+          setShowPricingModal(true);
+        }
         return;
       }
     }
@@ -2063,7 +2072,7 @@ export default function Home() {
                   
                   {/* Decorative curved lines to fill empty space */}
                   <div className="mt-auto pt-16 pb-4 w-full flex-grow flex items-end opacity-[0.25] select-none pointer-events-none hidden md:block print:hidden relative h-56 overflow-hidden">
-                    <svg viewBox="0 0 500 250" className="w-full absolute bottom-[-10px] left-[-20px] transform scale-110" preserveAspectRatio="none">
+                    <svg viewBox="0 0 500 250" className="w-full absolute bottom-[-10px] left-[-20px] animate-wave-move" preserveAspectRatio="none">
                       <g stroke="#10b981" strokeWidth="1.2" fill="none">
                         <path d="M-50,20 C50,90 150,-40 250,20 C350,80 450,-50 550,20" />
                         <path d="M-50,40 C60,110 160,-20 260,40 C360,100 460,-30 550,40" />

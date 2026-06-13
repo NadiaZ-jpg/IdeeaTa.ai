@@ -39,10 +39,10 @@ export function BudgetBarChart({ budget }: { budget: any[] }) {
               dataKey="name" 
               stroke="#71717a" 
               tick={{ fill: '#a1a1aa', fontSize: 11 }} 
-              angle={-40} 
+              angle={-45} 
               textAnchor="end" 
               interval={0} 
-              tickFormatter={(val) => val.length > 20 ? val.substring(0, 20) + '...' : val} 
+              tickFormatter={(val) => val.length > 45 ? val.substring(0, 45) + '...' : val} 
             />
             <YAxis 
               stroke="#71717a" 
@@ -93,7 +93,7 @@ export function BudgetBarChart({ budget }: { budget: any[] }) {
               formatter={(value, entry: any) => {
                 const itemCost = entry?.payload?.cost || entry?.payload?.value || 0;
                 const percent = totalCost > 0 ? ((itemCost / totalCost) * 100).toFixed(0) : 0;
-                return `${value.length > 25 ? value.substring(0, 25) + '...' : value} (${percent}%)`;
+                return `${value.length > 50 ? value.substring(0, 50) + '...' : value} (${percent}%)`;
               }}
             />
           </PieChart>

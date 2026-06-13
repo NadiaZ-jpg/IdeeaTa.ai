@@ -75,6 +75,7 @@ export default function Home() {
   const [showPricingModal, setShowPricingModal] = useState(false);
   const [showQrModal, setShowQrModal] = useState(false);
   const [showAdModal, setShowAdModal] = useState(false);
+  const [showShareOverlay, setShowShareOverlay] = useState(false);
 
   const devBypass = process.env.NEXT_PUBLIC_DEV_BYPASS === 'true';
   const usedIdeasRef = useRef<number[]>([]);
@@ -94,6 +95,27 @@ export default function Home() {
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const sharedId = urlParams.get("sharedId");
+    if (sharedId) {
+      setLoading(true);
+      fetch(`/api/share/${sharedId}`)
+        .then(res => res.json())
+        .then(data => {
+          if (data.data) {
+            setResult(data.data);
+            setShowShareOverlay(true);
+          }
+          setLoading(false);
+        })
+        .catch(err => {
+          console.error(err);
+          setLoading(false);
+        });
+    }
   }, []);
 
   useEffect(() => {
@@ -632,6 +654,21 @@ export default function Home() {
     }
     setIsDownloading(mode as any);
     try {
+      let shareId = null;
+      if (mode === 'pdf-summary' || mode === 'pdf') {
+        try {
+          const res = await fetch('/api/share', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ planData: result })
+          });
+          const data = await res.json();
+          if (data.id) shareId = data.id;
+        } catch (err) {
+          console.error("Eroare generare share link:", err);
+        }
+      }
+
       if (mode === 'pptx' || mode === 'pdf' || mode === 'pdf-summary') {
         await new Promise(resolve => setTimeout(resolve, 800));
       }
@@ -741,7 +778,11 @@ export default function Home() {
         if (mode === 'pdf-summary') {
           // Add invisible clickable link over the "Vino pe IdeeaTa" button on the last page
           pdf.setPage(pdf.getNumberOfPages());
-          pdf.link(1280/2 - 200, 720 - 180, 400, 100, { url: 'https://ideea-ta-ai.vercel.app/' });
+          let pdfUrl = 'https://ideea-ta-ai.vercel.app/';
+          if (shareId) {
+            pdfUrl = `https://ideea-ta-ai.vercel.app/shared/${shareId}`;
+          }
+          pdf.link(1280/2 - 200, 720 - 180, 400, 100, { url: pdfUrl });
         }
         
         const safeName = result?.nume?.replace(/[^a-zA-Z0-9]/g, '_') || 'Business';
@@ -2422,6 +2463,39 @@ export default function Home() {
                 Descarcă Sumarul
               </button>
             </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showShareOverlay && result && (
+        <div className="fixed inset-0 bg-black/95 backdrop-blur-xl z-[200] flex items-center justify-center p-4 overflow-y-auto">
+          <div className="bg-zinc-900 border border-zinc-800 rounded-3xl p-8 max-w-xl w-full flex flex-col items-center text-center shadow-2xl my-auto">
+            <div className="w-20 h-20 bg-gradient-to-tr from-emerald-500 to-teal-400 rounded-full flex items-center justify-center mb-6 shadow-lg shadow-emerald-500/20">
+              <span className="text-4xl">🚀</span>
+            </div>
+            <h3 className="text-2xl md:text-3xl font-black text-white mb-2 leading-tight">
+              Continuă dezvoltarea planului pentru <span className="text-emerald-400">"{result.nume}"</span>
+            </h3>
+            <p className="text-zinc-400 mb-8 text-lg">
+              Pentru a folosi asistentul inteligent și a finaliza editarea, te rugăm să te autentifici!
+            </p>
+            
+            {/* AdSense Placeholder */}
+            <div className="w-full h-[250px] bg-zinc-800/50 rounded-xl border-2 border-dashed border-zinc-700 flex flex-col items-center justify-center mb-8 relative overflow-hidden group">
+              <span className="text-zinc-500 font-bold tracking-widest uppercase text-sm">Spațiu Reclamă (AdSense)</span>
+              <div className="absolute inset-0 bg-gradient-to-tr from-emerald-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+            </div>
+
+            <button 
+              onClick={() => {
+                localStorage.setItem("current_generated_plan", JSON.stringify(result));
+                window.location.href = "/";
+              }}
+              className="w-full px-8 py-4 rounded-xl font-black text-white bg-emerald-600 hover:bg-emerald-500 transition-colors shadow-[0_0_30px_rgba(16,185,129,0.3)] text-lg uppercase tracking-wider hover:scale-105 active:scale-95 duration-200"
+            >
+              Creează Cont / Logare
+            </button>
           </div>
         </div>
       )}

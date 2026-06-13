@@ -121,17 +121,20 @@ export default function Home() {
     if (fromPdf === "true") {
       setShowWelcomeModal(true);
       if (typeof window !== "undefined") {
-        window.history.replaceState(null, '', window.location.pathname + (sharedId ? "?sharedId=" + sharedId : ""));
+        window.history.replaceState(null, '', window.location.pathname + (sid ? "?sharedId=" + sid : ""));
       }
     }
 
-    if (sharedId) {
+    if (sid) {
+      setSharedId(sid);
       setLoading(true);
-      fetch(`/api/share/${sharedId}`)
+      fetch(`/api/share/${sid}`)
         .then(res => res.json())
         .then(data => {
-          if (data.data) {
-            setResult(data.data);
+          if (data && data.data) {
+            setResult(formatObjectNumbers(data.data));
+            setIsSharedView(true);
+            setIsDemoReady(true);
             
             // Push query param so refresh works
             window.history.replaceState({}, '', window.location.pathname + '?continue=true');

@@ -852,10 +852,13 @@ export default function Home() {
           pdf.setFontSize(14);
           pdf.text("Plan generat inteligent de IdeeaTa.ai", 640, 700, { align: 'center' });
           
+          let pdfUrl = 'https://ideea-ta-ai.vercel.app/';
+          if (shareId) {
+            pdfUrl = `https://ideea-ta-ai.vercel.app/shared/${shareId}`;
+          }
+
           // Add invisible link covering the footer area on every page
-          const urlFooter = new URL(window.location.href);
-          urlFooter.searchParams.set("from_pdf", "true");
-          pdf.link(300, 680, 680, 40, { url: urlFooter.toString() });
+          pdf.link(300, 680, 680, 40, { url: pdfUrl });
         }
         
         if (mode === 'pdf-summary') {

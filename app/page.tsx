@@ -837,6 +837,11 @@ export default function Home() {
           format: [1280, 720]
         });
 
+        let pdfUrl = 'https://ideea-ta-ai.vercel.app/';
+        if (shareId) {
+          pdfUrl = `https://ideea-ta-ai.vercel.app/shared/${shareId}`;
+        }
+
         for (let i = 0; i < slidesArray.length; i++) {
           const slideElement = slidesArray[i] as HTMLElement;
           const dataUrl = await toPng(slideElement, { quality: 1.0, pixelRatio: 2 });
@@ -845,9 +850,7 @@ export default function Home() {
           
           // Dacă este ultimul slide (CTA), adăugăm un link invizibil peste toată pagina
           if (i === slidesArray.length - 1 && mode === 'pdf-summary') {
-            const url = new URL(window.location.href);
-            url.searchParams.set("from_pdf", "true");
-            pdf.link(0, 0, 1280, 720, { url: url.toString() });
+            pdf.link(1280/2 - 200, 720 - 180, 400, 100, { url: pdfUrl });
           }
 
           // Stamp footer on every page
@@ -856,9 +859,7 @@ export default function Home() {
           pdf.text("Plan generat inteligent de IdeeaTa.ai", 640, 700, { align: 'center' });
           
           // Add invisible link covering the footer area on every page
-          const urlFooter = new URL(window.location.href);
-          urlFooter.searchParams.set("from_pdf", "true");
-          pdf.link(300, 680, 680, 40, { url: urlFooter.toString() });
+          pdf.link(300, 680, 680, 40, { url: pdfUrl });
         }
         
         const safeName = result?.nume?.replace(/[^a-zA-Z0-9]/g, '_') || 'Business';

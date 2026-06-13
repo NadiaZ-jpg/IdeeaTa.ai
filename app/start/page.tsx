@@ -200,6 +200,23 @@ export default function Home() {
     setIsEditing(false);
   };
 
+  // Scroll trigger: show AdModal at 85% when user is reading the plan in demo
+  useEffect(() => {
+    if (!result || isPaid) return;
+    let triggered = false;
+    const handleScroll = () => {
+      const scrollPosition = window.innerHeight + window.scrollY;
+      const threshold = document.documentElement.scrollHeight * 0.85;
+      if (scrollPosition >= threshold && !triggered) {
+        triggered = true;
+        setShowAdModal(true);
+        window.removeEventListener('scroll', handleScroll);
+      }
+    };
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [result, isPaid]);
+
   const handleContextMenu = (e: React.MouseEvent) => {
     if (isContentCopyProtected) {
       e.preventDefault();
@@ -1832,10 +1849,10 @@ export default function Home() {
                  ❌ Anulează
               </button>
               <button
-                onClick={isPaid ? saveEditing : () => setShowAdModal(true)}
+                onClick={isPaid ? saveEditing : saveEditing}
                 className="px-6 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl font-bold transition-all shadow-xl border border-emerald-500"
               >
-                {isPaid ? '✅ Confirmă și Salvează' : '🔓 Creează Cont ca să Salvezi'}
+                {isPaid ? '✅ Confirmă și Salvează' : '✅ Confirmă și Vezi Planul'}
               </button>
             </div>
           </div>

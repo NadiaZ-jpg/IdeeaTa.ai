@@ -15,6 +15,32 @@ import {
   Legend
 } from 'recharts';
 
+const CustomXAxisTick = (props: any) => {
+  const { x, y, payload } = props;
+  const words = payload.value.split(' ');
+  let line = '';
+  const lines = [];
+  words.forEach((word: string) => {
+    if ((line + word).length > 30) {
+      if (line) lines.push(line);
+      line = word + ' ';
+    } else {
+      line += word + ' ';
+    }
+  });
+  if (line) lines.push(line);
+
+  return (
+    <g transform={`translate(${x},${y})`}>
+      <text x={0} y={0} dy={16} textAnchor="end" fill="#a1a1aa" fontSize={10} transform="rotate(-40)">
+        {lines.map((l: string, index: number) => (
+          <tspan key={index} x={0} dy={index === 0 ? 0 : 12}>{l.trim()}</tspan>
+        ))}
+      </text>
+    </g>
+  );
+};
+
 export function BudgetBarChart({ budget }: { budget: any[] }) {
   if (!budget || budget.length === 0) return null;
 
@@ -33,16 +59,13 @@ export function BudgetBarChart({ budget }: { budget: any[] }) {
       {/* Bar Chart Container */}
       <div className="h-[450px] w-full lg:w-1/2 outline-none">
         <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
-          <BarChart data={data} margin={{ top: 10, right: 10, left: 60, bottom: 180 }} style={{ outline: 'none' }}>
+          <BarChart data={data} margin={{ top: 10, right: 10, left: 100, bottom: 180 }} style={{ outline: 'none' }}>
             <CartesianGrid strokeDasharray="3 3" stroke="#27272a" vertical={false} />
             <XAxis 
               dataKey="name" 
               stroke="#71717a" 
-              tick={{ fill: '#a1a1aa', fontSize: 10 }} 
-              angle={-45} 
-              textAnchor="end" 
               interval={0} 
-              tickFormatter={(val) => val.length > 50 ? val.substring(0, 50) + '...' : val} 
+              tick={<CustomXAxisTick />}
             />
             <YAxis 
               stroke="#71717a" 

@@ -107,10 +107,31 @@ export default function Home() {
         .then(data => {
           if (data.data) {
             setResult(data.data);
-            // Delay the pop-up so they can see the document first
-            setTimeout(() => {
-              setShowShareOverlay(true);
-            }, 3000);
+            
+            // Logic to trigger modal on scroll or after 12 seconds
+            let triggered = false;
+            const triggerOverlay = () => {
+              if (!triggered) {
+                triggered = true;
+                setShowShareOverlay(true);
+              }
+            };
+
+            const handleScroll = () => {
+              const scrollPosition = window.innerHeight + window.scrollY;
+              const threshold = document.documentElement.scrollHeight * 0.75; // 75% of page
+              if (scrollPosition >= threshold) {
+                triggerOverlay();
+              }
+            };
+
+            window.addEventListener('scroll', handleScroll);
+            const fallbackTimer = setTimeout(triggerOverlay, 12000);
+
+            return () => {
+              window.removeEventListener('scroll', handleScroll);
+              clearTimeout(fallbackTimer);
+            };
           }
           setLoading(false);
         })

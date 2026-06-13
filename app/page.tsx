@@ -379,7 +379,7 @@ export default function Home() {
     const handleCopyCut = (e: ClipboardEvent) => {
       if (isContentCopyProtected) {
         e.preventDefault();
-        alert("Previzualizare protejată. Achiziționează Pachetul Standard (39 lei) pentru a descărca documentele sau Pachetul Studio (99 lei) pentru a le edita și copia.");
+        alert("Previzualizare protejată. Achiziționează Pachetul Standard pentru a descărca documentele sau Pachetul Studio pentru a le edita și copia.");
       }
     };
 

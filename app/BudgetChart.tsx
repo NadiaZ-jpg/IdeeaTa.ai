@@ -9,10 +9,7 @@ import {
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
-  PieChart,
-  Pie,
-  Cell,
-  Legend
+  Cell
 } from 'recharts';
 
 
@@ -62,56 +59,19 @@ export function BudgetBarChart({ budget }: { budget: any[] }) {
         </ResponsiveContainer>
       </div>
 
-      {/* Pie Chart Container */}
-      <div className="h-[450px] w-full lg:w-1/2 flex justify-center items-center">
-        <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
-          <PieChart style={{ outline: 'none' }}>
-            <Pie
-              data={data}
-              cx="30%"
-              cy="50%"
-              innerRadius={75}
-              outerRadius={110}
-              paddingAngle={3}
-              dataKey="cost"
-              stroke="none"
-              label={false}
-              isAnimationActive={false}
-            >
-              {data.map((entry, index) => (
-                <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-              ))}
-            </Pie>
-            <Tooltip 
-              cursor={false}
-              contentStyle={{ backgroundColor: '#09090b', borderColor: '#27272a', color: '#fff', borderRadius: '12px', outline: 'none', fontSize: '13px' }}
-              itemStyle={{ fontWeight: 'bold' }}
-            />
-            <Legend 
-              layout="vertical" 
-              verticalAlign="middle" 
-              align="right" 
-              wrapperStyle={{ position: 'absolute', right: 0, top: '50%', transform: 'translateY(-50%)', width: '60%', paddingLeft: '20px' }} 
-              content={(props: any) => {
-                const { payload } = props;
-                return (
-                  <ul className="flex flex-col gap-3 p-0 m-0 w-full justify-center max-h-[400px] overflow-y-auto">
-                    {payload.map((entry: any, index: number) => {
-                      const itemCost = entry?.payload?.cost || entry?.payload?.value || 0;
-                      const percent = totalCost > 0 ? ((itemCost / totalCost) * 100).toFixed(0) : 0;
-                      return (
-                        <li key={`item-${index}`} className="flex items-start gap-2 text-[11px] text-zinc-300">
-                          <div className="w-3 h-3 rounded-[3px] mt-0.5 shrink-0" style={{ backgroundColor: entry.color }} />
-                          <span className="leading-tight">{entry.value} ({percent}%)</span>
-                        </li>
-                      );
-                    })}
-                  </ul>
-                );
-              }}
-            />
-          </PieChart>
-        </ResponsiveContainer>
+      {/* Legend Container */}
+      <div className="h-[450px] w-full lg:w-1/2 flex items-center justify-center pl-0 lg:pl-10">
+        <ul className="flex flex-col gap-3 p-0 m-0 w-full justify-center max-h-[400px] overflow-y-auto pr-4 custom-scrollbar">
+          {data.map((item, index) => {
+            const percent = totalCost > 0 ? ((item.cost / totalCost) * 100).toFixed(0) : '0';
+            return (
+              <li key={`legend-item-${index}`} className="flex items-start gap-3 text-[12px] text-zinc-300">
+                <div className="w-3.5 h-3.5 rounded-[3px] mt-0.5 shrink-0 shadow-sm" style={{ backgroundColor: COLORS[index % COLORS.length] }} />
+                <span className="leading-tight">{item.name} <strong className="text-zinc-500">({percent}%)</strong></span>
+              </li>
+            );
+          })}
+        </ul>
       </div>
     </div>
   );

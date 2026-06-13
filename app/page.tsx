@@ -219,6 +219,18 @@ export default function Home() {
         try {
           const parsed = JSON.parse(data.updatedResult);
           setResult(formatObjectNumbers(parsed));
+          
+          setTimeout(() => {
+            let targetId = "";
+            if (action === "eu_funds_optimization") targetId = "section-swot";
+            else if (action === "optimize_budget") targetId = "section-financial";
+            else if (action === "add_sections") targetId = "section-market";
+            else if (action === "professional_tone") targetId = "section-general";
+            
+            if (targetId) {
+              document.getElementById(targetId)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+          }, 300);
         } catch (err) {
           console.error("Failed to parse JSON:", err);
           alert("AI-ul a returnat un format invalid. Mai încearcă o dată.");
@@ -2213,7 +2225,7 @@ export default function Home() {
             </div>
 
             {/* Date Generale & Viziune */}
-            <div className="pdf-section mb-10 bg-zinc-900/50 p-10 rounded-3xl border-l-4 border-emerald-500 shadow-inner print:shadow-none print:bg-transparent print:border-l-4 print:border-emerald-700 print:text-black">
+            <div id="section-general" className="pdf-section mb-10 bg-zinc-900/50 p-10 rounded-3xl border-l-4 border-emerald-500 shadow-inner print:shadow-none print:bg-transparent print:border-l-4 print:border-emerald-700 print:text-black">
               <h3 className="text-emerald-400 text-sm font-black uppercase mb-6 tracking-[0.2em]">I & II. Date Generale și Viziune</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8 text-zinc-300 print:text-gray-800">
                 <div className="flex flex-col relative overflow-hidden">
@@ -2245,7 +2257,7 @@ export default function Home() {
             </div>
 
             {/* Analiza Pietei */}
-            <div className="pdf-section mb-10 bg-zinc-900/50 p-10 rounded-3xl border-l-4 border-emerald-500 shadow-inner print:shadow-none print:bg-transparent print:border-l-4 print:border-emerald-700 print:text-black">
+            <div id="section-market" className="pdf-section mb-10 bg-zinc-900/50 p-10 rounded-3xl border-l-4 border-emerald-500 shadow-inner print:shadow-none print:bg-transparent print:border-l-4 print:border-emerald-700 print:text-black">
               <h3 className="text-emerald-400 text-sm font-black uppercase mb-6 tracking-[0.2em]">III. Analiza Pieței și Promovarea</h3>
               <div className="space-y-6 text-zinc-300 print:text-gray-800 text-justify leading-relaxed">
                 <div><strong className="text-white print:text-black block mb-1">Clienții Țintă:</strong> <span className="italic whitespace-pre-line">{formatNumberedText(result.analiza_pietei?.clienti_tinta)}</span></div>
@@ -2254,7 +2266,7 @@ export default function Home() {
               </div>
             </div>
             
-            <div className="grid grid-cols-1 gap-6 mb-14 print:gap-4">
+            <div id="section-swot" className="grid grid-cols-1 gap-6 mb-14 print:gap-4">
               {Object.entries({
                 puncte_tari: {t: 'Puncte Tari', l: 'S'},
                 puncte_slabe: {t: 'Slăbiciuni', l: 'W'},
@@ -2282,7 +2294,7 @@ export default function Home() {
             </div>
 
             {/* Operational */}
-            <div className="pdf-section mb-10 bg-zinc-900/50 p-10 rounded-3xl border-l-4 border-emerald-500 shadow-inner print:shadow-none print:bg-transparent print:border-l-4 print:border-emerald-700 print:text-black">
+            <div id="section-operational" className="pdf-section mb-10 bg-zinc-900/50 p-10 rounded-3xl border-l-4 border-emerald-500 shadow-inner print:shadow-none print:bg-transparent print:border-l-4 print:border-emerald-700 print:text-black">
               <h3 className="text-emerald-400 text-sm font-black uppercase mb-6 tracking-[0.2em]">V. Planul Operațional și de Management</h3>
               <ol className="space-y-6 text-zinc-300 print:text-gray-800 list-decimal pl-6 text-justify leading-relaxed">
                 <li className="pl-2"><strong className="text-white print:text-black block mb-1">Descriere Flux Tehnologic:</strong> <span className="italic whitespace-pre-line">{formatNumberedText(result.plan_operational?.descriere_flux)}</span></li>
@@ -2291,7 +2303,7 @@ export default function Home() {
               </ol>
             </div>
 
-            <div className="pt-10 border-t border-zinc-800 print:border-none print:pt-4">
+            <div id="section-financial" className="pt-10 border-t border-zinc-800 print:border-none print:pt-4">
                <h3 className="pdf-section text-emerald-400 text-sm font-black uppercase mb-6 tracking-[0.2em] text-center drop-shadow-md print:text-emerald-800 print:drop-shadow-none">
                  VI. Planul Financiar
                </h3>

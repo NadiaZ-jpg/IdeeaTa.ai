@@ -116,7 +116,7 @@ export default function Home() {
       "Consultanță Securitate Cibernetică...",
       "Studio de Design Interior...",
       "Fermă Urbană de Microplante...",
-      "Dezvoltare Soluții AI...",
+      "Dezvoltare Soluții...",
       "Cafenea de Specialitate...",
       "Platformă de Cursuri Online...",
       "Spălătorie Auto Ecologică..."
@@ -235,14 +235,14 @@ export default function Home() {
           }, 300);
         } catch (err) {
           console.error("Failed to parse JSON:", err);
-          alert("AI-ul a returnat un format invalid. Mai încearcă o dată.");
+          alert("Sistemul a returnat un format invalid. Mai încearcă o dată.");
         }
       } else if (data.error) {
         alert(data.error);
       }
     } catch (e) {
       console.error(e);
-      alert("A apărut o eroare neașteptată la editarea cu AI.");
+      alert("A apărut o eroare neașteptată la editare.");
     } finally {
       setIsEditingAi(false);
     }
@@ -722,6 +722,7 @@ export default function Home() {
     setResult(null);
     setCurrency("LEI");
     setIsPaid(false);
+    setIsSharedView(false);
     if (typeof window !== "undefined") {
       localStorage.removeItem("current_generated_plan");
     }
@@ -1346,7 +1347,7 @@ export default function Home() {
         <div className="fixed inset-0 bg-[#09090b]/90 backdrop-blur-sm z-[100] flex flex-col items-center justify-center">
           <div className="w-16 h-16 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin mb-6"></div>
           <p className="text-2xl font-bold text-white tracking-widest uppercase text-center">
-            AI-ul rescrie documentul...
+            Se rescrie documentul...
           </p>
           <p className="text-emerald-400 font-medium mt-3 text-center">
             Acest proces durează 15-20 de secunde, deoarece rescriem integral secțiunile planului tău de afaceri.
@@ -2576,7 +2577,7 @@ export default function Home() {
             </div>
 
             {/* Slide 2: Viziune */}
-            <div className="pdf-presentation-slide w-[1280px] h-[720px] bg-white text-emerald-950 flex flex-col justify-center p-24 border-[12px] border-emerald-900 box-border relative">
+            <div className="pdf-presentation-slide w-[1280px] h-[720px] bg-white text-emerald-950 flex flex-col justify-start pt-20 px-24 pb-16 border-[12px] border-emerald-900 box-border relative">
               <div className="flex items-center gap-6 mb-12">
                 <div className="w-16 h-2 bg-emerald-600"></div>
                 <h2 className="text-5xl font-black font-sans uppercase tracking-widest text-emerald-800">Viziune și Strategie</h2>
@@ -2596,7 +2597,7 @@ export default function Home() {
             </div>
 
             {/* Slide 2b: Analiza Pietei */}
-            <div className="pdf-presentation-slide w-[1280px] h-[720px] bg-white text-emerald-950 flex flex-col justify-center p-24 border-[12px] border-emerald-900 box-border relative">
+            <div className="pdf-presentation-slide w-[1280px] h-[720px] bg-white text-emerald-950 flex flex-col justify-start pt-20 px-24 pb-16 border-[12px] border-emerald-900 box-border relative">
               <div className="flex items-center gap-6 mb-8">
                 <div className="w-16 h-2 bg-emerald-600"></div>
                 <h2 className="text-5xl font-black font-sans uppercase tracking-widest text-emerald-800">Analiza Pieței</h2>

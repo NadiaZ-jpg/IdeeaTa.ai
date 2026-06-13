@@ -58,8 +58,8 @@ export function BudgetPieChart({ budget }: { budget: any[] }) {
           {data.map((item, index) => {
             const percent = totalCost > 0 ? ((item.cost / totalCost) * 100).toFixed(0) : '0';
             return (
-              <li key={`legend-item-${index}`} className="flex items-start gap-3 text-[14px] text-zinc-300">
-                <div className="w-3.5 h-3.5 rounded-[3px] mt-1 shrink-0 shadow-sm" style={{ backgroundColor: COLORS[index % COLORS.length] }} />
+              <li key={`legend-item-${index}`} className="flex items-start gap-3 text-[16px] text-zinc-300">
+                <div className="w-3.5 h-3.5 rounded-[3px] mt-1.5 shrink-0 shadow-sm" style={{ backgroundColor: COLORS[index % COLORS.length] }} />
                 <span className="leading-tight">{item.name} <strong className="text-zinc-500">({percent}%)</strong></span>
               </li>
             );

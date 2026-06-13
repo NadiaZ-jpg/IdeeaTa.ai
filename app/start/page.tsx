@@ -132,7 +132,7 @@ export default function Home() {
       "Consultanță Securitate Cibernetică...",
       "Studio de Design Interior...",
       "Fermă Urbană de Microplante...",
-      "Dezvoltare Soluții AI...",
+      "Dezvoltare Soluții...",
       "Cafenea de Specialitate...",
       "Platformă de Cursuri Online...",
       "Spălătorie Auto Ecologică..."
@@ -259,14 +259,14 @@ export default function Home() {
           }, 300);
         } catch (err) {
           console.error("Failed to parse JSON:", err);
-          alert("AI-ul a returnat un format invalid. Mai încearcă o dată.");
+          alert("Sistemul a returnat un format invalid. Mai încearcă o dată.");
         }
       } else if (data.error) {
         alert(data.error);
       }
     } catch (e) {
       console.error(e);
-      alert("A apărut o eroare neașteptată la editarea cu AI.");
+      alert("A apărut o eroare neașteptată la editare.");
     } finally {
       setIsEditingAi(false);
     }

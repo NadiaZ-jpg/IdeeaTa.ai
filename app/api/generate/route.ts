@@ -61,7 +61,7 @@ Do not include any other text besides the JSON block. Do not format with markdow
     while (retries > 0) {
       try {
         response = await ai.models.generateContent({
-          model: "gemini-2.0-flash",
+          model: "gemini-2.0-flash-exp",
           contents: prompt,
           config: {
             responseMimeType: "application/json",

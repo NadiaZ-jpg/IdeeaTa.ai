@@ -15,34 +15,6 @@ import {
   Legend
 } from 'recharts';
 
-const CustomXAxisTick = (props: any) => {
-  const { x, y, payload } = props;
-  const words = payload.value.split(' ');
-  let line = '';
-  const lines = [];
-  words.forEach((word: string) => {
-    if ((line + word).length > 25) {
-      if (line) lines.push(line);
-      line = word + ' ';
-    } else {
-      line += word + ' ';
-    }
-  });
-  if (line) lines.push(line);
-
-  // Center the text block horizontally under the tick
-  const offset = ((lines.length - 1) * 13) / 2;
-
-  return (
-    <g transform={`translate(${x + offset},${y + 12})`}>
-      <text textAnchor="end" fill="#a1a1aa" fontSize={11} transform="rotate(-90)">
-        {lines.map((l: string, index: number) => (
-          <tspan key={index} x={0} y={-index * 13}>{l.trim()}</tspan>
-        ))}
-      </text>
-    </g>
-  );
-};
 
 export function BudgetBarChart({ budget }: { budget: any[] }) {
   if (!budget || budget.length === 0) return null;
@@ -62,13 +34,13 @@ export function BudgetBarChart({ budget }: { budget: any[] }) {
       {/* Bar Chart Container */}
       <div className="h-[450px] w-full lg:w-1/2 outline-none">
         <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
-          <BarChart data={data} margin={{ top: 10, right: 10, left: 10, bottom: 180 }} style={{ outline: 'none' }}>
+          <BarChart data={data} margin={{ top: 10, right: 10, left: 10, bottom: 20 }} style={{ outline: 'none' }}>
             <CartesianGrid strokeDasharray="3 3" stroke="#27272a" vertical={false} />
             <XAxis 
               dataKey="name" 
               stroke="#71717a" 
-              interval={0} 
-              tick={<CustomXAxisTick />}
+              tick={false}
+              axisLine={true}
             />
             <YAxis 
               stroke="#71717a" 
@@ -81,7 +53,11 @@ export function BudgetBarChart({ budget }: { budget: any[] }) {
               contentStyle={{ backgroundColor: '#09090b', borderColor: '#27272a', color: '#fff', borderRadius: '12px', outline: 'none', fontSize: '13px' }}
               itemStyle={{ color: '#10b981', fontWeight: 'bold' }}
             />
-            <Bar dataKey="cost" fill="#10b981" radius={[4, 4, 0, 0]} name="Cost (LEI)" />
+            <Bar dataKey="cost" radius={[4, 4, 0, 0]} name="Cost (LEI)">
+              {data.map((entry, index) => (
+                <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+              ))}
+            </Bar>
           </BarChart>
         </ResponsiveContainer>
       </div>

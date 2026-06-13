@@ -2270,22 +2270,48 @@ export default function Home() {
                   
                   {/* Decorative curved lines to fill empty space */}
                   <div className="mt-auto pt-16 pb-4 w-full flex-grow flex items-end opacity-[0.25] select-none pointer-events-none hidden md:block print:hidden relative h-56 overflow-hidden">
-                    <svg viewBox="0 0 500 250" className="w-full absolute bottom-[-10px] left-[-20px] animate-wave-move" style={{ animation: 'wave-move 12s ease-in-out infinite' }} preserveAspectRatio="none">
-                      <g stroke="#10b981" strokeWidth="1.2" fill="none">
-                        <path d="M-50,20 C50,90 150,-40 250,20 C350,80 450,-50 550,20" />
-                        <path d="M-50,40 C60,110 160,-20 260,40 C360,100 460,-30 550,40" />
-                        <path d="M-50,60 C70,130 170,0 270,60 C370,120 470,-10 550,60" />
-                        <path d="M-50,80 C50,150 150,20 250,80 C350,140 450,10 550,80" />
-                        <path d="M-50,100 C60,170 160,40 260,100 C360,160 460,30 550,100" />
-                        <path d="M-50,120 C70,190 170,60 270,120 C370,180 470,50 550,120" />
-                        <path d="M-50,140 C50,210 150,80 250,140 C350,200 450,70 550,140" />
-                        <path d="M-50,160 C60,230 160,100 260,160 C360,220 460,90 550,160" />
-                        <path d="M-50,180 C70,250 170,120 270,180 C370,240 470,110 550,180" />
-                        <path d="M-50,200 C50,270 150,140 250,200 C350,260 450,130 550,200" />
-                        <path d="M-50,220 C60,290 160,160 260,220 C360,280 460,150 550,220" />
-                        <path d="M-50,240 C70,310 170,180 270,240 C370,300 470,170 550,240" />
-                        <path d="M-50,260 C50,330 150,200 250,260 C350,320 450,190 550,260" />
-                        <path d="M-50,280 C60,350 160,220 260,280 C360,340 460,210 550,280" />
+                    <svg viewBox="0 0 500 260" xmlns="http://www.w3.org/2000/svg" className="w-full absolute bottom-[-40px] left-[-20px] transform scale-[1.15]">
+                      <defs>
+                        <style>{`
+                          @keyframes waveShift {
+                            0% { transform: translateX(0px); }
+                            100% { transform: translateX(-60px); }
+                          }
+                          @keyframes waveShift2 {
+                            0% { transform: translateX(0px); }
+                            100% { transform: translateX(60px); }
+                          }
+                          .wv1 { animation: waveShift 7s ease-in-out infinite alternate; }
+                          .wv2 { animation: waveShift2 9s ease-in-out infinite alternate; }
+                          .wv3 { animation: waveShift 11s ease-in-out infinite alternate-reverse; }
+                          .wv4 { animation: waveShift2 13s ease-in-out infinite alternate; }
+                          .wv5 { animation: waveShift 15s ease-in-out infinite alternate-reverse; }
+                        `}</style>
+                      </defs>
+                      <g className="wv1" stroke="#10b981" strokeWidth="1.2" fill="none" opacity="0.8">
+                        <path d="M-60,18 C-10,-10 60,55 130,15 C200,-25 270,60 340,10 C400,-20 460,45 560,12" />
+                        <path d="M-60,36 C-5,5 65,70 135,30 C205,-10 275,75 345,25 C405,-5 462,62 560,28" />
+                        <path d="M-60,54 C0,22 70,85 140,45 C210,5 280,90 350,40 C410,10 465,78 560,44" />
+                      </g>
+                      <g className="wv2" stroke="#10b981" strokeWidth="1" fill="none" opacity="0.5">
+                        <path d="M-60,72 C5,40 75,100 145,60 C215,20 285,105 355,55 C415,25 468,92 560,60" />
+                        <path d="M-60,90 C10,58 80,115 150,75 C220,35 290,118 360,70 C418,40 470,108 560,76" />
+                        <path d="M-60,108 C15,76 85,130 155,90 C225,50 295,132 365,85 C422,55 472,124 560,92" />
+                      </g>
+                      <g className="wv3" stroke="#6ee7b7" strokeWidth="0.8" fill="none" opacity="0.28">
+                        <path d="M-60,124 C20,92 90,145 160,105 C230,65 300,148 370,100 C426,70 474,138 560,108" />
+                        <path d="M-60,140 C25,108 95,160 165,120 C235,80 305,162 375,115 C430,85 476,152 560,124" />
+                        <path d="M-60,156 C30,124 100,175 170,135 C240,95 310,175 380,130 C434,100 478,165 560,140" />
+                      </g>
+                      <g className="wv4" stroke="#6ee7b7" strokeWidth="0.6" fill="none" opacity="0.15">
+                        <path d="M-60,172 C35,140 105,190 175,150 C245,110 315,190 385,145 C440,115 480,180 560,156" />
+                        <path d="M-60,188 C40,156 110,205 180,165 C250,125 320,205 390,160 C445,130 484,195 560,172" />
+                        <path d="M-60,204 C45,172 115,220 185,180 C255,140 325,220 395,175 C450,145 488,210 560,188" />
+                      </g>
+                      <g className="wv5" stroke="#34d399" strokeWidth="0.5" fill="none" opacity="0.08">
+                        <path d="M-60,220 C50,188 120,235 190,195 C260,155 330,235 400,190 C455,160 492,225 560,204" />
+                        <path d="M-60,236 C55,204 125,250 195,210 C265,170 335,250 405,205 C460,175 496,240 560,220" />
+                        <path d="M-60,252 C60,220 130,265 200,225 C270,185 340,265 410,220 C465,190 500,255 560,236" />
                       </g>
                     </svg>
                   </div>

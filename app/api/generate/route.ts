@@ -89,21 +89,7 @@ Do not include any other text besides the JSON block. Do not format with markdow
       ideas: [text]
     });
   } catch (error: any) {
-    console.error("Error generating content:", error);
-    const isServiceUnavailable = error?.status === 503 || error?.message?.includes('503') || error?.message?.includes('high demand') || error?.message?.includes('UNAVAILABLE');
-    const isRateLimited = error?.status === 429 || error?.message?.includes('429') || error?.message?.includes('quota') || error?.message?.includes('RESOURCE_EXHAUSTED');
-    
-    let errorMessage = "Nu am putut genera planul de afaceri. Te rugăm să încerci din nou.";
-    let statusCode = 500;
-    
-    if (isServiceUnavailable) {
-        errorMessage = "AI-ul este momentan foarte solicitat. Te rugăm să încerci din nou în câteva momente.";
-        statusCode = 503;
-    } else if (isRateLimited) {
-        errorMessage = "Ai depășit limita de utilizare (Quota Exceeded). Te rugăm să aștepți un minut și să încerci din nou.";
-        statusCode = 429;
-    }
-    
-    return NextResponse.json({ error: errorMessage }, { status: statusCode });
+    console.error("API error:", error);
+    return NextResponse.json({ error: error?.message || "Eroare necunoscuta la generare" }, { status: 500 });
   }
 }

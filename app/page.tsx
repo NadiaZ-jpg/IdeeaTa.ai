@@ -387,7 +387,21 @@ export default function Home() {
   // Incarca planul salvat din localStorage la pornire si verifica daca s-a anulat plata
   useEffect(() => {
     if (typeof window !== "undefined") {
-      const saved = localStorage.getItem("current_generated_plan");
+      const urlParams = new URLSearchParams(window.location.search);
+      const sharedId = urlParams.get("sharedId");
+      
+      if (sharedId) {
+        fetch(`/api/share/${sharedId}`)
+          .then(res => res.json())
+          .then(data => {
+            if (data && data.data) {
+              setResult(formatObjectNumbers(data.data));
+              window.history.replaceState({}, document.title, window.location.pathname);
+            }
+          })
+          .catch(err => console.error("Eroare incarcare shareId:", err));
+      } else {
+        const saved = localStorage.getItem("current_generated_plan");
         if (saved && saved !== "null" && saved !== "undefined") {
           try {
             setResult(formatObjectNumbers(JSON.parse(saved)));
@@ -395,8 +409,8 @@ export default function Home() {
             console.error("Eroare la incarcarea planului salvat local:", e);
           }
         }
+      }
       
-      const urlParams = new URLSearchParams(window.location.search);
       const paymentCancelled = urlParams.get("payment_cancelled") === "true";
       if (paymentCancelled) {
         setShowPricingModal(true);

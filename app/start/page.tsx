@@ -119,18 +119,16 @@ export default function Home() {
 
             const handleScroll = () => {
               const scrollPosition = window.innerHeight + window.scrollY;
-              const threshold = document.documentElement.scrollHeight * 0.75; // 75% of page
+              const threshold = document.documentElement.scrollHeight * 0.85; // 85% of page
               if (scrollPosition >= threshold) {
                 triggerOverlay();
               }
             };
 
             window.addEventListener('scroll', handleScroll);
-            const fallbackTimer = setTimeout(triggerOverlay, 12000);
 
             return () => {
               window.removeEventListener('scroll', handleScroll);
-              clearTimeout(fallbackTimer);
             };
           }
           setLoading(false);

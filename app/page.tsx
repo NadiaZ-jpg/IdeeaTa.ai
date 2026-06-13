@@ -1482,7 +1482,7 @@ export default function Home() {
                       setShowExamples(false);
                       setTimeout(() => inputRef.current?.focus(), 50);
                     }}
-                    className="text-zinc-400 font-bold text-lg px-4 py-3 rounded-xl transition-all duration-300 hover:bg-zinc-800/50 hover:text-emerald-400 flex items-center gap-2 w-full sm:w-auto justify-center border border-transparent hover:border-zinc-700/50"
+                    className="whitespace-nowrap flex-shrink-0 text-zinc-400 font-bold text-lg px-6 py-4 rounded-xl transition-all duration-300 hover:bg-zinc-800/50 hover:text-emerald-400 flex items-center gap-2 w-full sm:w-auto justify-center border border-transparent hover:border-zinc-700/50"
                   >
                     ✨ Inspiră-mă
                   </button>

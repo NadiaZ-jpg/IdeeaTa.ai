@@ -2082,9 +2082,9 @@ export default function Home() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8 text-zinc-300 print:text-gray-800">
                 <div className="flex flex-col relative overflow-hidden">
                   <div className="leading-relaxed text-left z-10 relative">
-                    <p><strong className="text-white print:text-black">Forma Juridică:</strong> {result.date_generale?.forma_juridica}</p>
-                    <p className="mt-2"><strong className="text-white print:text-black">Cod CAEN:</strong> {result.date_generale?.cod_caen}</p>
-                    <p className="mt-2"><strong className="text-white print:text-black">Contact:</strong> {result.date_generale?.date_contact}</p>
+                    <p className="whitespace-pre-line"><strong className="text-white print:text-black block mb-1">Forma Juridică:</strong> {result.date_generale?.forma_juridica}</p>
+                    <p className="mt-4 whitespace-pre-line"><strong className="text-white print:text-black block mb-1">Cod CAEN:</strong> {result.date_generale?.cod_caen}</p>
+                    <p className="mt-4 whitespace-pre-line"><strong className="text-white print:text-black block mb-1">Contact:</strong> {result.date_generale?.date_contact}</p>
                   </div>
                   
                   {/* Decorative curved lines to fill empty space */}

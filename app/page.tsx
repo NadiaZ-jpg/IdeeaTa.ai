@@ -88,6 +88,7 @@ export default function Home() {
   const [unlockedPlans, setUnlockedPlans] = useState<string[]>([]);
   const [showPricingModal, setShowPricingModal] = useState(false);
   const [showQrModal, setShowQrModal] = useState(false);
+  const [isSharedView, setIsSharedView] = useState(false);
 
   const devBypass = process.env.NEXT_PUBLIC_DEV_BYPASS === 'true';
   const usedIdeasRef = useRef<number[]>([]);
@@ -396,6 +397,7 @@ export default function Home() {
           .then(data => {
             if (data && data.data) {
               setResult(formatObjectNumbers(data.data));
+              setIsSharedView(true);
               window.history.replaceState({}, document.title, window.location.pathname);
             }
           })
@@ -1163,7 +1165,7 @@ export default function Home() {
     );
   }
 
-  if (!user) {
+  if (!user && !isSharedView) {
     return (
       <div className="min-h-screen bg-[#09090b] flex flex-col items-center justify-center p-4 font-sans relative overflow-hidden">
         {/* Background glow orbs */}

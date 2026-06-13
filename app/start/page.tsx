@@ -801,7 +801,7 @@ export default function Home() {
           
           // Add invisible link covering the entire page if it's the CTA slide
           if (i === slidesArray.length - 1 && mode === 'pdf-summary') {
-            pdf.link(0, 0, 1280, 720, { url: 'https://ideea-ta-ai.vercel.app/' });
+            pdf.link(0, 0, 1280, 720, { url: window.location.href });
           }
 
           // Stamp footer on every page
@@ -810,7 +810,7 @@ export default function Home() {
           pdf.text("Plan generat inteligent de IdeeaTa.ai", 640, 700, { align: 'center' });
           
           // Add invisible link covering the footer area on every page
-          pdf.link(300, 680, 680, 40, { url: 'https://ideea-ta-ai.vercel.app/' });
+          pdf.link(300, 680, 680, 40, { url: window.location.href });
         }
         
         if (mode === 'pdf-summary') {
@@ -2273,13 +2273,13 @@ export default function Home() {
               <div className="grid grid-cols-2 gap-12 font-serif leading-relaxed text-gray-800">
                 <div>
                   <h3 className="text-2xl font-bold text-emerald-700 mb-3">Obiective (1 an)</h3>
-                  <p className="text-xl overflow-hidden" style={{ maxHeight: '180px' }}>{result.viziune_strategie?.obiective_scurt}</p>
+                  <p className="text-lg leading-relaxed text-justify">{result.viziune_strategie?.obiective_scurt}</p>
                   <h3 className="text-2xl font-bold text-emerald-700 mb-3 mt-6">Obiective (3-5 ani)</h3>
-                  <p className="text-xl overflow-hidden" style={{ maxHeight: '180px' }}>{result.viziune_strategie?.obiective_mediu}</p>
+                  <p className="text-lg leading-relaxed text-justify">{result.viziune_strategie?.obiective_mediu}</p>
                 </div>
                 <div>
                   <h3 className="text-2xl font-bold text-emerald-700 mb-3">Misiune și Valori</h3>
-                  <p className="text-xl text-justify overflow-hidden" style={{ maxHeight: '420px' }}>{result.viziune_strategie?.misiune_valori}</p>
+                  <p className="text-lg leading-relaxed text-justify">{result.viziune_strategie?.misiune_valori}</p>
                 </div>
               </div>
             </div>
@@ -2292,11 +2292,11 @@ export default function Home() {
               </div>
               <div className="flex flex-col gap-4 font-serif leading-relaxed text-gray-800 text-justify">
                   <div><h3 className="text-2xl font-bold text-emerald-700 mb-1">Clienții Țintă</h3>
-                  <p className="text-xl overflow-hidden" style={{ maxHeight: '120px' }}>{result.analiza_pietei?.clienti_tinta}</p></div>
+                  <p className="text-lg">{result.analiza_pietei?.clienti_tinta}</p></div>
                   <div><h3 className="text-2xl font-bold text-emerald-700 mb-1">Concurența</h3>
-                  <p className="text-xl overflow-hidden" style={{ maxHeight: '120px' }}>{result.analiza_pietei?.concurenta}</p></div>
+                  <p className="text-lg">{result.analiza_pietei?.concurenta}</p></div>
                   <div><h3 className="text-2xl font-bold text-emerald-700 mb-1">Strategia de Marketing</h3>
-                  <p className="text-xl overflow-hidden" style={{ maxHeight: '120px' }}>{result.analiza_pietei?.strategie_marketing}</p></div>
+                  <p className="text-lg">{result.analiza_pietei?.strategie_marketing}</p></div>
               </div>
             </div>
 

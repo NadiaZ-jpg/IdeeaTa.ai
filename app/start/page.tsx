@@ -74,6 +74,7 @@ export default function Home() {
   const [unlockedPlans, setUnlockedPlans] = useState<string[]>([]);
   const [showPricingModal, setShowPricingModal] = useState(false);
   const [showQrModal, setShowQrModal] = useState(false);
+  const [showAdModal, setShowAdModal] = useState(false);
 
   const devBypass = process.env.NEXT_PUBLIC_DEV_BYPASS === 'true';
   const usedIdeasRef = useRef<number[]>([]);
@@ -126,10 +127,6 @@ export default function Home() {
   }, []);
 
   const startEditing = () => {
-    if (!isStudioPaid) {
-      setShowPricingModal(true);
-      return;
-    }
     setBackupResult(JSON.parse(JSON.stringify(result)));
     setIsEditing(true);
   };
@@ -237,13 +234,13 @@ export default function Home() {
   const [mockupTab, setMockupTab] = useState(0);
   const [innerMockupTab, setInnerMockupTab] = useState('SWOT');
   
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<any>(null);
   const ADMIN_EMAILS = ['contact@ideeata.ai', 'nadiaramonaz@gmail.com'];
-  const isAdmin = user ? ADMIN_EMAILS.includes(user.email || '') : false;
-  const isPlanPaid = isAdmin || devBypass || subscriptionActive || (result && unlockedPlans.includes(result.nume)) || isPaid;
-  const isStudioPaid = isAdmin || devBypass || subscriptionActive || euFundsUnlocked || isPaid;
-  const isContentCopyProtected = !isPlanPaid && !isStudioPaid;
-  const [isAuthLoading, setIsAuthLoading] = useState(true);
+  const isAdmin = false;
+  const isPlanPaid = false;
+  const isStudioPaid = false;
+  const isContentCopyProtected = true;
+  const [isAuthLoading, setIsAuthLoading] = useState(false);
   const [authError, setAuthError] = useState<string | null>(null);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -251,96 +248,16 @@ export default function Home() {
   const [isEmailLoading, setIsEmailLoading] = useState(false);
   const [isForgotMode, setIsForgotMode] = useState(false);
   const [resetEmailSent, setResetEmailSent] = useState(false);
+  
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-      setUser(currentUser);
-      setIsAuthLoading(false);
-      if (currentUser) {
-        window.scrollTo({ top: 0 });
-      }
-    });
-    return () => unsubscribe();
+    setIsAuthLoading(false);
+    setCredits(0);
+    setEuFundsUnlocked(false);
+    setSubscriptionActive(false);
+    setUnlockedPlans([]);
   }, []);
 
-  useEffect(() => {
-    if (!user) {
-      setCredits(0);
-      setEuFundsUnlocked(false);
-      setSubscriptionActive(false);
-      setUnlockedPlans([]);
-      return;
-    }
 
-    const userRef = doc(db, "users", user.uid);
-    const unsubscribe = onSnapshot(userRef, (snapshot) => {
-      if (snapshot.exists()) {
-        const data = snapshot.data();
-        setCredits(data.credits || 0);
-        setEuFundsUnlocked(data.euFundsUnlocked || false);
-        setSubscriptionActive(data.subscriptionActive || false);
-        setUnlockedPlans(data.unlockedPlans || []);
-      } else {
-        setDoc(userRef, {
-          email: user.email,
-          credits: 0,
-          euFundsUnlocked: false,
-          subscriptionActive: false,
-          unlockedPlans: [],
-          createdAt: new Date().toISOString(),
-        }, { merge: true });
-      }
-    });
-
-    return () => unsubscribe();
-  }, [user]);
-
-  useEffect(() => {
-    const urlParams = new URLSearchParams(window.location.search);
-    const paymentSuccess = urlParams.get("payment_success") === "true";
-    const sessionId = urlParams.get("session_id");
-    const tier = urlParams.get("tier");
-
-    if (paymentSuccess && sessionId && user) {
-      const verifyPayment = async () => {
-        try {
-          const res = await fetch(`/api/verify-checkout?session_id=${sessionId}`);
-          const data = await res.json();
-          if (data.success && data.userId === user.uid) {
-            const userRef = doc(db, "users", user.uid);
-            const userSnap = await getDoc(userRef);
-            const processedSessions = userSnap.data()?.processedSessions || [];
-
-            if (!processedSessions.includes(sessionId)) {
-              if (tier === "standard") {
-                const planToUnlock = data.planName || result?.nume || "Plan de Afaceri";
-                await setDoc(userRef, {
-                  unlockedPlans: arrayUnion(planToUnlock),
-                  processedSessions: arrayUnion(sessionId)
-                }, { merge: true });
-                alert(`Plată confirmată! Planul "${planToUnlock}" a fost deblocat pentru descărcare.`);
-              } else if (tier === "eu-funds") {
-                await setDoc(userRef, {
-                  euFundsUnlocked: true,
-                  processedSessions: arrayUnion(sessionId)
-                }, { merge: true });
-                alert("Plată confirmată! Modulul de Fonduri Europene a fost deblocat.");
-              } else if (tier === "pro") {
-                await setDoc(userRef, {
-                  subscriptionActive: true,
-                  processedSessions: arrayUnion(sessionId)
-                }, { merge: true });
-                alert("Plată confirmată! Abonamentul tău Pro Nelimitat a fost activat.");
-              }
-            }
-            window.history.replaceState({}, document.title, window.location.pathname);
-          }
-        } catch (error) {
-          console.error("Eroare la verificarea plății:", error);
-        }
-      };
-      verifyPayment();
-    }
-  }, [user]);
 
   // Incarca planul salvat din localStorage la pornire si verifica daca s-a anulat plata
   useEffect(() => {
@@ -353,13 +270,6 @@ export default function Home() {
             console.error("Eroare la incarcarea planului salvat local:", e);
           }
         }
-      
-      const urlParams = new URLSearchParams(window.location.search);
-      const paymentCancelled = urlParams.get("payment_cancelled") === "true";
-      if (paymentCancelled) {
-        setShowPricingModal(true);
-        window.history.replaceState({}, document.title, window.location.pathname);
-      }
     }
   }, []);
 
@@ -958,18 +868,10 @@ export default function Home() {
                       <button 
                         type="button" 
                         onClick={() => {
-                          if (!isStudioPaid) {
-                            setShowPricingModal(true);
-                          } else {
-                            setActiveAiPrompt(activeAiPrompt?.action === "eu_funds_optimization" ? null : {action: "eu_funds_optimization", title: "Optimizare Fonduri Europene", isConfirm: true, desc: "Se va adapta planul pentru fonduri europene:\n1. Concepte cheie: digitalizare, sustenabilitate.\n2. Redenumirea achizițiilor pentru a fi eligibile.\n\nEști gata?"});
-                          }
+                          setActiveAiPrompt(activeAiPrompt?.action === "eu_funds_optimization" ? null : {action: "eu_funds_optimization", title: "Optimizare Fonduri Europene", isConfirm: true, desc: "Se va adapta planul pentru fonduri europene:\n1. Concepte cheie: digitalizare, sustenabilitate.\n2. Redenumirea achizițiilor pentru a fi eligibile.\n\nEști gata?"});
                         }} 
                         disabled={isEditingAi} 
-                        className={`w-full text-left flex items-center justify-between rounded-xl px-5 py-4 font-bold text-sm transition-all group disabled:opacity-50 disabled:cursor-not-allowed ${
-                          !isStudioPaid 
-                            ? "bg-zinc-900/60 hover:bg-zinc-800/80 border border-amber-500/30 text-amber-300" 
-                            : "bg-black hover:bg-zinc-800 border border-zinc-800 text-zinc-300"
-                        }`}
+                        className={`w-full text-left flex items-center justify-between rounded-xl px-5 py-4 font-bold text-sm transition-all group disabled:opacity-50 disabled:cursor-not-allowed bg-black hover:bg-zinc-800 border border-zinc-800 text-zinc-300`}
                       >
                         <span className="flex items-center gap-3">
                           <span className="text-amber-500 group-hover:scale-110 transition-transform">🇪🇺</span>
@@ -977,11 +879,6 @@ export default function Home() {
                             {isEditingAi ? "Se procesează..." : "Optimizat pentru Fonduri Europene"}
                           </span>
                         </span>
-                        {!isStudioPaid && (
-                          <span className="text-[10px] bg-amber-500/20 border border-amber-500/40 text-amber-300 px-2 py-0.5 rounded-full font-black uppercase tracking-wider whitespace-nowrap flex items-center gap-1">
-                            🔒 PRO
-                          </span>
-                        )}
                       </button>
 
                       <button type="button" onClick={() => setActiveAiPrompt(activeAiPrompt?.action === "optimize_budget" ? null : {action: "optimize_budget", title: "Optimizează Bugetul", placeholder: "ex: 10, 20, 30", desc: "Cu ce procent dorești să reduci costurile bugetate?"})} disabled={isEditingAi} className="w-full bg-black hover:bg-zinc-800 border border-zinc-800 rounded-xl px-5 py-4 font-bold text-sm text-zinc-300 transition-all text-left flex items-center gap-3 group disabled:opacity-50 disabled:cursor-not-allowed">
@@ -1000,9 +897,9 @@ export default function Home() {
                         <span>{isEditingAi ? "Se procesează..." : "Adaugă secțiuni noi"}</span>
                       </button>
 
-                      <button type="button" onClick={() => setActiveAiPrompt(activeAiPrompt?.action === "investor_ready" ? null : {action: "investor_ready", title: "Plan Profesionist", isConfirm: true, desc: "Se va genera:\n1. Rezumat Executiv\n2. Matrice Diferențiere\n3. Strategie 'Go-To-Market'\n4. Analiză Risc\n5. Scenarii Financiare"}) } disabled={isEditingAi} className="w-full bg-zinc-900/80 hover:bg-zinc-800 border border-emerald-500/30 rounded-xl px-5 py-4 font-bold text-sm text-emerald-100 transition-all text-left flex items-center gap-3 group disabled:opacity-50 disabled:cursor-not-allowed shadow-[0_0_15px_rgba(16,185,129,0.1)]">
+                      <button type="button" onClick={() => window.location.href = '/' } disabled={isEditingAi} className="w-full bg-zinc-900/80 hover:bg-zinc-800 border border-emerald-500/30 rounded-xl px-5 py-4 font-bold text-sm text-emerald-100 transition-all text-left flex items-center gap-3 group disabled:opacity-50 disabled:cursor-not-allowed shadow-[0_0_15px_rgba(16,185,129,0.1)]">
                         <span className="text-emerald-400 group-hover:scale-110 transition-transform text-lg">🏦</span> 
-                        <span>{isEditingAi ? "Se procesează..." : "Plan Profesionist (Investitori/Bănci)"}</span>
+                        <span>Plan Profesionist <span className="text-amber-500">🔒</span></span>
                       </button>
                     </div>
 
@@ -1061,155 +958,7 @@ export default function Home() {
     );
   }
 
-  if (!user) {
-    return (
-      <div className="min-h-screen bg-[#09090b] flex flex-col items-center justify-center p-4 font-sans relative overflow-hidden">
-        {/* Background glow orbs */}
-        <div className="absolute top-[10%] left-[-15%] w-[600px] h-[600px] rounded-full bg-emerald-500/5 blur-[120px] pointer-events-none animate-pulse duration-[8000ms] z-0"></div>
-        <div className="absolute top-[35%] right-[-15%] w-[650px] h-[650px] rounded-full bg-amber-500/5 blur-[150px] pointer-events-none animate-pulse duration-[12000ms] z-0"></div>
-        
-        <div className="w-full max-w-md p-8 md:p-12 bg-zinc-900/80 backdrop-blur-md rounded-3xl border border-zinc-800 shadow-2xl relative z-10 flex flex-col items-center">
-          <h1 className="text-4xl font-black text-transparent bg-gradient-to-r from-zinc-400 via-emerald-400 to-zinc-400 bg-clip-text text-center mb-4 tracking-tighter">IdeeaTa.ai</h1>
-          <p className="text-zinc-400 text-center mb-10 font-medium">Platforma necesită autentificare pentru a continua.</p>
-          
-          <form onSubmit={handleEmailAuth} className="w-full mb-6 space-y-4" data-1p-ignore>
-            <div>
-              <input 
-                type="email" 
-                placeholder="Adresa de email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-                autoComplete="off"
-                data-bwignore
-                data-1p-ignore
-                className="w-full bg-zinc-800/50 border border-zinc-700/50 rounded-xl px-4 py-3 text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 transition-all"
-              />
-            </div>
-            {!isForgotMode && (
-              <div>
-                <input 
-                  type="password" 
-                  placeholder="Parola"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                  autoComplete="new-password"
-                  data-bwignore
-                  data-1p-ignore
-                  className="w-full bg-zinc-800/50 border border-zinc-700/50 rounded-xl px-4 py-3 text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 transition-all"
-                />
-              </div>
-            )}
-            <button 
-              type={isForgotMode ? "button" : "submit"}
-              onClick={isForgotMode ? handleForgotPassword : undefined}
-              disabled={isEmailLoading}
-              className="w-full py-4 px-6 bg-emerald-500 hover:bg-emerald-600 text-white font-bold rounded-xl transition-all shadow-lg disabled:opacity-50"
-            >
-              {isEmailLoading 
-                ? "Se procesează..." 
-                : isForgotMode 
-                  ? "Trimite link de resetare" 
-                  : (isLoginMode ? "Intră în cont" : "Creează cont nou")}
-            </button>
 
-            {resetEmailSent && (
-              <div className="w-full p-4 bg-emerald-500/10 border border-emerald-500/20 rounded-xl">
-                <p className="text-emerald-400 text-sm font-medium text-center">
-                  ✅ Link-ul de resetare a fost trimis! Verifică-ți emailul.
-                </p>
-              </div>
-            )}
-
-            <div className="flex justify-between items-center mt-2 text-sm">
-              {isLoginMode && !isForgotMode && (
-                <button 
-                  type="button" 
-                  onClick={() => { setIsForgotMode(true); setAuthError(null); setResetEmailSent(false); }}
-                  className="text-zinc-500 hover:text-zinc-300 transition-colors"
-                >
-                  Ai uitat parola?
-                </button>
-              )}
-              {isForgotMode && (
-                <button 
-                  type="button" 
-                  onClick={() => { setIsForgotMode(false); setAuthError(null); setResetEmailSent(false); }}
-                  className="text-zinc-500 hover:text-zinc-300 transition-colors"
-                >
-                  ← Înapoi la login
-                </button>
-              )}
-              {!isForgotMode && (
-                <button 
-                  type="button" 
-                  onClick={() => {
-                    setIsLoginMode(!isLoginMode);
-                    setEmail("");
-                    setPassword("");
-                    setAuthError(null);
-                  }}
-                  className="text-emerald-400 font-medium hover:text-emerald-300 transition-colors ml-auto"
-                >
-                  {isLoginMode ? "Nu ai cont? Creează unul nou" : "Ai deja cont? Intră aici"}
-                </button>
-              )}
-            </div>
-          </form>
-          
-          {authError && (
-            <div className="mt-6 w-full p-4 bg-red-500/10 border border-red-500/20 rounded-xl">
-              <p className="text-red-400 text-sm font-medium text-center break-words">{authError}</p>
-            </div>
-          )}
-
-          {/* QR Code Button */}
-          <button
-            onClick={() => setShowQrModal(true)}
-            className="w-full mt-2 py-3 px-5 flex items-center justify-center gap-3 bg-zinc-800 hover:bg-zinc-700 text-white font-semibold rounded-xl transition-all shadow-md text-sm border border-zinc-700"
-          >
-            <svg viewBox="0 0 24 24" className="w-5 h-5" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-              <path d="M3 3h7v7H3V3zm2 2v3h3V5H5zm9-2h7v7h-7V3zm2 2v3h3V5h-3zM3 14h7v7H3v-7zm2 2v3h3v-3H5zm11 0h2v2h-2v-2zm2 2h2v2h-2v-2zm-2 2h2v2h-2v-2zm-4-4h2v2h-2v-2zm2 2h2v2h-2v-2zm2-2h2v2h-2v-2z"/>
-            </svg>
-            Deschide pe telefon (QR)
-          </button>
-
-
-          {/* QR Code Modal */}
-          {showQrModal && (
-            <div
-              className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4"
-              onClick={() => setShowQrModal(false)}
-            >
-              <div
-                className="bg-zinc-900 border border-zinc-700 rounded-2xl p-8 flex flex-col items-center gap-5 max-w-sm w-full shadow-2xl"
-                onClick={(e) => e.stopPropagation()}
-              >
-                <h3 className="text-white font-bold text-lg">Deschide pe telefon</h3>
-                <p className="text-zinc-400 text-sm text-center">Scanează codul QR cu camera telefonului tău pentru a accesa platforma direct pe mobil.</p>
-                <div className="bg-white p-4 rounded-xl">
-                  <img
-                    src={`https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=https://ideea-ta-ai.vercel.app&bgcolor=ffffff&color=000000`}
-                    alt="QR Code IdeeaTa.ai"
-                    width={180}
-                    height={180}
-                  />
-                </div>
-                <p className="text-emerald-400 text-xs font-semibold tracking-wide">ideea-ta-ai.vercel.app</p>
-                <button
-                  onClick={() => setShowQrModal(false)}
-                  className="text-zinc-500 hover:text-white text-sm transition-colors"
-                >
-                  Închide
-                </button>
-              </div>
-            </div>
-          )}
-        </div>
-      </div>
-    );
-  }
 
   return (
     <main className="min-h-screen bg-[#09090b] text-white p-8 flex flex-col items-center font-sans print:bg-white print:text-black print:p-0 relative overflow-x-hidden">
@@ -1230,7 +979,6 @@ export default function Home() {
       )}
 
       <div className={`${isDownloading === 'pptx' ? 'hidden' : 'flex'} flex-col items-center w-full max-w-[1600px] px-4 md:px-12 relative z-10`}>
-        {user && (
           <div className="w-full flex justify-between items-start sm:items-center py-4 border-b border-zinc-800/80 mb-6 print:hidden">
             <div className="flex flex-col gap-2">
               <span className="text-zinc-500 text-xs font-semibold">Proiectul tău de afaceri inteligent</span>
@@ -1245,45 +993,17 @@ export default function Home() {
               </a>
             </div>
             <div className="flex items-center gap-4 text-xs font-medium">
-              <span className="text-zinc-400">{user.email}</span>
-              {isAdmin ? (
-                <span className="bg-amber-500/20 border border-amber-500/40 text-amber-300 px-2 py-0.5 rounded-full font-black uppercase tracking-wider">
-                  ADMIN ★
-                </span>
-              ) : subscriptionActive ? (
-                <span className="bg-emerald-500/20 border border-emerald-500/40 text-emerald-400 px-2 py-0.5 rounded-full font-black uppercase tracking-wider">
-                  PRO
-                </span>
-              ) : euFundsUnlocked ? (
-                <span className="bg-amber-500/20 border border-amber-500/40 text-amber-300 px-2 py-0.5 rounded-full font-black uppercase tracking-wider">
-                  STUDIO &amp; FONDURI
-                </span>
-              ) : isPlanPaid ? (
-                <span className="bg-blue-500/20 border border-blue-500/40 text-blue-400 px-2 py-0.5 rounded-full font-black uppercase tracking-wider">
-                  STANDARD DEBLOCAT
-                </span>
-              ) : (
-                <span className="bg-zinc-800 border border-zinc-700 text-zinc-300 px-2 py-0.5 rounded-full font-bold">
-                  PREVIZUALIZARE
-                </span>
-              )}
-              {!subscriptionActive && (
-                <button 
-                  onClick={() => setShowPricingModal(true)}
-                  className="text-emerald-400 hover:text-emerald-300 transition-colors font-bold underline cursor-pointer"
-                >
-                  Vezi Planuri
-                </button>
-              )}
-              <button 
-                onClick={() => signOut(auth)}
-                className="text-zinc-500 hover:text-white transition-colors cursor-pointer"
+              <span className="bg-zinc-800 border border-zinc-700 text-zinc-300 px-2 py-0.5 rounded-full font-bold">
+                MOD DEMO
+              </span>
+              <a 
+                href="/"
+                className="text-emerald-400 hover:text-emerald-300 transition-colors font-bold underline cursor-pointer"
               >
-                Ieși din cont
-              </button>
+                Creează cont / Log In
+              </a>
             </div>
           </div>
-        )}
 
         <h1 className="text-4xl md:text-6xl lg:text-[5rem] font-black mt-4 lg:mt-12 mb-6 lg:mb-8 not-italic tracking-tighter cursor-pointer bg-gradient-to-r from-zinc-400 via-emerald-400 to-zinc-400 bg-clip-text text-transparent animate-shimmer print:hidden self-start lg:self-center" onClick={resetApp}>
           IdeeaTa.ai
@@ -2024,7 +1744,7 @@ export default function Home() {
                 onClick={startEditing} 
                 className="w-full h-10 bg-zinc-900 hover:bg-zinc-800 text-zinc-300 hover:text-white px-4 rounded-xl font-bold transition-all shadow-xl border border-zinc-700/60 flex items-center justify-center gap-2 text-xs whitespace-nowrap cursor-pointer"
               >
-                 ✏️ Studio Editare {!isStudioPaid && <span className="text-amber-500">🔒</span>}
+                 ✏️ Studio Editare
               </button>
               {/* Tooltip Studio Editare */}
               <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-3 w-60 pointer-events-none opacity-0 group-hover:opacity-100 transition-all duration-250 scale-95 group-hover:scale-100 z-50">
@@ -2046,80 +1766,32 @@ export default function Home() {
             </div>
 
             <div className="w-full md:w-auto flex flex-col md:flex-row gap-4 items-center justify-between">
-              <div className="flex gap-2 p-1 bg-black rounded-xl border border-zinc-700 h-10 w-full md:w-32 flex-none">
+              <div className="flex gap-2 p-1 bg-black rounded-xl border border-zinc-700 h-10 w-full md:w-32 flex-none group">
                 <button onClick={() => setCurrency("LEI")} className={`w-1/2 flex items-center justify-center rounded-lg text-xs font-bold transition-all ${currency === "LEI" ? "bg-emerald-600 text-white" : "text-zinc-500 hover:text-white"}`}>LEI</button>
                 <button onClick={() => setCurrency("EUR")} className={`w-1/2 flex items-center justify-center rounded-lg text-xs font-bold transition-all ${currency === "EUR" ? "bg-blue-600 text-white" : "text-zinc-500 hover:text-white"}`}>EUR</button>
               </div>
               
-              {/* Download Buttons Container (Pachet Standard) */}
+              {/* Download Buttons Container (Demo) */}
               <div className="relative group w-full md:w-auto flex-none">
-              <div 
-                className="flex items-center gap-1.5 bg-zinc-900 border border-zinc-700/60 p-1 rounded-xl h-10 w-full md:w-auto overflow-x-auto md:overflow-visible"
-              >
-                <button 
-                  onClick={() => downloadAction('pdf')} 
-                  disabled={isDownloading !== null}
-                  className="flex-none hover:bg-zinc-800 text-[10px] sm:text-[11px] h-full px-3 rounded-lg font-black uppercase tracking-wider transition-all flex items-center justify-center whitespace-nowrap gap-1 cursor-pointer text-zinc-300 hover:text-white"
+                <div 
+                  className="flex items-center gap-1.5 bg-zinc-900 border border-zinc-700/60 p-1 rounded-xl h-10 w-full md:w-auto overflow-x-auto md:overflow-visible"
                 >
-                  {isDownloading === 'pdf' ? "⏳..." : "⬇ Prezentare"}
-                </button>
-                <div className="w-px h-4 bg-zinc-800 flex-none" />
-                <button 
-                  onClick={() => downloadAction('pptx')} 
-                  disabled={isDownloading !== null}
-                  className="flex-none hover:bg-zinc-800 text-[10px] sm:text-[11px] h-full px-3 rounded-lg font-black uppercase tracking-wider transition-all flex items-center justify-center whitespace-nowrap gap-1 cursor-pointer text-zinc-300 hover:text-white"
-                >
-                  {isDownloading === 'pptx' ? "⏳..." : "⬇ Broșură"}
-                </button>
-                <div className="w-px h-4 bg-zinc-800 flex-none" />
-                <button 
-                  onClick={() => downloadAction('word')} 
-                  disabled={isDownloading !== null}
-                  className="flex-none hover:bg-zinc-800 text-[10px] sm:text-[11px] h-full px-3 rounded-lg font-black uppercase tracking-wider transition-all flex items-center justify-center whitespace-nowrap gap-1 cursor-pointer text-zinc-300 hover:text-white"
-                >
-                  {isDownloading === 'word' ? "⏳..." : "⬇ Document"}
-                </button>
-
-                {!isPlanPaid && (
-                  <>
-                    <div className="w-px h-4 bg-zinc-800 flex-none" />
                     <button 
-                      onClick={() => downloadAction('pdf-summary')} 
+                      onClick={() => setShowAdModal(true)} 
                       disabled={isDownloading !== null}
-                      className="flex-none hover:bg-emerald-900/50 text-emerald-400 text-[10px] sm:text-[11px] h-full px-3 rounded-lg font-black uppercase tracking-wider transition-all flex items-center justify-center whitespace-nowrap gap-1 cursor-pointer shadow-[0_0_15px_rgba(16,185,129,0.15)]"
+                      className="flex-none bg-emerald-600 hover:bg-emerald-500 text-white text-[10px] sm:text-[11px] h-full px-4 rounded-lg font-black uppercase tracking-wider transition-all flex items-center justify-center whitespace-nowrap gap-2 cursor-pointer shadow-[0_0_15px_rgba(16,185,129,0.3)]"
                     >
-                      {isDownloading === 'pdf-summary' ? "⏳..." : "🎁 Sumar Gratuit"}
+                      {isDownloading === 'pdf-summary' ? "⏳..." : "🎁 Descarcă Sumar Gratuit"}
                     </button>
-                    <div className="w-px h-4 bg-zinc-800 flex-none" />
-                    <button 
-                      type="button"
-                      onClick={() => setShowPricingModal(true)}
-                      className="flex-none text-xs text-amber-500 hover:text-amber-400 cursor-pointer px-3 h-full rounded-lg flex items-center justify-center hover:bg-zinc-800/50 hover:scale-110 transition-all"
-                      title="Deblochează Descărcările Complete (Pachet Standard)"
+                    <div className="w-px h-4 bg-zinc-800 flex-none mx-1" />
+                    <a 
+                      href="/"
+                      className="flex-none text-[10px] sm:text-[11px] font-black uppercase tracking-wider text-zinc-300 hover:text-white cursor-pointer px-4 h-full rounded-lg flex items-center justify-center hover:bg-zinc-800 transition-all gap-2"
                     >
-                      🔒
-                    </button>
-                  </>
-                )}
-              </div>
-              {/* Tooltip Pachet Standard */}
-              <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-3 w-60 pointer-events-none opacity-0 group-hover:opacity-100 transition-all duration-250 scale-95 group-hover:scale-100 z-50">
-                <div className="relative rounded-xl p-px" style={{background: 'linear-gradient(135deg, #10b981 0%, #059669 50%, #065f46 100%)'}}>
-                  <div className="rounded-xl bg-zinc-950 px-4 py-3" style={{boxShadow: '0 0 24px 2px rgba(16,185,129,0.13)'}}>
-                    <div className="flex items-center gap-2 mb-2">
-                      <span className="text-emerald-400 text-sm">⬇</span>
-                      <span className="text-emerald-300 text-[11px] font-black uppercase tracking-widest">Pachet Standard</span>
-                    </div>
-                    <div className="flex flex-col gap-1">
-                      <div className="flex items-center gap-1.5 text-zinc-400 text-[10px]"><span className="text-emerald-500">▸</span> Prezentare PDF</div>
-                      <div className="flex items-center gap-1.5 text-zinc-400 text-[10px]"><span className="text-emerald-500">▸</span> Broșură PPTX</div>
-                      <div className="flex items-center gap-1.5 text-zinc-400 text-[10px]"><span className="text-emerald-500">▸</span> Document Word</div>
-                    </div>
-                  </div>
+                      🔒 Descarcă Complet
+                    </a>
                 </div>
-                <div className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-3 h-3" style={{background: 'linear-gradient(135deg, transparent 50%, #059669 50%)', clipPath: 'polygon(0 0, 100% 100%, 0 100%)', transform: 'translateX(-50%) rotate(45deg)'}} />
               </div>
-            </div>
             </div>
           </div>
 
@@ -2627,30 +2299,86 @@ export default function Home() {
             </div>
 
             {/* CTA Slide (For PDF Summary) */}
-            <div className="pdf-cta-slide w-[1280px] h-[720px] bg-emerald-950 flex flex-col justify-center items-center p-24 border-[12px] border-emerald-900 box-border relative text-center">
-              <h2 className="text-6xl font-black text-white mb-8">Acesta a fost doar un scurt rezumat.</h2>
-              <p className="text-3xl text-emerald-200 mb-12 max-w-4xl leading-relaxed">
-                Pentru a obține <strong>Analiza SWOT detaliată, Bugetul de investiții, Strategia de Piață completă și Planul Operațional</strong>, deblochează pachetul complet!
-              </p>
-              <div className="bg-emerald-500 text-white px-12 py-6 rounded-2xl text-4xl font-bold shadow-2xl">
-                Vizitează IdeeaTa.ai
+            <div className="pdf-cta-slide w-[1280px] h-[720px] bg-emerald-950 flex flex-col justify-center items-center p-16 border-[12px] border-emerald-900 box-border relative text-center">
+              <h2 className="text-5xl font-black text-white mb-6">Acesta a fost doar un scurt rezumat.</h2>
+              
+              <div className="bg-emerald-900/50 p-8 rounded-3xl border border-emerald-500/30 w-full max-w-5xl mb-8 shadow-xl">
+                <h3 className="text-3xl font-bold text-emerald-400 mb-6 uppercase tracking-wider">Ce primești în aplicația principală?</h3>
+                <div className="grid grid-cols-2 gap-x-12 gap-y-8 text-left">
+                  <div className="flex items-start gap-4">
+                    <span className="text-4xl">🪄</span>
+                    <div>
+                      <h4 className="text-2xl font-bold text-white mb-1">Studio Editare Text</h4>
+                      <p className="text-emerald-200 text-[19px] leading-tight">Editează documentul cu asistentul AI: profesional, creativ, sau orientat spre vânzări.</p>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-4">
+                    <span className="text-4xl">🇪🇺</span>
+                    <div>
+                      <h4 className="text-2xl font-bold text-white mb-1">Optimizare Fonduri UE</h4>
+                      <p className="text-emerald-200 text-[19px] leading-tight">Adaptează automat termenii planului tău pentru a fi eligibil la finanțări.</p>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-4">
+                    <span className="text-4xl">📉</span>
+                    <div>
+                      <h4 className="text-2xl font-bold text-white mb-1">Ajustare Buget</h4>
+                      <p className="text-emerald-200 text-[19px] leading-tight">Taie sau crește instant toate costurile din planul tău cu procentajul dorit.</p>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-4">
+                    <span className="text-4xl">📄</span>
+                    <div>
+                      <h4 className="text-2xl font-bold text-white mb-1">Descărcări Nelimitate</h4>
+                      <p className="text-emerald-200 text-[19px] leading-tight">Exportă planul complet în format PDF, Word și Prezentare PPTX detaliată.</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="flex items-center gap-4 bg-emerald-500 text-white px-10 py-5 rounded-full text-3xl font-bold shadow-[0_0_30px_rgba(16,185,129,0.4)] mt-2">
+                <span>Vino pe IdeeaTa.ai</span>
+                <span className="text-4xl">🚀</span>
               </div>
             </div>
 
           </div>
         </div>
       )}
-      <PricingModal
-        isOpen={showPricingModal}
-        onClose={() => {
-          setShowPricingModal(false);
-          setPendingDownloadMode(null);
-        }}
-        userId={user?.uid || ""}
-        userEmail={user?.email || ""}
-        currency={currency}
-        planName={result?.nume || "Plan de Afaceri"}
-      />
+      {showAdModal && (
+        <div className="fixed inset-0 bg-black/90 backdrop-blur-md z-[200] flex items-center justify-center p-4">
+          <div className="bg-zinc-900 border border-zinc-800 rounded-3xl p-8 max-w-xl w-full flex flex-col items-center text-center shadow-2xl">
+            <span className="text-4xl mb-4">📺</span>
+            <h3 className="text-2xl font-black text-white mb-2">Pauză Publicitară</h3>
+            <p className="text-zinc-400 mb-8">Pentru a descărca gratuit sumarul planului tău, urmărește acest scurt mesaj sponsorizat.</p>
+            
+            {/* AdSense Placeholder */}
+            <div className="w-full h-64 bg-zinc-800/50 rounded-xl border-2 border-dashed border-zinc-700 flex flex-col items-center justify-center mb-8 relative overflow-hidden group">
+              <span className="text-zinc-500 font-bold tracking-widest uppercase text-sm">Spațiu Reclamă (AdSense)</span>
+              <div className="absolute inset-0 bg-gradient-to-tr from-emerald-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+            </div>
+
+            <div className="flex flex-col sm:flex-row gap-4 w-full">
+              <button 
+                onClick={() => setShowAdModal(false)}
+                className="flex-1 px-6 py-3 rounded-xl font-bold text-zinc-400 bg-zinc-800 hover:bg-zinc-700 transition-colors"
+              >
+                Anulează
+              </button>
+              <button 
+                onClick={() => {
+                  setShowAdModal(false);
+                  downloadAction('pdf-summary');
+                }}
+                className="flex-1 px-6 py-3 rounded-xl font-bold text-white bg-emerald-600 hover:bg-emerald-500 transition-colors shadow-[0_0_20px_rgba(16,185,129,0.3)]"
+              >
+                Descarcă Sumarul
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
     </main>
   );
 }

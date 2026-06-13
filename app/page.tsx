@@ -1438,10 +1438,7 @@ export default function Home() {
               
               <div className="flex flex-col gap-1 text-center sm:text-left">
                 <p className="text-zinc-400 font-medium text-lg">
-                  Construiește planul tău de afaceri inteligent
-                </p>
-                <p className="text-emerald-400/80 font-semibold text-sm">
-                  Viziunea ta, sprijinul nostru!
+                  Construiește planul tău de afaceri inteligent. Viziunea ta, sprijinul nostru!
                 </p>
               </div>
               

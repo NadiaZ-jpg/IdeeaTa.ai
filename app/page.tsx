@@ -1211,8 +1211,31 @@ export default function Home() {
     );
   }
 
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (
+        (e.ctrlKey || e.metaKey) && 
+        (e.key === 'c' || e.key === 'C' || e.key === 'p' || e.key === 'P' || e.key === 's' || e.key === 'S')
+      ) {
+        e.preventDefault();
+      }
+      if (e.key === 'PrintScreen') {
+        navigator.clipboard.writeText('');
+      }
+    };
+    
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
   return (
-    <main className="min-h-screen bg-[#09090b] text-white p-8 flex flex-col items-center font-sans print:bg-white print:text-black print:p-0 relative overflow-x-hidden">
+    <main 
+      className="min-h-screen bg-[#09090b] text-white p-8 flex flex-col items-center font-sans print:hidden relative overflow-x-hidden select-none"
+      onContextMenu={(e) => e.preventDefault()}
+    >
+      <div className="hidden print:block w-full h-full bg-white text-black text-center p-20 text-3xl font-bold">
+        Conținutul este protejat. Pentru a obține documentul, utilizați funcția de descărcare din aplicație.
+      </div>
       {/* Background glow orbs */}
       <div className="absolute top-[10%] left-[-15%] w-[600px] h-[600px] rounded-full bg-emerald-500/5 blur-[120px] pointer-events-none animate-pulse duration-[8000ms] z-0"></div>
       <div className="absolute top-[35%] right-[-15%] w-[650px] h-[650px] rounded-full bg-amber-500/5 blur-[150px] pointer-events-none animate-pulse duration-[12000ms] z-0"></div>

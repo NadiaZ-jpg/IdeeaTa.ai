@@ -988,8 +988,31 @@ export default function Home() {
 
 
 
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (
+        (e.ctrlKey || e.metaKey) && 
+        (e.key === 'c' || e.key === 'C' || e.key === 'p' || e.key === 'P' || e.key === 's' || e.key === 'S')
+      ) {
+        e.preventDefault();
+      }
+      if (e.key === 'PrintScreen') {
+        navigator.clipboard.writeText('');
+      }
+    };
+    
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
   return (
-    <main className="min-h-screen bg-[#09090b] text-white p-8 flex flex-col items-center font-sans print:bg-white print:text-black print:p-0 relative overflow-x-hidden">
+    <main 
+      className="min-h-screen bg-[#09090b] text-white p-8 flex flex-col items-center font-sans print:hidden relative overflow-x-hidden select-none"
+      onContextMenu={(e) => e.preventDefault()}
+    >
+      <div className="hidden print:block w-full h-full bg-white text-black text-center p-20 text-3xl font-bold">
+        Conținutul este protejat. Pentru a obține documentul, utilizați funcția de descărcare din aplicație.
+      </div>
       {/* Background glow orbs */}
       <div className="absolute top-[10%] left-[-15%] w-[600px] h-[600px] rounded-full bg-emerald-500/5 blur-[120px] pointer-events-none animate-pulse duration-[8000ms] z-0"></div>
       <div className="absolute top-[35%] right-[-15%] w-[650px] h-[650px] rounded-full bg-amber-500/5 blur-[150px] pointer-events-none animate-pulse duration-[12000ms] z-0"></div>
@@ -2328,7 +2351,7 @@ export default function Home() {
               <h2 className="text-5xl font-black text-white mb-6">Acesta a fost doar un scurt rezumat.</h2>
               
               <div className="bg-emerald-900/50 p-8 rounded-3xl border border-emerald-500/30 w-full max-w-5xl mb-8 shadow-xl">
-                <h3 className="text-3xl font-bold text-emerald-400 mb-6 uppercase tracking-wider">Ce primești în aplicația IdeeaTa?</h3>
+                <h3 className="text-3xl font-bold text-emerald-400 mb-6 uppercase tracking-wider">Ce primești în aplicația IdeeaTa.ai?</h3>
                 <div className="grid grid-cols-2 gap-x-12 gap-y-8 text-left">
                   <div className="flex items-start gap-4">
                     <span className="text-4xl">🪄</span>
@@ -2362,7 +2385,7 @@ export default function Home() {
               </div>
               
               <div className="flex items-center gap-4 bg-emerald-500 text-white px-10 py-5 rounded-full text-3xl font-bold shadow-[0_0_30px_rgba(16,185,129,0.4)] mt-2">
-                <span>Vino pe IdeeaTa</span>
+                <span>Vino pe IdeeaTa.ai</span>
                 <span className="text-4xl">🚀</span>
               </div>
             </div>

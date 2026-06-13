@@ -36,10 +36,10 @@ const formatNumberedText = (text: string | undefined) => {
   // 1. Remove leading commas or punctuation left over from prefixes
   formatted = formatted.replace(/^[\s,;.-]+/, '');
   
-  // 2. Capitalize the first letter of the sentence
-  if (formatted.length > 0) {
-    formatted = formatted.charAt(0).toUpperCase() + formatted.slice(1);
-  }
+  // 2. Capitalize the first letter of every sentence or list item
+  formatted = formatted.replace(/(^|\n|[.!?]\s+)([^a-zA-ZăâîșțĂÂÎȘȚ]*)([a-zăâîșț])/g, (match, p1, p2, p3) => {
+    return p1 + p2 + p3.toUpperCase();
+  });
 
   // 3. Lowercase letters following a semicolon (enumeration)
   formatted = formatted.replace(/;\s+([A-ZĂÂÎȘȚ])/g, (match, letter) => {

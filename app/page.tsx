@@ -1191,8 +1191,19 @@ export default function Home() {
 
       <div className={`${isDownloading === 'pptx' ? 'hidden' : 'flex'} flex-col items-center w-full max-w-[1600px] px-4 md:px-12 relative z-10`}>
         {user && (
-          <div className="w-full flex justify-between items-center py-4 border-b border-zinc-800/80 mb-6 print:hidden">
-            <span className="text-zinc-500 text-xs font-semibold">Proiectul tău de afaceri inteligent</span>
+          <div className="w-full flex justify-between items-start sm:items-center py-4 border-b border-zinc-800/80 mb-6 print:hidden">
+            <div className="flex flex-col gap-2">
+              <span className="text-zinc-500 text-xs font-semibold">Proiectul tău de afaceri inteligent</span>
+              <a 
+                href="https://buymeacoffee.com/ideeata-ai" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="bg-[#FFDD00] text-black px-3 py-1 rounded-md font-bold text-xs hover:bg-[#FFEA4D] hover:scale-105 transition-all flex items-center gap-1.5 w-max shadow-sm"
+                title="Susține IdeeaTa.ai cu o cafea"
+              >
+                <span>☕</span> Buy me a coffee
+              </a>
+            </div>
             <div className="flex items-center gap-4 text-xs font-medium">
               <span className="text-zinc-400">{user.email}</span>
               {isAdmin ? (
@@ -1385,20 +1396,9 @@ export default function Home() {
                 <div className="w-8"></div>
               </div>
               
-              <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-                <p className="text-zinc-400 font-medium text-lg text-center sm:text-left">
-                  Construiește planul tău de afaceri inteligent
-                </p>
-                <a 
-                  href="https://buymeacoffee.com/ideeata-ai" 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="bg-[#FFDD00] text-black px-4 py-2 rounded-xl font-bold text-sm hover:bg-[#FFEA4D] hover:scale-105 transition-all flex items-center gap-2 shadow-lg whitespace-nowrap"
-                  title="Susține IdeeaTa.ai"
-                >
-                  <span className="text-lg">☕</span> Buy me a coffee
-                </a>
-              </div>
+              <p className="text-zinc-400 font-medium text-lg text-center sm:text-left">
+                Construiește planul tău de afaceri inteligent
+              </p>
               
               <form onSubmit={generate} className="flex flex-col gap-4 w-full relative group z-10">
                 {skill.length > 35 && (

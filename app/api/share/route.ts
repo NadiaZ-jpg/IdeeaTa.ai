@@ -11,9 +11,11 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Date invalide" }, { status: 400 });
     }
 
+    const cleanPlanData = JSON.parse(JSON.stringify(planData));
+
     // Salvăm în Firestore sub colecția 'shared_plans'
     const docRef = await adminDb.collection("shared_plans").add({
-      data: planData,
+      data: cleanPlanData,
       createdAt: FieldValue.serverTimestamp(),
       views: 0
     });

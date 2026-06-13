@@ -16,7 +16,7 @@ const formatNumberedText = (text: string | undefined) => {
   let formatted = text;
   
   // Remove redundant AI intro text for objectives (case insensitive)
-  formatted = formatted.replace(/^(?:În primul an:?|În următorii(?:\s*\d+(?:-\d+)?\s*ani)?:?|Obiective(?:le)?[^:]*:?|Pentru primul an:?|Pe termen scurt:?|Pe termen mediu:?)\s*/i, '');
+  formatted = formatted.replace(/^(?:ÃŽn primul an:?|ÃŽn urmÄƒtorii(?:\s*\d+(?:-\d+)?\s*ani)?:?|Obiective(?:le)?[^:]*:?|Pentru primul an:?|Pe termen scurt:?|Pe termen mediu:?)\s*/i, '');
   
   // Remove Markdown bold markers entirely since they render literally in the UI
   formatted = formatted.replace(/\*\*/g, '');
@@ -37,12 +37,12 @@ const formatNumberedText = (text: string | undefined) => {
   formatted = formatted.replace(/^[\s,;.-]+/, '');
   
   // 2. Capitalize the first letter of every sentence or list item
-  formatted = formatted.replace(/(^|\n|[.!?]\s+)([^a-zA-ZăâîșțĂÂÎȘȚ]*)([a-zăâîșț])/g, (match, p1, p2, p3) => {
+  formatted = formatted.replace(/(^|\n|[.!?]\s+)([^a-zA-ZÄƒÃ¢Ã®È™È›Ä‚Ã‚ÃŽÈ˜Èš]*)([a-zÄƒÃ¢Ã®È™È›])/g, (match, p1, p2, p3) => {
     return p1 + p2 + p3.toUpperCase();
   });
 
   // 3. Lowercase letters following a semicolon (enumeration)
-  formatted = formatted.replace(/;\s+([A-ZĂÂÎȘȚ])/g, (match, letter) => {
+  formatted = formatted.replace(/;\s+([A-ZÄ‚Ã‚ÃŽÈ˜Èš])/g, (match, letter) => {
     return '; ' + letter.toLowerCase();
   });
   
@@ -79,7 +79,7 @@ export default function Home() {
   const [activeAiPrompt, setActiveAiPrompt] = useState<{action: string, title: string, placeholder?: string, desc?: string, isConfirm?: boolean} | null>(null);
   const [aiPromptInput, setAiPromptInput] = useState("");
   const [showToneOptions, setShowToneOptions] = useState(false);
-  const [isPaid, setIsPaid] = useState(true); // Setat pe TRUE pentru a putea face teste fără bariera de plată
+  const [isPaid, setIsPaid] = useState(true); // Setat pe TRUE pentru a putea face teste fÄƒrÄƒ bariera de platÄƒ
   const [showPaywall, setShowPaywall] = useState(false);
   const [isPaying, setIsPaying] = useState(false);
   const [pendingDownloadMode, setPendingDownloadMode] = useState<'pdf' | 'pptx' | 'word' | null>(null);
@@ -92,6 +92,7 @@ export default function Home() {
   const [showAdModal, setShowAdModal] = useState(false);
   const [showWelcomeModal, setShowWelcomeModal] = useState(false);
   const [showLimitModal, setShowLimitModal] = useState<{show: boolean, message: string}>({show: false, message: ""});
+  const [hasEdited, setHasEdited] = useState(false);
 
   const devBypass = process.env.NEXT_PUBLIC_DEV_BYPASS === 'true';
   const usedIdeasRef = useRef<number[]>([]);
@@ -129,13 +130,13 @@ export default function Home() {
 
   useEffect(() => {
     const placeholders = [
-      "Consultanță Securitate Cibernetică...",
+      "ConsultanÈ›Äƒ Securitate CiberneticÄƒ...",
       "Studio de Design Interior...",
-      "Fermă Urbană de Microplante...",
-      "Dezvoltare Soluții...",
+      "FermÄƒ UrbanÄƒ de Microplante...",
+      "Dezvoltare SoluÈ›ii...",
       "Cafenea de Specialitate...",
-      "Platformă de Cursuri Online...",
-      "Spălătorie Auto Ecologică..."
+      "PlatformÄƒ de Cursuri Online...",
+      "SpÄƒlÄƒtorie Auto EcologicÄƒ..."
     ];
     let currentIdx = 0;
     let currentCharIdx = 0;
@@ -187,12 +188,12 @@ export default function Home() {
     setIsEditing(false);
   };
 
-  // Eliminat comportamentul agresiv de paywall la scroll conform cerințelor utilizatorului.
+  // Eliminat comportamentul agresiv de paywall la scroll conform cerinÈ›elor utilizatorului.
 
   const handleContextMenu = (e: React.MouseEvent) => {
     if (isContentCopyProtected) {
       e.preventDefault();
-      alert("Copierea și click-dreapta sunt dezactivate în previzualizarea protejată. Deblochează planul pentru acces complet.");
+      alert("Copierea È™i click-dreapta sunt dezactivate Ã®n previzualizarea protejatÄƒ. DeblocheazÄƒ planul pentru acces complet.");
     }
   };
 
@@ -203,7 +204,7 @@ export default function Home() {
     if (typeof window !== 'undefined' && !devBypass && !isDevQuery) {
       const editCount = parseInt(localStorage.getItem('demoEditCount') || '0');
       if (editCount >= 2) {
-        setShowLimitModal({show: true, message: "Ai atins limita de editări gratuite din Demo. Pentru a continua editarea, te rugăm să creezi un cont gratuit!"});
+        setShowLimitModal({show: true, message: "Ai atins limita de editÄƒri gratuite din Demo. Pentru a continua editarea, te rugÄƒm sÄƒ creezi un cont gratuit!"});
         return;
       }
       localStorage.setItem('demoEditCount', (editCount + 1).toString());
@@ -237,7 +238,7 @@ export default function Home() {
       try {
         data = await res.json();
       } catch (e) {
-        alert("Eroare de rețea. Te rugăm să mai încerci o dată.");
+        alert("Eroare de reÈ›ea. Te rugÄƒm sÄƒ mai Ã®ncerci o datÄƒ.");
         return;
       }
 
@@ -245,10 +246,10 @@ export default function Home() {
         try {
           const parsed = JSON.parse(data.updatedResult);
           setResult(formatObjectNumbers(parsed));
-          
+          setHasEdited(true);
           setTimeout(() => {
             let targetId = "";
-            if (action === "eu_funds_optimization") targetId = "section-swot";
+            if (action === "eu_funds_optimization") targetId = "section-general";
             else if (action === "optimize_budget") targetId = "section-financial";
             else if (action === "add_sections") targetId = "section-market";
             else if (action === "professional_tone") targetId = "section-general";
@@ -256,17 +257,17 @@ export default function Home() {
             if (targetId) {
               document.getElementById(targetId)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
             }
-          }, 300);
+          }, 800);
         } catch (err) {
           console.error("Failed to parse JSON:", err);
-          alert("Sistemul a returnat un format invalid. Mai încearcă o dată.");
+          alert("Sistemul a returnat un format invalid. Mai Ã®ncearcÄƒ o datÄƒ.");
         }
       } else if (data.error) {
         alert(data.error);
       }
     } catch (e) {
       console.error(e);
-      alert("A apărut o eroare neașteptată la editare.");
+      alert("A apÄƒrut o eroare neaÈ™teptatÄƒ la editare.");
     } finally {
       setIsEditingAi(false);
     }
@@ -364,12 +365,12 @@ export default function Home() {
     }
   }, [result]);
 
-  // Prevenire copiere conținut dacă este protejat
+  // Prevenire copiere conÈ›inut dacÄƒ este protejat
   useEffect(() => {
     const handleCopyCut = (e: ClipboardEvent) => {
       if (isContentCopyProtected) {
         e.preventDefault();
-        alert("Previzualizare protejată. Achiziționează Pachetul Standard pentru a descărca documentele sau Pachetul Studio pentru a le edita și copia.");
+        alert("Previzualizare protejatÄƒ. AchiziÈ›ioneazÄƒ Pachetul Standard pentru a descÄƒrca documentele sau Pachetul Studio pentru a le edita È™i copia.");
       }
     };
 
@@ -387,7 +388,7 @@ export default function Home() {
       .then(() => { setAuthError(null); })
       .catch((error: any) => {
         console.error("Eroare Google login:", error);
-        setAuthError("Nu s-a putut conecta cu Google. Încearcă din nou.");
+        setAuthError("Nu s-a putut conecta cu Google. ÃŽncearcÄƒ din nou.");
       });
   };
 
@@ -397,7 +398,7 @@ export default function Home() {
       .then(() => { setAuthError(null); })
       .catch((error: any) => {
         console.error("Eroare Facebook login:", error);
-        setAuthError("Nu s-a putut conecta cu Facebook. Încearcă din nou.");
+        setAuthError("Nu s-a putut conecta cu Facebook. ÃŽncearcÄƒ din nou.");
       });
   };
 
@@ -414,9 +415,9 @@ export default function Home() {
       setResetEmailSent(true);
     } catch (error: any) {
       if (error.code === 'auth/user-not-found') {
-        setAuthError("Nu există niciun cont cu această adresă de email.");
+        setAuthError("Nu existÄƒ niciun cont cu aceastÄƒ adresÄƒ de email.");
       } else {
-        setAuthError(error.message || "A apărut o eroare. Încearcă din nou.");
+        setAuthError(error.message || "A apÄƒrut o eroare. ÃŽncearcÄƒ din nou.");
       }
     } finally {
       setIsEmailLoading(false);
@@ -438,13 +439,13 @@ export default function Home() {
     } catch (error: any) {
       console.error("Eroare email auth:", error);
       if (error.code === 'auth/invalid-credential' || error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password') {
-        setAuthError("Email sau parolă incorectă.");
+        setAuthError("Email sau parolÄƒ incorectÄƒ.");
       } else if (error.code === 'auth/email-already-in-use') {
-        setAuthError("Există deja un cont cu acest email. Te rugăm să te loghezi.");
+        setAuthError("ExistÄƒ deja un cont cu acest email. Te rugÄƒm sÄƒ te loghezi.");
       } else if (error.code === 'auth/weak-password') {
-        setAuthError("Parola trebuie să aibă cel puțin 6 caractere.");
+        setAuthError("Parola trebuie sÄƒ aibÄƒ cel puÈ›in 6 caractere.");
       } else {
-        setAuthError(error.message || "A apărut o eroare necunoscută la autentificare.");
+        setAuthError(error.message || "A apÄƒrut o eroare necunoscutÄƒ la autentificare.");
       }
     } finally {
       setIsEmailLoading(false);
@@ -457,76 +458,76 @@ export default function Home() {
   const pdfPrintRef = useRef<any>(null);
 
   const examplesList = [
-    "Consultanță Securitate Cibernetică",
-    "Analiză de Risc Instituțional",
-    "Dezvoltare Soluții AI pentru Companii",
-    "Fermă Urbană de Microplante",
-    "Consultanță Accesare Fonduri Europene",
-    "Spălătorie Auto Ecologică",
-    "Agenție de Marketing Digital",
-    "Platformă de Cursuri Online",
+    "ConsultanÈ›Äƒ Securitate CiberneticÄƒ",
+    "AnalizÄƒ de Risc InstituÈ›ional",
+    "Dezvoltare SoluÈ›ii AI pentru Companii",
+    "FermÄƒ UrbanÄƒ de Microplante",
+    "ConsultanÈ›Äƒ Accesare Fonduri Europene",
+    "SpÄƒlÄƒtorie Auto EcologicÄƒ",
+    "AgenÈ›ie de Marketing Digital",
+    "PlatformÄƒ de Cursuri Online",
     "Studio de Design Interior",
     "Magazin Online de Produse Bio",
-    "Aplicație de Fitness",
-    "Consultanță Nutriție",
+    "AplicaÈ›ie de Fitness",
+    "ConsultanÈ›Äƒ NutriÈ›ie",
     "Servicii de Contabilitate",
-    "Clinică Stomatologică",
+    "ClinicÄƒ StomatologicÄƒ",
     "Cafenea de Specialitate",
     "Service Auto Hibrid",
     "Organizare Evenimente",
-    "Agenție de Recrutare IT"
+    "AgenÈ›ie de Recrutare IT"
   ];
 
   const randomIdeas = [
-    "Producție de ambalaje biodegradabile din miceliu",
-    "Aplicație de realitate augmentată pentru design interior",
-    "Serviciu de abonament pentru cafea de specialitate prăjită local",
-    "Reciclare și recondiționare baterii pentru mașini electrice",
-    "Turism apicol și experiențe de degustare la stupină",
-    "Platformă de telemedicină veterinară",
-    "Atelier de conversie a mașinilor clasice în mașini electrice",
-    "Sistem de irigații inteligente bazate pe senzori IoT",
+    "ProducÈ›ie de ambalaje biodegradabile din miceliu",
+    "AplicaÈ›ie de realitate augmentatÄƒ pentru design interior",
+    "Serviciu de abonament pentru cafea de specialitate prÄƒjitÄƒ local",
+    "Reciclare È™i recondiÈ›ionare baterii pentru maÈ™ini electrice",
+    "Turism apicol È™i experienÈ›e de degustare la stupinÄƒ",
+    "PlatformÄƒ de telemedicinÄƒ veterinarÄƒ",
+    "Atelier de conversie a maÈ™inilor clasice Ã®n maÈ™ini electrice",
+    "Sistem de irigaÈ›ii inteligente bazate pe senzori IoT",
     "Catering cu meniu complet personalizat pe baza ADN-ului",
-    "Agenție de turism pentru experiențe de „digital detox”",
-    "Fermă hidroponică urbană pentru microplante și ierburi aromatice",
-    "Aplicație AI pentru traducerea limbajului semnelor în timp real",
-    "Închiriere de haine de designer pe bază de abonament",
-    "Platformă de cursuri online pentru meserii tradiționale uitate",
-    "Servicii de curățenie folosind exclusiv produse ecologice și ozon",
-    "Cafenea dedicată pasionaților de board games cu bibliotecă de jocuri",
-    "Creșă și grădiniță cu program de educație forestieră (în natură)",
-    "Aplicație pentru planificarea meselor și reducerea risipei alimentare",
+    "AgenÈ›ie de turism pentru experienÈ›e de â€ždigital detoxâ€",
+    "FermÄƒ hidroponicÄƒ urbanÄƒ pentru microplante È™i ierburi aromatice",
+    "AplicaÈ›ie AI pentru traducerea limbajului semnelor Ã®n timp real",
+    "ÃŽnchiriere de haine de designer pe bazÄƒ de abonament",
+    "PlatformÄƒ de cursuri online pentru meserii tradiÈ›ionale uitate",
+    "Servicii de curÄƒÈ›enie folosind exclusiv produse ecologice È™i ozon",
+    "Cafenea dedicatÄƒ pasionaÈ›ilor de board games cu bibliotecÄƒ de jocuri",
+    "CreÈ™Äƒ È™i grÄƒdiniÈ›Äƒ cu program de educaÈ›ie forestierÄƒ (Ã®n naturÄƒ)",
+    "AplicaÈ›ie pentru planificarea meselor È™i reducerea risipei alimentare",
     "Serviciu de curierat rapid folosind exclusiv biciclete cargo electrice",
-    "Magazin zero-waste cu produse vrac și ambalaje returnabile",
-    "Platformă de crowdfunding pentru proiecte de energie regenerabilă comunitară",
-    "Serviciu de închiriere echipamente de camping și drumeție",
-    "Aplicație care conectează bucătarii locali cu oameni care doresc mâncare de casă",
-    "Producție de mobilier modular pentru spații mici din materiale reciclate",
-    "Centru de terapie prin realitate virtuală pentru fobii și anxietate",
-    "Serviciu de planificare a nunților sustenabile și eco-friendly",
-    "Aplicație care recompensează utilizatorii pentru reciclarea corectă a deșeurilor",
-    "Platformă B2B pentru schimbul și vânzarea materialelor de construcții surplus",
-    "Atelier de reparații și personalizare pentru încălțăminte sport (sneakers)",
-    "Servicii de consultanță pentru companii privind tranziția la săptămâna de lucru de 4 zile",
-    "Platformă de meditații online bazată pe inteligență artificială adaptativă",
-    "Abonament de cutii lunare cu produse de la fermieri și artizani locali",
-    "Aplicație pentru găsirea și rezervarea de stații de încărcare pentru vehicule electrice private",
-    "Serviciu de design de grădini pe balcoane și terase pentru apartamente",
-    "Producție de hrană premium pentru animale de companie din insecte",
-    "Platformă de matchmaking pentru co-fondatori de startup-uri",
-    "Serviciu de închiriere de drone pentru fotografie și inspecții imobiliare",
-    "Aplicație de fitness cu antrenamente generate de AI în funcție de echipamentul disponibil",
-    "Organizare de tabere de reconversie profesională accelerată în IT pentru adulți",
-    "Serviciu de „pet sitting” (bona pentru animale) cu monitorizare video integrată"
+    "Magazin zero-waste cu produse vrac È™i ambalaje returnabile",
+    "PlatformÄƒ de crowdfunding pentru proiecte de energie regenerabilÄƒ comunitarÄƒ",
+    "Serviciu de Ã®nchiriere echipamente de camping È™i drumeÈ›ie",
+    "AplicaÈ›ie care conecteazÄƒ bucÄƒtarii locali cu oameni care doresc mÃ¢ncare de casÄƒ",
+    "ProducÈ›ie de mobilier modular pentru spaÈ›ii mici din materiale reciclate",
+    "Centru de terapie prin realitate virtualÄƒ pentru fobii È™i anxietate",
+    "Serviciu de planificare a nunÈ›ilor sustenabile È™i eco-friendly",
+    "AplicaÈ›ie care recompenseazÄƒ utilizatorii pentru reciclarea corectÄƒ a deÈ™eurilor",
+    "PlatformÄƒ B2B pentru schimbul È™i vÃ¢nzarea materialelor de construcÈ›ii surplus",
+    "Atelier de reparaÈ›ii È™i personalizare pentru Ã®ncÄƒlÈ›Äƒminte sport (sneakers)",
+    "Servicii de consultanÈ›Äƒ pentru companii privind tranziÈ›ia la sÄƒptÄƒmÃ¢na de lucru de 4 zile",
+    "PlatformÄƒ de meditaÈ›ii online bazatÄƒ pe inteligenÈ›Äƒ artificialÄƒ adaptativÄƒ",
+    "Abonament de cutii lunare cu produse de la fermieri È™i artizani locali",
+    "AplicaÈ›ie pentru gÄƒsirea È™i rezervarea de staÈ›ii de Ã®ncÄƒrcare pentru vehicule electrice private",
+    "Serviciu de design de grÄƒdini pe balcoane È™i terase pentru apartamente",
+    "ProducÈ›ie de hranÄƒ premium pentru animale de companie din insecte",
+    "PlatformÄƒ de matchmaking pentru co-fondatori de startup-uri",
+    "Serviciu de Ã®nchiriere de drone pentru fotografie È™i inspecÈ›ii imobiliare",
+    "AplicaÈ›ie de fitness cu antrenamente generate de AI Ã®n funcÈ›ie de echipamentul disponibil",
+    "Organizare de tabere de reconversie profesionalÄƒ acceleratÄƒ Ã®n IT pentru adulÈ›i",
+    "Serviciu de â€žpet sittingâ€ (bona pentru animale) cu monitorizare video integratÄƒ"
   ];
 
   const loadingMessages = [
-    "Se inițiază analiza de piață...",
-    "Se calculează necesarul financiar...",
-    "Se structurează planul operațional...",
+    "Se iniÈ›iazÄƒ analiza de piaÈ›Äƒ...",
+    "Se calculeazÄƒ necesarul financiar...",
+    "Se structureazÄƒ planul operaÈ›ional...",
     "Se preia cursul valutar actualizat...",
-    "Se definitivează strategia S.W.O.T...",
-    "Se finisează documentul inteligent...",
+    "Se definitiveazÄƒ strategia S.W.O.T...",
+    "Se finiseazÄƒ documentul inteligent...",
     "Aproape gata..."
   ];
   const [messageIndex, setMessageIndex] = useState(0);
@@ -558,7 +559,7 @@ export default function Home() {
     if (typeof window !== 'undefined' && !devBypass && !isDevQuery) {
       const generateCount = parseInt(localStorage.getItem('demoGenerateCount') || '0');
       if (generateCount >= 100) {
-        setShowLimitModal({show: true, message: "Ai atins limita de generări gratuite pe Demo. Creează un cont pentru a continua."});
+        setShowLimitModal({show: true, message: "Ai atins limita de generÄƒri gratuite pe Demo. CreeazÄƒ un cont pentru a continua."});
         window.location.href = "/";
         return;
       }
@@ -583,7 +584,7 @@ export default function Home() {
         try {
           data = JSON.parse(resText);
         } catch (e) {
-          throw new Error(res.ok ? "Răspuns neașteptat de la server. Vă rugăm să reîncercați." : "Eroare la comunicarea cu serverul.");
+          throw new Error(res.ok ? "RÄƒspuns neaÈ™teptat de la server. VÄƒ rugÄƒm sÄƒ reÃ®ncercaÈ›i." : "Eroare la comunicarea cu serverul.");
         }
 
         if (!res.ok) {
@@ -597,7 +598,7 @@ export default function Home() {
       if (data && data.ideas && data.ideas.length > 0) {
         const content = data.ideas[0];
         let cleanJson = content.replace(/```json/g, '').replace(/```/g, '').trim();
-        cleanJson = cleanJson.replace(/[„“”]/g, '"');
+        cleanJson = cleanJson.replace(/[â€žâ€œâ€]/g, '"');
         const startIndex = cleanJson.indexOf('{');
         const endIndex = cleanJson.lastIndexOf('}');
         if (startIndex !== -1 && endIndex !== -1) cleanJson = cleanJson.substring(startIndex, endIndex + 1);
@@ -620,9 +621,9 @@ export default function Home() {
                 ...finalResult,
                 createdAt: new Date().toISOString(),
               });
-              console.log("Plan salvat cu succes în Firestore:", planId);
+              console.log("Plan salvat cu succes Ã®n Firestore:", planId);
             } catch (fsError) {
-              console.error("Eroare la salvarea planului în Firestore:", fsError);
+              console.error("Eroare la salvarea planului Ã®n Firestore:", fsError);
             }
           }
         } catch (error) {
@@ -633,13 +634,13 @@ export default function Home() {
             generate(undefined, retryCount + 1);
             return;
           }
-          alert("Sistemul AI este momentan supraîncărcat și a generat un răspuns incomplet. Te rugăm să mai încerci o dată!");
+          alert("Sistemul AI este momentan supraÃ®ncÄƒrcat È™i a generat un rÄƒspuns incomplet. Te rugÄƒm sÄƒ mai Ã®ncerci o datÄƒ!");
           setLoading(false);
         }
       }
     } catch (error: any) {
       console.error("Eroare:", error);
-      alert(error.message || "A apărut o eroare la generarea planului. Te rugăm să încerci din nou mai târziu.");
+      alert(error.message || "A apÄƒrut o eroare la generarea planului. Te rugÄƒm sÄƒ Ã®ncerci din nou mai tÃ¢rziu.");
     } finally {
       if (shouldStopLoading) setLoading(false);
     }
@@ -675,12 +676,17 @@ export default function Home() {
   };
 
   const downloadAction = async (mode: 'pdf' | 'pptx' | 'word' | 'pdf-summary', bypassPaymentCheck = false) => {
+    if (mode === 'pdf-summary' && hasEdited) {
+      setShowLimitModal({show: true, message: "Ai personalizat planul tău cu succes! Pentru a-l descărca și a beneficia de instrumente AI nelimitate, te rugăm să-ți creezi un cont gratuit."});
+      return;
+    }
+
     const planName = result?.nume || "Plan de Afaceri";
 
     if (mode !== 'pdf-summary' && !isAdmin && !isPlanPaid && !subscriptionActive && !euFundsUnlocked && !bypassPaymentCheck) {
       if (credits > 0) {
         const confirmUnlock = window.confirm(
-          `Descărcarea acestui document va consuma 1 credit din cele ${credits} disponibile. Dorești să continui?`
+          `DescÄƒrcarea acestui document va consuma 1 credit din cele ${credits} disponibile. DoreÈ™ti sÄƒ continui?`
         );
         if (!confirmUnlock) return;
 
@@ -692,7 +698,7 @@ export default function Home() {
           }, { merge: true });
         } catch (e) {
           console.error("Eroare la scaderea creditului:", e);
-          alert("A apărut o eroare la procesarea creditului. Vă rugăm reîncercați.");
+          alert("A apÄƒrut o eroare la procesarea creditului. VÄƒ rugÄƒm reÃ®ncercaÈ›i.");
           return;
         }
       } else {
@@ -736,7 +742,7 @@ export default function Home() {
 
         const formatPptText = (text: string | undefined, color: string = 'e4e4e7') => {
             if (!text) return [];
-            let stripped = text.replace(/^(?:În primul an:?|În următorii(?:\s*\d+(?:-\d+)?\s*ani)?:?|Obiective(?:le)?[^:]*:?|Pentru primul an:?|Pe termen scurt:?|Pe termen mediu:?)\s*/i, '').replace(/\*\*/g, '');
+            let stripped = text.replace(/^(?:ÃŽn primul an:?|ÃŽn urmÄƒtorii(?:\s*\d+(?:-\d+)?\s*ani)?:?|Obiective(?:le)?[^:]*:?|Pentru primul an:?|Pe termen scurt:?|Pe termen mediu:?)\s*/i, '').replace(/\*\*/g, '');
             return stripped.split('\n').filter(l => l.trim().length > 0).map(l => {
                 return { text: l.trim(), options: { bullet: false, color, breakLine: true } };
             });
@@ -751,8 +757,8 @@ export default function Home() {
 
         // Slide 2: Viziune
         let slide2 = pres.addSlide({ masterName: 'MASTER_SLIDE' });
-        slide2.addText('DATE GENERALE ȘI VIZIUNE', { x: 0.5, y: 0.5, w: 9, h: 0.5, fontSize: 28, bold: true, color: '10b981', fontFace: 'Arial' });
-        slide2.addText('Forma juridică: ' + result.date_generale?.forma_juridica + '\nCod CAEN: ' + result.date_generale?.cod_caen + '\nContact: ' + result.date_generale?.date_contact, { x: 0.5, y: 1.2, w: 9, h: 0.8, fontSize: 14, color: 'a1a1aa' });
+        slide2.addText('DATE GENERALE È˜I VIZIUNE', { x: 0.5, y: 0.5, w: 9, h: 0.5, fontSize: 28, bold: true, color: '10b981', fontFace: 'Arial' });
+        slide2.addText('Forma juridicÄƒ: ' + result.date_generale?.forma_juridica + '\nCod CAEN: ' + result.date_generale?.cod_caen + '\nContact: ' + result.date_generale?.date_contact, { x: 0.5, y: 1.2, w: 9, h: 0.8, fontSize: 14, color: 'a1a1aa' });
         
         slide2.addText('Obiective (1 an)', { x: 0.5, y: 2.2, w: 4.2, h: 0.4, fontSize: 18, bold: true, color: '10b981' });
         slide2.addText(formatPptText(result.viziune_strategie?.obiective_scurt), { x: 0.5, y: 2.6, w: 4.2, h: 4, fontSize: 14, valign: 'top' });
@@ -760,17 +766,17 @@ export default function Home() {
         slide2.addText('Obiective (3-5 ani)', { x: 5.2, y: 2.2, w: 4.2, h: 0.4, fontSize: 18, bold: true, color: '10b981' });
         slide2.addText(formatPptText(result.viziune_strategie?.obiective_mediu), { x: 5.2, y: 2.6, w: 4.2, h: 4, fontSize: 14, valign: 'top' });
 
-        // Slide 3: Misiune și Piață
+        // Slide 3: Misiune È™i PiaÈ›Äƒ
         let slide3 = pres.addSlide({ masterName: 'MASTER_SLIDE' });
-        slide3.addText('MISIUNE, VALORI ȘI PIAȚĂ', { x: 0.5, y: 0.5, w: 9, h: 0.5, fontSize: 28, bold: true, color: '10b981', fontFace: 'Arial' });
+        slide3.addText('MISIUNE, VALORI È˜I PIAÈšÄ‚', { x: 0.5, y: 0.5, w: 9, h: 0.5, fontSize: 28, bold: true, color: '10b981', fontFace: 'Arial' });
         
-        slide3.addText('Misiune și Valori', { x: 0.5, y: 1.2, w: 4.2, h: 0.4, fontSize: 18, bold: true, color: '10b981' });
+        slide3.addText('Misiune È™i Valori', { x: 0.5, y: 1.2, w: 4.2, h: 0.4, fontSize: 18, bold: true, color: '10b981' });
         slide3.addText(formatPptText(result.viziune_strategie?.misiune_valori), { x: 0.5, y: 1.6, w: 4.2, h: 5.5, fontSize: 14, valign: 'top' });
         
-        slide3.addText('Clienții Țintă', { x: 5.2, y: 1.2, w: 4.2, h: 0.4, fontSize: 18, bold: true, color: '10b981' });
+        slide3.addText('ClienÈ›ii ÈšintÄƒ', { x: 5.2, y: 1.2, w: 4.2, h: 0.4, fontSize: 18, bold: true, color: '10b981' });
         slide3.addText(formatPptText(result.analiza_pietei?.clienti_tinta), { x: 5.2, y: 1.6, w: 4.2, h: 2, fontSize: 14, valign: 'top' });
         
-        slide3.addText('Concurența', { x: 5.2, y: 3.8, w: 4.2, h: 0.4, fontSize: 18, bold: true, color: '10b981' });
+        slide3.addText('ConcurenÈ›a', { x: 5.2, y: 3.8, w: 4.2, h: 0.4, fontSize: 18, bold: true, color: '10b981' });
         slide3.addText(formatPptText(result.analiza_pietei?.concurenta), { x: 5.2, y: 4.2, w: 4.2, h: 3, fontSize: 14, valign: 'top' });
 
         // Slide 4: SWOT
@@ -780,18 +786,18 @@ export default function Home() {
         slide4.addText('PUNCTE TARI (S)', { x: 0.5, y: 1.2, w: 4.2, h: 0.4, fontSize: 18, bold: true, color: '10b981' });
         slide4.addText(swotFormat(result.analiza_swot?.puncte_tari, 'e4e4e7'), { x: 0.5, y: 1.6, w: 4.2, h: 2.5, fontSize: 12, valign: 'top' });
         
-        slide4.addText('SLĂBICIUNI (W)', { x: 5.2, y: 1.2, w: 4.2, h: 0.4, fontSize: 18, bold: true, color: 'ef4444' });
+        slide4.addText('SLÄ‚BICIUNI (W)', { x: 5.2, y: 1.2, w: 4.2, h: 0.4, fontSize: 18, bold: true, color: 'ef4444' });
         slide4.addText(swotFormat(result.analiza_swot?.puncte_slabe, 'e4e4e7'), { x: 5.2, y: 1.6, w: 4.2, h: 2.5, fontSize: 12, valign: 'top' });
 
-        slide4.addText('OPORTUNITĂȚI (O)', { x: 0.5, y: 4.2, w: 4.2, h: 0.4, fontSize: 18, bold: true, color: '3b82f6' });
+        slide4.addText('OPORTUNITÄ‚ÈšI (O)', { x: 0.5, y: 4.2, w: 4.2, h: 0.4, fontSize: 18, bold: true, color: '3b82f6' });
         slide4.addText(swotFormat(result.analiza_swot?.oportunitati, 'e4e4e7'), { x: 0.5, y: 4.6, w: 4.2, h: 2.5, fontSize: 12, valign: 'top' });
         
-        slide4.addText('AMENINȚĂRI (T)', { x: 5.2, y: 4.2, w: 4.2, h: 0.4, fontSize: 18, bold: true, color: 'eab308' });
+        slide4.addText('AMENINÈšÄ‚RI (T)', { x: 5.2, y: 4.2, w: 4.2, h: 0.4, fontSize: 18, bold: true, color: 'eab308' });
         slide4.addText(swotFormat(result.analiza_swot?.amenintari, 'e4e4e7'), { x: 5.2, y: 4.6, w: 4.2, h: 2.5, fontSize: 12, valign: 'top' });
 
-        // Slide 5: Plan Operațional
+        // Slide 5: Plan OperaÈ›ional
         let slide5 = pres.addSlide({ masterName: 'MASTER_SLIDE' });
-        slide5.addText('PLAN OPERAȚIONAL ȘI DE MANAGEMENT', { x: 0.5, y: 0.5, w: 9, h: 0.5, fontSize: 28, bold: true, color: '10b981', fontFace: 'Arial' });
+        slide5.addText('PLAN OPERAÈšIONAL È˜I DE MANAGEMENT', { x: 0.5, y: 0.5, w: 9, h: 0.5, fontSize: 28, bold: true, color: '10b981', fontFace: 'Arial' });
         slide5.addText(formatPptText(result.plan_operational?.flux_tehnologic), { x: 0.5, y: 1.2, w: 9, h: 5.5, fontSize: 14, valign: 'top' });
 
         const safeName = result?.nume?.replace(/[^a-zA-Z0-9]/g, '_') || 'Business';
@@ -862,26 +868,26 @@ export default function Home() {
           
           let html = `
               <h1 style="text-align:center; font-family: Arial, sans-serif;">${result.nume || ''}</h1>
-              <h3 style="text-align:center; color: #555; font-style: italic; font-family: Arial, sans-serif;">„${result.slogan || ''}”</h3>
+              <h3 style="text-align:center; color: #555; font-style: italic; font-family: Arial, sans-serif;">â€ž${result.slogan || ''}â€</h3>
               <hr />
               
-              <h2 style="font-family: Arial, sans-serif; color: #065f46;">I & II. Date Generale și Viziune</h2>
+              <h2 style="font-family: Arial, sans-serif; color: #065f46;">I & II. Date Generale È™i Viziune</h2>
               <table width="100%" cellpadding="5" cellspacing="0" style="font-family: Arial, sans-serif; font-size: 14px; margin-bottom: 20px;">
-                <tr><td width="30%"><strong>Forma Juridică:</strong></td><td>${result.date_generale?.forma_juridica}</td></tr>
+                <tr><td width="30%"><strong>Forma JuridicÄƒ:</strong></td><td>${result.date_generale?.forma_juridica}</td></tr>
                 <tr><td><strong>Cod CAEN:</strong></td><td>${result.date_generale?.cod_caen}</td></tr>
                 <tr><td><strong>Date Contact:</strong></td><td>${result.date_generale?.date_contact}</td></tr>
               </table>
-              <h3 style="font-family: Arial, sans-serif; font-size: 16px;">Viziune și Strategie</h3>
+              <h3 style="font-family: Arial, sans-serif; font-size: 16px;">Viziune È™i Strategie</h3>
               <ul style="font-family: Arial, sans-serif; font-size: 14px;">
                 <li style="margin-bottom: 10px;"><strong>Obiective pe Termen Scurt:</strong><br/>${result.viziune_strategie?.obiective_scurt}</li>
                 <li style="margin-bottom: 10px;"><strong>Obiective pe Termen Mediu:</strong><br/>${result.viziune_strategie?.obiective_mediu}</li>
-                <li style="margin-bottom: 10px;"><strong>Misiune și Valori:</strong><br/>${result.viziune_strategie?.misiune_valori}</li>
+                <li style="margin-bottom: 10px;"><strong>Misiune È™i Valori:</strong><br/>${result.viziune_strategie?.misiune_valori}</li>
               </ul>
 
-              <h2 style="font-family: Arial, sans-serif; color: #065f46;">III. Analiza Pieței și Promovarea</h2>
+              <h2 style="font-family: Arial, sans-serif; color: #065f46;">III. Analiza PieÈ›ei È™i Promovarea</h2>
               <ul style="font-family: Arial, sans-serif; font-size: 14px;">
-                <li style="margin-bottom: 10px;"><strong>Clienții Țintă:</strong><br/>${result.analiza_pietei?.clienti_tinta}</li>
-                <li style="margin-bottom: 10px;"><strong>Concurența:</strong><br/>${result.analiza_pietei?.concurenta}</li>
+                <li style="margin-bottom: 10px;"><strong>ClienÈ›ii ÈšintÄƒ:</strong><br/>${result.analiza_pietei?.clienti_tinta}</li>
+                <li style="margin-bottom: 10px;"><strong>ConcurenÈ›a:</strong><br/>${result.analiza_pietei?.concurenta}</li>
                 <li style="margin-bottom: 10px;"><strong>Strategia de Marketing:</strong><br/>${result.analiza_pietei?.strategie_marketing}</li>
               </ul>
 
@@ -895,7 +901,7 @@ export default function Home() {
                           </ul>
                       </td>
                       <td width="50%" valign="top">
-                          <h3 style="color: #9a3412;">Slăbiciuni (W)</h3>
+                          <h3 style="color: #9a3412;">SlÄƒbiciuni (W)</h3>
                           <ul>
                               ${result.analiza_swot?.puncte_slabe?.map((item: any) => `<li><strong style="color:#9a3412;">${item.titlu || item}</strong><br/>${item.explicatie_tehnica}</li>`).join('') || ''}
                           </ul>
@@ -903,13 +909,13 @@ export default function Home() {
                   </tr>
                   <tr>
                       <td width="50%" valign="top">
-                          <h3 style="color: #1e40af;">Oportunități (O)</h3>
+                          <h3 style="color: #1e40af;">OportunitÄƒÈ›i (O)</h3>
                           <ul>
                               ${result.analiza_swot?.oportunitati?.map((item: any) => `<li><strong style="color:#1e40af;">${item.titlu || item}</strong><br/>${item.explicatie_tehnica}</li>`).join('') || ''}
                           </ul>
                       </td>
                       <td width="50%" valign="top">
-                          <h3 style="color: #991b1b;">Amenințări (T)</h3>
+                          <h3 style="color: #991b1b;">AmeninÈ›Äƒri (T)</h3>
                           <ul>
                               ${result.analiza_swot?.amenintari?.map((item: any) => `<li><strong style="color:#991b1b;">${item.titlu || item}</strong><br/>${item.explicatie_tehnica}</li>`).join('') || ''}
                           </ul>
@@ -917,18 +923,18 @@ export default function Home() {
                   </tr>
               </table>
               
-              <h2 style="font-family: Arial, sans-serif; color: #065f46; margin-top: 24px;">V. Planul Operațional și de Management</h2>
+              <h2 style="font-family: Arial, sans-serif; color: #065f46; margin-top: 24px;">V. Planul OperaÈ›ional È™i de Management</h2>
               <ol style="font-family: Arial, sans-serif; line-height: 1.6; font-size: 14px; padding-left: 20px;">
                   <li style="margin-bottom: 10px;"><strong>Descriere Flux Tehnologic:</strong><br/>${result.plan_operational?.descriere_flux}</li>
-                  <li style="margin-bottom: 10px;"><strong>Resurse Umane (Organigramă):</strong><br/>${result.plan_operational?.resurse_umane}</li>
-                  <li style="margin-bottom: 10px;"><strong>Locație și Dotări Necesare:</strong><br/>${result.plan_operational?.locatie_dotari}</li>
+                  <li style="margin-bottom: 10px;"><strong>Resurse Umane (OrganigramÄƒ):</strong><br/>${result.plan_operational?.resurse_umane}</li>
+                  <li style="margin-bottom: 10px;"><strong>LocaÈ›ie È™i DotÄƒri Necesare:</strong><br/>${result.plan_operational?.locatie_dotari}</li>
               </ol>
 
               <h2 style="font-family: Arial, sans-serif; color: #065f46;">VI. Planul Financiar</h2>
               <p style="font-family: Arial, sans-serif; line-height: 1.6; font-size: 14px; font-style: italic;">
                   ${result.plan_financiar?.strategie_financiara}
               </p>
-              <h3 style="font-family: Arial, sans-serif; font-size: 16px;">Buget Investiții</h3>
+              <h3 style="font-family: Arial, sans-serif; font-size: 16px;">Buget InvestiÈ›ii</h3>
               <ul style="font-family: Arial, sans-serif; line-height: 1.6; font-size: 14px;">
                   ${result.plan_financiar?.buget_investitii?.map((b: any) => `<li><strong>${b.item}</strong> - <span style="color:#065f46;">${formatPrice(b.cost)}</span><br/><span style="color:#555; font-style:italic;">${b.explicatie}</span></li>`).join('') || ''}
               </ul>
@@ -952,7 +958,7 @@ export default function Home() {
       }
     } catch (e) {
       console.error("Eroare la generarea documentului", e);
-      alert("A apărut o eroare la salvarea documentului.");
+      alert("A apÄƒrut o eroare la salvarea documentului.");
     } finally {
       setIsDownloading(null);
     }
@@ -962,8 +968,8 @@ export default function Home() {
     <div className="w-full lg:w-2/5 xl:w-1/3 flex flex-col gap-6 sticky top-8 print:hidden">
       
                 <div className="bg-zinc-900 border border-zinc-800 rounded-[2rem] p-8 shadow-xl sticky top-8">
-                   <h3 className="text-2xl font-black text-white mb-4 flex items-center gap-3"><span className="text-emerald-500">✨</span> Instrumente</h3>
-                   <p className="text-zinc-400 text-sm mb-6 leading-relaxed">Aici poți folosi asistentul inteligent pentru a adăuga mai multe informații și detalii planului tău.</p>
+                   <h3 className="text-2xl font-black text-white mb-4 flex items-center gap-3"><span className="text-emerald-500">âœ¨</span> Instrumente</h3>
+                   <p className="text-zinc-400 text-sm mb-6 leading-relaxed">Aici poÈ›i folosi asistentul inteligent pentru a adÄƒuga mai multe informaÈ›ii È™i detalii planului tÄƒu.</p>
                    
                    <div className="flex flex-col gap-3">
                       <div className="flex flex-col gap-2">
@@ -974,45 +980,45 @@ export default function Home() {
                           className="w-full bg-black hover:bg-zinc-800 border border-zinc-800 rounded-xl px-5 py-4 font-bold text-sm text-zinc-300 transition-all text-left flex items-center justify-between group disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                           <span className="flex items-center gap-3">
-                            <span className="text-emerald-500 group-hover:scale-110 transition-transform">🪄</span>
+                            <span className="text-emerald-500 group-hover:scale-110 transition-transform">ðŸª„</span>
                             <span>Rescrie tonul</span>
                           </span>
-                          <span className="text-xs text-zinc-500">{showToneOptions ? "▲" : "▼"}</span>
+                          <span className="text-xs text-zinc-500">{showToneOptions ? "â–²" : "â–¼"}</span>
                         </button>
                         
                         {showToneOptions && (
                           <div className="bg-black/40 border border-zinc-800 rounded-xl p-2 flex flex-col gap-1.5 animate-in fade-in slide-in-from-top-2 duration-200">
                             <button 
                               type="button"
-                              onClick={() => handleAiEdit("professional_tone", "formal, corporativ și profesionist")} 
+                              onClick={() => handleAiEdit("professional_tone", "formal, corporativ È™i profesionist")} 
                               disabled={isEditingAi}
                               className="w-full text-xs text-left px-4 py-2.5 rounded-lg hover:bg-zinc-900 text-zinc-400 hover:text-white transition-all font-semibold"
                             >
-                              💼 Profesional & Corporativ
+                              ðŸ’¼ Profesional & Corporativ
                             </button>
                             <button 
                               type="button"
-                              onClick={() => handleAiEdit("professional_tone", "entuziast, creativ și plin de energie")} 
+                              onClick={() => handleAiEdit("professional_tone", "entuziast, creativ È™i plin de energie")} 
                               disabled={isEditingAi}
                               className="w-full text-xs text-left px-4 py-2.5 rounded-lg hover:bg-zinc-900 text-zinc-400 hover:text-white transition-all font-semibold"
                             >
-                              🎨 Entuziast & Creativ
+                              ðŸŽ¨ Entuziast & Creativ
                             </button>
                             <button 
                               type="button"
-                              onClick={() => handleAiEdit("professional_tone", "persuasiv, orientat spre vânzări și convingător")} 
+                              onClick={() => handleAiEdit("professional_tone", "persuasiv, orientat spre vÃ¢nzÄƒri È™i convingÄƒtor")} 
                               disabled={isEditingAi}
                               className="w-full text-xs text-left px-4 py-2.5 rounded-lg hover:bg-zinc-900 text-zinc-400 hover:text-white transition-all font-semibold"
                             >
-                              📈 Persuasiv & Vânzări
+                              ðŸ“ˆ Persuasiv & VÃ¢nzÄƒri
                             </button>
                             <button 
                               type="button"
-                              onClick={() => handleAiEdit("professional_tone", "prietenos, simplu și ușor de înțeles")} 
+                              onClick={() => handleAiEdit("professional_tone", "prietenos, simplu È™i uÈ™or de Ã®nÈ›eles")} 
                               disabled={isEditingAi}
                               className="w-full text-xs text-left px-4 py-2.5 rounded-lg hover:bg-zinc-900 text-zinc-400 hover:text-white transition-all font-semibold"
                             >
-                              🤝 Prietenos & Casual
+                              ðŸ¤ Prietenos & Casual
                             </button>
                           </div>
                         )}
@@ -1021,38 +1027,38 @@ export default function Home() {
                       <button 
                         type="button" 
                         onClick={() => {
-                          setActiveAiPrompt(activeAiPrompt?.action === "eu_funds_optimization" ? null : {action: "eu_funds_optimization", title: "Optimizare Fonduri Europene", isConfirm: true, desc: "Se va adapta planul pentru fonduri europene:\n1. Concepte cheie: digitalizare, sustenabilitate.\n2. Redenumirea achizițiilor pentru a fi eligibile.\n\nEști gata?"});
+                          setActiveAiPrompt(activeAiPrompt?.action === "eu_funds_optimization" ? null : {action: "eu_funds_optimization", title: "Optimizare Fonduri Europene", isConfirm: true, desc: "Se va adapta planul pentru fonduri europene:\n1. Concepte cheie: digitalizare, sustenabilitate.\n2. Redenumirea achiziÈ›iilor pentru a fi eligibile.\n\nEÈ™ti gata?"});
                         }} 
                         disabled={isEditingAi} 
                         className={`w-full text-left flex items-center justify-between rounded-xl px-5 py-4 font-bold text-sm transition-all group disabled:opacity-50 disabled:cursor-not-allowed bg-black hover:bg-zinc-800 border border-zinc-800 text-zinc-300`}
                       >
                         <span className="flex items-center gap-3">
-                          <span className="text-amber-500 group-hover:scale-110 transition-transform">🇪🇺</span>
+                          <span className="text-amber-500 group-hover:scale-110 transition-transform">ðŸ‡ªðŸ‡º</span>
                           <span>
-                            {isEditingAi ? "Se procesează..." : "Optimizat pentru Fonduri Europene"}
+                            {isEditingAi ? "Se proceseazÄƒ..." : "Optimizat pentru Fonduri Europene"}
                           </span>
                         </span>
                       </button>
 
-                      <button type="button" onClick={() => setActiveAiPrompt(activeAiPrompt?.action === "optimize_budget" ? null : {action: "optimize_budget", title: "Optimizează Bugetul", placeholder: "ex: 10, 20, 30", desc: "Cu ce procent dorești să reduci costurile bugetate?"})} disabled={isEditingAi} className="w-full bg-black hover:bg-zinc-800 border border-zinc-800 rounded-xl px-5 py-4 font-bold text-sm text-zinc-300 transition-all text-left flex items-center gap-3 group disabled:opacity-50 disabled:cursor-not-allowed">
-                        <span className="text-emerald-500 group-hover:scale-110 transition-transform">📉</span>
+                      <button type="button" onClick={() => setActiveAiPrompt(activeAiPrompt?.action === "optimize_budget" ? null : {action: "optimize_budget", title: "OptimizeazÄƒ Bugetul", placeholder: "ex: 10, 20, 30", desc: "Cu ce procent doreÈ™ti sÄƒ reduci costurile bugetate?"})} disabled={isEditingAi} className="w-full bg-black hover:bg-zinc-800 border border-zinc-800 rounded-xl px-5 py-4 font-bold text-sm text-zinc-300 transition-all text-left flex items-center gap-3 group disabled:opacity-50 disabled:cursor-not-allowed">
+                        <span className="text-emerald-500 group-hover:scale-110 transition-transform">ðŸ“‰</span>
                         <span>
-                          {isEditingAi ? "Se procesează..." : (
+                          {isEditingAi ? "Se proceseazÄƒ..." : (
                             <>
-                              Optimizează Bugetul <span className="whitespace-nowrap">(Personalizat)</span>
+                              OptimizeazÄƒ Bugetul <span className="whitespace-nowrap">(Personalizat)</span>
                             </>
                           )}
                         </span>
                       </button>
 
-                      <button type="button" onClick={() => setActiveAiPrompt(activeAiPrompt?.action === "add_sections" ? null : {action: "add_sections", title: "Adaugă Secțiuni Noi", placeholder: "ex: Plan de Marketing, Analiza Riscurilor", desc: "Ce informații suplimentare dorești să adaugi?"})} disabled={isEditingAi} className="w-full bg-black hover:bg-zinc-800 border border-zinc-800 rounded-xl px-5 py-4 font-bold text-sm text-zinc-300 transition-all text-left flex items-center gap-3 group disabled:opacity-50 disabled:cursor-not-allowed">
-                        <span className="text-emerald-500 group-hover:scale-110 transition-transform">💡</span> 
-                        <span>{isEditingAi ? "Se procesează..." : "Adaugă secțiuni noi"}</span>
+                      <button type="button" onClick={() => setActiveAiPrompt(activeAiPrompt?.action === "add_sections" ? null : {action: "add_sections", title: "AdaugÄƒ SecÈ›iuni Noi", placeholder: "ex: Plan de Marketing, Analiza Riscurilor", desc: "Ce informaÈ›ii suplimentare doreÈ™ti sÄƒ adaugi?"})} disabled={isEditingAi} className="w-full bg-black hover:bg-zinc-800 border border-zinc-800 rounded-xl px-5 py-4 font-bold text-sm text-zinc-300 transition-all text-left flex items-center gap-3 group disabled:opacity-50 disabled:cursor-not-allowed">
+                        <span className="text-emerald-500 group-hover:scale-110 transition-transform">ðŸ’¡</span> 
+                        <span>{isEditingAi ? "Se proceseazÄƒ..." : "AdaugÄƒ secÈ›iuni noi"}</span>
                       </button>
 
                       <button type="button" onClick={() => window.location.href = '/' } disabled={isEditingAi} className="w-full bg-zinc-900/80 hover:bg-zinc-800 border border-emerald-500/30 rounded-xl px-5 py-4 font-bold text-sm text-emerald-100 transition-all text-left flex items-center gap-3 group disabled:opacity-50 disabled:cursor-not-allowed shadow-[0_0_15px_rgba(16,185,129,0.1)]">
-                        <span className="text-emerald-400 group-hover:scale-110 transition-transform text-lg">🏦</span> 
-                        <span>Plan Profesionist <span className="text-amber-500">🔒</span></span>
+                        <span className="text-emerald-400 group-hover:scale-110 transition-transform text-lg">ðŸ¦</span> 
+                        <span>Plan Profesionist <span className="text-amber-500">ðŸ”’</span></span>
                       </button>
                     </div>
 
@@ -1079,14 +1085,14 @@ export default function Home() {
                             disabled={!activeAiPrompt.isConfirm && !aiPromptInput.trim()}
                             className="flex-1 bg-emerald-600 hover:bg-emerald-500 disabled:bg-zinc-800 disabled:text-zinc-500 text-white font-bold text-xs py-2 rounded-lg transition-colors"
                           >
-                            {activeAiPrompt.isConfirm ? "Confirmă" : "Aplică"}
+                            {activeAiPrompt.isConfirm ? "ConfirmÄƒ" : "AplicÄƒ"}
                           </button>
                           <button 
                             type="button"
                             onClick={() => { setActiveAiPrompt(null); setAiPromptInput(""); }}
                             className="flex-1 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 font-bold text-xs py-2 rounded-lg transition-colors"
                           >
-                            Anulează
+                            AnuleazÄƒ
                           </button>
                         </div>
                       </div>
@@ -1095,15 +1101,15 @@ export default function Home() {
             
             {/* User Tip */}
             <div className="mt-6 flex items-start gap-2 bg-emerald-500/10 border border-emerald-500/20 p-4 rounded-2xl w-full">
-              <span className="text-emerald-400 mt-0.5 text-lg">💡</span>
+              <span className="text-emerald-400 mt-0.5 text-lg">ðŸ’¡</span>
               <p className="text-[13px] text-emerald-100/70 leading-relaxed">
-                <strong>Sfat:</strong> Aici editezi textul documentului. Pentru a adăuga <strong className="text-white">imagini</strong>, logo sau a schimba aranjarea în pagină, apasă <em>Confirmă și Salvează</em>, apoi descarcă documentele.
+                <strong>Sfat:</strong> Aici editezi textul documentului. Pentru a adÄƒuga <strong className="text-white">imagini</strong>, logo sau a schimba aranjarea Ã®n paginÄƒ, apasÄƒ <em>ConfirmÄƒ È™i SalveazÄƒ</em>, apoi descarcÄƒ documentele.
               </p>
             </div>
 
             {/* AdSense Banner Sidebar */}
             <div className="mt-6 w-full min-h-[250px] rounded-2xl overflow-hidden bg-zinc-900/30 border border-zinc-800/50 flex flex-col items-center justify-center relative">
-              <span className="text-zinc-600 text-xs font-bold uppercase tracking-widest absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-0">Spațiu Reclamă</span>
+              <span className="text-zinc-600 text-xs font-bold uppercase tracking-widest absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-0">SpaÈ›iu ReclamÄƒ</span>
               <div className="relative z-10 w-full h-full">
                 <AdBanner dataAdSlot="AUTO_AD_SLOT" />
               </div>
@@ -1112,28 +1118,28 @@ export default function Home() {
         <div className="fixed inset-0 bg-black/90 backdrop-blur-md z-[200] flex items-center justify-center p-4">
           <div className="bg-zinc-900 border border-zinc-800 rounded-3xl p-8 max-w-xl w-full flex flex-col shadow-2xl">
             <div className="flex justify-between items-start mb-6">
-              <span className="text-4xl">👋</span>
+              <span className="text-4xl">ðŸ‘‹</span>
               <button onClick={() => setShowWelcomeModal(false)} className="text-zinc-500 hover:text-white transition-colors">
-                ✕
+                âœ•
               </button>
             </div>
             
             <h3 className="text-3xl font-black text-white mb-3">Bine ai revenit!</h3>
-            <p className="text-zinc-400 mb-8 text-lg">Ai descărcat cu succes sumarul planului tău. Acesta este momentul în care magia prinde contur, iar planul tău devine o afacere reală.</p>
+            <p className="text-zinc-400 mb-8 text-lg">Ai descÄƒrcat cu succes sumarul planului tÄƒu. Acesta este momentul Ã®n care magia prinde contur, iar planul tÄƒu devine o afacere realÄƒ.</p>
             
             <div className="space-y-4 mb-8">
               <div className="bg-emerald-950/30 border border-emerald-900/50 p-5 rounded-2xl flex gap-4 items-start">
-                <span className="text-2xl">✏️</span>
+                <span className="text-2xl">âœï¸</span>
                 <div>
-                  <h4 className="text-white font-bold mb-1">Editează Documentul</h4>
-                  <p className="text-sm text-zinc-400">Transformă textul cu asistentul AI, optimizează-l pentru fonduri UE și ajustează cifrele financiare.</p>
+                  <h4 className="text-white font-bold mb-1">EditeazÄƒ Documentul</h4>
+                  <p className="text-sm text-zinc-400">TransformÄƒ textul cu asistentul AI, optimizeazÄƒ-l pentru fonduri UE È™i ajusteazÄƒ cifrele financiare.</p>
                 </div>
               </div>
               <div className="bg-emerald-950/30 border border-emerald-900/50 p-5 rounded-2xl flex gap-4 items-start">
-                <span className="text-2xl">📄</span>
+                <span className="text-2xl">ðŸ“„</span>
                 <div>
-                  <h4 className="text-white font-bold mb-1">Descărcări Premium</h4>
-                  <p className="text-sm text-zinc-400">Deblochează accesul nelimitat la PDF Extins, Document Word și Prezentare PowerPoint (.pptx).</p>
+                  <h4 className="text-white font-bold mb-1">DescÄƒrcÄƒri Premium</h4>
+                  <p className="text-sm text-zinc-400">DeblocheazÄƒ accesul nelimitat la PDF Extins, Document Word È™i Prezentare PowerPoint (.pptx).</p>
                 </div>
               </div>
             </div>
@@ -1146,7 +1152,7 @@ export default function Home() {
                 }} 
                 className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-4 rounded-xl transition-all shadow-[0_0_20px_rgba(16,185,129,0.3)] text-lg"
               >
-                Editează Planul Acum
+                EditeazÄƒ Planul Acum
               </button>
               <button 
                 onClick={() => {
@@ -1155,7 +1161,7 @@ export default function Home() {
                 }} 
                 className="w-full bg-zinc-800 hover:bg-zinc-700 text-white font-bold py-4 rounded-xl transition-all text-sm border border-zinc-700"
               >
-                Vezi Pachete și Conturi
+                Vezi Pachete È™i Conturi
               </button>
             </div>
           </div>
@@ -1180,7 +1186,7 @@ export default function Home() {
       onContextMenu={(e) => e.preventDefault()}
     >
       <div className="hidden print:block w-full h-full bg-white text-black text-center p-20 text-3xl font-bold">
-        Conținutul este protejat. Pentru a obține documentul, utilizați funcția de descărcare din aplicație.
+        ConÈ›inutul este protejat. Pentru a obÈ›ine documentul, utilizaÈ›i funcÈ›ia de descÄƒrcare din aplicaÈ›ie.
       </div>
       {/* Background glow orbs */}
       <div className="absolute top-[10%] left-[-15%] w-[600px] h-[600px] rounded-full bg-emerald-500/5 blur-[120px] pointer-events-none animate-pulse duration-[8000ms] z-0"></div>
@@ -1190,10 +1196,10 @@ export default function Home() {
         <div className="fixed inset-0 bg-[#09090b]/90 backdrop-blur-sm z-[100] flex flex-col items-center justify-center">
           <div className="w-16 h-16 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin mb-6"></div>
           <p className="text-2xl font-bold text-white tracking-widest uppercase text-center">
-            {isDownloading === 'pptx' ? 'Se generează broșură de prezentare...' : isDownloading === 'pdf' ? 'Se generează prezentarea...' : 'Se generează document...'}
+            {isDownloading === 'pptx' ? 'Se genereazÄƒ broÈ™urÄƒ de prezentare...' : isDownloading === 'pdf' ? 'Se genereazÄƒ prezentarea...' : 'Se genereazÄƒ document...'}
           </p>
           <p className="text-emerald-400 font-medium mt-3 text-center">
-            Acest proces durează câteva momente pentru a asigura calitatea maximă.
+            Acest proces dureazÄƒ cÃ¢teva momente pentru a asigura calitatea maximÄƒ.
           </p>
         </div>
       )}
@@ -1205,7 +1211,7 @@ export default function Home() {
             AI-ul rescrie documentul...
           </p>
           <p className="text-emerald-400 font-medium mt-3 text-center">
-            Acest proces durează 15-20 de secunde, deoarece rescriem integral secțiunile planului tău de afaceri.
+            Acest proces dureazÄƒ 15-20 de secunde, deoarece rescriem integral secÈ›iunile planului tÄƒu de afaceri.
           </p>
         </div>
       )}
@@ -1213,15 +1219,15 @@ export default function Home() {
       <div className={`${isDownloading === 'pptx' ? 'hidden' : 'flex'} flex-col items-center w-full max-w-[1600px] px-4 md:px-12 relative z-10`}>
           <div className="w-full flex justify-between items-start sm:items-center py-4 border-b border-zinc-800/80 mb-6 print:hidden">
             <div className="flex flex-col gap-2">
-              <span className="text-zinc-500 text-xs font-semibold">Proiectul tău de afaceri inteligent</span>
+              <span className="text-zinc-500 text-xs font-semibold">Proiectul tÄƒu de afaceri inteligent</span>
               <a 
                 href="https://buymeacoffee.com/ideeata-ai" 
                 target="_blank" 
                 rel="noopener noreferrer"
                 className="bg-[#FFDD00] text-black px-3 py-1 rounded-md font-bold text-xs hover:bg-[#FFEA4D] hover:scale-105 transition-all flex items-center gap-1.5 w-max shadow-sm"
-                title="Susține IdeeaTa.ai cu o cafea"
+                title="SusÈ›ine IdeeaTa.ai cu o cafea"
               >
-                <span>☕</span> Buy me a coffee
+                <span>â˜•</span> Buy me a coffee
               </a>
             </div>
             <div className="flex items-center gap-4 text-xs font-medium">
@@ -1232,7 +1238,7 @@ export default function Home() {
                 href="/"
                 className="text-emerald-400 hover:text-emerald-300 transition-colors font-bold underline cursor-pointer"
               >
-                Creează cont / Log In
+                CreeazÄƒ cont / Log In
               </a>
             </div>
           </div>
@@ -1245,7 +1251,7 @@ export default function Home() {
           <>
           <div className="w-full flex flex-col items-center justify-center mb-12 lg:mb-16 relative">
             <div className="inline-flex items-center gap-2.5 px-5 py-2.5 rounded-full bg-zinc-900/90 border border-emerald-500/30 text-emerald-400 text-sm font-black uppercase tracking-wider shadow-[0_0_30px_rgba(16,185,129,0.1)] hover:border-emerald-400/50 transition-all duration-300 animate-pulse relative z-10">
-              <span className="text-base">✨</span> Nu începe o afacere înainte să verifici IdeeaTa.ai
+              <span className="text-base">âœ¨</span> Nu Ã®ncepe o afacere Ã®nainte sÄƒ verifici IdeeaTa.ai
             </div>
             {/* Elegant curved line bridging the gap below the pill */}
             <div className="w-full max-w-2xl mt-4 opacity-50 relative -top-6 -z-10 hidden md:block">
@@ -1267,14 +1273,14 @@ export default function Home() {
             
             <div>
               <h2 className="text-3xl md:text-4xl lg:text-[3.5rem] font-black mb-8 leading-[1.1] not-italic text-white tracking-tighter text-left max-w-[90%]">
-                Transformă-ți <span className="text-emerald-400">experiența</span> într-un business validat.
+                TransformÄƒ-È›i <span className="text-emerald-400">experienÈ›a</span> Ã®ntr-un business validat.
               </h2>
               
               <p className="text-zinc-400 text-xl lg:text-2xl leading-relaxed not-italic font-medium text-left">
-                Descrie la ce ești bun, iar noi îți vom genera un plan de afaceri complet.
+                Descrie la ce eÈ™ti bun, iar noi Ã®È›i vom genera un plan de afaceri complet.
               </p>
               <p className="text-zinc-400 text-xl lg:text-2xl mt-4 leading-relaxed not-italic font-medium text-left">
-                Analiză SWOT, proiecții financiare și strategie de piață.
+                AnalizÄƒ SWOT, proiecÈ›ii financiare È™i strategie de piaÈ›Äƒ.
               </p>
             </div>
 
@@ -1345,14 +1351,14 @@ export default function Home() {
                 <div className="w-full h-px bg-gradient-to-r from-emerald-500/30 via-zinc-700/40 to-transparent"></div>
                 <div className="flex items-center justify-between">
                   <p className="text-zinc-400 text-sm font-semibold uppercase tracking-widest">Format export</p>
-                  <p className="text-emerald-400 text-sm font-black">PDF · PPTX · DOCX</p>
+                  <p className="text-emerald-400 text-sm font-black">PDF Â· PPTX Â· DOCX</p>
                 </div>
               </div>
 
               <div className="flex flex-col gap-2">
                 <div className="w-full h-px bg-gradient-to-r from-emerald-500/20 via-zinc-700/40 to-transparent"></div>
                 <div className="flex items-center justify-between">
-                  <p className="text-zinc-400 text-sm font-semibold uppercase tracking-widest">Structură Document</p>
+                  <p className="text-zinc-400 text-sm font-semibold uppercase tracking-widest">StructurÄƒ Document</p>
                   <p className="text-emerald-400 text-sm font-black">6 Capitole Standard</p>
                 </div>
               </div>
@@ -1390,7 +1396,7 @@ export default function Home() {
               
               <div className="flex flex-col gap-1 text-center sm:text-left">
                 <p className="text-zinc-400 font-medium text-lg">
-                  Construiește planul tău de afaceri inteligent. Viziunea ta, sprijinul nostru!
+                  ConstruieÈ™te planul tÄƒu de afaceri inteligent. Viziunea ta, sprijinul nostru!
                 </p>
               </div>
               
@@ -1410,7 +1416,7 @@ export default function Home() {
                     onChange={(e) => setSkill(e.target.value)}
                     onKeyDown={handleKeyDown}
                     disabled={loading}
-                    placeholder={animatedPlaceholder || "Crează un plan pentru... (ex: Consultanță securitate)"}
+                    placeholder={animatedPlaceholder || "CreazÄƒ un plan pentru... (ex: ConsultanÈ›Äƒ securitate)"}
                     className="relative w-full h-32 p-6 rounded-2xl bg-[#09090b] border border-zinc-700 outline-none focus:border-emerald-500 transition-all text-xl shadow-inner resize-none placeholder:text-zinc-600 font-medium text-white"
                   />
                 </div>
@@ -1433,11 +1439,11 @@ export default function Home() {
                     }}
                     className="whitespace-nowrap flex-shrink-0 text-zinc-400 font-bold text-lg px-6 py-4 rounded-xl transition-all duration-300 hover:bg-zinc-800/50 hover:text-emerald-400 flex items-center gap-2 w-full sm:w-auto justify-center border border-transparent hover:border-zinc-700/50"
                   >
-                    ✨ Inspiră-mă
+                    âœ¨ InspirÄƒ-mÄƒ
                   </button>
 
                   <button type="submit" disabled={loading} className="w-full sm:w-auto bg-white text-black px-8 py-4 rounded-xl font-black text-lg hover:bg-zinc-200 transition-all shadow-[0_0_20px_rgba(255,255,255,0.2)] flex items-center justify-center gap-2">
-                    {loading ? loadingMessages[messageIndex] : "Generează Planul"}
+                    {loading ? loadingMessages[messageIndex] : "GenereazÄƒ Planul"}
                     {!loading && <span>&rarr;</span>}
                   </button>
                 </div>
@@ -1454,7 +1460,7 @@ export default function Home() {
                   <div className="w-3 h-3 rounded-full bg-zinc-700"></div>
                   <div className="w-3 h-3 rounded-full bg-zinc-700"></div>
                 </div>
-                <h3 className="text-xl font-bold tracking-tight text-white">💡 Exemple de Afaceri</h3>
+                <h3 className="text-xl font-bold tracking-tight text-white">ðŸ’¡ Exemple de Afaceri</h3>
                 <div className="w-8"></div>
               </div>
               
@@ -1479,10 +1485,10 @@ export default function Home() {
           </div>
         </div>
 
-        {/* Grid de Beneficii / Ce conține planul */}
+        {/* Grid de Beneficii / Ce conÈ›ine planul */}
         <div className="mt-10 w-full max-w-5xl relative z-10">
           <h3 className="text-2xl md:text-3xl font-black mb-10 tracking-tighter bg-gradient-to-r from-zinc-400 via-emerald-400 to-zinc-400 bg-clip-text text-transparent animate-shimmer text-center">
-            Ce conține planul tău de afaceri?
+            Ce conÈ›ine planul tÄƒu de afaceri?
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 md:gap-12 text-left">
             <div className="relative w-full h-full group">
@@ -1498,11 +1504,11 @@ export default function Home() {
                   </div>
                   
                   <div className="w-12 h-12 rounded-xl bg-zinc-900 border border-zinc-800 text-emerald-400 flex items-center justify-center text-2xl mb-4 group-hover:scale-125 group-hover:rotate-12 group-hover:-translate-y-1 transition-all duration-300 shadow-inner">
-                    🧠
+                    ðŸ§ 
                   </div>
-                  <h4 className="text-2xl font-bold text-white mb-3">Analiză SWOT Completă</h4>
+                  <h4 className="text-2xl font-bold text-white mb-3">AnalizÄƒ SWOT CompletÄƒ</h4>
                   <p className="text-zinc-400 text-base md:text-lg leading-relaxed">
-                    Puncte tari, slăbiciuni, oportunități și amenințări detaliate cu explicații tehnice adaptate domeniului ales.
+                    Puncte tari, slÄƒbiciuni, oportunitÄƒÈ›i È™i ameninÈ›Äƒri detaliate cu explicaÈ›ii tehnice adaptate domeniului ales.
                   </p>
                 </div>
               </div>
@@ -1520,11 +1526,11 @@ export default function Home() {
                   </div>
                   
                   <div className="w-12 h-12 rounded-xl bg-zinc-900 border border-zinc-800 text-emerald-400 flex items-center justify-center text-2xl mb-4 group-hover:scale-125 group-hover:rotate-12 group-hover:-translate-y-1 transition-all duration-300 shadow-inner">
-                    💸
+                    ðŸ’¸
                   </div>
-                  <h4 className="text-2xl font-bold text-white mb-3">Bugetare Detaliată</h4>
+                  <h4 className="text-2xl font-bold text-white mb-3">Bugetare DetaliatÄƒ</h4>
                   <p className="text-zinc-400 text-base md:text-lg leading-relaxed">
-                    Distribuția automată a costurilor de pornire și justificare clară pentru fiecare cheltuială estimată.
+                    DistribuÈ›ia automatÄƒ a costurilor de pornire È™i justificare clarÄƒ pentru fiecare cheltuialÄƒ estimatÄƒ.
                   </p>
                 </div>
               </div>
@@ -1542,11 +1548,11 @@ export default function Home() {
                   </div>
                   
                   <div className="w-12 h-12 rounded-xl bg-zinc-900 border border-zinc-800 text-emerald-400 flex items-center justify-center text-2xl mb-4 group-hover:scale-125 group-hover:rotate-12 group-hover:-translate-y-1 transition-all duration-300 shadow-inner">
-                    🌟
+                    ðŸŒŸ
                   </div>
                   <h4 className="text-2xl font-bold text-white mb-3">Optimizat Fonduri</h4>
                   <p className="text-zinc-400 text-base md:text-lg leading-relaxed">
-                    Structură și jargon specifice ghidurilor de finanțare pentru a-ți crește șansele de a obține granturi nerambursabile.
+                    StructurÄƒ È™i jargon specifice ghidurilor de finanÈ›are pentru a-È›i creÈ™te È™ansele de a obÈ›ine granturi nerambursabile.
                   </p>
                 </div>
               </div>
@@ -1564,11 +1570,11 @@ export default function Home() {
                   </div>
                   
                   <div className="w-12 h-12 rounded-xl bg-zinc-900 border border-zinc-800 text-emerald-400 flex items-center justify-center text-2xl mb-4 group-hover:scale-125 group-hover:rotate-12 group-hover:-translate-y-1 transition-all duration-300 shadow-inner">
-                    🏦
+                    ðŸ¦
                   </div>
                   <h4 className="text-2xl font-bold text-white mb-3">Plan Profesionist</h4>
                   <p className="text-zinc-400 text-base md:text-lg leading-relaxed">
-                    Atrage investitori și bănci cu un format extins ce include metrici CAC/LTV, plan de risc și scenarii financiare multiple.
+                    Atrage investitori È™i bÄƒnci cu un format extins ce include metrici CAC/LTV, plan de risc È™i scenarii financiare multiple.
                   </p>
                 </div>
               </div>
@@ -1586,11 +1592,11 @@ export default function Home() {
                   </div>
                   
                   <div className="w-12 h-12 rounded-xl bg-zinc-900 border border-zinc-800 text-emerald-400 flex items-center justify-center text-2xl mb-4 group-hover:scale-125 group-hover:rotate-12 group-hover:-translate-y-1 transition-all duration-300 shadow-inner">
-                    🪄
+                    ðŸª„
                   </div>
                   <h4 className="text-2xl font-bold text-white mb-3">Studio AI Interactiv</h4>
                   <p className="text-zinc-400 text-base md:text-lg leading-relaxed">
-                    Adaptează planul din mers. Adaugă secțiuni noi, taie procente din buget sau rescrie textul cu ajutorul asistentului inteligent.
+                    AdapteazÄƒ planul din mers. AdaugÄƒ secÈ›iuni noi, taie procente din buget sau rescrie textul cu ajutorul asistentului inteligent.
                   </p>
                 </div>
               </div>
@@ -1608,11 +1614,11 @@ export default function Home() {
                   </div>
                   
                   <div className="w-12 h-12 rounded-xl bg-zinc-900 border border-zinc-800 text-emerald-400 flex items-center justify-center text-2xl mb-4 group-hover:scale-125 group-hover:rotate-12 group-hover:-translate-y-1 transition-all duration-300 shadow-inner">
-                    🚀
+                    ðŸš€
                   </div>
                   <h4 className="text-2xl font-bold text-white mb-3">Export Corporate</h4>
                   <p className="text-zinc-400 text-base md:text-lg leading-relaxed">
-                    Descarcă broșura de prezentare PowerPoint (.pptx), raportul PDF sau documentul editabil Word (.doc).
+                    DescarcÄƒ broÈ™ura de prezentare PowerPoint (.pptx), raportul PDF sau documentul editabil Word (.doc).
                   </p>
                 </div>
               </div>
@@ -1623,17 +1629,17 @@ export default function Home() {
         {/* Previzualizare Plan / Mockup - 5 Taburi */}
         <div className="mt-24 w-full max-w-5xl relative z-10">
           <h3 className="text-2xl md:text-3xl font-black mb-4 tracking-tighter bg-gradient-to-r from-zinc-400 via-emerald-400 to-zinc-400 bg-clip-text text-transparent animate-shimmer text-center">
-            Cum arată un plan generat?
+            Cum aratÄƒ un plan generat?
           </h3>
-          <p className="text-xl lg:text-2xl font-medium text-zinc-400 text-center mb-10">Perspectivă</p>
+          <p className="text-xl lg:text-2xl font-medium text-zinc-400 text-center mb-10">PerspectivÄƒ</p>
 
           {/* Tab buttons */}
           <div className="flex flex-wrap justify-center gap-2 mb-8">
             {[
-              { id: 0, label: '🎬 Preview cu tabs' },
-              { id: 1, label: '📊 Grafice animate' },
-              { id: 2, label: '🖥️ Typing live' },
-              { id: 4, label: '✨ Înainte & După' },
+              { id: 0, label: 'ðŸŽ¬ Preview cu tabs' },
+              { id: 1, label: 'ðŸ“Š Grafice animate' },
+              { id: 2, label: 'ðŸ–¥ï¸ Typing live' },
+              { id: 4, label: 'âœ¨ ÃŽnainte & DupÄƒ' },
             ].map((tab) => (
               <button
                 key={tab.id}
@@ -1685,13 +1691,13 @@ export default function Home() {
                 {innerMockupTab === 'Rezumat' && (
                   <div className="text-zinc-400 leading-relaxed text-lg animate-in slide-in-from-bottom-2">
                     <p className="mb-4">
-                      <strong>Urban Beans</strong> este o cafenea de specialitate modernă, situată în inima centrului istoric. 
-                      Ne propunem să oferim nu doar cafea de origine prăjită local, ci și o experiență senzorială completă, 
-                      într-un mediu cu un design industrial minimalist.
+                      <strong>Urban Beans</strong> este o cafenea de specialitate modernÄƒ, situatÄƒ Ã®n inima centrului istoric. 
+                      Ne propunem sÄƒ oferim nu doar cafea de origine prÄƒjitÄƒ local, ci È™i o experienÈ›Äƒ senzorialÄƒ completÄƒ, 
+                      Ã®ntr-un mediu cu un design industrial minimalist.
                     </p>
                     <p>
-                      Misiunea noastră este să educăm consumatorii despre procesul de la bob la ceașcă, 
-                      sprijinind fermierii independenți prin comerț echitabil (Fairtrade).
+                      Misiunea noastrÄƒ este sÄƒ educÄƒm consumatorii despre procesul de la bob la ceaÈ™cÄƒ, 
+                      sprijinind fermierii independenÈ›i prin comerÈ› echitabil (Fairtrade).
                     </p>
                   </div>
                 )}
@@ -1702,36 +1708,36 @@ export default function Home() {
                     <div className="cursor-pointer hover:scale-[1.02] transition-transform p-6 rounded-2xl border border-emerald-500/40 bg-emerald-500/10 hover:border-emerald-400/60">
                       <h5 className="font-bold text-emerald-400 mb-3 text-lg">Puncte Tari</h5>
                       <ul className="text-zinc-300 space-y-2 text-sm">
-                        <li>• Locație premium cu trafic pietonal intens</li>
-                        <li>• Baristi certificați SCA (Specialty Coffee Association)</li>
-                        <li>• Exclusivitate pentru un prăjitor local renumit</li>
+                        <li>â€¢ LocaÈ›ie premium cu trafic pietonal intens</li>
+                        <li>â€¢ Baristi certificaÈ›i SCA (Specialty Coffee Association)</li>
+                        <li>â€¢ Exclusivitate pentru un prÄƒjitor local renumit</li>
                       </ul>
                     </div>
                     {/* Puncte Slabe */}
                     <div className="cursor-pointer hover:scale-[1.02] transition-transform p-6 rounded-2xl border border-red-500/30 bg-red-500/10 hover:border-red-400/60">
                       <h5 className="font-bold text-red-400 mb-3 text-lg">Puncte Slabe</h5>
                       <ul className="text-zinc-300 space-y-2 text-sm">
-                        <li>• Costuri mari de chirie în zona centrală</li>
-                        <li>• Lipsa unei istorii/notorietăți pe piață (brand nou)</li>
-                        <li>• Prețuri mai mari față de lanțurile comerciale</li>
+                        <li>â€¢ Costuri mari de chirie Ã®n zona centralÄƒ</li>
+                        <li>â€¢ Lipsa unei istorii/notorietÄƒÈ›i pe piaÈ›Äƒ (brand nou)</li>
+                        <li>â€¢ PreÈ›uri mai mari faÈ›Äƒ de lanÈ›urile comerciale</li>
                       </ul>
                     </div>
                     {/* Oportunitati */}
                     <div className="cursor-pointer hover:scale-[1.02] transition-transform p-6 rounded-2xl border border-blue-500/30 bg-blue-500/10 hover:border-blue-400/60">
-                      <h5 className="font-bold text-blue-400 mb-3 text-lg">Oportunități</h5>
+                      <h5 className="font-bold text-blue-400 mb-3 text-lg">OportunitÄƒÈ›i</h5>
                       <ul className="text-zinc-300 space-y-2 text-sm">
-                        <li>• Creșterea cererii pentru cafea de specialitate</li>
-                        <li>• Parteneriate B2B cu birourile din zonă</li>
-                        <li>• Lansarea unui abonament lunar pentru boabe de cafea</li>
+                        <li>â€¢ CreÈ™terea cererii pentru cafea de specialitate</li>
+                        <li>â€¢ Parteneriate B2B cu birourile din zonÄƒ</li>
+                        <li>â€¢ Lansarea unui abonament lunar pentru boabe de cafea</li>
                       </ul>
                     </div>
                     {/* Amenintari */}
                     <div className="cursor-pointer hover:scale-[1.02] transition-transform p-6 rounded-2xl border border-orange-500/30 bg-orange-500/10 hover:border-orange-400/60">
-                      <h5 className="font-bold text-orange-400 mb-3 text-lg">Amenințări</h5>
+                      <h5 className="font-bold text-orange-400 mb-3 text-lg">AmeninÈ›Äƒri</h5>
                       <ul className="text-zinc-300 space-y-2 text-sm">
-                        <li>• Fluctuația prețului cafelei verzi pe bursa globală</li>
-                        <li>• Deschiderea unei noi francize majore în apropiere</li>
-                        <li>• Reticența clienților tradiționaliști la cafeaua acidă/fructată</li>
+                        <li>â€¢ FluctuaÈ›ia preÈ›ului cafelei verzi pe bursa globalÄƒ</li>
+                        <li>â€¢ Deschiderea unei noi francize majore Ã®n apropiere</li>
+                        <li>â€¢ ReticenÈ›a clienÈ›ilor tradiÈ›ionaliÈ™ti la cafeaua acidÄƒ/fructatÄƒ</li>
                       </ul>
                     </div>
                   </div>
@@ -1739,22 +1745,22 @@ export default function Home() {
 
                 {innerMockupTab === 'Buget' && (
                   <div className="animate-in slide-in-from-bottom-2 bg-zinc-900/50 rounded-2xl p-6 border border-zinc-800">
-                    <h5 className="font-bold text-emerald-400 mb-6 text-lg">Buget de Investiții Inițiale</h5>
+                    <h5 className="font-bold text-emerald-400 mb-6 text-lg">Buget de InvestiÈ›ii IniÈ›iale</h5>
                     <div className="space-y-4">
                       <div className="flex justify-between items-center pb-3 border-b border-zinc-800">
-                        <span className="text-zinc-400">Echipamente (Espressor, Râșnițe)</span>
+                        <span className="text-zinc-400">Echipamente (Espressor, RÃ¢È™niÈ›e)</span>
                         <span className="font-mono text-zinc-200">62.000 lei</span>
                       </div>
                       <div className="flex justify-between items-center pb-3 border-b border-zinc-800">
-                        <span className="text-zinc-400">Amenajare locație & Design</span>
+                        <span className="text-zinc-400">Amenajare locaÈ›ie & Design</span>
                         <span className="font-mono text-zinc-200">85.000 lei</span>
                       </div>
                       <div className="flex justify-between items-center pb-3 border-b border-zinc-800">
-                        <span className="text-zinc-400">Stoc inițial marfă & Consumabile</span>
+                        <span className="text-zinc-400">Stoc iniÈ›ial marfÄƒ & Consumabile</span>
                         <span className="font-mono text-zinc-200">17.000 lei</span>
                       </div>
                       <div className="flex justify-between items-center pt-2">
-                        <span className="text-zinc-300 font-bold">Total Investiție Estimată</span>
+                        <span className="text-zinc-300 font-bold">Total InvestiÈ›ie EstimatÄƒ</span>
                         <span className="font-mono text-emerald-400 font-bold text-xl">164.000 lei</span>
                       </div>
                     </div>
@@ -1767,21 +1773,21 @@ export default function Home() {
                       <div className="w-8 h-8 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center font-bold shrink-0">1</div>
                       <div>
                         <h6 className="text-white font-bold mb-1">Pre-lansare & Teasing</h6>
-                        <p className="text-sm">Campanie Social Media axată pe procesul de amenajare, prezentarea echipei de baristi și dezvăluirea prăjitorului partener.</p>
+                        <p className="text-sm">Campanie Social Media axatÄƒ pe procesul de amenajare, prezentarea echipei de baristi È™i dezvÄƒluirea prÄƒjitorului partener.</p>
                       </div>
                     </div>
                     <div className="flex gap-4 items-start">
                       <div className="w-8 h-8 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center font-bold shrink-0">2</div>
                       <div>
                         <h6 className="text-white font-bold mb-1">Soft Opening</h6>
-                        <p className="text-sm">O săptămână dedicată exclusiv comunității locale și influencerilor din nișa culinară, cu un meniu limitat la 50% reducere.</p>
+                        <p className="text-sm">O sÄƒptÄƒmÃ¢nÄƒ dedicatÄƒ exclusiv comunitÄƒÈ›ii locale È™i influencerilor din niÈ™a culinarÄƒ, cu un meniu limitat la 50% reducere.</p>
                       </div>
                     </div>
                     <div className="flex gap-4 items-start">
                       <div className="w-8 h-8 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center font-bold shrink-0">3</div>
                       <div>
                         <h6 className="text-white font-bold mb-1">Fidelizare B2B</h6>
-                        <p className="text-sm">Pachete speciale pentru angajații birourilor din proximitate: badge-uri de companie care oferă 15% discount permanent.</p>
+                        <p className="text-sm">Pachete speciale pentru angajaÈ›ii birourilor din proximitate: badge-uri de companie care oferÄƒ 15% discount permanent.</p>
                       </div>
                     </div>
                   </div>
@@ -1795,13 +1801,13 @@ export default function Home() {
           {mockupTab === 1 && (
             <div className="relative border border-zinc-800/60 rounded-[2.5rem] bg-[#09090b] overflow-hidden shadow-2xl ring-1 ring-white/5 p-8 md:p-12 min-h-[420px] animate-in fade-in duration-300">
               <div>
-                <h4 className="text-xl font-bold text-white mb-2">Proiecții Financiare: Anul 1</h4>
-                <p className="text-zinc-400 mb-8 text-sm">Estimare a veniturilor și a distribuției costurilor operaționale (în RON).</p>
+                <h4 className="text-xl font-bold text-white mb-2">ProiecÈ›ii Financiare: Anul 1</h4>
+                <p className="text-zinc-400 mb-8 text-sm">Estimare a veniturilor È™i a distribuÈ›iei costurilor operaÈ›ionale (Ã®n RON).</p>
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
                   {/* Bar Chart Section */}
                   <div className="bg-zinc-900/50 rounded-2xl border border-zinc-800 p-6 flex flex-col justify-between">
-                    <h5 className="text-emerald-400 font-bold mb-6 text-sm uppercase tracking-wider">Evoluție Venituri</h5>
+                    <h5 className="text-emerald-400 font-bold mb-6 text-sm uppercase tracking-wider">EvoluÈ›ie Venituri</h5>
                     <div className="grid grid-cols-4 gap-4 h-48 items-end">
                       {[
                         { val: 30, label: 'T1' },
@@ -1826,11 +1832,11 @@ export default function Home() {
                   {/* Horizontal Bars & Donut */}
                   <div className="flex flex-col gap-6">
                     <div className="flex-1 bg-zinc-900/50 rounded-2xl border border-zinc-800 p-6">
-                      <h5 className="text-orange-400 font-bold mb-4 text-sm uppercase tracking-wider">Distribuție Costuri</h5>
+                      <h5 className="text-orange-400 font-bold mb-4 text-sm uppercase tracking-wider">DistribuÈ›ie Costuri</h5>
                       {[
                         { label: 'Salarii', w: 85, color: 'bg-orange-500' },
-                        { label: 'Chirie & Utilități', w: 60, color: 'bg-orange-400/80' },
-                        { label: 'Stoc Marfă', w: 45, color: 'bg-orange-300/60' },
+                        { label: 'Chirie & UtilitÄƒÈ›i', w: 60, color: 'bg-orange-400/80' },
+                        { label: 'Stoc MarfÄƒ', w: 45, color: 'bg-orange-300/60' },
                         { label: 'Marketing', w: 25, color: 'bg-orange-200/40' },
                       ].map((item, i) => (
                         <div key={i} className="flex items-center gap-4 mb-3 last:mb-0 group cursor-pointer">
@@ -1844,7 +1850,7 @@ export default function Home() {
                     
                     <div className="bg-zinc-900/50 rounded-2xl border border-zinc-800 p-6 flex items-center justify-between">
                       <div>
-                        <h5 className="text-blue-400 font-bold mb-1 text-sm uppercase tracking-wider">Marjă Profit</h5>
+                        <h5 className="text-blue-400 font-bold mb-1 text-sm uppercase tracking-wider">MarjÄƒ Profit</h5>
                         <p className="text-3xl font-black text-white">24<span className="text-lg text-zinc-500">%</span></p>
                       </div>
                       <div className="w-24 h-24 rounded-full border-[8px] border-zinc-800 relative flex items-center justify-center shrink-0 shadow-[0_0_20px_rgba(59,130,246,0.1)]">
@@ -1864,31 +1870,31 @@ export default function Home() {
           {mockupTab === 2 && (
             <div className="relative border border-zinc-800/60 rounded-[2.5rem] bg-[#09090b] overflow-hidden shadow-2xl ring-1 ring-white/5 p-8 md:p-12 min-h-[420px] font-mono animate-in fade-in duration-300">
               <div className="text-sm leading-loose">
-                <div className="text-emerald-400 mb-2"># Plan de Afaceri — Cafenea de Specialitate "Urban Beans"</div>
-                <div className="text-zinc-400">{'>'} Generând proiecții financiare (în LEI)...</div>
+                <div className="text-emerald-400 mb-2"># Plan de Afaceri â€” Cafenea de Specialitate "Urban Beans"</div>
+                <div className="text-zinc-400">{'>'} GenerÃ¢nd proiecÈ›ii financiare (Ã®n LEI)...</div>
                 <div className="text-zinc-300 mt-4 pl-4 border-l-2 border-emerald-500/50 animate-in slide-in-from-left-2 duration-500">
                   <div className="text-emerald-400 mb-1">## Venituri Estimate</div>
-                  <div className="text-zinc-400">— Trimestrul 1: 150.000 lei (creștere organică)</div>
-                  <div className="text-zinc-400">— Trimestrul 2: 275.000 lei (sezon cald)</div>
-                  <div className="text-zinc-400">— Trimestrul 3: 400.000 lei (B2B stabilizat)<span className="animate-pulse">█</span></div>
+                  <div className="text-zinc-400">â€” Trimestrul 1: 150.000 lei (creÈ™tere organicÄƒ)</div>
+                  <div className="text-zinc-400">â€” Trimestrul 2: 275.000 lei (sezon cald)</div>
+                  <div className="text-zinc-400">â€” Trimestrul 3: 400.000 lei (B2B stabilizat)<span className="animate-pulse">â–ˆ</span></div>
                 </div>
                 <div className="mt-4 pl-4 border-l-2 border-red-500/40 animate-in slide-in-from-left-2 duration-700 delay-150">
-                  <div className="text-red-400 mb-1">## Costuri Operaționale</div>
-                  <div className="text-zinc-500">— Salarii: 35.000 lei / lună</div>
-                  <div className="text-zinc-500">— Chirie: 15.000 lei / lună</div>
+                  <div className="text-red-400 mb-1">## Costuri OperaÈ›ionale</div>
+                  <div className="text-zinc-500">â€” Salarii: 35.000 lei / lunÄƒ</div>
+                  <div className="text-zinc-500">â€” Chirie: 15.000 lei / lunÄƒ</div>
                 </div>
                 <div className="mt-4 pl-4 border-l-2 border-blue-500/40 animate-in slide-in-from-left-2 duration-1000 delay-300">
                   <div className="text-blue-400 mb-1">## Stadiu Generare</div>
                   <div className="flex flex-col gap-3 mt-4">
                     <div className="flex items-center gap-4 text-xs font-mono">
-                      <div className="w-36 text-zinc-400">Analiză Competiție</div>
+                      <div className="w-36 text-zinc-400">AnalizÄƒ CompetiÈ›ie</div>
                       <div className="flex-1 bg-zinc-800/50 h-1.5 rounded-full overflow-hidden">
                         <div className="bg-emerald-500 w-full h-full"></div>
                       </div>
                       <div className="w-16 text-right text-emerald-400">Complet</div>
                     </div>
                     <div className="flex items-center gap-4 text-xs font-mono">
-                      <div className="w-36 text-zinc-400">Strategie Prețuri</div>
+                      <div className="w-36 text-zinc-400">Strategie PreÈ›uri</div>
                       <div className="flex-1 bg-zinc-800/50 h-1.5 rounded-full overflow-hidden">
                         <div className="bg-yellow-500 w-[70%] h-full"></div>
                       </div>
@@ -1899,7 +1905,7 @@ export default function Home() {
                       <div className="flex-1 bg-zinc-800/50 h-1.5 rounded-full overflow-hidden">
                         <div className="bg-blue-500 w-[40%] h-full"></div>
                       </div>
-                      <div className="w-16 text-right text-blue-400 flex items-center justify-end gap-1">40% <span className="animate-pulse">█</span></div>
+                      <div className="w-16 text-right text-blue-400 flex items-center justify-end gap-1">40% <span className="animate-pulse">â–ˆ</span></div>
                     </div>
                   </div>
                 </div>
@@ -1907,22 +1913,22 @@ export default function Home() {
             </div>
           )}
 
-          {/* Tab 4: Înainte & După */}
+          {/* Tab 4: ÃŽnainte & DupÄƒ */}
           {mockupTab === 4 && (
             <div className="relative border border-zinc-800/60 rounded-[2.5rem] bg-[#09090b] overflow-hidden shadow-2xl ring-1 ring-white/5 min-h-[420px]">
               <div className="grid grid-cols-2 h-full min-h-[360px]">
-                {/* Înainte */}
+                {/* ÃŽnainte */}
                 <div className="p-8 border-r border-zinc-800/60 opacity-60">
-                  <div className="text-zinc-500 text-xs font-bold uppercase tracking-widest mb-4">Înainte</div>
+                  <div className="text-zinc-500 text-xs font-bold uppercase tracking-widest mb-4">ÃŽnainte</div>
                   <div className="bg-zinc-900 rounded-xl p-4 border border-zinc-800 text-zinc-400 text-sm leading-relaxed font-mono">
-                    "Vreau să deschid o cafenea. Am experiență de 5 ani în domeniu. Nu știu de unde să încep cu planul de afaceri."
+                    "Vreau sÄƒ deschid o cafenea. Am experienÈ›Äƒ de 5 ani Ã®n domeniu. Nu È™tiu de unde sÄƒ Ã®ncep cu planul de afaceri."
                   </div>
                 </div>
-                {/* După */}
+                {/* DupÄƒ */}
                 <div className="p-8 opacity-50">
-                  <div className="text-emerald-400 text-xs font-bold uppercase tracking-widest mb-4">După ✨</div>
+                  <div className="text-emerald-400 text-xs font-bold uppercase tracking-widest mb-4">DupÄƒ âœ¨</div>
                   <div className="flex flex-col gap-2">
-                    {['📊 Analiză SWOT completă', '💰 Buget detaliat pe 12 luni', '🎯 Strategie de piață', '🇪🇺 Eligibilitate fonduri UE', '📄 Export PDF + PPTX'].map((item) => (
+                    {['ðŸ“Š AnalizÄƒ SWOT completÄƒ', 'ðŸ’° Buget detaliat pe 12 luni', 'ðŸŽ¯ Strategie de piaÈ›Äƒ', 'ðŸ‡ªðŸ‡º Eligibilitate fonduri UE', 'ðŸ“„ Export PDF + PPTX'].map((item) => (
                       <div key={item} className="flex items-center gap-2 bg-emerald-500/10 border border-emerald-500/20 rounded-lg px-3 py-2 text-xs text-emerald-300 font-medium">{item}</div>
                     ))}
                   </div>
@@ -1942,19 +1948,19 @@ export default function Home() {
           <div className="flex flex-col md:flex-row justify-between items-center gap-4 w-full mb-8 pb-8 border-b border-zinc-800">
             <div className="flex flex-col gap-3">
               <h1 className="text-3xl font-black text-emerald-400 flex items-center gap-3">
-                <span>✏️</span> Studio Editare
-                {!isPaid && <span className="ml-3 text-sm font-bold text-amber-400 bg-amber-400/10 border border-amber-400/30 px-3 py-1 rounded-full">🔒 Demo – Read Only</span>}
+                <span>âœï¸</span> Studio Editare
+                {!isPaid && <span className="ml-3 text-sm font-bold text-amber-400 bg-amber-400/10 border border-amber-400/30 px-3 py-1 rounded-full">ðŸ”’ Demo â€“ Read Only</span>}
               </h1>
             </div>
             <div className="flex gap-4 shrink-0">
               <button onClick={cancelEditing} className="px-6 py-2 bg-zinc-800 hover:bg-zinc-700 text-white rounded-xl font-bold transition-all shadow-xl">
-                 ❌ Anulează
+                 âŒ AnuleazÄƒ
               </button>
               <button
                 onClick={isPaid ? saveEditing : saveEditing}
                 className="px-6 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl font-bold transition-all shadow-xl border border-emerald-500"
               >
-                {isPaid ? '✅ Confirmă și Salvează' : '✅ Confirmă și Vezi Planul'}
+                {isPaid ? 'âœ… ConfirmÄƒ È™i SalveazÄƒ' : 'âœ… ConfirmÄƒ È™i Vezi Planul'}
               </button>
             </div>
           </div>
@@ -1962,7 +1968,7 @@ export default function Home() {
           <div className="flex flex-col lg:flex-row gap-8 items-start w-full">
             <div className="w-full lg:w-3/5 xl:w-2/3 relative">
               <EditForm result={result} updateField={updateField} removeField={removeField} readOnly={!isPaid} />
-              {/* Overlay-ul agresiv care bloca editarea cu popup de plată a fost scos */}
+              {/* Overlay-ul agresiv care bloca editarea cu popup de platÄƒ a fost scos */}
             </div>
             {renderSidebar()}
           </div>
@@ -1971,27 +1977,27 @@ export default function Home() {
         <div className="w-full max-w-6xl flex flex-col gap-6 animate-in fade-in slide-in-from-bottom-10">
           <div className="flex flex-col md:flex-row justify-between items-center gap-4 w-full">
             <button onClick={resetApp} className="w-full md:flex-1 h-10 bg-zinc-800 hover:bg-zinc-700 text-white px-4 rounded-xl font-bold transition-all shadow-xl border border-zinc-700 flex items-center justify-center gap-2 text-xs whitespace-nowrap">
-               🔄 Altă idee
+               ðŸ”„ AltÄƒ idee
             </button>
             <div className="relative group w-full md:flex-1">
               <button 
                 onClick={startEditing} 
                 className="w-full h-10 bg-zinc-900 hover:bg-zinc-800 text-zinc-300 hover:text-white px-4 rounded-xl font-bold transition-all shadow-xl border border-zinc-700/60 flex items-center justify-center gap-2 text-xs whitespace-nowrap cursor-pointer"
               >
-                 ✏️ Studio Editare
+                 âœï¸ Studio Editare
               </button>
               {/* Tooltip Studio Editare */}
               <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-3 w-60 pointer-events-none opacity-0 group-hover:opacity-100 transition-all duration-250 scale-95 group-hover:scale-100 z-50">
                 <div className="relative rounded-xl p-px" style={{background: 'linear-gradient(135deg, #10b981 0%, #059669 50%, #065f46 100%)'}}>
                   <div className="rounded-xl bg-zinc-950 px-4 py-3" style={{boxShadow: '0 0 24px 2px rgba(16,185,129,0.13)'}}>
                     <div className="flex items-center gap-2 mb-2">
-                      <span className="text-emerald-400 text-sm">✏️</span>
+                      <span className="text-emerald-400 text-sm">âœï¸</span>
                       <span className="text-emerald-300 text-[11px] font-black uppercase tracking-widest">Studio Editare</span>
                     </div>
                     <div className="flex flex-col gap-1">
-                      <div className="flex items-center gap-1.5 text-zinc-400 text-[10px]"><span className="text-emerald-500">▸</span> Editare directă în browser</div>
-                      <div className="flex items-center gap-1.5 text-zinc-400 text-[10px]"><span className="text-emerald-500">▸</span> Toate instrumentele incluse</div>
-                      <div className="flex items-center gap-1.5 text-zinc-400 text-[10px]"><span className="text-emerald-500">▸</span> Optimizare fonduri europene 🇪🇺</div>
+                      <div className="flex items-center gap-1.5 text-zinc-400 text-[10px]"><span className="text-emerald-500">â–¸</span> Editare directÄƒ Ã®n browser</div>
+                      <div className="flex items-center gap-1.5 text-zinc-400 text-[10px]"><span className="text-emerald-500">â–¸</span> Toate instrumentele incluse</div>
+                      <div className="flex items-center gap-1.5 text-zinc-400 text-[10px]"><span className="text-emerald-500">â–¸</span> Optimizare fonduri europene ðŸ‡ªðŸ‡º</div>
                     </div>
                   </div>
                 </div>
@@ -2015,14 +2021,14 @@ export default function Home() {
                       disabled={isDownloading !== null}
                       className="flex-none bg-emerald-600 hover:bg-emerald-500 text-white text-[10px] sm:text-[11px] h-full px-4 rounded-lg font-black uppercase tracking-wider transition-all flex items-center justify-center whitespace-nowrap gap-2 cursor-pointer shadow-[0_0_15px_rgba(16,185,129,0.3)]"
                     >
-                      {isDownloading === 'pdf-summary' ? "⏳..." : "🎁 Descarcă Sumar Gratuit"}
+                      {isDownloading === 'pdf-summary' ? "â³..." : "ðŸŽ DescarcÄƒ Sumar Gratuit"}
                     </button>
                     <div className="w-px h-4 bg-zinc-800 flex-none mx-1" />
                     <a 
                       href="/"
                       className="flex-none text-[10px] sm:text-[11px] font-black uppercase tracking-wider text-zinc-300 hover:text-white cursor-pointer px-4 h-full rounded-lg flex items-center justify-center hover:bg-zinc-800 transition-all gap-2"
                     >
-                      🔒 Descarcă Complet
+                      ðŸ”’ DescarcÄƒ Complet
                     </a>
                 </div>
               </div>
@@ -2046,52 +2052,42 @@ export default function Home() {
 
             {/* Date Generale & Viziune */}
             <div id="section-general" className="pdf-section mb-10 bg-zinc-900/50 p-10 rounded-3xl border-l-4 border-emerald-500 shadow-inner print:shadow-none print:bg-transparent print:border-l-4 print:border-emerald-700 print:text-black">
-              <h3 className="text-emerald-400 text-sm font-black uppercase mb-6 tracking-[0.2em]">I & II. Date Generale și Viziune</h3>
+              <h3 className="text-emerald-400 text-sm font-black uppercase mb-6 tracking-[0.2em]">I & II. Date Generale È™i Viziune</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8 text-zinc-300 print:text-gray-800">
                 <div className="flex flex-col relative overflow-hidden">
                   <div className="leading-relaxed">
-                    <p><strong className="text-white print:text-black">Forma Juridică:</strong> {result.date_generale?.forma_juridica}</p>
+                    <p><strong className="text-white print:text-black">Forma JuridicÄƒ:</strong> {result.date_generale?.forma_juridica}</p>
                     <p className="mt-2"><strong className="text-white print:text-black">Cod CAEN:</strong> {result.date_generale?.cod_caen}</p>
                     <p className="mt-2"><strong className="text-white print:text-black">Contact:</strong> {result.date_generale?.date_contact}</p>
                   </div>
                   
-                  {/* Decorative curved lines to fill empty space */}
-                  <div className="mt-auto pt-16 pb-4 w-full flex-grow flex items-end opacity-[0.15] select-none pointer-events-none hidden md:block print:hidden relative h-40">
-                    <svg viewBox="0 0 500 150" className="w-full absolute bottom-[-10px] left-[-20px] transform scale-110" preserveAspectRatio="none">
-                      <g stroke="#10b981" strokeWidth="1.5" fill="none">
-                        <path d="M-50,80 C50,150 150,20 250,80 C350,140 450,10 550,80" />
-                        <path d="M-50,100 C60,170 160,40 260,100 C360,160 460,30 550,100" />
-                        <path d="M-50,120 C70,190 170,60 270,120 C370,180 470,50 550,120" />
-                      </g>
-                    </svg>
-                  </div>
                 </div>
                 <div>
-                  <p className="whitespace-pre-line text-justify leading-relaxed"><strong className="text-white print:text-black block mb-1">Obiective (1 an):</strong>{formatNumberedText(result.viziune_strategie?.obiective_scurt)}</p>
-                  <p className="mt-4 whitespace-pre-line text-justify leading-relaxed"><strong className="text-white print:text-black block mb-1">Obiective (3-5 ani):</strong>{formatNumberedText(result.viziune_strategie?.obiective_mediu)}</p>
+                  <p className="whitespace-pre-line text-left leading-relaxed"><strong className="text-white print:text-black block mb-1">Obiective (1 an):</strong>{formatNumberedText(result.viziune_strategie?.obiective_scurt)}</p>
+                  <p className="mt-4 whitespace-pre-line text-left leading-relaxed"><strong className="text-white print:text-black block mb-1">Obiective (3-5 ani):</strong>{formatNumberedText(result.viziune_strategie?.obiective_mediu)}</p>
                 </div>
               </div>
-              <div className="mt-6 pt-6 border-t border-zinc-800/50 text-zinc-300 print:border-gray-200 print:text-gray-800 text-justify leading-relaxed">
-                  <p className="whitespace-pre-line text-justify leading-relaxed"><strong className="text-white print:text-black">Misiune și Valori:</strong> {formatNumberedText(result.viziune_strategie?.misiune_valori)}</p>
+              <div className="mt-6 pt-6 border-t border-zinc-800/50 text-zinc-300 print:border-gray-200 print:text-gray-800 text-left leading-relaxed">
+                  <p className="whitespace-pre-line text-left leading-relaxed"><strong className="text-white print:text-black">Misiune È™i Valori:</strong> {formatNumberedText(result.viziune_strategie?.misiune_valori)}</p>
               </div>
             </div>
 
             {/* Analiza Pietei */}
             <div id="section-market" className="pdf-section mb-10 bg-zinc-900/50 p-10 rounded-3xl border-l-4 border-emerald-500 shadow-inner print:shadow-none print:bg-transparent print:border-l-4 print:border-emerald-700 print:text-black">
-              <h3 className="text-emerald-400 text-sm font-black uppercase mb-6 tracking-[0.2em]">III. Analiza Pieței și Promovarea</h3>
-              <div className="space-y-6 text-zinc-300 print:text-gray-800 text-justify leading-relaxed">
-                <div className="text-justify"><strong className="text-white print:text-black block mb-1">Clienții Țintă:</strong> <span className="italic whitespace-pre-line">{formatNumberedText(result.analiza_pietei?.clienti_tinta)}</span></div>
-                <div className="text-justify"><strong className="text-white print:text-black block mb-1">Concurența:</strong> <span className="italic whitespace-pre-line">{formatNumberedText(result.analiza_pietei?.concurenta)}</span></div>
-                <div className="text-justify"><strong className="text-white print:text-black block mb-1">Strategia de Marketing:</strong> <span className="italic whitespace-pre-line">{formatNumberedText(result.analiza_pietei?.strategie_marketing)}</span></div>
+              <h3 className="text-emerald-400 text-sm font-black uppercase mb-6 tracking-[0.2em]">III. Analiza PieÈ›ei È™i Promovarea</h3>
+              <div className="space-y-6 text-zinc-300 print:text-gray-800 text-left leading-relaxed">
+                <div className="text-left"><strong className="text-white print:text-black block mb-1">ClienÈ›ii ÈšintÄƒ:</strong> <span className="italic whitespace-pre-line">{formatNumberedText(result.analiza_pietei?.clienti_tinta)}</span></div>
+                <div className="text-left"><strong className="text-white print:text-black block mb-1">ConcurenÈ›a:</strong> <span className="italic whitespace-pre-line">{formatNumberedText(result.analiza_pietei?.concurenta)}</span></div>
+                <div className="text-left"><strong className="text-white print:text-black block mb-1">Strategia de Marketing:</strong> <span className="italic whitespace-pre-line">{formatNumberedText(result.analiza_pietei?.strategie_marketing)}</span></div>
               </div>
             </div>
             
             <div id="section-swot" className="grid grid-cols-1 gap-6 mb-14 print:gap-4">
               {Object.entries({
                 puncte_tari: {t: 'Puncte Tari', l: 'S'},
-                puncte_slabe: {t: 'Slăbiciuni', l: 'W'},
-                oportunitati: {t: 'Oportunități', l: 'O'},
-                amenintari: {t: 'Amenințări', l: 'T'}
+                puncte_slabe: {t: 'SlÄƒbiciuni', l: 'W'},
+                oportunitati: {t: 'OportunitÄƒÈ›i', l: 'O'},
+                amenintari: {t: 'AmeninÈ›Äƒri', l: 'T'}
               }).map(([key, info]) => (
                 <div key={key} className="pdf-section p-8 rounded-3xl border border-zinc-800/50 bg-black/20 shadow-inner print:break-inside-avoid print:p-0 print:border-none print:shadow-none print:bg-transparent">
                   <div className="flex items-center gap-4 mb-6 print:mb-4">
@@ -2104,8 +2100,8 @@ export default function Home() {
                         key={idx} 
                         className="bg-emerald-950/10 p-5 rounded-2xl border border-emerald-900/30 border-l-4 border-l-emerald-500 shadow-[inset_0_0_20px_rgba(52,211,153,0.05)] transition-all duration-300 hover:bg-[#960018] hover:border-[#ff4d6d] hover:border-l-[#ff4d6d] hover:-translate-y-1 hover:shadow-[0_0_20px_rgba(255,77,109,0.4)] group cursor-default print:border-gray-200 print:border-l-4 print:border-l-emerald-700 print:bg-transparent print:text-black print:break-inside-avoid print:p-3 print:shadow-none"
                       >
-                        <span className="text-zinc-100 font-black text-xl block mb-2 group-hover:text-white transition-colors print:text-black uppercase tracking-wider print:text-lg">✦ {item.titlu || item}</span>
-                        <p className="text-zinc-400 text-lg italic leading-relaxed text-justify group-hover:text-white/90 transition-colors print:text-gray-700 print:text-base whitespace-pre-line">{formatNumberedText(item.explicatie_tehnica)}</p>
+                        <span className="text-zinc-100 font-black text-xl block mb-2 group-hover:text-white transition-colors print:text-black uppercase tracking-wider print:text-lg">âœ¦ {item.titlu || item}</span>
+                        <p className="text-zinc-400 text-lg italic leading-relaxed text-left group-hover:text-white/90 transition-colors print:text-gray-700 print:text-base whitespace-pre-line">{formatNumberedText(item.explicatie_tehnica)}</p>
                       </div>
                     ))}
                   </div>
@@ -2115,11 +2111,11 @@ export default function Home() {
 
             {/* Operational */}
             <div id="section-operational" className="pdf-section mb-10 bg-zinc-900/50 p-10 rounded-3xl border-l-4 border-emerald-500 shadow-inner print:shadow-none print:bg-transparent print:border-l-4 print:border-emerald-700 print:text-black">
-              <h3 className="text-emerald-400 text-sm font-black uppercase mb-6 tracking-[0.2em]">V. Planul Operațional și de Management</h3>
-              <ol className="space-y-6 text-zinc-300 print:text-gray-800 list-decimal pl-6 text-justify leading-relaxed">
-                <li className="pl-2 text-justify"><strong className="text-white print:text-black block mb-1">Descriere Flux Tehnologic:</strong> <span className="italic whitespace-pre-line">{formatNumberedText(result.plan_operational?.descriere_flux)}</span></li>
-                <li className="pl-2 text-justify"><strong className="text-white print:text-black block mb-1">Resurse Umane:</strong> <span className="italic whitespace-pre-line">{formatNumberedText(result.plan_operational?.resurse_umane)}</span></li>
-                <li className="pl-2 text-justify"><strong className="text-white print:text-black block mb-1">Locație și Dotări:</strong> <span className="italic whitespace-pre-line">{formatNumberedText(result.plan_operational?.locatie_dotari)}</span></li>
+              <h3 className="text-emerald-400 text-sm font-black uppercase mb-6 tracking-[0.2em]">V. Planul OperaÈ›ional È™i de Management</h3>
+              <ol className="space-y-6 text-zinc-300 print:text-gray-800 list-decimal pl-6 text-left leading-relaxed">
+                <li className="pl-2 text-left"><strong className="text-white print:text-black block mb-1">Descriere Flux Tehnologic:</strong> <span className="italic whitespace-pre-line">{formatNumberedText(result.plan_operational?.descriere_flux)}</span></li>
+                <li className="pl-2 text-left"><strong className="text-white print:text-black block mb-1">Resurse Umane:</strong> <span className="italic whitespace-pre-line">{formatNumberedText(result.plan_operational?.resurse_umane)}</span></li>
+                <li className="pl-2 text-left"><strong className="text-white print:text-black block mb-1">LocaÈ›ie È™i DotÄƒri:</strong> <span className="italic whitespace-pre-line">{formatNumberedText(result.plan_operational?.locatie_dotari)}</span></li>
               </ol>
             </div>
 
@@ -2128,12 +2124,12 @@ export default function Home() {
                  VI. Planul Financiar
                </h3>
                
-               <div className="pdf-section text-zinc-300 italic text-justify leading-relaxed max-w-4xl mx-auto mb-10 print:text-gray-700 whitespace-pre-line">
+               <div className="pdf-section text-zinc-300 italic text-left leading-relaxed max-w-4xl mx-auto mb-10 print:text-gray-700 whitespace-pre-line">
                  {formatNumberedText(result.plan_financiar?.strategie_financiara)}
                </div>
 
                <div className="mb-16">
-                 <h4 className="text-zinc-500 font-bold uppercase tracking-wider mb-6 text-sm">Distribuția costurilor</h4>
+                 <h4 className="text-zinc-500 font-bold uppercase tracking-wider mb-6 text-sm">DistribuÈ›ia costurilor</h4>
                  <BudgetPieChart budget={result.plan_financiar?.buget_investitii} />
                </div>
 
@@ -2160,14 +2156,14 @@ export default function Home() {
       )}
       </div>
 
-      {/* DOCUMENT PREZENTARE - Afișat doar la nevoie pentru a fi capturat impecabil */}
+      {/* DOCUMENT PREZENTARE - AfiÈ™at doar la nevoie pentru a fi capturat impecabil */}
       {result && (
         <div className="fixed top-[-9999px] left-[-9999px] w-[1280px] opacity-0 pointer-events-none z-[-50]">
           <div ref={presentationRef} className="flex flex-col gap-10 bg-[#09090b] p-10">
             {/* Slide 1: Title */}
             <div className="presentation-slide w-[1280px] h-[720px] bg-[#09090b] text-white flex flex-col justify-center items-center p-20 relative border-[12px] border-zinc-900 box-border">
               <h1 className="text-8xl font-black text-center mb-10 text-white z-10 font-sans tracking-tight leading-tight">{result.nume}</h1>
-              <h2 className="text-4xl text-center italic text-emerald-400 z-10 w-3/4 leading-relaxed tracking-widest font-sans uppercase">„{result.slogan}”</h2>
+              <h2 className="text-4xl text-center italic text-emerald-400 z-10 w-3/4 leading-relaxed tracking-widest font-sans uppercase">â€ž{result.slogan}â€</h2>
               <div className="absolute bottom-8 right-8 text-zinc-600 font-bold uppercase tracking-widest text-sm">IdeeaTa.ai</div>
             </div>
 
@@ -2175,7 +2171,7 @@ export default function Home() {
             <div className="presentation-slide w-[1280px] h-[720px] bg-[#09090b] text-white flex flex-col justify-center p-24 border-[12px] border-zinc-900 box-border relative">
               <div className="flex items-center gap-6 mb-8">
                 <div className="w-16 h-2 bg-emerald-500"></div>
-                <h2 className="text-5xl font-black font-sans uppercase tracking-widest text-emerald-400">Viziune și Strategie</h2>
+                <h2 className="text-5xl font-black font-sans uppercase tracking-widest text-emerald-400">Viziune È™i Strategie</h2>
               </div>
               <div className="grid grid-cols-2 gap-12 font-sans leading-relaxed text-zinc-200">
                 <div>
@@ -2185,8 +2181,8 @@ export default function Home() {
                   <p className="text-xl overflow-hidden" style={{ maxHeight: '180px' }}>{result.viziune_strategie?.obiective_mediu}</p>
                 </div>
                 <div>
-                  <h3 className="text-2xl font-bold text-emerald-500 mb-3">Misiune și Valori</h3>
-                  <p className="text-xl text-justify overflow-hidden" style={{ maxHeight: '420px' }}>{result.viziune_strategie?.misiune_valori}</p>
+                  <h3 className="text-2xl font-bold text-emerald-500 mb-3">Misiune È™i Valori</h3>
+                  <p className="text-xl text-left overflow-hidden" style={{ maxHeight: '420px' }}>{result.viziune_strategie?.misiune_valori}</p>
                 </div>
               </div>
             </div>
@@ -2195,12 +2191,12 @@ export default function Home() {
             <div className="presentation-slide w-[1280px] h-[720px] bg-[#09090b] text-white flex flex-col justify-center p-24 border-[12px] border-zinc-900 box-border relative">
               <div className="flex items-center gap-6 mb-6">
                 <div className="w-16 h-2 bg-emerald-500"></div>
-                <h2 className="text-5xl font-black font-sans uppercase tracking-widest text-emerald-400">Analiza Pieței</h2>
+                <h2 className="text-5xl font-black font-sans uppercase tracking-widest text-emerald-400">Analiza PieÈ›ei</h2>
               </div>
-              <div className="flex flex-col gap-4 font-sans leading-relaxed text-zinc-200 text-justify">
-                  <div><h3 className="text-2xl font-bold text-emerald-500 mb-1">Clienții Țintă</h3>
+              <div className="flex flex-col gap-4 font-sans leading-relaxed text-zinc-200 text-left">
+                  <div><h3 className="text-2xl font-bold text-emerald-500 mb-1">ClienÈ›ii ÈšintÄƒ</h3>
                   <p className="text-xl overflow-hidden" style={{ maxHeight: '120px' }}>{result.analiza_pietei?.clienti_tinta}</p></div>
-                  <div><h3 className="text-2xl font-bold text-emerald-500 mb-1">Concurența</h3>
+                  <div><h3 className="text-2xl font-bold text-emerald-500 mb-1">ConcurenÈ›a</h3>
                   <p className="text-xl overflow-hidden" style={{ maxHeight: '120px' }}>{result.analiza_pietei?.concurenta}</p></div>
                   <div><h3 className="text-2xl font-bold text-emerald-500 mb-1">Strategia de Marketing</h3>
                   <p className="text-xl overflow-hidden" style={{ maxHeight: '120px' }}>{result.analiza_pietei?.strategie_marketing}</p></div>
@@ -2211,15 +2207,15 @@ export default function Home() {
             <div className="presentation-slide w-[1280px] h-[720px] bg-[#09090b] flex flex-col px-24 py-16 border-[12px] border-zinc-900 box-border relative">
               <div className="flex items-center gap-6 mb-8 shrink-0">
                 <div className="w-16 h-2 bg-emerald-500"></div>
-                <h2 className="text-5xl font-black font-sans uppercase tracking-widest text-emerald-400">Analiză Strategica SWOT</h2>
+                <h2 className="text-5xl font-black font-sans uppercase tracking-widest text-emerald-400">AnalizÄƒ Strategica SWOT</h2>
               </div>
               <div className="bg-zinc-900/50 p-8 border-l-8 border-emerald-500 flex flex-col gap-6 rounded-3xl flex-1 overflow-hidden">
                 <h3 className="text-4xl font-black text-white uppercase tracking-widest pb-4 border-b-2 border-zinc-800 shrink-0">Puncte Tari (Strengths)</h3>
                 <div className="grid grid-cols-2 gap-x-12 gap-y-6 overflow-hidden content-start flex-1">
                   {result.analiza_swot?.puncte_tari?.slice(0, 8).map((item: any, idx: number) => (
                     <div key={idx} className="flex flex-col gap-2">
-                      <h4 className="text-2xl font-bold text-emerald-400 leading-snug">✦ {item.titlu || item}</h4>
-                      <p className="text-lg text-zinc-300 leading-relaxed max-w-lg text-justify">{item.explicatie_tehnica}</p>
+                      <h4 className="text-2xl font-bold text-emerald-400 leading-snug">âœ¦ {item.titlu || item}</h4>
+                      <p className="text-lg text-zinc-300 leading-relaxed max-w-lg text-left">{item.explicatie_tehnica}</p>
                     </div>
                   ))}
                 </div>
@@ -2230,14 +2226,14 @@ export default function Home() {
             <div className="presentation-slide w-[1280px] h-[720px] bg-[#09090b] flex flex-col px-24 py-16 border-[12px] border-zinc-900 box-border relative">
               <div className="flex items-center gap-6 mb-8 shrink-0">
                 <div className="w-16 h-2 bg-[#ff4d6d]"></div>
-                <h2 className="text-5xl font-black font-sans uppercase tracking-widest text-[#ff4d6d]">Analiză Strategica SWOT</h2>
+                <h2 className="text-5xl font-black font-sans uppercase tracking-widest text-[#ff4d6d]">AnalizÄƒ Strategica SWOT</h2>
               </div>
               <div className="bg-zinc-900/50 p-8 border-l-8 border-[#ff4d6d] flex flex-col gap-6 rounded-3xl flex-1 overflow-hidden">
-                <h3 className="text-4xl font-black text-white uppercase tracking-widest pb-4 border-b-2 border-zinc-800 shrink-0">Slăbiciuni (Weaknesses)</h3>
+                <h3 className="text-4xl font-black text-white uppercase tracking-widest pb-4 border-b-2 border-zinc-800 shrink-0">SlÄƒbiciuni (Weaknesses)</h3>
                 <div className="grid grid-cols-2 gap-x-12 gap-y-6 overflow-hidden content-start flex-1">
                   {result.analiza_swot?.puncte_slabe?.slice(0, 8).map((item: any, idx: number) => (
                     <div key={idx} className="flex flex-col gap-2">
-                      <h4 className="text-2xl font-bold text-[#ff4d6d] leading-snug">✦ {item.titlu || item}</h4>
+                      <h4 className="text-2xl font-bold text-[#ff4d6d] leading-snug">âœ¦ {item.titlu || item}</h4>
                       <p className="text-lg text-zinc-300 leading-relaxed max-w-lg">{item.explicatie_tehnica}</p>
                     </div>
                   ))}
@@ -2249,14 +2245,14 @@ export default function Home() {
             <div className="presentation-slide w-[1280px] h-[720px] bg-[#09090b] flex flex-col px-24 py-16 border-[12px] border-zinc-900 box-border relative">
               <div className="flex items-center gap-6 mb-8 shrink-0">
                 <div className="w-16 h-2 bg-blue-500"></div>
-                <h2 className="text-5xl font-black font-sans uppercase tracking-widest text-blue-400">Analiză Strategica SWOT</h2>
+                <h2 className="text-5xl font-black font-sans uppercase tracking-widest text-blue-400">AnalizÄƒ Strategica SWOT</h2>
               </div>
               <div className="bg-zinc-900/50 p-8 border-l-8 border-blue-500 flex flex-col gap-6 rounded-3xl flex-1 overflow-hidden">
-                <h3 className="text-4xl font-black text-white uppercase tracking-widest pb-4 border-b-2 border-zinc-800 shrink-0">Oportunități (Opportunities)</h3>
+                <h3 className="text-4xl font-black text-white uppercase tracking-widest pb-4 border-b-2 border-zinc-800 shrink-0">OportunitÄƒÈ›i (Opportunities)</h3>
                 <div className="grid grid-cols-2 gap-x-12 gap-y-6 overflow-hidden content-start flex-1">
                   {result.analiza_swot?.oportunitati?.slice(0, 8).map((item: any, idx: number) => (
                     <div key={idx} className="flex flex-col gap-2">
-                      <h4 className="text-2xl font-bold text-blue-400 leading-snug">✦ {item.titlu || item}</h4>
+                      <h4 className="text-2xl font-bold text-blue-400 leading-snug">âœ¦ {item.titlu || item}</h4>
                       <p className="text-lg text-zinc-300 leading-relaxed max-w-lg">{item.explicatie_tehnica}</p>
                     </div>
                   ))}
@@ -2268,14 +2264,14 @@ export default function Home() {
             <div className="presentation-slide w-[1280px] h-[720px] bg-[#09090b] flex flex-col px-24 py-16 border-[12px] border-zinc-900 box-border relative">
               <div className="flex items-center gap-6 mb-8 shrink-0">
                 <div className="w-16 h-2 bg-orange-500"></div>
-                <h2 className="text-5xl font-black font-sans uppercase tracking-widest text-orange-400">Analiză Strategica SWOT</h2>
+                <h2 className="text-5xl font-black font-sans uppercase tracking-widest text-orange-400">AnalizÄƒ Strategica SWOT</h2>
               </div>
               <div className="bg-zinc-900/50 p-8 border-l-8 border-orange-500 flex flex-col gap-6 rounded-3xl flex-1 overflow-hidden">
-                <h3 className="text-4xl font-black text-white uppercase tracking-widest pb-4 border-b-2 border-zinc-800 shrink-0">Amenințări (Threats)</h3>
+                <h3 className="text-4xl font-black text-white uppercase tracking-widest pb-4 border-b-2 border-zinc-800 shrink-0">AmeninÈ›Äƒri (Threats)</h3>
                 <div className="grid grid-cols-2 gap-x-12 gap-y-6 overflow-hidden content-start flex-1">
                   {result.analiza_swot?.amenintari?.slice(0, 8).map((item: any, idx: number) => (
                     <div key={idx} className="flex flex-col gap-2">
-                      <h4 className="text-2xl font-bold text-orange-400 leading-snug">✦ {item.titlu || item}</h4>
+                      <h4 className="text-2xl font-bold text-orange-400 leading-snug">âœ¦ {item.titlu || item}</h4>
                       <p className="text-lg text-zinc-300 leading-relaxed max-w-lg">{item.explicatie_tehnica}</p>
                     </div>
                   ))}
@@ -2287,10 +2283,10 @@ export default function Home() {
             <div className="presentation-slide w-[1280px] h-[720px] bg-[#09090b] flex flex-col px-24 py-16 border-[12px] border-zinc-900 box-border relative">
               <div className="flex items-center gap-6 mb-8 shrink-0">
                 <div className="w-16 h-2 bg-emerald-500"></div>
-                <h2 className="text-5xl font-black font-sans uppercase tracking-widest text-emerald-400">Planul Operațional</h2>
+                <h2 className="text-5xl font-black font-sans uppercase tracking-widest text-emerald-400">Planul OperaÈ›ional</h2>
               </div>
               <div className="bg-zinc-900/50 p-8 border-l-8 border-emerald-500 flex flex-col gap-6 rounded-3xl flex-1 overflow-hidden">
-                <div className="flex flex-col gap-6 overflow-hidden content-start flex-1 pl-4 text-justify">
+                <div className="flex flex-col gap-6 overflow-hidden content-start flex-1 pl-4 text-left">
                     <div className="flex flex-col gap-2">
                       <h4 className="text-2xl font-bold text-emerald-400 leading-snug">1. Descriere Flux (Sustenabilitate / Verde)</h4>
                       <p className="text-lg text-zinc-300 leading-relaxed line-clamp-3">{result.plan_operational?.descriere_flux}</p>
@@ -2300,7 +2296,7 @@ export default function Home() {
                       <p className="text-lg text-zinc-300 leading-relaxed line-clamp-3">{result.plan_operational?.resurse_umane}</p>
                     </div>
                     <div className="flex flex-col gap-2">
-                      <h4 className="text-2xl font-bold text-emerald-400 leading-snug">3. Locație și Dotări</h4>
+                      <h4 className="text-2xl font-bold text-emerald-400 leading-snug">3. LocaÈ›ie È™i DotÄƒri</h4>
                       <p className="text-lg text-zinc-300 leading-relaxed line-clamp-3">{result.plan_operational?.locatie_dotari}</p>
                     </div>
                 </div>
@@ -2311,7 +2307,7 @@ export default function Home() {
             <div className="presentation-slide w-[1280px] h-[720px] bg-[#09090b] flex flex-col p-24 border-[12px] border-zinc-900 box-border relative">
               <div className="flex items-center gap-6 mb-12 shrink-0">
                 <div className="w-16 h-2 bg-emerald-500"></div>
-                <h2 className="text-5xl font-black font-sans uppercase tracking-widest text-emerald-400">Buget Investiții</h2>
+                <h2 className="text-5xl font-black font-sans uppercase tracking-widest text-emerald-400">Buget InvestiÈ›ii</h2>
               </div>
               <div className="grid grid-cols-2 gap-x-12 gap-y-8 font-sans items-start content-start overflow-hidden">
                 {result.plan_financiar?.buget_investitii?.slice(0, 8).map((b: any, i: number) => (
@@ -2337,7 +2333,7 @@ export default function Home() {
             <div className="presentation-slide w-[1280px] h-[720px] bg-[#09090b] flex flex-col p-24 border-[12px] border-zinc-900 box-border relative">
               <div className="flex items-center gap-6 mb-12 shrink-0">
                 <div className="w-16 h-2 bg-emerald-500"></div>
-                <h2 className="text-5xl font-black font-sans uppercase tracking-widest text-emerald-400">Distribuția Costurilor</h2>
+                <h2 className="text-5xl font-black font-sans uppercase tracking-widest text-emerald-400">DistribuÈ›ia Costurilor</h2>
               </div>
               <div className="flex-1 w-full bg-zinc-900/50 p-8 rounded-3xl border border-zinc-800">
                   <BudgetPieChart budget={result.plan_financiar?.buget_investitii} />
@@ -2355,7 +2351,7 @@ export default function Home() {
             <div className="pdf-presentation-slide w-[1280px] h-[720px] bg-emerald-950 text-white flex flex-col justify-center items-center p-20 relative border-[12px] border-emerald-900 box-border">
               <div className="absolute inset-0 opacity-10 bg-[radial-gradient(circle_at_center,_white_0%,_transparent_100%)]"></div>
               <h1 className="text-8xl font-black text-center mb-10 text-emerald-100 z-10 font-sans tracking-tight leading-tight">{result.nume}</h1>
-              <h2 className="text-4xl text-center italic text-emerald-300 z-10 w-3/4 leading-relaxed font-serif">„{result.slogan}”</h2>
+              <h2 className="text-4xl text-center italic text-emerald-300 z-10 w-3/4 leading-relaxed font-serif">â€ž{result.slogan}â€</h2>
               <div className="absolute bottom-8 right-8 text-emerald-700/50 font-bold uppercase tracking-widest text-sm">IdeeaTa.ai</div>
             </div>
 
@@ -2363,18 +2359,18 @@ export default function Home() {
             <div className="pdf-presentation-slide w-[1280px] h-[720px] bg-white text-emerald-950 flex flex-col justify-center p-24 border-[12px] border-emerald-900 box-border relative">
               <div className="flex items-center gap-6 mb-8">
                 <div className="w-16 h-2 bg-emerald-600"></div>
-                <h2 className="text-5xl font-black font-sans uppercase tracking-widest text-emerald-800">Viziune și Strategie</h2>
+                <h2 className="text-5xl font-black font-sans uppercase tracking-widest text-emerald-800">Viziune È™i Strategie</h2>
               </div>
               <div className="grid grid-cols-2 gap-12 font-serif leading-relaxed text-gray-800">
                 <div>
                   <h3 className="text-2xl font-bold text-emerald-700 mb-3">Obiective (1 an)</h3>
-                  <p className="text-lg leading-relaxed text-justify">{result.viziune_strategie?.obiective_scurt}</p>
+                  <p className="text-lg leading-relaxed text-left">{result.viziune_strategie?.obiective_scurt}</p>
                   <h3 className="text-2xl font-bold text-emerald-700 mb-3 mt-6">Obiective (3-5 ani)</h3>
-                  <p className="text-lg leading-relaxed text-justify">{result.viziune_strategie?.obiective_mediu}</p>
+                  <p className="text-lg leading-relaxed text-left">{result.viziune_strategie?.obiective_mediu}</p>
                 </div>
                 <div>
-                  <h3 className="text-2xl font-bold text-emerald-700 mb-3">Misiune și Valori</h3>
-                  <p className="text-lg leading-relaxed text-justify">{result.viziune_strategie?.misiune_valori}</p>
+                  <h3 className="text-2xl font-bold text-emerald-700 mb-3">Misiune È™i Valori</h3>
+                  <p className="text-lg leading-relaxed text-left">{result.viziune_strategie?.misiune_valori}</p>
                 </div>
               </div>
             </div>
@@ -2383,12 +2379,12 @@ export default function Home() {
             <div className="pdf-presentation-slide w-[1280px] h-[720px] bg-white text-emerald-950 flex flex-col justify-center p-24 border-[12px] border-emerald-900 box-border relative">
               <div className="flex items-center gap-6 mb-6">
                 <div className="w-16 h-2 bg-emerald-600"></div>
-                <h2 className="text-5xl font-black font-sans uppercase tracking-widest text-emerald-800">Analiza Pieței</h2>
+                <h2 className="text-5xl font-black font-sans uppercase tracking-widest text-emerald-800">Analiza PieÈ›ei</h2>
               </div>
-              <div className="flex flex-col gap-4 font-serif leading-relaxed text-gray-800 text-justify">
-                  <div><h3 className="text-2xl font-bold text-emerald-700 mb-1">Clienții Țintă</h3>
+              <div className="flex flex-col gap-4 font-serif leading-relaxed text-gray-800 text-left">
+                  <div><h3 className="text-2xl font-bold text-emerald-700 mb-1">ClienÈ›ii ÈšintÄƒ</h3>
                   <p className="text-lg">{result.analiza_pietei?.clienti_tinta}</p></div>
-                  <div><h3 className="text-2xl font-bold text-emerald-700 mb-1">Concurența</h3>
+                  <div><h3 className="text-2xl font-bold text-emerald-700 mb-1">ConcurenÈ›a</h3>
                   <p className="text-lg">{result.analiza_pietei?.concurenta}</p></div>
                   <div><h3 className="text-2xl font-bold text-emerald-700 mb-1">Strategia de Marketing</h3>
                   <p className="text-lg">{result.analiza_pietei?.strategie_marketing}</p></div>
@@ -2399,15 +2395,15 @@ export default function Home() {
             <div className="pdf-presentation-slide w-[1280px] h-[720px] bg-white flex flex-col px-24 py-16 border-[12px] border-emerald-900 box-border relative">
               <div className="flex items-center gap-6 mb-8 shrink-0">
                 <div className="w-16 h-2 bg-emerald-500"></div>
-                <h2 className="text-5xl font-black font-sans uppercase tracking-widest text-emerald-900">Analiză Strategica SWOT</h2>
+                <h2 className="text-5xl font-black font-sans uppercase tracking-widest text-emerald-900">AnalizÄƒ Strategica SWOT</h2>
               </div>
               <div className="bg-emerald-50/50 p-8 border-l-8 border-emerald-500 flex flex-col gap-6 flex-1 rounded-2xl overflow-hidden">
                 <h3 className="text-4xl font-black text-emerald-800 uppercase tracking-widest pb-4 border-b-2 border-emerald-200 shrink-0">Puncte Tari</h3>
                 <div className="grid grid-cols-2 gap-x-12 gap-y-6 overflow-hidden content-start flex-1">
                   {result.analiza_swot?.puncte_tari?.slice(0, 8).map((item: any, idx: number) => (
                     <div key={idx} className="flex flex-col gap-2">
-                      <h4 className="text-2xl font-bold text-emerald-700 leading-snug">✦ {item.titlu || item}</h4>
-                      <p className="text-lg text-gray-600 leading-relaxed max-w-lg text-justify">{item.explicatie_tehnica}</p>
+                      <h4 className="text-2xl font-bold text-emerald-700 leading-snug">âœ¦ {item.titlu || item}</h4>
+                      <p className="text-lg text-gray-600 leading-relaxed max-w-lg text-left">{item.explicatie_tehnica}</p>
                     </div>
                   ))}
                 </div>
@@ -2418,15 +2414,15 @@ export default function Home() {
             <div className="pdf-presentation-slide w-[1280px] h-[720px] bg-white flex flex-col px-24 py-16 border-[12px] border-emerald-900 box-border relative">
               <div className="flex items-center gap-6 mb-8 shrink-0">
                 <div className="w-16 h-2 bg-[#ff4d6d]"></div>
-                <h2 className="text-5xl font-black font-sans uppercase tracking-widest text-[#ff4d6d]">Analiză Strategica SWOT</h2>
+                <h2 className="text-5xl font-black font-sans uppercase tracking-widest text-[#ff4d6d]">AnalizÄƒ Strategica SWOT</h2>
               </div>
               <div className="bg-rose-50/50 p-8 border-l-8 border-[#ff4d6d] flex flex-col gap-6 flex-1 rounded-2xl overflow-hidden">
-                <h3 className="text-4xl font-black text-rose-900 uppercase tracking-widest pb-4 border-b-2 border-rose-200 shrink-0">Slăbiciuni</h3>
+                <h3 className="text-4xl font-black text-rose-900 uppercase tracking-widest pb-4 border-b-2 border-rose-200 shrink-0">SlÄƒbiciuni</h3>
                 <div className="grid grid-cols-2 gap-x-12 gap-y-6 overflow-hidden content-start flex-1">
                   {result.analiza_swot?.puncte_slabe?.slice(0, 8).map((item: any, idx: number) => (
                     <div key={idx} className="flex flex-col gap-2">
-                      <h4 className="text-2xl font-bold text-[#ff4d6d] leading-snug">✦ {item.titlu || item}</h4>
-                      <p className="text-lg text-gray-600 leading-relaxed max-w-lg text-justify">{item.explicatie_tehnica}</p>
+                      <h4 className="text-2xl font-bold text-[#ff4d6d] leading-snug">âœ¦ {item.titlu || item}</h4>
+                      <p className="text-lg text-gray-600 leading-relaxed max-w-lg text-left">{item.explicatie_tehnica}</p>
                     </div>
                   ))}
                 </div>
@@ -2437,15 +2433,15 @@ export default function Home() {
             <div className="pdf-presentation-slide w-[1280px] h-[720px] bg-white flex flex-col px-24 py-16 border-[12px] border-emerald-900 box-border relative">
               <div className="flex items-center gap-6 mb-8 shrink-0">
                 <div className="w-16 h-2 bg-blue-500"></div>
-                <h2 className="text-5xl font-black font-sans uppercase tracking-widest text-blue-600">Analiză Strategica SWOT</h2>
+                <h2 className="text-5xl font-black font-sans uppercase tracking-widest text-blue-600">AnalizÄƒ Strategica SWOT</h2>
               </div>
               <div className="bg-blue-50/50 p-8 border-l-8 border-blue-500 flex flex-col gap-6 flex-1 rounded-2xl overflow-hidden">
-                <h3 className="text-4xl font-black text-blue-900 uppercase tracking-widest pb-4 border-b-2 border-blue-200 shrink-0">Oportunități</h3>
+                <h3 className="text-4xl font-black text-blue-900 uppercase tracking-widest pb-4 border-b-2 border-blue-200 shrink-0">OportunitÄƒÈ›i</h3>
                 <div className="grid grid-cols-2 gap-x-12 gap-y-6 overflow-hidden content-start flex-1">
                   {result.analiza_swot?.oportunitati?.slice(0, 8).map((item: any, idx: number) => (
                     <div key={idx} className="flex flex-col gap-2">
-                      <h4 className="text-2xl font-bold text-blue-600 leading-snug">✦ {item.titlu || item}</h4>
-                      <p className="text-lg text-gray-600 leading-relaxed max-w-lg text-justify">{item.explicatie_tehnica}</p>
+                      <h4 className="text-2xl font-bold text-blue-600 leading-snug">âœ¦ {item.titlu || item}</h4>
+                      <p className="text-lg text-gray-600 leading-relaxed max-w-lg text-left">{item.explicatie_tehnica}</p>
                     </div>
                   ))}
                 </div>
@@ -2456,15 +2452,15 @@ export default function Home() {
             <div className="pdf-presentation-slide w-[1280px] h-[720px] bg-white flex flex-col px-24 py-16 border-[12px] border-emerald-900 box-border relative">
               <div className="flex items-center gap-6 mb-8 shrink-0">
                 <div className="w-16 h-2 bg-orange-500"></div>
-                <h2 className="text-5xl font-black font-sans uppercase tracking-widest text-orange-600">Analiză Strategica SWOT</h2>
+                <h2 className="text-5xl font-black font-sans uppercase tracking-widest text-orange-600">AnalizÄƒ Strategica SWOT</h2>
               </div>
               <div className="bg-orange-50/50 p-8 border-l-8 border-orange-500 flex flex-col gap-6 flex-1 rounded-2xl overflow-hidden">
-                <h3 className="text-4xl font-black text-orange-900 uppercase tracking-widest pb-4 border-b-2 border-orange-200 shrink-0">Amenințări</h3>
+                <h3 className="text-4xl font-black text-orange-900 uppercase tracking-widest pb-4 border-b-2 border-orange-200 shrink-0">AmeninÈ›Äƒri</h3>
                 <div className="grid grid-cols-2 gap-x-12 gap-y-6 overflow-hidden content-start flex-1">
                   {result.analiza_swot?.amenintari?.slice(0, 8).map((item: any, idx: number) => (
                     <div key={idx} className="flex flex-col gap-2">
-                      <h4 className="text-2xl font-bold text-orange-600 leading-snug">✦ {item.titlu || item}</h4>
-                      <p className="text-lg text-gray-600 leading-relaxed max-w-lg text-justify">{item.explicatie_tehnica}</p>
+                      <h4 className="text-2xl font-bold text-orange-600 leading-snug">âœ¦ {item.titlu || item}</h4>
+                      <p className="text-lg text-gray-600 leading-relaxed max-w-lg text-left">{item.explicatie_tehnica}</p>
                     </div>
                   ))}
                 </div>
@@ -2475,10 +2471,10 @@ export default function Home() {
             <div className="pdf-presentation-slide w-[1280px] h-[720px] bg-white flex flex-col px-24 py-16 border-[12px] border-emerald-900 box-border relative">
               <div className="flex items-center gap-6 mb-8 shrink-0">
                 <div className="w-16 h-2 bg-emerald-600"></div>
-                <h2 className="text-5xl font-black font-sans uppercase tracking-widest text-emerald-800">Planul Operațional</h2>
+                <h2 className="text-5xl font-black font-sans uppercase tracking-widest text-emerald-800">Planul OperaÈ›ional</h2>
               </div>
               <div className="bg-emerald-50/50 p-8 border-l-8 border-emerald-500 flex flex-col gap-6 flex-1 rounded-2xl overflow-hidden">
-                <div className="flex flex-col gap-6 overflow-hidden content-start flex-1 pl-4 text-justify">
+                <div className="flex flex-col gap-6 overflow-hidden content-start flex-1 pl-4 text-left">
                     <div className="flex flex-col gap-2">
                        <h4 className="text-2xl font-bold text-emerald-700 leading-snug">1. Descriere Flux (Sustenabilitate / Verde)</h4>
                        <p className="text-lg text-gray-600 leading-relaxed line-clamp-3">{result.plan_operational?.descriere_flux}</p>
@@ -2488,7 +2484,7 @@ export default function Home() {
                        <p className="text-lg text-gray-600 leading-relaxed line-clamp-3">{result.plan_operational?.resurse_umane}</p>
                     </div>
                     <div className="flex flex-col gap-2">
-                       <h4 className="text-2xl font-bold text-emerald-700 leading-snug">3. Locație și Dotări</h4>
+                       <h4 className="text-2xl font-bold text-emerald-700 leading-snug">3. LocaÈ›ie È™i DotÄƒri</h4>
                        <p className="text-lg text-gray-600 leading-relaxed line-clamp-3">{result.plan_operational?.locatie_dotari}</p>
                     </div>
                 </div>
@@ -2499,7 +2495,7 @@ export default function Home() {
             <div className="pdf-presentation-slide w-[1280px] h-[720px] bg-white flex flex-col p-24 border-[12px] border-emerald-900 box-border relative">
               <div className="flex items-center gap-6 mb-12">
                 <div className="w-16 h-2 bg-emerald-600"></div>
-                <h2 className="text-5xl font-black font-sans uppercase tracking-widest text-emerald-800">Buget Investiții</h2>
+                <h2 className="text-5xl font-black font-sans uppercase tracking-widest text-emerald-800">Buget InvestiÈ›ii</h2>
               </div>
               <div className="grid grid-cols-2 gap-x-12 gap-y-8 font-sans items-start content-start overflow-hidden">
                 {result.plan_financiar?.buget_investitii?.slice(0, 8).map((b: any, i: number) => (
@@ -2525,7 +2521,7 @@ export default function Home() {
             <div className="pdf-presentation-slide w-[1280px] h-[720px] bg-white flex flex-col px-24 py-16 border-[12px] border-emerald-900 box-border relative">
               <div className="flex items-center gap-6 mb-8 shrink-0">
                 <div className="w-16 h-2 bg-emerald-600"></div>
-                <h2 className="text-5xl font-black font-sans uppercase tracking-widest text-emerald-800">Distribuția Costurilor</h2>
+                <h2 className="text-5xl font-black font-sans uppercase tracking-widest text-emerald-800">DistribuÈ›ia Costurilor</h2>
               </div>
               <div className="flex-1 w-full bg-emerald-50/50 p-8 rounded-2xl border border-emerald-100">
                   <BudgetPieChart budget={result.plan_financiar?.buget_investitii} />
@@ -2535,12 +2531,12 @@ export default function Home() {
             {/* CTA Slide (For PDF Summary) */}
             <div className="pdf-cta-slide w-[1280px] h-[720px] bg-emerald-950 flex flex-col justify-center items-center p-16 border-[12px] border-emerald-900 box-border relative text-center">
               <h2 className="text-6xl font-black text-white mb-16 px-12 leading-tight">
-                Vrei să dezvolți această idee sau să te inspirăm cu o altă idee?
+                Vrei sÄƒ dezvolÈ›i aceastÄƒ idee sau sÄƒ te inspirÄƒm cu o altÄƒ idee?
               </h2>
               
               <div className="flex items-center gap-6 bg-emerald-500 text-white px-12 py-8 rounded-full text-5xl font-black shadow-[0_0_60px_rgba(16,185,129,0.5)]">
-                <span>Întoarce-te pe IdeeaTa.ai!</span>
-                <span className="text-6xl">🚀</span>
+                <span>ÃŽntoarce-te pe IdeeaTa.ai!</span>
+                <span className="text-6xl">ðŸš€</span>
               </div>
             </div>
 
@@ -2550,9 +2546,9 @@ export default function Home() {
       {showAdModal && (
         <div className="fixed inset-0 bg-black/90 backdrop-blur-md z-[200] flex items-center justify-center p-4">
           <div className="bg-zinc-900 border border-zinc-800 rounded-3xl p-8 max-w-xl w-full flex flex-col items-center text-center shadow-2xl">
-            <span className="text-4xl mb-4">📺</span>
-            <h3 className="text-2xl font-black text-white mb-2">Pauză Publicitară</h3>
-            <p className="text-zinc-400 mb-8">Pentru a descărca gratuit sumarul planului tău, urmărește acest scurt mesaj sponsorizat.</p>
+            <span className="text-4xl mb-4">ðŸ“º</span>
+            <h3 className="text-2xl font-black text-white mb-2">PauzÄƒ PublicitarÄƒ</h3>
+            <p className="text-zinc-400 mb-8">Pentru a descÄƒrca gratuit sumarul planului tÄƒu, urmÄƒreÈ™te acest scurt mesaj sponsorizat.</p>
             
             {/* AdSense Banner */}
             <div className="w-full h-64 bg-zinc-900/50 rounded-xl flex items-center justify-center mb-8 overflow-hidden">
@@ -2564,7 +2560,7 @@ export default function Home() {
                 onClick={() => setShowAdModal(false)}
                 className="flex-1 px-6 py-3 rounded-xl font-bold text-zinc-400 bg-zinc-800 hover:bg-zinc-700 transition-colors"
               >
-                Anulează
+                AnuleazÄƒ
               </button>
               <button 
                 onClick={() => {
@@ -2573,7 +2569,7 @@ export default function Home() {
                 }}
                 className="flex-1 px-6 py-3 rounded-xl font-bold text-white bg-emerald-600 hover:bg-emerald-500 transition-colors shadow-[0_0_20px_rgba(16,185,129,0.3)]"
               >
-                Descarcă Sumarul
+                DescarcÄƒ Sumarul
               </button>
             </div>
           </div>
@@ -2587,10 +2583,10 @@ export default function Home() {
         <div className="fixed inset-0 bg-black/90 backdrop-blur-md z-[200] flex items-center justify-center p-4">
           <div className="bg-zinc-900 border border-zinc-800 rounded-3xl p-8 max-w-md w-full flex flex-col shadow-2xl items-center text-center">
             <div className="w-20 h-20 bg-emerald-950/50 rounded-full flex items-center justify-center mb-6">
-              <span className="text-4xl">⚠️</span>
+              <span className="text-4xl">âš ï¸</span>
             </div>
             
-            <h3 className="text-2xl font-black text-white mb-3">Limita a fost atinsă</h3>
+            <h3 className="text-2xl font-black text-white mb-3">Limita a fost atinsÄƒ</h3>
             <p className="text-zinc-400 mb-8">{showLimitModal.message}</p>
             
             <div className="flex flex-col gap-3 w-full">
@@ -2601,13 +2597,13 @@ export default function Home() {
                 }} 
                 className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3.5 rounded-xl transition-all shadow-[0_0_20px_rgba(16,185,129,0.3)]"
               >
-                Creează Cont / Vezi Planuri
+                CreeazÄƒ Cont / Vezi Planuri
               </button>
               <button 
                 onClick={() => setShowLimitModal({show: false, message: ""})} 
                 className="w-full bg-zinc-800 hover:bg-zinc-700 text-white font-bold py-3.5 rounded-xl transition-all text-sm border border-zinc-700"
               >
-                Închide
+                ÃŽnchide
               </button>
             </div>
           </div>

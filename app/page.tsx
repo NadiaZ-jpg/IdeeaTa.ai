@@ -852,8 +852,9 @@ export default function Home() {
         });
 
         let pdfUrl = 'https://ideea-ta-ai.vercel.app/';
-        if (shareId) {
-          pdfUrl = `https://ideea-ta-ai.vercel.app/shared/${shareId}`;
+        const currentShareId = result?.id;
+        if (currentShareId) {
+          pdfUrl = `https://ideea-ta-ai.vercel.app/shared/${currentShareId}`;
         }
 
         for (let i = 0; i < slidesArray.length; i++) {

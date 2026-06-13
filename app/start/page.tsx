@@ -2556,7 +2556,7 @@ export default function Home() {
             {/* CTA Slide (For PDF Summary) */}
             <div className="pdf-cta-slide w-[1280px] h-[720px] bg-emerald-950 flex flex-col justify-center items-center p-16 border-[12px] border-emerald-900 box-border relative text-center">
               <h2 className="text-6xl font-black text-white mb-16 px-12 leading-tight">
-                Vrei să generezi și alte idei de afaceri?
+                Vrei să dezvolți această idee sau să te inspirăm cu o altă idee?
               </h2>
               
               <div className="flex items-center gap-6 bg-emerald-500 text-white px-12 py-8 rounded-full text-5xl font-black shadow-[0_0_60px_rgba(16,185,129,0.5)]">

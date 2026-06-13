@@ -83,10 +83,10 @@ Fără niciun alt text, fără cod sursă markdown dacă se poate, doar JSON pur
     let statusCode = 500;
     
     if (isServiceUnavailable) {
-      errorMessage = "AI-ul este momentan foarte solicitat. Te rugăm să aștepți câteva momente și să încerci din nou.";
+      errorMessage = "AI-ul este momentan foarte solicitat. Te rugăm să dai refresh (🔄) la pagină și să încerci din nou.";
       statusCode = 503;
     } else if (isRateLimited) {
-      errorMessage = "Ai depășit limita de utilizare. Te rugăm să aștepți un minut și să încerci din nou.";
+      errorMessage = "Ai depășit limita de utilizare. Te rugăm să dai refresh (🔄) la pagină și să încerci din nou.";
       statusCode = 429;
     }
     

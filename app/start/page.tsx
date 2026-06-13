@@ -107,7 +107,10 @@ export default function Home() {
         .then(data => {
           if (data.data) {
             setResult(data.data);
-            setShowShareOverlay(true);
+            // Delay the pop-up so they can see the document first
+            setTimeout(() => {
+              setShowShareOverlay(true);
+            }, 3000);
           }
           setLoading(false);
         })
@@ -2469,7 +2472,7 @@ export default function Home() {
       )}
 
       {showShareOverlay && result && (
-        <div className="fixed inset-0 bg-black/95 backdrop-blur-xl z-[200] flex items-center justify-center p-4 overflow-y-auto">
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[200] flex items-center justify-center p-4 overflow-y-auto">
           <div className="bg-zinc-900 border border-zinc-800 rounded-3xl p-8 max-w-xl w-full flex flex-col items-center text-center shadow-2xl my-auto">
             <div className="w-20 h-20 bg-gradient-to-tr from-emerald-500 to-teal-400 rounded-full flex items-center justify-center mb-6 shadow-lg shadow-emerald-500/20">
               <span className="text-4xl">🚀</span>

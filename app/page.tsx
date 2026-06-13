@@ -807,7 +807,9 @@ export default function Home() {
           
           // Dacă este ultimul slide (CTA), adăugăm un link invizibil peste toată pagina
           if (i === slidesArray.length - 1 && mode === 'pdf-summary') {
-            pdf.link(0, 0, 1280, 720, { url: window.location.href });
+            const url = new URL(window.location.href);
+            url.searchParams.set("from_pdf", "true");
+            pdf.link(0, 0, 1280, 720, { url: url.toString() });
           }
 
           // Stamp footer on every page
@@ -816,7 +818,9 @@ export default function Home() {
           pdf.text("Plan generat inteligent de IdeeaTa.ai", 640, 700, { align: 'center' });
           
           // Add invisible link covering the footer area on every page
-          pdf.link(300, 680, 680, 40, { url: window.location.href });
+          const urlFooter = new URL(window.location.href);
+          urlFooter.searchParams.set("from_pdf", "true");
+          pdf.link(300, 680, 680, 40, { url: urlFooter.toString() });
         }
         
         const safeName = result?.nume?.replace(/[^a-zA-Z0-9]/g, '_') || 'Business';

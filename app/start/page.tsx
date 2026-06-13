@@ -77,6 +77,7 @@ export default function Home() {
   const [showQrModal, setShowQrModal] = useState(false);
   const [showAdModal, setShowAdModal] = useState(false);
   const [showShareOverlay, setShowShareOverlay] = useState(false);
+  const [showWelcomeModal, setShowWelcomeModal] = useState(false);
 
   const devBypass = process.env.NEXT_PUBLIC_DEV_BYPASS === 'true';
   const usedIdeasRef = useRef<number[]>([]);
@@ -101,6 +102,15 @@ export default function Home() {
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
     const sharedId = urlParams.get("sharedId");
+    const fromPdf = urlParams.get("from_pdf");
+    
+    if (fromPdf === "true") {
+      setShowWelcomeModal(true);
+      if (typeof window !== "undefined") {
+        window.history.replaceState(null, '', window.location.pathname + (sharedId ? "?sharedId=" + sharedId : ""));
+      }
+    }
+
     if (sharedId) {
       setLoading(true);
       fetch(`/api/share/${sharedId}`)
@@ -799,9 +809,10 @@ export default function Home() {
           if (i > 0) pdf.addPage([1280, 720], "landscape");
           pdf.addImage(dataUrl, 'PNG', 0, 0, 1280, 720);
           
-          // Add invisible link covering the entire page if it's the CTA slide
           if (i === slidesArray.length - 1 && mode === 'pdf-summary') {
-            pdf.link(0, 0, 1280, 720, { url: window.location.href });
+            const url = new URL(window.location.href);
+            url.searchParams.set("from_pdf", "true");
+            pdf.link(0, 0, 1280, 720, { url: url.toString() });
           }
 
           // Stamp footer on every page
@@ -810,7 +821,9 @@ export default function Home() {
           pdf.text("Plan generat inteligent de IdeeaTa.ai", 640, 700, { align: 'center' });
           
           // Add invisible link covering the footer area on every page
-          pdf.link(300, 680, 680, 40, { url: window.location.href });
+          const urlFooter = new URL(window.location.href);
+          urlFooter.searchParams.set("from_pdf", "true");
+          pdf.link(300, 680, 680, 40, { url: urlFooter.toString() });
         }
         
         if (mode === 'pdf-summary') {
@@ -1078,6 +1091,59 @@ export default function Home() {
                 <AdBanner dataAdSlot="AUTO_AD_SLOT" />
               </div>
             </div>
+      {showWelcomeModal && (
+        <div className="fixed inset-0 bg-black/90 backdrop-blur-md z-[200] flex items-center justify-center p-4">
+          <div className="bg-zinc-900 border border-zinc-800 rounded-3xl p-8 max-w-xl w-full flex flex-col shadow-2xl">
+            <div className="flex justify-between items-start mb-6">
+              <span className="text-4xl">👋</span>
+              <button onClick={() => setShowWelcomeModal(false)} className="text-zinc-500 hover:text-white transition-colors">
+                ✕
+              </button>
+            </div>
+            
+            <h3 className="text-3xl font-black text-white mb-3">Bine ai revenit!</h3>
+            <p className="text-zinc-400 mb-8 text-lg">Ai descărcat cu succes sumarul planului tău. Acesta este momentul în care magia prinde contur, iar planul tău devine o afacere reală.</p>
+            
+            <div className="space-y-4 mb-8">
+              <div className="bg-emerald-950/30 border border-emerald-900/50 p-5 rounded-2xl flex gap-4 items-start">
+                <span className="text-2xl">✏️</span>
+                <div>
+                  <h4 className="text-white font-bold mb-1">Editează Documentul</h4>
+                  <p className="text-sm text-zinc-400">Transformă textul cu asistentul AI, optimizează-l pentru fonduri UE și ajustează cifrele financiare.</p>
+                </div>
+              </div>
+              <div className="bg-emerald-950/30 border border-emerald-900/50 p-5 rounded-2xl flex gap-4 items-start">
+                <span className="text-2xl">📄</span>
+                <div>
+                  <h4 className="text-white font-bold mb-1">Descărcări Premium</h4>
+                  <p className="text-sm text-zinc-400">Deblochează accesul nelimitat la PDF Extins, Document Word și Prezentare PowerPoint (.pptx).</p>
+                </div>
+              </div>
+            </div>
+            
+            <div className="flex flex-col gap-3">
+              <button 
+                onClick={() => {
+                  setShowWelcomeModal(false);
+                  window.scrollTo({top: 0, behavior: 'smooth'});
+                }} 
+                className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-4 rounded-xl transition-all shadow-[0_0_20px_rgba(16,185,129,0.3)] text-lg"
+              >
+                Editează Planul Acum
+              </button>
+              <button 
+                onClick={() => {
+                  setShowWelcomeModal(false);
+                  setShowPricingModal(true);
+                }} 
+                className="w-full bg-zinc-800 hover:bg-zinc-700 text-white font-bold py-4 rounded-xl transition-all text-sm border border-zinc-700"
+              >
+                Vezi Pachete și Conturi
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 

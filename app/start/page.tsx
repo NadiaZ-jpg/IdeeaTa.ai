@@ -2061,6 +2061,27 @@ export default function Home() {
                     <p className="mt-2"><strong className="text-white print:text-black">Contact:</strong> {result.date_generale?.date_contact}</p>
                   </div>
                   
+                  {/* Decorative curved lines to fill empty space */}
+                  <div className="mt-auto pt-16 pb-4 w-full flex-grow flex items-end opacity-[0.25] select-none pointer-events-none hidden md:block print:hidden relative h-56 overflow-hidden">
+                    <svg viewBox="0 0 500 250" className="w-full absolute bottom-[-10px] left-[-20px] transform scale-110" preserveAspectRatio="none">
+                      <g stroke="#10b981" strokeWidth="1.2" fill="none">
+                        <path d="M-50,20 C50,90 150,-40 250,20 C350,80 450,-50 550,20" />
+                        <path d="M-50,40 C60,110 160,-20 260,40 C360,100 460,-30 550,40" />
+                        <path d="M-50,60 C70,130 170,0 270,60 C370,120 470,-10 550,60" />
+                        <path d="M-50,80 C50,150 150,20 250,80 C350,140 450,10 550,80" />
+                        <path d="M-50,100 C60,170 160,40 260,100 C360,160 460,30 550,100" />
+                        <path d="M-50,120 C70,190 170,60 270,120 C370,180 470,50 550,120" />
+                        <path d="M-50,140 C50,210 150,80 250,140 C350,200 450,70 550,140" />
+                        <path d="M-50,160 C60,230 160,100 260,160 C360,220 460,90 550,160" />
+                        <path d="M-50,180 C70,250 170,120 270,180 C370,240 470,110 550,180" />
+                        <path d="M-50,200 C50,270 150,140 250,200 C350,260 450,130 550,200" />
+                        <path d="M-50,220 C60,290 160,160 260,220 C360,280 460,150 550,220" />
+                        <path d="M-50,240 C70,310 170,180 270,240 C370,300 470,170 550,240" />
+                        <path d="M-50,260 C50,330 150,200 250,260 C350,320 450,190 550,260" />
+                        <path d="M-50,280 C60,350 160,220 260,280 C360,340 460,210 550,280" />
+                      </g>
+                    </svg>
+                  </div>
                 </div>
                 <div>
                   <p className="whitespace-pre-line text-left leading-relaxed"><strong className="text-white print:text-black block mb-1">Obiective (1 an):</strong>{formatNumberedText(result.viziune_strategie?.obiective_scurt)}</p>

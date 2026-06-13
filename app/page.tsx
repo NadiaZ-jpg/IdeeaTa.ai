@@ -89,6 +89,7 @@ export default function Home() {
   const [showPricingModal, setShowPricingModal] = useState(false);
   const [showQrModal, setShowQrModal] = useState(false);
   const [isSharedView, setIsSharedView] = useState(false);
+  const [isCheckingShared, setIsCheckingShared] = useState(true);
 
   const devBypass = process.env.NEXT_PUBLIC_DEV_BYPASS === 'true';
   const usedIdeasRef = useRef<number[]>([]);
@@ -401,8 +402,10 @@ export default function Home() {
               window.history.replaceState({}, document.title, window.location.pathname);
             }
           })
-          .catch(err => console.error("Eroare incarcare shareId:", err));
+          .catch(err => console.error("Eroare incarcare shareId:", err))
+          .finally(() => setIsCheckingShared(false));
       } else {
+        setIsCheckingShared(false);
         const saved = localStorage.getItem("current_generated_plan");
         if (saved && saved !== "null" && saved !== "undefined") {
           try {
@@ -1157,7 +1160,7 @@ export default function Home() {
     </div>
   );
 
-  if (isAuthLoading) {
+  if (isAuthLoading || isCheckingShared) {
     return (
       <div className="min-h-screen bg-[#09090b] flex items-center justify-center">
         <div className="w-12 h-12 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin"></div>

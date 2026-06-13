@@ -9,6 +9,7 @@ import { auth, db } from '@/lib/firebase';
 import { signInWithPopup, GoogleAuthProvider, FacebookAuthProvider, onAuthStateChanged, User, getRedirectResult, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, sendPasswordResetEmail } from 'firebase/auth';
 import { doc, onSnapshot, setDoc, getDoc, increment, arrayUnion } from 'firebase/firestore';
 import { PricingModal } from '@/components/PricingModal';
+import { AdBanner } from '@/components/AdBanner';
 
 const formatNumberedText = (text: string | undefined) => {
   if (typeof text !== 'string') return text;
@@ -1070,6 +1071,14 @@ export default function Home() {
               <p className="text-[13px] text-emerald-100/70 leading-relaxed">
                 <strong>Sfat:</strong> Aici editezi textul documentului. Pentru a adăuga <strong className="text-white">imagini</strong>, logo sau a schimba aranjarea în pagină, apasă <em>Confirmă și Salvează</em>, apoi descarcă documentele.
               </p>
+            </div>
+
+            {/* AdSense Banner Sidebar */}
+            <div className="mt-6 w-full min-h-[250px] rounded-2xl overflow-hidden bg-zinc-900/30 border border-zinc-800/50 flex flex-col items-center justify-center relative">
+              <span className="text-zinc-600 text-xs font-bold uppercase tracking-widest absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-0">Spațiu Reclamă</span>
+              <div className="relative z-10 w-full h-full">
+                <AdBanner dataAdSlot="AUTO_AD_SLOT" />
+              </div>
             </div>
     </div>
   );
@@ -2491,10 +2500,9 @@ export default function Home() {
             <h3 className="text-2xl font-black text-white mb-2">Pauză Publicitară</h3>
             <p className="text-zinc-400 mb-8">Pentru a descărca gratuit sumarul planului tău, urmărește acest scurt mesaj sponsorizat.</p>
             
-            {/* AdSense Placeholder */}
-            <div className="w-full h-64 bg-zinc-800/50 rounded-xl border-2 border-dashed border-zinc-700 flex flex-col items-center justify-center mb-8 relative overflow-hidden group">
-              <span className="text-zinc-500 font-bold tracking-widest uppercase text-sm">Spațiu Reclamă (AdSense)</span>
-              <div className="absolute inset-0 bg-gradient-to-tr from-emerald-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+            {/* AdSense Banner */}
+            <div className="w-full h-64 bg-zinc-900/50 rounded-xl flex items-center justify-center mb-8 overflow-hidden">
+              <AdBanner dataAdSlot="AUTO_AD_SLOT" />
             </div>
 
             <div className="flex flex-col sm:flex-row gap-4 w-full">
@@ -2531,10 +2539,9 @@ export default function Home() {
               Pentru a folosi asistentul inteligent și a finaliza editarea, te rugăm să te autentifici!
             </p>
             
-            {/* AdSense Placeholder */}
-            <div className="w-full h-[250px] bg-zinc-800/50 rounded-xl border-2 border-dashed border-zinc-700 flex flex-col items-center justify-center mb-8 relative overflow-hidden group">
-              <span className="text-zinc-500 font-bold tracking-widest uppercase text-sm">Spațiu Reclamă (AdSense)</span>
-              <div className="absolute inset-0 bg-gradient-to-tr from-emerald-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+            {/* AdSense Banner */}
+            <div className="w-full h-[250px] bg-zinc-900/50 rounded-xl flex items-center justify-center mb-8 overflow-hidden">
+              <AdBanner dataAdSlot="AUTO_AD_SLOT" />
             </div>
 
             <button 

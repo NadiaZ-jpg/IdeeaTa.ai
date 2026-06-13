@@ -201,22 +201,7 @@ export default function Home() {
     setIsEditing(false);
   };
 
-  // Scroll trigger: show AdModal at 85% when user is reading the plan in demo
-  useEffect(() => {
-    if (!result || isPaid) return;
-    let triggered = false;
-    const handleScroll = () => {
-      const scrollPosition = window.innerHeight + window.scrollY;
-      const threshold = document.documentElement.scrollHeight * 0.85;
-      if (scrollPosition >= threshold && !triggered) {
-        triggered = true;
-        setShowAdModal(true);
-        window.removeEventListener('scroll', handleScroll);
-      }
-    };
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, [result, isPaid]);
+  // Eliminat comportamentul agresiv de paywall la scroll conform cerințelor utilizatorului.
 
   const handleContextMenu = (e: React.MouseEvent) => {
     if (isContentCopyProtected) {
@@ -1869,14 +1854,7 @@ export default function Home() {
           <div className="flex flex-col lg:flex-row gap-8 items-start w-full">
             <div className="w-full lg:w-3/5 xl:w-2/3 relative">
               <EditForm result={result} updateField={updateField} removeField={removeField} readOnly={!isPaid} />
-              {!isPaid && (
-                <div
-                  className="absolute inset-0 z-20 rounded-[2.5rem] cursor-not-allowed"
-                  style={{ userSelect: 'none', WebkitUserSelect: 'none' }}
-                  onMouseDown={e => e.preventDefault()}
-                  onClick={() => setShowAdModal(true)}
-                />
-              )}
+              {/* Overlay-ul agresiv care bloca editarea cu popup de plată a fost scos */}
             </div>
             {renderSidebar()}
           </div>

@@ -65,7 +65,7 @@ export default function Home() {
   const [activeAiPrompt, setActiveAiPrompt] = useState<{action: string, title: string, placeholder?: string, desc?: string, isConfirm?: boolean} | null>(null);
   const [aiPromptInput, setAiPromptInput] = useState("");
   const [showToneOptions, setShowToneOptions] = useState(false);
-  const [isPaid, setIsPaid] = useState(false);
+  const [isPaid, setIsPaid] = useState(true); // Setat pe TRUE pentru a putea face teste fără bariera de plată
   const [showPaywall, setShowPaywall] = useState(false);
   const [isPaying, setIsPaying] = useState(false);
   const [pendingDownloadMode, setPendingDownloadMode] = useState<'pdf' | 'pptx' | 'word' | null>(null);
@@ -566,7 +566,7 @@ export default function Home() {
     setLoading(true);
     setMessageIndex(0);
     setResult(null);
-    setIsPaid(false);
+    setIsPaid(true);
 
     try {
       const res = await fetch("/api/generate", {
@@ -658,7 +658,7 @@ export default function Home() {
   const resetApp = () => {
     setResult(null);
     setCurrency("LEI");
-    setIsPaid(false);
+    setIsPaid(true);
     if (typeof window !== "undefined") {
       localStorage.removeItem("current_generated_plan");
     }

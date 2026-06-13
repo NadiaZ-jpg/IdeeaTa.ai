@@ -12,12 +12,8 @@ export default function RootLayout({children}: {children: React.ReactNode}) {
   return (
     <html lang="ro">
       <head>
-        <Script
-          async
-          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5089980515174940"
-          crossOrigin="anonymous"
-          strategy="afterInteractive"
-        />
+        <meta name="google-adsense-account" content="ca-pub-5089980515174940" />
+        <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5089980515174940" crossOrigin="anonymous"></script>
       </head>
       <body suppressHydrationWarning>
         {children}

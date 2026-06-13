@@ -222,7 +222,6 @@ export default function Home() {
       const editCount = parseInt(localStorage.getItem('demoEditCount') || '0');
       if (editCount >= 2) {
         setShowLimitModal({show: true, message: "Ai atins limita de editări gratuite din Demo. Pentru a continua editarea, te rugăm să creezi un cont gratuit!"});
-        window.location.href = "/";
         return;
       }
       localStorage.setItem('demoEditCount', (editCount + 1).toString());
@@ -642,7 +641,6 @@ export default function Home() {
           }
           alert("Sistemul AI este momentan supraîncărcat și a generat un răspuns incomplet. Te rugăm să mai încerci o dată!");
           setLoading(false);
-          setLoadingProgress(0);
         }
       }
     } catch (error: any) {

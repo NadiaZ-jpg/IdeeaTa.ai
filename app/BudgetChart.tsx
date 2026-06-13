@@ -21,7 +21,7 @@ const CustomXAxisTick = (props: any) => {
   let line = '';
   const lines = [];
   words.forEach((word: string) => {
-    if ((line + word).length > 30) {
+    if ((line + word).length > 25) {
       if (line) lines.push(line);
       line = word + ' ';
     } else {
@@ -30,11 +30,14 @@ const CustomXAxisTick = (props: any) => {
   });
   if (line) lines.push(line);
 
+  // Center the text block horizontally under the tick
+  const offset = ((lines.length - 1) * 13) / 2;
+
   return (
-    <g transform={`translate(${x},${y})`}>
-      <text x={0} y={0} dy={16} textAnchor="end" fill="#a1a1aa" fontSize={10} transform="rotate(-40)">
+    <g transform={`translate(${x + offset},${y + 12})`}>
+      <text textAnchor="end" fill="#a1a1aa" fontSize={11} transform="rotate(-90)">
         {lines.map((l: string, index: number) => (
-          <tspan key={index} x={0} dy={index === 0 ? 0 : 12}>{l.trim()}</tspan>
+          <tspan key={index} x={0} y={-index * 13}>{l.trim()}</tspan>
         ))}
       </text>
     </g>
@@ -59,7 +62,7 @@ export function BudgetBarChart({ budget }: { budget: any[] }) {
       {/* Bar Chart Container */}
       <div className="h-[450px] w-full lg:w-1/2 outline-none">
         <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
-          <BarChart data={data} margin={{ top: 10, right: 10, left: 100, bottom: 180 }} style={{ outline: 'none' }}>
+          <BarChart data={data} margin={{ top: 10, right: 10, left: 10, bottom: 180 }} style={{ outline: 'none' }}>
             <CartesianGrid strokeDasharray="3 3" stroke="#27272a" vertical={false} />
             <XAxis 
               dataKey="name" 
@@ -70,7 +73,7 @@ export function BudgetBarChart({ budget }: { budget: any[] }) {
             <YAxis 
               stroke="#71717a" 
               tick={{ fill: '#a1a1aa', fontSize: 11 }} 
-              width={60}
+              width={50}
               tickFormatter={(val) => val >= 1000 ? `${(val / 1000).toFixed(0)}k` : val}
             />
             <Tooltip 

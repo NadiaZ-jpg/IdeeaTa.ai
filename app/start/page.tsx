@@ -81,6 +81,22 @@ export default function Home() {
   const [animatedPlaceholder, setAnimatedPlaceholder] = useState("");
 
   useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (
+        (e.ctrlKey || e.metaKey) && 
+        (e.key === 'c' || e.key === 'C' || e.key === 'p' || e.key === 'P' || e.key === 's' || e.key === 'S')
+      ) {
+        e.preventDefault();
+      }
+      if (e.key === 'PrintScreen') {
+        navigator.clipboard.writeText('');
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
+  useEffect(() => {
     const placeholders = [
       "Consultanță Securitate Cibernetică...",
       "Studio de Design Interior...",
@@ -987,23 +1003,6 @@ export default function Home() {
   }
 
 
-
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (
-        (e.ctrlKey || e.metaKey) && 
-        (e.key === 'c' || e.key === 'C' || e.key === 'p' || e.key === 'P' || e.key === 's' || e.key === 'S')
-      ) {
-        e.preventDefault();
-      }
-      if (e.key === 'PrintScreen') {
-        navigator.clipboard.writeText('');
-      }
-    };
-    
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, []);
 
   return (
     <main 

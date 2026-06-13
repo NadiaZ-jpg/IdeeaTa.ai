@@ -150,6 +150,16 @@ export default function Home() {
   const handleAiEdit = async (action: string, customStyle?: string, customInput?: string) => {
     if (isEditingAi) return;
 
+    if (typeof window !== 'undefined') {
+      const editCount = parseInt(localStorage.getItem('demoEditCount') || '0');
+      if (editCount >= 2) {
+        alert("Ai atins limita de editări gratuite din Demo. Pentru a continua editarea, te rugăm să creezi un cont gratuit!");
+        window.location.href = "/";
+        return;
+      }
+      localStorage.setItem('demoEditCount', (editCount + 1).toString());
+    }
+
     let targetSection = "";
     if (action === "add_sections") {
       if (!customInput) return; // Anulat
@@ -462,6 +472,16 @@ export default function Home() {
   const generate = async (e?: React.FormEvent) => {
     if (e) e.preventDefault(); 
     if (!skill.trim() || loading) return;
+
+    if (typeof window !== 'undefined') {
+      const generateCount = parseInt(localStorage.getItem('demoGenerateCount') || '0');
+      if (generateCount >= 1) {
+        alert("Ai atins limita de generări gratuite pe Demo. Creează un cont pentru a continua.");
+        window.location.href = "/";
+        return;
+      }
+      localStorage.setItem('demoGenerateCount', (generateCount + 1).toString());
+    }
 
     setLoading(true);
     setMessageIndex(0);

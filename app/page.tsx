@@ -2286,8 +2286,6 @@ export default function Home() {
             </div>
           </div>
 
-          </div>
-
           {!isEditing && (
             <div 
               ref={brochureRef} 

@@ -426,6 +426,24 @@ export default function Home() {
     }
   }, []);
 
+  // Asculta evenimentul de back (popstate) pentru a restaura documentul cand utilizatorul da "Inapoi" de la login
+  useEffect(() => {
+    const handlePopState = () => {
+      if (!user) {
+        if (!window.location.search.includes('login=true')) {
+          const saved = localStorage.getItem("current_generated_plan");
+          if (saved && saved !== "null" && saved !== "undefined") {
+            setIsSharedView(true);
+          }
+        } else {
+          setIsSharedView(false);
+        }
+      }
+    };
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, [user]);
+
   // Salveaza planul in localStorage cand se schimba rezultatul
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -736,6 +754,7 @@ export default function Home() {
 
     if (mode !== 'pdf-summary' && !isAdmin && !isPlanPaid && !subscriptionActive && !euFundsUnlocked && !bypassPaymentCheck) {
       if (!user) {
+        window.history.pushState({ login: true }, '', window.location.pathname + '?login=true');
         setIsSharedView(false);
         return;
       }
@@ -1325,6 +1344,15 @@ export default function Home() {
             Deschide pe telefon (QR)
           </button>
 
+          {/* Back to Document Button */}
+          {result && !user && !isSharedView && (
+            <button
+              onClick={() => setIsSharedView(true)}
+              className="mt-6 text-zinc-400 hover:text-white transition-colors text-sm flex items-center gap-2 font-medium"
+            >
+              <span>&larr;</span> Înapoi la vizualizarea documentului
+            </button>
+          )}
 
           {/* QR Code Modal */}
           {showQrModal && (

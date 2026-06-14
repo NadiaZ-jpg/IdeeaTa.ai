@@ -75,7 +75,7 @@ ${JSON.stringify(inputData)}
 
 Sarcina: ${instruction}
 
-Returnează DOAR JSON valid cu aceeași structură ca inputul. Fără text extra, fără markdown.`;
+Returnează DOAR JSON valid. ${action !== "add_sections" ? "Păstrează exact aceeași structură ca inputul." : "Adaugă array-ul cerut la nivelul principal (root) al obiectului JSON furnizat."} Fără text extra, fără markdown.`;
 
     let response;
     let retries = 3;

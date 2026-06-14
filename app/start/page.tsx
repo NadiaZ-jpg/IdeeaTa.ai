@@ -2677,12 +2677,20 @@ export default function Home() {
             <div className="flex flex-col gap-3 w-full">
               <button 
                 onClick={() => {
-                  setShowLimitModal({show: false, message: ""});
-                  setShowPricingModal(true);
+                  window.location.href = "/";
                 }} 
                 className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3.5 rounded-xl transition-all shadow-[0_0_20px_rgba(16,185,129,0.3)]"
               >
-                Creează Cont / Vezi Planuri
+                Creează Cont Gratuit / Intră în cont
+              </button>
+              <button 
+                onClick={() => {
+                  setShowLimitModal({show: false, message: ""});
+                  setShowPricingModal(true);
+                }} 
+                className="w-full bg-zinc-800 hover:bg-zinc-700 text-white font-bold py-3.5 rounded-xl transition-all text-sm border border-zinc-700"
+              >
+                Vezi Planuri PRO
               </button>
               <button 
                 onClick={() => setShowLimitModal({show: false, message: ""})} 

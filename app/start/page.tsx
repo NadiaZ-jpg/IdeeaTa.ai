@@ -32,6 +32,9 @@ const formatNumberedText = (text: string | undefined) => {
   // 2. Ensure list items have exactly ONE newline before them to keep lists compact and consistent
   formatted = formatted.replace(/\n+\s*(\d+\.)\s+/g, '\n$1 ');
 
+  // 3. Insert newline before inline numbered items (e.g. "... text. 2. Text...")
+  formatted = formatted.replace(/([.!?])\s+(\d+\.)\s+/g, '$1\n$2 ');
+
   // Grammatical fixes
   // 1. Remove leading commas or punctuation left over from prefixes
   formatted = formatted.replace(/^[\s,;.-]+/, '');
@@ -2076,11 +2079,14 @@ export default function Home() {
             </div>
           </div>
 
-          <div 
-            ref={brochureRef} 
-            className={`${isEditing ? 'hidden' : 'block'} bg-[#09090b] border border-zinc-800 p-8 md:p-12 rounded-[2.5rem] shadow-2xl transition-all duration-500 relative ${isContentCopyProtected ? 'select-none' : ''}`}
-            onContextMenu={handleContextMenu}
-          >
+          </div>
+
+          {!isEditing && (
+            <div 
+              ref={brochureRef} 
+              className={`bg-[#09090b] border border-zinc-800 p-8 md:p-12 rounded-[2.5rem] shadow-2xl transition-all duration-500 relative ${isContentCopyProtected ? 'select-none' : ''}`}
+              onContextMenu={handleContextMenu}
+            >
 
             <div className="pdf-section mt-12 mb-10 border-b border-zinc-800 pb-10">
               <h2 className="text-6xl font-black mb-4 tracking-tight not-italic text-white">
@@ -2250,9 +2256,11 @@ export default function Home() {
                   ))}
                 </div>
             </div>
+            </div>
             
               </div>
-            </div>
+            )}
+          </div>
       )}
       </div>
 

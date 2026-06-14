@@ -32,6 +32,9 @@ const formatNumberedText = (text: string | undefined) => {
   // 2. Ensure list items have exactly ONE newline before them to keep lists compact and consistent
   formatted = formatted.replace(/\n+\s*(\d+\.)\s+/g, '\n$1 ');
 
+  // 3. Insert newline before inline numbered items (e.g. "... text. 2. Text...")
+  formatted = formatted.replace(/([.!?])\s+(\d+\.)\s+/g, '$1\n$2 ');
+
   // Grammatical fixes
   // 1. Remove leading commas or punctuation left over from prefixes
   formatted = formatted.replace(/^[\s,;.-]+/, '');
@@ -970,7 +973,14 @@ export default function Home() {
                   <li style="margin-bottom: 10px;"><strong>Locație și Dotări Necesare:</strong><br/>${result.plan_operational?.locatie_dotari}</li>
               </ol>
 
-              <h2 style="font-family: Arial, sans-serif; color: #065f46;">VI. Planul Financiar</h2>
+              ${result.sectiuni_aditionale?.map((sec: any) => `
+                <h2 style="font-family: Arial, sans-serif; color: #065f46; margin-top: 24px;">${sec.titlu}</h2>
+                <p style="font-family: Arial, sans-serif; line-height: 1.6; font-size: 14px; white-space: pre-line;">
+                    ${formatNumberedText(sec.continut)}
+                </p>
+              `).join('') || ''}
+
+              <h2 style="font-family: Arial, sans-serif; color: #065f46; margin-top: 24px;">VI. Planul Financiar</h2>
               <p style="font-family: Arial, sans-serif; line-height: 1.6; font-size: 14px; font-style: italic;">
                   ${result.plan_financiar?.strategie_financiara}
               </p>
@@ -2276,11 +2286,14 @@ export default function Home() {
             </div>
           </div>
 
-          <div 
-            ref={brochureRef} 
-            className={`${isEditing ? 'hidden' : 'block'} bg-[#09090b] border border-zinc-800 p-8 md:p-12 rounded-[2.5rem] shadow-2xl transition-all duration-500 relative ${isContentCopyProtected ? 'select-none' : ''}`}
-            onContextMenu={handleContextMenu}
-          >
+          </div>
+
+          {!isEditing && (
+            <div 
+              ref={brochureRef} 
+              className={`bg-[#09090b] border border-zinc-800 p-8 md:p-12 rounded-[2.5rem] shadow-2xl transition-all duration-500 relative ${isContentCopyProtected ? 'select-none' : ''}`}
+              onContextMenu={handleContextMenu}
+            >
 
             <div className="pdf-section mt-12 mb-10 border-b border-zinc-800 pb-10">
               <h2 className="text-6xl font-black mb-4 tracking-tight not-italic text-white">
@@ -2452,7 +2465,8 @@ export default function Home() {
             </div>
             
               </div>
-            </div>
+            )}
+          </div>
       )}
       </div>
 
@@ -2639,6 +2653,21 @@ export default function Home() {
                   <BudgetPieChart budget={result.plan_financiar?.buget_investitii} currency={currency} />
               </div>
             </div>
+
+            {/* Custom Sections Slides (Dark Mode) */}
+            {result.sectiuni_aditionale?.map((sec: any, idx: number) => (
+              <div key={`pdf-custom-dark-${idx}`} className="presentation-slide w-[1280px] h-[720px] bg-[#09090b] flex flex-col p-24 border-[12px] border-zinc-900 box-border relative">
+                <div className="flex items-center gap-6 mb-12 shrink-0">
+                  <div className="w-16 h-2 bg-emerald-500"></div>
+                  <h2 className="text-5xl font-black font-sans uppercase tracking-widest text-emerald-400">{sec.titlu}</h2>
+                </div>
+                <div className="flex-1 w-full bg-zinc-900/50 p-8 rounded-3xl border border-zinc-800">
+                  <p className="text-zinc-300 text-2xl italic leading-relaxed whitespace-pre-line overflow-hidden max-h-full">
+                    {formatNumberedText(sec.continut)}
+                  </p>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       )}
@@ -2827,6 +2856,21 @@ export default function Home() {
                   <BudgetPieChart budget={result.plan_financiar?.buget_investitii} currency={currency} />
               </div>
             </div>
+
+            {/* Custom Sections Slides (White Mode) */}
+            {result.sectiuni_aditionale?.map((sec: any, idx: number) => (
+              <div key={`pdf-custom-white-${idx}`} className="pdf-presentation-slide w-[1280px] h-[720px] bg-white flex flex-col px-24 py-16 border-[12px] border-emerald-900 box-border relative">
+                <div className="flex items-center gap-6 mb-8 shrink-0">
+                  <div className="w-16 h-2 bg-emerald-600"></div>
+                  <h2 className="text-5xl font-black font-sans uppercase tracking-widest text-emerald-800">{sec.titlu}</h2>
+                </div>
+                <div className="flex-1 w-full bg-emerald-50/50 p-8 rounded-2xl border border-emerald-100">
+                  <p className="text-zinc-700 text-2xl italic leading-relaxed whitespace-pre-line overflow-hidden max-h-full">
+                    {formatNumberedText(sec.continut)}
+                  </p>
+                </div>
+              </div>
+            ))}
 
             {/* CTA Slide (For PDF Summary) */}
             <div className="pdf-cta-slide w-[1280px] h-[720px] bg-emerald-950 flex flex-col justify-center items-center p-24 border-[12px] border-emerald-900 box-border relative text-center">

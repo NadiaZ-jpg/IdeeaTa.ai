@@ -954,7 +954,7 @@ export default function Home() {
               </p>
               <h3 style="font-family: Arial, sans-serif; font-size: 16px;">Buget Investiții</h3>
               <ul style="font-family: Arial, sans-serif; line-height: 1.6; font-size: 14px;">
-                  ${result.plan_financiar?.buget_investitii?.map((b: any) => `<li><strong>${b.item}</strong> - <span style="color:#065f46;">${formatPrice(b.cost)}</span><br/><span style="color:#555; font-style:italic;">${b.explicatie}</span></li>`).join('') || ''}
+                  ${[...(result.plan_financiar?.buget_investitii || [])].sort((a: any, b: any) => parseInt(b.cost?.toString().replace(/[^0-9]/g, '') || '0') - parseInt(a.cost?.toString().replace(/[^0-9]/g, '') || '0')).map((b: any) => `<li><strong>${b.item}</strong> - <span style="color:#065f46;">${formatPrice(b.cost)}</span><br/><span style="color:#555; font-style:italic;">${b.explicatie}</span></li>`).join('') || ''}
               </ul>
               <h3 style="text-align:right; font-family: Arial, sans-serif; color: #065f46;">
                   Total Estimat: ${formatPrice(result.plan_financiar?.buget_investitii?.reduce((sum: number, b: any) => sum + parseInt(b.cost?.toString().replace(/[^0-9]/g, '') || '0'), 0).toString())}
@@ -2233,7 +2233,7 @@ export default function Home() {
                </div>
 
                <div className="grid grid-cols-1 gap-6 print:gap-3">
-                  {result.plan_financiar?.buget_investitii?.map((b: any, i: number) => (
+                  {[...(result.plan_financiar?.buget_investitii || [])].sort((a: any, b: any) => parseInt(b.cost?.toString().replace(/[^0-9]/g, '') || '0') - parseInt(a.cost?.toString().replace(/[^0-9]/g, '') || '0')).map((b: any, i: number) => (
                     <div 
                       key={i} 
                       className="pdf-section bg-emerald-950/10 p-8 rounded-3xl border border-emerald-900/30 border-l-4 border-l-emerald-500 shadow-[inset_0_0_20px_rgba(52,211,153,0.05)] flex flex-col md:flex-row justify-between items-center gap-8 transition-all duration-300 hover:bg-[#960018] hover:border-[#ff4d6d] hover:border-l-[#ff4d6d] hover:-translate-y-1 hover:shadow-[0_0_20px_rgba(255,77,109,0.4)] group cursor-default print:border-gray-200 print:border-l-4 print:border-l-emerald-700 print:bg-transparent print:text-black print:break-inside-avoid print:p-4 print:shadow-none"

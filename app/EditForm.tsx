@@ -182,29 +182,39 @@ export function EditForm({ result, updateField, removeField, readOnly = false }:
           </div>
 
           <h4 className="text-xl font-bold mb-2">Buget Investiții</h4>
-          {result.plan_financiar?.buget_investitii?.map((b: any, idx: number) => (
-            <div key={idx} className="flex flex-col gap-2 bg-zinc-800/60 p-4 rounded-xl shadow-[inset_0_1px_1px_rgba(255,255,255,0.08),_0_6px_12px_-4px_rgba(0,0,0,0.6)] border-t border-zinc-700 border-x border-zinc-800 border-b border-black relative group mb-2">
-              {removeField && !readOnly && (
-                <button title="Șterge acest element" onClick={() => removeField(['plan_financiar', 'buget_investitii', idx])} className="absolute top-2 right-2 text-zinc-500 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-opacity bg-black/50 p-1.5 rounded-lg text-xs z-10">
-                  🗑️
-                </button>
-              )}
-              <div className="flex flex-col md:flex-row gap-4">
-                <div className="flex flex-col gap-1 flex-1">
-                  <label className="text-sm text-zinc-500 uppercase font-bold">Element Buget</label>
-                  <input type="text" value={b.item || ''} onChange={readOnly ? noop : (e) => updateField(['plan_financiar', 'buget_investitii', idx, 'item'], e.target.value)} readOnly={readOnly} onCopy={readOnly ? e => e.preventDefault() : undefined} className={inputCls("bg-black/80 border border-zinc-700 p-3 rounded-lg text-lg font-bold w-full focus:outline-none focus:ring-1 focus:ring-emerald-500 focus:border-emerald-500 transition-all shadow-inner")} placeholder="Nume element..." />
+          {(result.plan_financiar?.buget_investitii || [])
+            .map((_: any, idx: number) => idx)
+            .sort((i: number, j: number) => {
+              const costA = parseInt(result.plan_financiar!.buget_investitii[i].cost?.toString().replace(/[^0-9]/g, '') || '0');
+              const costB = parseInt(result.plan_financiar!.buget_investitii[j].cost?.toString().replace(/[^0-9]/g, '') || '0');
+              return costB - costA;
+            })
+            .map((originalIdx: number) => {
+              const b = result.plan_financiar!.buget_investitii[originalIdx];
+              return (
+                <div key={originalIdx} className="flex flex-col gap-2 bg-zinc-800/60 p-4 rounded-xl shadow-[inset_0_1px_1px_rgba(255,255,255,0.08),_0_6px_12px_-4px_rgba(0,0,0,0.6)] border-t border-zinc-700 border-x border-zinc-800 border-b border-black relative group mb-2">
+                  {removeField && !readOnly && (
+                    <button title="Șterge acest element" onClick={() => removeField(['plan_financiar', 'buget_investitii', originalIdx])} className="absolute top-2 right-2 text-zinc-500 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-opacity bg-black/50 p-1.5 rounded-lg text-xs z-10">
+                      🗑️
+                    </button>
+                  )}
+                  <div className="flex flex-col md:flex-row gap-4">
+                    <div className="flex flex-col gap-1 flex-1">
+                      <label className="text-sm text-zinc-500 uppercase font-bold">Element Buget</label>
+                      <input type="text" value={b.item || ''} onChange={readOnly ? noop : (e) => updateField(['plan_financiar', 'buget_investitii', originalIdx, 'item'], e.target.value)} readOnly={readOnly} onCopy={readOnly ? e => e.preventDefault() : undefined} className={inputCls("bg-black/80 border border-zinc-700 p-3 rounded-lg text-lg font-bold w-full focus:outline-none focus:ring-1 focus:ring-emerald-500 focus:border-emerald-500 transition-all shadow-inner")} placeholder="Nume element..." />
+                    </div>
+                    <div className="flex flex-col gap-1 w-full md:w-32">
+                      <label className="text-sm text-zinc-500 uppercase font-bold">Cost estimat</label>
+                      <input type="text" value={b.cost !== undefined ? b.cost : ''} onChange={readOnly ? noop : (e) => updateField(['plan_financiar', 'buget_investitii', originalIdx, 'cost'], e.target.value)} readOnly={readOnly} onCopy={readOnly ? e => e.preventDefault() : undefined} className={inputCls("bg-black/80 border border-zinc-700 p-3 rounded-lg text-lg font-bold w-full focus:outline-none focus:ring-1 focus:ring-emerald-500 focus:border-emerald-500 transition-all shadow-inner")} placeholder="Ex: 15000 LEI" />
+                    </div>
+                  </div>
+                  <div className="flex flex-col gap-1">
+                    <label className="text-sm text-zinc-500 uppercase font-bold">Justificare necesitate</label>
+                    <AutoExpandingTextarea readOnly={readOnly} rows={2} value={b.explicatie || ''} onChange={readOnly ? noop : (e) => updateField(['plan_financiar', 'buget_investitii', originalIdx, 'explicatie'], e.target.value)} className="bg-black/80 border border-zinc-700 p-3 rounded-lg text-base w-full shadow-inner" placeholder="De ce este necesar? Cum contribuie la afacere?" />
+                  </div>
                 </div>
-                <div className="flex flex-col gap-1 w-full md:w-32">
-                  <label className="text-sm text-zinc-500 uppercase font-bold">Cost estimat</label>
-                  <input type="text" value={b.cost !== undefined ? b.cost : ''} onChange={readOnly ? noop : (e) => updateField(['plan_financiar', 'buget_investitii', idx, 'cost'], e.target.value)} readOnly={readOnly} onCopy={readOnly ? e => e.preventDefault() : undefined} className={inputCls("bg-black/80 border border-zinc-700 p-3 rounded-lg text-lg font-bold w-full focus:outline-none focus:ring-1 focus:ring-emerald-500 focus:border-emerald-500 transition-all shadow-inner")} placeholder="Ex: 15000 LEI" />
-                </div>
-              </div>
-              <div className="flex flex-col gap-1">
-                <label className="text-sm text-zinc-500 uppercase font-bold">Justificare necesitate</label>
-                <AutoExpandingTextarea readOnly={readOnly} rows={2} value={b.explicatie || ''} onChange={readOnly ? noop : (e) => updateField(['plan_financiar', 'buget_investitii', idx, 'explicatie'], e.target.value)} className="bg-black/80 border border-zinc-700 p-3 rounded-lg text-base w-full shadow-inner" placeholder="De ce este necesar? Cum contribuie la afacere?" />
-              </div>
-            </div>
-          ))}
+              );
+            })}
         </div>
 
         {/* Sectiuni Aditionale */}

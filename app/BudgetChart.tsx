@@ -53,13 +53,13 @@ export function BudgetPieChart({ budget, currency = "LEI" }: { budget: any[], cu
       </div>
 
       {/* Legend Container */}
-      <div className="h-[450px] w-full lg:w-1/2 flex items-center justify-center pl-0 lg:pl-10">
-        <ul className="flex flex-col gap-3 p-0 m-0 w-full justify-center max-h-[400px] overflow-y-auto pr-4 custom-scrollbar">
+      <div className="w-full lg:w-1/2 flex items-center justify-center pl-0 lg:pl-10 py-4">
+        <ul className="flex flex-col gap-2 p-0 m-0 w-full justify-center">
           {data.map((item, index) => {
             const percent = totalCost > 0 ? ((item.cost / totalCost) * 100).toFixed(0) : '0';
             return (
-              <li key={`legend-item-${index}`} className="flex items-start gap-3 text-[16px] text-zinc-300">
-                <div className="w-3.5 h-3.5 rounded-[3px] mt-1.5 shrink-0 shadow-sm" style={{ backgroundColor: COLORS[index % COLORS.length] }} />
+              <li key={`legend-item-${index}`} className="flex items-start gap-2.5 text-[14px] text-zinc-300">
+                <div className="w-3 h-3 rounded-[3px] mt-1 shrink-0 shadow-sm" style={{ backgroundColor: COLORS[index % COLORS.length] }} />
                 <span className="leading-tight">{item.name} <strong className="text-zinc-500">({percent}%)</strong></span>
               </li>
             );

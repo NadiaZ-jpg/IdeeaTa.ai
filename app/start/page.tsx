@@ -2461,38 +2461,42 @@ export default function Home() {
             </div>
 
             {/* Slide 2: Viziune */}
-            <div className="pdf-presentation-slide w-[1280px] h-[720px] bg-white text-emerald-950 flex flex-col justify-center p-24 border-[12px] border-emerald-900 box-border relative">
-              <div className="flex items-center gap-6 mb-8">
+            <div className="pdf-presentation-slide w-[1280px] h-[720px] bg-white text-emerald-950 flex flex-col justify-center px-24 py-16 border-[12px] border-emerald-900 box-border relative">
+              <div className="flex items-center gap-6 mb-6 shrink-0">
                 <div className="w-16 h-2 bg-emerald-600"></div>
                 <h2 className="text-5xl font-black font-sans uppercase tracking-widest text-emerald-800">Viziune și Strategie</h2>
               </div>
-              <div className="grid grid-cols-2 gap-12 font-serif leading-relaxed text-gray-800">
-                <div>
-                  <h3 className="text-2xl font-bold text-emerald-700 mb-3">Obiective (1 an)</h3>
-                  <p className="text-lg leading-relaxed text-left">{result.viziune_strategie?.obiective_scurt}</p>
-                  <h3 className="text-2xl font-bold text-emerald-700 mb-3 mt-6">Obiective (3-5 ani)</h3>
-                  <p className="text-lg leading-relaxed text-left">{result.viziune_strategie?.obiective_mediu}</p>
+              <div className="grid grid-cols-2 gap-8 font-serif leading-relaxed text-gray-800 flex-1 overflow-hidden content-start">
+                <div className="flex flex-col gap-4">
+                  <div className="overflow-hidden">
+                    <h3 className="text-xl font-bold text-emerald-700 mb-2">Obiective (1 an)</h3>
+                    <p className="text-base leading-relaxed text-left line-clamp-6">{result.viziune_strategie?.obiective_scurt}</p>
+                  </div>
+                  <div className="overflow-hidden">
+                    <h3 className="text-xl font-bold text-emerald-700 mb-2">Obiective (3-5 ani)</h3>
+                    <p className="text-base leading-relaxed text-left line-clamp-6">{result.viziune_strategie?.obiective_mediu}</p>
+                  </div>
                 </div>
-                <div>
-                  <h3 className="text-2xl font-bold text-emerald-700 mb-3">Misiune și Valori</h3>
-                  <p className="text-lg leading-relaxed text-left">{result.viziune_strategie?.misiune_valori}</p>
+                <div className="overflow-hidden">
+                  <h3 className="text-xl font-bold text-emerald-700 mb-2">Misiune și Valori</h3>
+                  <p className="text-base leading-relaxed text-left line-clamp-[14]">{result.viziune_strategie?.misiune_valori}</p>
                 </div>
               </div>
             </div>
 
             {/* Slide 2b: Analiza Pietei */}
-            <div className="pdf-presentation-slide w-[1280px] h-[720px] bg-white text-emerald-950 flex flex-col justify-center p-24 border-[12px] border-emerald-900 box-border relative">
-              <div className="flex items-center gap-6 mb-6">
+            <div className="pdf-presentation-slide w-[1280px] h-[720px] bg-white text-emerald-950 flex flex-col justify-center px-24 py-16 border-[12px] border-emerald-900 box-border relative">
+              <div className="flex items-center gap-6 mb-6 shrink-0">
                 <div className="w-16 h-2 bg-emerald-600"></div>
                 <h2 className="text-5xl font-black font-sans uppercase tracking-widest text-emerald-800">Analiza Pieței</h2>
               </div>
-              <div className="flex flex-col gap-4 font-serif leading-relaxed text-gray-800 text-left">
-                  <div><h3 className="text-2xl font-bold text-emerald-700 mb-1">Clienții Țintă</h3>
-                  <p className="text-lg">{result.analiza_pietei?.clienti_tinta}</p></div>
-                  <div><h3 className="text-2xl font-bold text-emerald-700 mb-1">Concurența</h3>
-                  <p className="text-lg">{result.analiza_pietei?.concurenta}</p></div>
-                  <div><h3 className="text-2xl font-bold text-emerald-700 mb-1">Strategia de Marketing</h3>
-                  <p className="text-lg">{result.analiza_pietei?.strategie_marketing}</p></div>
+              <div className="flex flex-col gap-4 font-serif leading-relaxed text-gray-800 text-left flex-1 overflow-hidden justify-start">
+                  <div className="overflow-hidden"><h3 className="text-xl font-bold text-emerald-700 mb-1">Clienții Țintă</h3>
+                  <p className="text-base line-clamp-5">{result.analiza_pietei?.clienti_tinta}</p></div>
+                  <div className="overflow-hidden"><h3 className="text-xl font-bold text-emerald-700 mb-1">Concurența</h3>
+                  <p className="text-base line-clamp-5">{result.analiza_pietei?.concurenta}</p></div>
+                  <div className="overflow-hidden"><h3 className="text-xl font-bold text-emerald-700 mb-1">Strategia de Marketing</h3>
+                  <p className="text-base line-clamp-5">{result.analiza_pietei?.strategie_marketing}</p></div>
               </div>
             </div>
 

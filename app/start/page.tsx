@@ -355,22 +355,15 @@ export default function Home() {
   // Incarca planul salvat din localStorage la pornire
   useEffect(() => {
     if (typeof window !== "undefined") {
-      const urlParams = new URLSearchParams(window.location.search);
-      const shouldLoad = urlParams.get("continue") === "true" || urlParams.get("from_pdf") === "true" || urlParams.get("sharedId");
-      
       const saved = localStorage.getItem("current_generated_plan");
       
-      if (shouldLoad) {
-        if (saved && saved !== "null" && saved !== "undefined") {
-          try {
-            setResult(formatObjectNumbers(JSON.parse(saved)));
-          } catch (e) {
-            console.error("Eroare la incarcarea planului salvat local:", e);
-          }
+      if (saved && saved !== "null" && saved !== "undefined") {
+        try {
+          setResult(formatObjectNumbers(JSON.parse(saved)));
+        } catch (e) {
+          console.error("Eroare la incarcarea planului salvat local:", e);
+          localStorage.removeItem("current_generated_plan");
         }
-      } else {
-        // If they navigate directly to /start, clear any cached plan to start fresh
-        localStorage.removeItem("current_generated_plan");
       }
     }
   }, []);

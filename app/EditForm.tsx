@@ -207,6 +207,32 @@ export function EditForm({ result, updateField, removeField, readOnly = false }:
           ))}
         </div>
 
+        {/* Sectiuni Aditionale */}
+        {result.sectiuni_aditionale && result.sectiuni_aditionale.length > 0 && (
+          <div className="flex flex-col gap-6" id="section-custom">
+            <h3 className="text-2xl font-black border-b border-zinc-800 pb-2 flex items-center gap-2">
+              <span className="text-xl">✨</span> Secțiuni Adiționale
+            </h3>
+            {result.sectiuni_aditionale.map((sec: any, idx: number) => (
+              <div key={idx} className="flex flex-col gap-4 bg-zinc-900/50 p-6 rounded-2xl border border-zinc-800 relative group">
+                {removeField && !readOnly && (
+                  <button title="Șterge această secțiune" onClick={() => removeField(['sectiuni_aditionale', idx])} className="absolute top-4 right-4 text-zinc-500 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-opacity bg-black/50 p-1.5 rounded-lg text-xs z-10">
+                    🗑️ Șterge Secțiunea
+                  </button>
+                )}
+                <div className="flex flex-col gap-1">
+                  <label className="text-sm text-zinc-500 uppercase font-bold">Titlu Secțiune</label>
+                  <input type="text" value={sec.titlu || ''} onChange={readOnly ? noop : (e) => updateField(['sectiuni_aditionale', idx, 'titlu'], e.target.value)} readOnly={readOnly} onCopy={readOnly ? e => e.preventDefault() : undefined} className={inputCls("bg-black/80 border border-zinc-700 p-3 rounded-lg text-xl font-bold w-full focus:outline-none focus:ring-1 focus:ring-emerald-500 focus:border-emerald-500 transition-all shadow-inner")} placeholder="Ex: Plan de Marketing" />
+                </div>
+                <div className="flex flex-col gap-1">
+                  <label className="text-sm text-zinc-500 uppercase font-bold">Conținut</label>
+                  <AutoExpandingTextarea readOnly={readOnly} rows={4} value={sec.continut || ''} onChange={readOnly ? noop : (e) => updateField(['sectiuni_aditionale', idx, 'continut'], e.target.value)} className="bg-black/80 border border-zinc-700 p-4 rounded-lg text-lg w-full shadow-inner" placeholder="Conținutul detaliat al secțiunii..." />
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
       </div>
     </div>
   );

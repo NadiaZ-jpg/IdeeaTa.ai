@@ -179,6 +179,14 @@ NU adăuga formatare markdown, NU adăuga backticks (\`\`\`), NU adăuga text ad
           parsed = { sectiuni_aditionale: [parsed] };
         } else if (parsed.sectiuni_aditionale && !Array.isArray(parsed.sectiuni_aditionale)) {
           parsed.sectiuni_aditionale = [parsed.sectiuni_aditionale];
+        } else if (!parsed.sectiuni_aditionale) {
+          // If Gemini returned something like { "noi_sectiuni": [ ... ] }
+          for (const key of Object.keys(parsed)) {
+            if (Array.isArray(parsed[key])) {
+              parsed = { sectiuni_aditionale: parsed[key] };
+              break;
+            }
+          }
         }
       }
 

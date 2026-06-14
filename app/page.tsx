@@ -1146,6 +1146,14 @@ export default function Home() {
                             type="text" 
                             value={aiPromptInput}
                             onChange={(e) => setAiPromptInput(e.target.value)}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') {
+                                e.preventDefault();
+                                if (aiPromptInput.trim() || activeAiPrompt.isConfirm) {
+                                  handleAiEdit(activeAiPrompt.action, undefined, aiPromptInput);
+                                }
+                              }
+                            }}
                             placeholder={activeAiPrompt.placeholder}
                             className="w-full bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-2 text-sm text-white mb-3 focus:outline-none focus:border-emerald-500 transition-colors"
                             autoFocus

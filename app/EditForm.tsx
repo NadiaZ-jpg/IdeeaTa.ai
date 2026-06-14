@@ -1,4 +1,7 @@
 import { useEffect, useRef } from "react";
+import dynamic from 'next/dynamic';
+
+const BudgetPieChart = dynamic(() => import('./BudgetChart').then(mod => mod.BudgetPieChart), { ssr: false });
 
 function AutoExpandingTextarea({ value, onChange, className, rows = 2, placeholder, readOnly }: {
   value: string;
@@ -171,6 +174,11 @@ export function EditForm({ result, updateField, removeField, readOnly = false }:
           <div className="flex flex-col gap-2 mb-6">
             <label className="text-sm text-zinc-400 font-bold uppercase tracking-wider">Strategie Financiară (Cash-Flow / Rentabilitate)</label>
             <AutoExpandingTextarea readOnly={readOnly} rows={4} value={result.plan_financiar?.strategie_financiara || ''} onChange={readOnly ? noop : (e) => updateField(['plan_financiar', 'strategie_financiara'], e.target.value)} className="bg-zinc-900 border border-zinc-700 p-4 rounded-xl text-lg w-full leading-relaxed" />
+          </div>
+
+          <h4 className="text-xl font-bold mb-4">Distribuția costurilor</h4>
+          <div className="mb-8 p-4 bg-zinc-900/50 rounded-2xl border border-zinc-800">
+             <BudgetPieChart budget={result.plan_financiar?.buget_investitii} />
           </div>
 
           <h4 className="text-xl font-bold mb-2">Buget Investiții</h4>

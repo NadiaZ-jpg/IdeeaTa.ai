@@ -368,9 +368,15 @@ export default function Home() {
     }
   }, []);
 
+  const isInitialMount = useRef(true);
+
   // Salveaza planul in localStorage cand se schimba rezultatul
   useEffect(() => {
     if (typeof window !== "undefined") {
+      if (isInitialMount.current) {
+        isInitialMount.current = false;
+        return;
+      }
       if (result) {
         localStorage.setItem("current_generated_plan", JSON.stringify(result));
       } else {
@@ -572,9 +578,8 @@ export default function Home() {
     const isDevQuery = typeof window !== 'undefined' && window.location.search.includes('dev=true');
     if (typeof window !== 'undefined' && !devBypass && !isDevQuery) {
       const generateCount = parseInt(localStorage.getItem('demoGenerateCount') || '0');
-      if (generateCount >= 100) {
+      if (generateCount >= 2) {
         setShowLimitModal({show: true, message: "Ai atins limita de generări gratuite pe Demo. Creează un cont pentru a continua."});
-        window.location.href = "/";
         return;
       }
       localStorage.setItem('demoGenerateCount', (generateCount + 1).toString());

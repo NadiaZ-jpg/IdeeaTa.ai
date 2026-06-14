@@ -165,16 +165,25 @@ export default function Home() {
 
   const startEditing = () => {
     setBackupResult(JSON.parse(JSON.stringify(result)));
+    window.history.pushState({ isEditing: true }, '', window.location.pathname + '?edit=true');
     setIsEditing(true);
   };
 
   const cancelEditing = () => {
     setResult(backupResult);
-    setIsEditing(false);
+    if (window.location.search.includes('edit=true')) {
+      window.history.back();
+    } else {
+      setIsEditing(false);
+    }
   };
 
   const saveEditing = () => {
-    setIsEditing(false);
+    if (window.location.search.includes('edit=true')) {
+      window.history.back();
+    } else {
+      setIsEditing(false);
+    }
   };
 
   const handleContextMenu = (e: React.MouseEvent) => {
@@ -429,6 +438,14 @@ export default function Home() {
   // Asculta evenimentul de back (popstate) pentru a restaura documentul cand utilizatorul da "Inapoi" de la login
   useEffect(() => {
     const handlePopState = () => {
+      // Gestioneaza Studio Editare
+      if (!window.location.search.includes('edit=true')) {
+        setIsEditing(false);
+      } else {
+        setIsEditing(true);
+      }
+
+      // Gestioneaza Login
       if (!user) {
         if (!window.location.search.includes('login=true')) {
           const saved = localStorage.getItem("current_generated_plan");

@@ -2733,6 +2733,22 @@ export default function Home() {
         </div>
       )}
 
+      <PricingModal
+        isOpen={showPricingModal}
+        onClose={() => {
+          setShowPricingModal(false);
+          setPendingDownloadMode(null);
+        }}
+        onRequireLogin={() => {
+          setShowPricingModal(false);
+          window.location.href = '/?login=true';
+        }}
+        userId={user?.uid || ""}
+        userEmail={user?.email || ""}
+        currency={currency}
+        planName={result?.nume || "Plan de Afaceri"}
+      />
+
     </main>
   );
 }

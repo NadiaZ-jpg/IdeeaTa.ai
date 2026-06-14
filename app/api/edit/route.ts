@@ -140,17 +140,36 @@ NU adăuga formatare markdown, NU adăuga backticks (\`\`\`), NU adăuga text ad
     }
 
     let text = response?.text || "";
-    const jsonMatch = text.match(/\{[\s\S]*\}/);
-    if (jsonMatch) {
-      text = jsonMatch[0];
-    }
+    
+    // Remove markdown if Gemini adds it despite responseMimeType
+    text = text.replace(/^```(json)?\n?/i, '').replace(/\n?```$/i, '').trim();
     
     // Sanitize common JSON errors
     text = text.replace(/,\s*([}\]])/g, '$1'); // Fix trailing commas
 
     let mergedResult = result;
     try {
-      let parsed = JSON.parse(text);
+      let parsed: any;
+      try {
+        parsed = JSON.parse(text);
+      } catch (parseErr: any) {
+        // If Gemini returned multiple concatenated objects (e.g. {} {}), try to parse them as an array and take the first one
+        if (parseErr.message.includes('Unexpected non-whitespace character') || parseErr.message.includes('Unexpected token')) {
+          try {
+            const arrayFixed = '[' + text.replace(/\}\s*\{/g, '},{').replace(/\]\s*\[/g, '],[') + ']';
+            const parsedArray = JSON.parse(arrayFixed);
+            if (Array.isArray(parsedArray) && parsedArray.length > 0) {
+              parsed = parsedArray[0];
+            } else {
+              throw parseErr;
+            }
+          } catch {
+            throw parseErr; // Throw original error if fallback fails
+          }
+        } else {
+          throw parseErr;
+        }
+      }
       
       // Safety checks for add_sections in case Gemini returns an array or raw object
       if (action === "add_sections") {

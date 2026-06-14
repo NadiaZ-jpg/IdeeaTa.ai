@@ -98,6 +98,9 @@ SARCINA TA:
 ${instruction}
 
 Trebuie să răspunzi EXCLUSIV cu un JSON valid.
+IMPORTANT PENTRU JSON: 
+- NU folosi rânduri noi reale (unescaped newlines) în interiorul string-urilor! Pentru paragrafe, folosește strict '\\n' (escapat).
+- FĂRĂ virgule la finalul ultimului element din obiect sau array (fără trailing commas).
 NU adăuga formatare markdown, NU adăuga backticks (\`\`\`), NU adăuga text adițional înainte sau după JSON.`;
 
     if (action !== "add_sections") {
@@ -110,6 +113,9 @@ ${JSON.stringify(inputData)}
 
 Trebuie să răspunzi EXCLUSIV cu un JSON valid, respectând structura originală a segmentului primit.
 Dacă ai primit un singur câmp, returnează-l în același format JSON.
+IMPORTANT PENTRU JSON: 
+- NU folosi rânduri noi reale (unescaped newlines) în interiorul string-urilor! Pentru paragrafe, folosește strict '\\n' (escapat).
+- FĂRĂ virgule la finalul ultimului element din obiect sau array (fără trailing commas).
 NU adăuga formatare markdown, NU adăuga backticks (\`\`\`), NU adăuga text adițional înainte sau după JSON.`;
     }
 
@@ -138,6 +144,9 @@ NU adăuga formatare markdown, NU adăuga backticks (\`\`\`), NU adăuga text ad
     if (jsonMatch) {
       text = jsonMatch[0];
     }
+    
+    // Sanitize common JSON errors
+    text = text.replace(/,\s*([}\]])/g, '$1'); // Fix trailing commas
 
     let mergedResult = result;
     try {

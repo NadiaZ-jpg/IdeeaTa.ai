@@ -34,6 +34,12 @@ function extractRelevantSection(result: any, action: string) {
         plan_operational: result.plan_operational,
         plan_financiar: { strategie_financiara: result.plan_financiar?.strategie_financiara },
       };
+    case "add_sections":
+      return {
+        nume_afacere: result.nume_afacere,
+        viziune_strategie: result.viziune_strategie,
+        sectiuni_aditionale: result.sectiuni_aditionale || []
+      };
     default:
       return result;
   }
@@ -122,10 +128,21 @@ Nu adăuga formatare markdown, backticks, sau text adițional.`;
       text = jsonMatch[0];
     }
 
-    // Merge the partial result back into the full plan
     let mergedResult = result;
     try {
-      const parsed = JSON.parse(text);
+      let parsed = JSON.parse(text);
+      
+      // Safety checks for add_sections in case Gemini returns an array or raw object
+      if (action === "add_sections") {
+        if (Array.isArray(parsed)) {
+          parsed = { sectiuni_aditionale: parsed };
+        } else if (parsed.titlu && parsed.continut) {
+          parsed = { sectiuni_aditionale: [parsed] };
+        } else if (parsed.sectiuni_aditionale && !Array.isArray(parsed.sectiuni_aditionale)) {
+          parsed.sectiuni_aditionale = [parsed.sectiuni_aditionale];
+        }
+      }
+
       if (!isFullPlan) {
         // Deep merge only modified sections back into original
         mergedResult = { ...result, ...parsed };

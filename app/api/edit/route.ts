@@ -49,7 +49,10 @@ export async function POST(req: NextRequest) {
     } else if (action === "optimize_budget") {
       instruction = `Redu costurile din 'plan_financiar.buget_investitii' cu aproximativ ${targetSection}% și ajustează explicațiile arătând cum s-a făcut economia. Păstrează restul neatins.`;
     } else if (action === "add_sections") {
-      instruction = `Extinde planul adăugând o secțiune NOUĂ referitoare strict la: "${targetSection || 'orice consideri necesar'}". Adaugă la nivelul root al JSON-ului (lângă analiza_pietei etc.) o cheie "sectiuni_aditionale" care să fie un array de obiecte: [{ "titlu": "Titlu Secțiune", "continut": "Detalii complete formatate cu \\n" }]. Dacă există deja, adaugă la el.`;
+      instruction = `Generează O SECȚIUNE NOUĂ referitoare strict la: "${targetSection || 'orice consideri necesar'}". 
+      NU RETURNĂ ÎNTREGUL PLAN!
+      Returnează DOAR un obiect JSON care conține o singură cheie "sectiuni_aditionale", care să fie un array de obiecte.
+      Exemplu: { "sectiuni_aditionale": [{ "titlu": "Numele secțiunii cerute", "continut": "Textul detaliat formatat cu \\n" }] }`;
     } else if (action === "eu_funds_optimization") {
       instruction = "Optimizează planul pentru Fonduri Europene. Ajustează limbajul din plan_operational și SWOT (digitalizare, inovare, sustenabilitate). Reformulează elementele din planul financiar pentru categorii eligibile UE.";
     } else if (action === "investor_ready") {
@@ -67,15 +70,31 @@ export async function POST(req: NextRequest) {
 
     // Use only the relevant section for most actions to reduce token usage
     const relevantData = extractRelevantSection(result, action);
-    const isFullPlan = action === "investor_ready" || action === "add_sections";
+    const isFullPlan = action === "investor_ready";
     const inputData = isFullPlan ? result : relevantData;
 
-    const prompt = `Plan de afaceri (JSON):
+    let prompt = `Ești un consultant de afaceri. 
+Acționează asupra următorului segment de plan de afaceri.
+${instruction}
+
+Plan curent:
 ${JSON.stringify(inputData)}
 
-Sarcina: ${instruction}
+Trebuie să răspunzi EXCLUSIV cu un JSON valid.
+Nu adăuga formatare markdown, backticks, sau text adițional.`;
 
-Returnează DOAR JSON valid. ${action !== "add_sections" ? "Păstrează exact aceeași structură ca inputul." : "Adaugă array-ul cerut la nivelul principal (root) al obiectului JSON furnizat."} Fără text extra, fără markdown.`;
+    if (action !== "add_sections") {
+      prompt = `Ești un consultant de afaceri. 
+Acționează asupra următorului segment de plan de afaceri.
+${instruction}
+
+Plan curent:
+${JSON.stringify(inputData)}
+
+Trebuie să răspunzi EXCLUSIV cu un JSON valid, respectând structura originală a segmentului primit.
+Dacă ai primit un singur câmp, returnează-l în același format JSON.
+Nu adăuga formatare markdown, backticks, sau text adițional.`;
+    }
 
     let response;
     let retries = 3;
@@ -116,7 +135,11 @@ Returnează DOAR JSON valid. ${action !== "add_sections" ? "Păstrează exact ac
         if (parsed.viziune_strategie) mergedResult.viziune_strategie = { ...result.viziune_strategie, ...parsed.viziune_strategie };
         if (parsed.analiza_pietei) mergedResult.analiza_pietei = { ...result.analiza_pietei, ...parsed.analiza_pietei };
         if (parsed.plan_operational) mergedResult.plan_operational = { ...result.plan_operational, ...parsed.plan_operational };
-        if (parsed.sectiuni_aditionale) mergedResult.sectiuni_aditionale = parsed.sectiuni_aditionale;
+        if (parsed.sectiuni_aditionale) {
+          mergedResult.sectiuni_aditionale = result.sectiuni_aditionale 
+            ? [...result.sectiuni_aditionale, ...parsed.sectiuni_aditionale]
+            : parsed.sectiuni_aditionale;
+        }
       } else {
         mergedResult = parsed;
       }

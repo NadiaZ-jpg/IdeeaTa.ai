@@ -695,6 +695,14 @@ export default function Home() {
   };
 
   const resetApp = () => {
+    if (typeof window !== "undefined") {
+      const generateCount = parseInt(localStorage.getItem('demoGenerateCount') || '0');
+      if (generateCount >= 2) {
+        window.location.href = '/?login=true';
+        return;
+      }
+    }
+
     setResult(null);
     setCurrency("LEI");
     setIsPaid(true);

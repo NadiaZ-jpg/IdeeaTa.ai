@@ -37,8 +37,7 @@ function extractRelevantSection(result: any, action: string) {
     case "add_sections":
       return {
         nume_afacere: result.nume_afacere,
-        viziune_strategie: result.viziune_strategie,
-        sectiuni_aditionale: result.sectiuni_aditionale || []
+        viziune_strategie: result.viziune_strategie
       };
     default:
       return result;
@@ -55,10 +54,22 @@ export async function POST(req: NextRequest) {
     } else if (action === "optimize_budget") {
       instruction = `Redu costurile din 'plan_financiar.buget_investitii' cu aproximativ ${targetSection}% și ajustează explicațiile arătând cum s-a făcut economia. Păstrează restul neatins.`;
     } else if (action === "add_sections") {
-      instruction = `Generează O SECȚIUNE NOUĂ referitoare strict la: "${targetSection || 'orice consideri necesar'}". 
-      NU RETURNĂ ÎNTREGUL PLAN!
-      Returnează DOAR un obiect JSON care conține o singură cheie "sectiuni_aditionale", care să fie un array de obiecte.
-      Exemplu: { "sectiuni_aditionale": [{ "titlu": "Numele secțiunii cerute", "continut": "Textul detaliat formatat cu \\n" }] }`;
+      instruction = `Generează O SECȚIUNE NOUĂ de text pentru planul de afaceri, referitoare strict la subiectul: "${targetSection || 'orice consideri necesar'}". 
+      IMPORTANT:
+      - NU RETURNĂ planul curent!
+      - Returnează EXCLUSIV un JSON care conține doar o singură cheie numită "sectiuni_aditionale".
+      - Această cheie trebuie să fie un ARRAY cu un singur obiect în interior, care conține "titlu" și "continut".
+      - Conținutul trebuie să fie foarte detaliat, profesional, și formatat cu \\n pentru paragrafe.
+      
+      Format exact obligatoriu:
+      {
+        "sectiuni_aditionale": [
+          {
+            "titlu": "Numele secțiunii cerute",
+            "continut": "Textul detaliat..."
+          }
+        ]
+      }`;
     } else if (action === "eu_funds_optimization") {
       instruction = "Optimizează planul pentru Fonduri Europene. Ajustează limbajul din plan_operational și SWOT (digitalizare, inovare, sustenabilitate). Reformulează elementele din planul financiar pentru categorii eligibile UE.";
     } else if (action === "investor_ready") {
@@ -79,18 +90,18 @@ export async function POST(req: NextRequest) {
     const isFullPlan = action === "investor_ready";
     const inputData = isFullPlan ? result : relevantData;
 
-    let prompt = `Ești un consultant de afaceri. 
-Acționează asupra următorului segment de plan de afaceri.
-${instruction}
-
-Plan curent:
+    let prompt = `Ești un consultant de afaceri expert. 
+Aici sunt informațiile de bază ale planului curent pentru context:
 ${JSON.stringify(inputData)}
 
+SARCINA TA:
+${instruction}
+
 Trebuie să răspunzi EXCLUSIV cu un JSON valid.
-Nu adăuga formatare markdown, backticks, sau text adițional.`;
+NU adăuga formatare markdown, NU adăuga backticks (\`\`\`), NU adăuga text adițional înainte sau după JSON.`;
 
     if (action !== "add_sections") {
-      prompt = `Ești un consultant de afaceri. 
+      prompt = `Ești un consultant de afaceri expert. 
 Acționează asupra următorului segment de plan de afaceri.
 ${instruction}
 
@@ -99,7 +110,7 @@ ${JSON.stringify(inputData)}
 
 Trebuie să răspunzi EXCLUSIV cu un JSON valid, respectând structura originală a segmentului primit.
 Dacă ai primit un singur câmp, returnează-l în același format JSON.
-Nu adăuga formatare markdown, backticks, sau text adițional.`;
+NU adăuga formatare markdown, NU adăuga backticks (\`\`\`), NU adăuga text adițional înainte sau după JSON.`;
     }
 
     let response;

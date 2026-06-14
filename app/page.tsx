@@ -170,7 +170,7 @@ export default function Home() {
 
   const startEditing = () => {
     // Verificam daca utilizatorul are dreptul sa editeze
-    if (!isAdmin && !isPlanPaid && !subscriptionActive && !euFundsUnlocked && !bypassPaymentCheck) {
+    if (!isAdmin && !isPlanPaid && !subscriptionActive && !euFundsUnlocked) {
       if (!user) {
         window.history.pushState({ login: true }, '', window.location.pathname + '?login=true');
         setIsSharedView(false);

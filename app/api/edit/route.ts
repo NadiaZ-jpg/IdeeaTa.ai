@@ -56,6 +56,8 @@ export async function POST(req: NextRequest) {
     } else if (action === "add_sections") {
       instruction = `Generează O SECȚIUNE NOUĂ de text pentru planul de afaceri, referitoare strict la subiectul: "${targetSection || 'orice consideri necesar'}". 
       IMPORTANT:
+      - Dacă cerința utilizatorului reprezintă o comandă de ștergere sau modificare a unor lucruri existente (ex: "elimină", "șterge", "modifică capitolul X"), returnează o secțiune cu titlul "⚠️ Sfat de Editare" și explică în "continut" că acest instrument AI este doar pentru a *adăuga* secțiuni noi, iar pentru ștergeri/modificări trebuie să folosească butonul 🗑️ din Studio Editare sau să editeze manual textul.
+      - Nu folosi formatare de tip Tabel Markdown (cu bare verticale |), folosește doar liste cu liniuțe (-) deoarece interfața afișează doar text simplu.
       - NU RETURNĂ planul curent!
       - Returnează EXCLUSIV un JSON care conține doar o singură cheie numită "sectiuni_aditionale".
       - Această cheie trebuie să fie un ARRAY cu un singur obiect în interior, care conține "titlu" și "continut".

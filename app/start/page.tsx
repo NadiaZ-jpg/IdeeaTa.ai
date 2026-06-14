@@ -4,7 +4,9 @@ import { jsPDF } from "jspdf";
 import { toPng } from "html-to-image";
 import pptxgen from "pptxgenjs";
 import { EditForm } from "../EditForm";
-import { BudgetPieChart } from "../BudgetChart";
+import dynamic from 'next/dynamic';
+
+const BudgetPieChart = dynamic(() => import("../BudgetChart").then(mod => mod.BudgetPieChart), { ssr: false });
 import { auth, db } from '@/lib/firebase';
 import { signInWithPopup, GoogleAuthProvider, FacebookAuthProvider, onAuthStateChanged, User, getRedirectResult, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, sendPasswordResetEmail } from 'firebase/auth';
 import { doc, onSnapshot, setDoc, getDoc, increment, arrayUnion } from 'firebase/firestore';

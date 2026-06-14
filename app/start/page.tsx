@@ -93,7 +93,7 @@ export default function Home() {
   const [showWelcomeModal, setShowWelcomeModal] = useState(false);
   const [showLimitModal, setShowLimitModal] = useState<{show: boolean, message: string}>({show: false, message: ""});
   const [hasEdited, setHasEdited] = useState(false);
-  const [showAuthModal, setShowAuthModal] = useState(false);
+
 
   const devBypass = process.env.NEXT_PUBLIC_DEV_BYPASS === 'true';
   const usedIdeasRef = useRef<number[]>([]);
@@ -177,7 +177,7 @@ export default function Home() {
 
   const startEditing = () => {
     if (!user) {
-      setShowAuthModal(true);
+          setShowLimitModal({show: true, message: "Pentru a folosi aceste funcționalități avansate, te rugăm să îți creezi un cont gratuit."});
       return;
     }
     setBackupResult(JSON.parse(JSON.stringify(result)));
@@ -205,7 +205,7 @@ export default function Home() {
   const handleAiEdit = async (action: string, customStyle?: string, customInput?: string) => {
     if (isEditingAi) return;
     if (!user) {
-      setShowAuthModal(true);
+          setShowLimitModal({show: true, message: "Pentru a folosi aceste funcționalități avansate, te rugăm să îți creezi un cont gratuit."});
       return;
     }
 
@@ -712,7 +712,7 @@ export default function Home() {
         }
       } else {
         if (!user) {
-          setShowAuthModal(true);
+              setShowLimitModal({show: true, message: "Pentru a folosi aceste funcționalități avansate, te rugăm să îți creezi un cont gratuit."});
         } else {
           setPendingDownloadMode(mode as any);
           setShowPricingModal(true);

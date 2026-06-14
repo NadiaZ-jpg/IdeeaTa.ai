@@ -9,7 +9,7 @@ import { auth, db } from '@/lib/firebase';
 import { signInWithPopup, GoogleAuthProvider, FacebookAuthProvider, onAuthStateChanged, User, getRedirectResult, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, sendPasswordResetEmail } from 'firebase/auth';
 import { doc, onSnapshot, setDoc, getDoc, increment, arrayUnion } from 'firebase/firestore';
 import { PricingModal } from '@/components/PricingModal';
-import { AuthModal } from '@/components/AuthModal';
+import { AdBanner } from '@/components/AdBanner';
 
 const formatNumberedText = (text: string | undefined) => {
   if (typeof text !== 'string') return text;
@@ -88,7 +88,6 @@ export default function Home() {
   const [subscriptionActive, setSubscriptionActive] = useState(false);
   const [unlockedPlans, setUnlockedPlans] = useState<string[]>([]);
   const [showPricingModal, setShowPricingModal] = useState(false);
-  const [showAuthModal, setShowAuthModal] = useState(false);
   const [showQrModal, setShowQrModal] = useState(false);
   const [isSharedView, setIsSharedView] = useState(false);
   const [isCheckingShared, setIsCheckingShared] = useState(true);
@@ -732,7 +731,7 @@ export default function Home() {
 
     if (mode !== 'pdf-summary' && !isAdmin && !isPlanPaid && !subscriptionActive && !euFundsUnlocked && !bypassPaymentCheck) {
       if (!user) {
-        setShowAuthModal(true);
+        setIsSharedView(false);
         return;
       }
       if (credits > 0) {
@@ -1069,7 +1068,7 @@ export default function Home() {
                         type="button" 
                         onClick={() => {
                           if (!user) {
-                            setShowAuthModal(true);
+                            setIsSharedView(false);
                             return;
                           }
                           if (!isStudioPaid) {
@@ -1116,7 +1115,7 @@ export default function Home() {
 
                       <button type="button" onClick={() => {
                         if (!user) {
-                          setShowAuthModal(true);
+                          setIsSharedView(false);
                           return;
                         }
                         if (!isStudioPaid) {

@@ -575,6 +575,14 @@ export default function Home() {
 
     let shouldStopLoading = true;
 
+    if (typeof window !== 'undefined') {
+      const generateCount = parseInt(localStorage.getItem('demoGenerateCount') || '0');
+      if (generateCount >= 2) {
+        window.location.href = '/?login=true';
+        return;
+      }
+    }
+
     if (retryCount === 0) {
       setLoading(true);
       setMessageIndex(0);
@@ -584,10 +592,6 @@ export default function Home() {
 
     if (typeof window !== 'undefined') {
       const generateCount = parseInt(localStorage.getItem('demoGenerateCount') || '0');
-      if (generateCount >= 2) {
-        window.location.href = '/?login=true';
-        return;
-      }
       localStorage.setItem('demoGenerateCount', (generateCount + 1).toString());
     }
 

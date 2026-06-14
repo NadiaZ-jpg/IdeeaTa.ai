@@ -316,6 +316,13 @@ export default function Home() {
   const [innerMockupTab, setInnerMockupTab] = useState('SWOT');
   
   const [user, setUser] = useState<any>(null);
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      setUser(currentUser);
+    });
+    return () => unsubscribe();
+  }, []);
   const ADMIN_EMAILS = ['contact@ideeata.ai', 'nadiaramonaz@gmail.com'];
   const isAdmin = false;
   const isPlanPaid = false;

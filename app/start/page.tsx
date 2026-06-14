@@ -71,6 +71,12 @@ const formatObjectNumbers = (obj: any): any => {
   return obj;
 };
 
+const truncateText = (text: any, length: number) => {
+  if (!text || typeof text !== 'string') return text;
+  return text.length > length ? text.substring(0, length) + '...' : text;
+};
+
+
 export default function Home() {
   const [skill, setSkill] = useState("");
   const [result, setResult] = useState<any>(null);
@@ -182,9 +188,10 @@ export default function Home() {
 
   const startEditing = () => {
     if (!user) {
-          setShowLimitModal({show: true, message: "Pentru a folosi aceste funcționalități avansate, te rugăm să îți creezi un cont gratuit."});
+      window.location.href = '/?login=true';
       return;
     }
+    
     setBackupResult(JSON.parse(JSON.stringify(result)));
     setIsEditing(true);
   };
@@ -210,7 +217,7 @@ export default function Home() {
   const handleAiEdit = async (action: string, customStyle?: string, customInput?: string) => {
     if (isEditingAi) return;
     if (!user) {
-          setShowLimitModal({show: true, message: "Pentru a folosi aceste funcționalități avansate, te rugăm să îți creezi un cont gratuit."});
+      window.location.href = '/?login=true';
       return;
     }
 
@@ -575,11 +582,10 @@ export default function Home() {
       setIsPaid(true);
     }
 
-    const isDevQuery = typeof window !== 'undefined' && window.location.search.includes('dev=true');
-    if (typeof window !== 'undefined' && !devBypass && !isDevQuery) {
+    if (typeof window !== 'undefined') {
       const generateCount = parseInt(localStorage.getItem('demoGenerateCount') || '0');
       if (generateCount >= 2) {
-        setShowLimitModal({show: true, message: "Ai atins limita de generări gratuite pe Demo. Creează un cont pentru a continua."});
+        window.location.href = '/?login=true';
         return;
       }
       localStorage.setItem('demoGenerateCount', (generateCount + 1).toString());
@@ -722,7 +728,7 @@ export default function Home() {
         }
       } else {
         if (!user) {
-              setShowLimitModal({show: true, message: "Pentru a folosi aceste funcționalități avansate, te rugăm să îți creezi un cont gratuit."});
+          window.location.href = '/?login=true';
         } else {
           setPendingDownloadMode(mode as any);
           setShowPricingModal(true);
@@ -2470,16 +2476,16 @@ export default function Home() {
                 <div className="flex flex-col gap-4">
                   <div className="overflow-hidden">
                     <h3 className="text-xl font-bold text-emerald-700 mb-2">Obiective (1 an)</h3>
-                    <p className="text-base leading-relaxed text-left line-clamp-6">{result.viziune_strategie?.obiective_scurt}</p>
+                    <p className="text-base leading-relaxed text-left">{truncateText(result.viziune_strategie?.obiective_scurt, 280)}</p>
                   </div>
                   <div className="overflow-hidden">
                     <h3 className="text-xl font-bold text-emerald-700 mb-2">Obiective (3-5 ani)</h3>
-                    <p className="text-base leading-relaxed text-left line-clamp-6">{result.viziune_strategie?.obiective_mediu}</p>
+                    <p className="text-base leading-relaxed text-left">{truncateText(result.viziune_strategie?.obiective_mediu, 280)}</p>
                   </div>
                 </div>
                 <div className="overflow-hidden">
                   <h3 className="text-xl font-bold text-emerald-700 mb-2">Misiune și Valori</h3>
-                  <p className="text-base leading-relaxed text-left line-clamp-[14]">{result.viziune_strategie?.misiune_valori}</p>
+                  <p className="text-base leading-relaxed text-left">{truncateText(result.viziune_strategie?.misiune_valori, 500)}</p>
                 </div>
               </div>
             </div>
@@ -2492,11 +2498,11 @@ export default function Home() {
               </div>
               <div className="flex flex-col gap-4 font-serif leading-relaxed text-gray-800 text-left flex-1 overflow-hidden justify-start">
                   <div className="overflow-hidden"><h3 className="text-xl font-bold text-emerald-700 mb-1">Clienții Țintă</h3>
-                  <p className="text-base line-clamp-5">{result.analiza_pietei?.clienti_tinta}</p></div>
+                  <p className="text-base">{truncateText(result.analiza_pietei?.clienti_tinta, 280)}</p></div>
                   <div className="overflow-hidden"><h3 className="text-xl font-bold text-emerald-700 mb-1">Concurența</h3>
-                  <p className="text-base line-clamp-5">{result.analiza_pietei?.concurenta}</p></div>
+                  <p className="text-base">{truncateText(result.analiza_pietei?.concurenta, 280)}</p></div>
                   <div className="overflow-hidden"><h3 className="text-xl font-bold text-emerald-700 mb-1">Strategia de Marketing</h3>
-                  <p className="text-base line-clamp-5">{result.analiza_pietei?.strategie_marketing}</p></div>
+                  <p className="text-base">{truncateText(result.analiza_pietei?.strategie_marketing, 280)}</p></div>
               </div>
             </div>
 

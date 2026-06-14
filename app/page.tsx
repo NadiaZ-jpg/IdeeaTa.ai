@@ -71,6 +71,11 @@ const formatObjectNumbers = (obj: any): any => {
   return obj;
 };
 
+const truncateText = (text: any, length: number) => {
+  if (!text || typeof text !== 'string') return text;
+  return text.length > length ? text.substring(0, length) + '...' : text;
+};
+
 export default function Home() {
   const [skill, setSkill] = useState("");
   const [result, setResult] = useState<any>(null);
@@ -164,6 +169,17 @@ export default function Home() {
   }, []);
 
   const startEditing = () => {
+    // Verificam daca utilizatorul are dreptul sa editeze
+    if (!isAdmin && !isPlanPaid && !subscriptionActive && !euFundsUnlocked && !bypassPaymentCheck) {
+      if (!user) {
+        window.history.pushState({ login: true }, '', window.location.pathname + '?login=true');
+        setIsSharedView(false);
+        return;
+      }
+      setShowPricingModal(true);
+      return;
+    }
+
     setBackupResult(JSON.parse(JSON.stringify(result)));
     window.history.pushState({ isEditing: true }, '', window.location.pathname + '?edit=true');
     setIsEditing(true);
@@ -1116,6 +1132,7 @@ export default function Home() {
                         type="button" 
                         onClick={() => {
                           if (!user) {
+                            window.history.pushState({ login: true }, '', window.location.pathname + '?login=true');
                             setIsSharedView(false);
                             return;
                           }
@@ -1163,6 +1180,7 @@ export default function Home() {
 
                       <button type="button" onClick={() => {
                         if (!user) {
+                          window.history.pushState({ login: true }, '', window.location.pathname + '?login=true');
                           setIsSharedView(false);
                           return;
                         }
@@ -2008,7 +2026,7 @@ export default function Home() {
                       </div>
                       <div className="flex justify-between items-center pb-3 border-b border-zinc-800">
                         <span className="text-zinc-400">Amenajare locație & Design</span>
-                        <span className="font-mono text-zinc-200">85.000 lei</span>
+                        <span className="font-mono text-zinc-850">85.000 lei</span>
                       </div>
                       <div className="flex justify-between items-center pb-3 border-b border-zinc-800">
                         <span className="text-zinc-400">Stoc inițial marfă & Consumabile</span>
@@ -2533,15 +2551,19 @@ export default function Home() {
                 <h2 className="text-5xl font-black font-sans uppercase tracking-widest text-emerald-400">Viziune și Strategie</h2>
               </div>
               <div className="grid grid-cols-2 gap-12 font-sans leading-normal text-zinc-200">
-                <div>
-                  <h3 className="text-3xl font-bold text-emerald-500 mb-4">Obiective (1 an)</h3>
-                  <p className="text-2xl">{result.viziune_strategie?.obiective_scurt}</p>
-                  <h3 className="text-3xl font-bold text-emerald-500 mb-4 mt-8">Obiective (3-5 ani)</h3>
-                  <p className="text-2xl">{result.viziune_strategie?.obiective_mediu}</p>
+                <div className="flex flex-col gap-4">
+                  <div className="overflow-hidden">
+                    <h3 className="text-xl font-bold text-emerald-700 mb-2">Obiective (1 an)</h3>
+                    <p className="text-base leading-relaxed text-left">{truncateText(result.viziune_strategie?.obiective_scurt, 280)}</p>
+                  </div>
+                  <div className="overflow-hidden">
+                    <h3 className="text-xl font-bold text-emerald-700 mb-2">Obiective (3-5 ani)</h3>
+                    <p className="text-base leading-relaxed text-left">{truncateText(result.viziune_strategie?.obiective_mediu, 280)}</p>
+                  </div>
                 </div>
-                <div>
-                  <h3 className="text-3xl font-bold text-emerald-500 mb-4">Misiune și Valori</h3>
-                  <p className="text-2xl text-left">{result.viziune_strategie?.misiune_valori}</p>
+                <div className="overflow-hidden">
+                  <h3 className="text-xl font-bold text-emerald-700 mb-2">Misiune și Valori</h3>
+                  <p className="text-base leading-relaxed text-left">{truncateText(result.viziune_strategie?.misiune_valori, 500)}</p>
                 </div>
               </div>
             </div>
@@ -2552,10 +2574,6 @@ export default function Home() {
                 <div className="w-16 h-2 bg-emerald-500"></div>
                 <h2 className="text-5xl font-black font-sans uppercase tracking-widest text-emerald-400">Analiza Pieței</h2>
               </div>
-              <div className="flex flex-col gap-6 font-sans leading-normal text-zinc-200 text-left">
-                  <div><h3 className="text-3xl font-bold text-emerald-500 mb-2">Clienții Țintă</h3>
-                  <p className="text-2xl">{result.analiza_pietei?.clienti_tinta}</p></div>
-                  <div><h3 className="text-3xl font-bold text-emerald-500 mb-2">Concurența</h3>
                   <p className="text-2xl">{result.analiza_pietei?.concurenta}</p></div>
                   <div><h3 className="text-3xl font-bold text-emerald-500 mb-2">Strategia de Marketing</h3>
                   <p className="text-2xl">{result.analiza_pietei?.strategie_marketing}</p></div>
@@ -2756,12 +2774,12 @@ export default function Home() {
                 <h2 className="text-5xl font-black font-sans uppercase tracking-widest text-emerald-800">Analiza Pieței</h2>
               </div>
               <div className="flex flex-col gap-6 font-serif leading-normal text-gray-800 text-left">
-                  <div><h3 className="text-3xl font-bold text-emerald-700 mb-2">Clienții Țintă</h3>
-                  <p className="text-2xl">{result.analiza_pietei?.clienti_tinta}</p></div>
-                  <div><h3 className="text-3xl font-bold text-emerald-700 mb-2">Concurența</h3>
-                  <p className="text-2xl">{result.analiza_pietei?.concurenta}</p></div>
-                  <div><h3 className="text-3xl font-bold text-emerald-700 mb-2">Strategia de Marketing</h3>
-                  <p className="text-2xl line-clamp-3">{result.analiza_pietei?.strategie_marketing}</p></div>
+                  <div className="overflow-hidden"><h3 className="text-3xl font-bold text-emerald-700 mb-2">Clienții Țintă</h3>
+                  <p className="text-2xl">{truncateText(result.analiza_pietei?.clienti_tinta, 250)}</p></div>
+                  <div className="overflow-hidden"><h3 className="text-3xl font-bold text-emerald-700 mb-2">Concurența</h3>
+                  <p className="text-2xl">{truncateText(result.analiza_pietei?.concurenta, 250)}</p></div>
+                  <div className="overflow-hidden"><h3 className="text-3xl font-bold text-emerald-700 mb-2">Strategia de Marketing</h3>
+                  <p className="text-2xl">{truncateText(result.analiza_pietei?.strategie_marketing, 250)}</p></div>
               </div>
             </div>
 
@@ -2936,6 +2954,11 @@ export default function Home() {
         onClose={() => {
           setShowPricingModal(false);
           setPendingDownloadMode(null);
+        }}
+        onRequireLogin={() => {
+          setShowPricingModal(false);
+          window.history.pushState({ login: true }, '', window.location.pathname + '?login=true');
+          setIsSharedView(false);
         }}
         userId={user?.uid || ""}
         userEmail={user?.email || ""}

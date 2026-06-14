@@ -3,19 +3,29 @@ import { useState } from "react";
 interface PricingModalProps {
   isOpen: boolean;
   onClose: () => void;
+  onRequireLogin?: () => void;
   userId: string;
   userEmail: string | null;
   currency: string; // "LEI" or "EUR"
   planName?: string;
 }
  
-export function PricingModal({ isOpen, onClose, userId, userEmail, currency, planName }: PricingModalProps) {
+export function PricingModal({ isOpen, onClose, onRequireLogin, userId, userEmail, currency, planName }: PricingModalProps) {
   const [loadingTier, setLoadingTier] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
  
   if (!isOpen) return null;
  
   const handleCheckout = async (tier: string) => {
+    if (!userId) {
+      if (onRequireLogin) {
+        onRequireLogin();
+      } else {
+        setError("Te rugăm să îți creezi un cont gratuit pentru a continua.");
+      }
+      return;
+    }
+
     setLoadingTier(tier);
     setError(null);
     try {

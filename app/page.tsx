@@ -2574,9 +2574,13 @@ export default function Home() {
                 <div className="w-16 h-2 bg-emerald-500"></div>
                 <h2 className="text-5xl font-black font-sans uppercase tracking-widest text-emerald-400">Analiza Pieței</h2>
               </div>
-                  <p className="text-2xl">{result.analiza_pietei?.concurenta}</p></div>
-                  <div><h3 className="text-3xl font-bold text-emerald-500 mb-2">Strategia de Marketing</h3>
-                  <p className="text-2xl">{result.analiza_pietei?.strategie_marketing}</p></div>
+              <div className="flex flex-col gap-6 font-serif leading-normal text-zinc-300 text-left flex-1 overflow-hidden justify-start">
+                  <div className="overflow-hidden"><h3 className="text-3xl font-bold text-emerald-500 mb-2">Clienții Țintă</h3>
+                  <p className="text-2xl">{truncateText(result.analiza_pietei?.clienti_tinta, 250)}</p></div>
+                  <div className="overflow-hidden"><h3 className="text-3xl font-bold text-emerald-500 mb-2">Concurența</h3>
+                  <p className="text-2xl">{truncateText(result.analiza_pietei?.concurenta, 250)}</p></div>
+                  <div className="overflow-hidden"><h3 className="text-3xl font-bold text-emerald-500 mb-2">Strategia de Marketing</h3>
+                  <p className="text-2xl">{truncateText(result.analiza_pietei?.strategie_marketing, 250)}</p></div>
               </div>
             </div>
 

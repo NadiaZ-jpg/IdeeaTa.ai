@@ -180,8 +180,9 @@ NU adăuga formatare markdown, NU adăuga backticks (\`\`\`), NU adăuga text ad
       } else {
         mergedResult = parsed;
       }
-    } catch {
-      return NextResponse.json({ updatedResult: text });
+    } catch (parseError: any) {
+      console.error("JSON PARSE ERROR:", parseError, text);
+      return NextResponse.json({ error: "Eroare AI Formatare: " + parseError.message + "\n\nFragment primit: " + text.substring(0, 150) }, { status: 400 });
     }
 
     return NextResponse.json({ updatedResult: JSON.stringify(mergedResult) });

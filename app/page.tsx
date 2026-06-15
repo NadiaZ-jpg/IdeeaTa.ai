@@ -784,6 +784,9 @@ export default function Home() {
 
   const resetApp = () => {
     if (!user) {
+      if (typeof window !== "undefined") {
+        localStorage.removeItem("current_generated_plan");
+      }
       window.location.href = '/start';
       return;
     }

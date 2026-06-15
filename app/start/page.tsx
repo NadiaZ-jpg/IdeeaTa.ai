@@ -699,6 +699,7 @@ export default function Home() {
     if (typeof window !== "undefined") {
       const generateCount = parseInt(localStorage.getItem('demoGenerateCount') || '0');
       if (generateCount >= 2) {
+        localStorage.removeItem("current_generated_plan");
         window.location.href = '/?login=true';
         return;
       }

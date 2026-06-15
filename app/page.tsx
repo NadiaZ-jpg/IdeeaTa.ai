@@ -2353,7 +2353,7 @@ export default function Home() {
                 result={result} 
                 updateField={updateField} 
                 removeField={removeField} 
-                readOnly={!isStudioPaid} 
+                readOnly={!user} 
               />
             </div>
             {renderSidebar()}

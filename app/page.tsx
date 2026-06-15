@@ -427,6 +427,10 @@ export default function Home() {
             if (data && data.data) {
               setResult(formatObjectNumbers(data.data));
               setIsSharedView(true);
+              if (typeof window !== "undefined") {
+                localStorage.setItem('demoGenerateCount', '0');
+                localStorage.setItem('demoEditCount', '0');
+              }
               window.history.replaceState({}, document.title, window.location.pathname);
             }
           })

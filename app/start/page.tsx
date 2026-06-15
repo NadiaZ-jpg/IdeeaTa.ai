@@ -589,17 +589,12 @@ export default function Home() {
       setMessageIndex(0);
       setResult(null);
       setIsPaid(true);
-    }
 
-    if (typeof window !== 'undefined') {
-      const generateCount = parseInt(localStorage.getItem('demoGenerateCount') || '0');
-      localStorage.setItem('demoGenerateCount', (generateCount + 1).toString());
+      if (typeof window !== 'undefined') {
+        const generateCount = parseInt(localStorage.getItem('demoGenerateCount') || '0');
+        localStorage.setItem('demoGenerateCount', (generateCount + 1).toString());
+      }
     }
-
-    setLoading(true);
-    setMessageIndex(0);
-    setResult(null);
-    setIsPaid(true);
 
     try {
       const res = await fetch("/api/generate", {

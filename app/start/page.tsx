@@ -2075,7 +2075,7 @@ export default function Home() {
 
           <div className="flex flex-col lg:flex-row gap-8 items-start w-full">
             <div className="w-full lg:w-3/5 xl:w-2/3 relative">
-              <EditForm result={result} updateField={updateField} removeField={removeField} readOnly={!isPaid} />
+               <EditForm result={result} updateField={updateField} removeField={removeField} readOnly={!user || !isPaid} />
               {/* Overlay-ul agresiv care bloca editarea cu popup de plată a fost scos */}
             </div>
             {renderSidebar()}

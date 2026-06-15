@@ -184,16 +184,6 @@ export default function Home() {
   };
 
   const saveEditing = () => {
-    if (!isAdmin && !isPlanPaid && !subscriptionActive && !euFundsUnlocked) {
-      if (!user) {
-        window.history.pushState({ login: true }, '', window.location.pathname + '?login=true');
-        setIsSharedView(false);
-        return;
-      }
-      setShowPricingModal(true);
-      return;
-    }
-
     if (window.location.search.includes('edit=true')) {
       window.history.back();
     } else {

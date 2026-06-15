@@ -197,10 +197,6 @@ export default function Home() {
   };
 
   const saveEditing = () => {
-    if (!user) {
-      window.location.href = '/?login=true';
-      return;
-    }
     setIsEditing(false);
   };
 

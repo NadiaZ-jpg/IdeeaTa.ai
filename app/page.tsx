@@ -208,7 +208,8 @@ export default function Home() {
       return;
     }
 
-    if (!isAdmin && !isPlanPaid && !subscriptionActive && !euFundsUnlocked) {
+    const isActionFree = action === "professional_tone" || action === "optimize_budget" || action === "add_sections";
+    if (!isActionFree && !isAdmin && !isPlanPaid && !subscriptionActive && !euFundsUnlocked) {
       setShowPricingModal(true);
       return;
     }
@@ -313,7 +314,7 @@ export default function Home() {
   const ADMIN_EMAILS = ['contact@ideeata.ai', 'nadiaramonaz@gmail.com'];
   const isAdmin = user ? ADMIN_EMAILS.includes(user.email || '') : false;
   const isPlanPaid = isAdmin || devBypass || subscriptionActive || (result && unlockedPlans.includes(result.nume)) || isPaid;
-  const isStudioPaid = !!user || isAdmin || devBypass || subscriptionActive || euFundsUnlocked || isPaid;
+  const isStudioPaid = isAdmin || devBypass || subscriptionActive || euFundsUnlocked || isPaid;
   const isContentCopyProtected = !isPlanPaid && !isStudioPaid;
   const [isAuthLoading, setIsAuthLoading] = useState(true);
   const [authError, setAuthError] = useState<string | null>(null);
@@ -1091,7 +1092,13 @@ export default function Home() {
                       <div className="flex flex-col gap-2">
                         <button 
                           type="button"
-                          onClick={() => setShowToneOptions(!showToneOptions)} 
+                          onClick={() => {
+                            if (!user) {
+                              setShowAuthModal(true);
+                              return;
+                            }
+                            setShowToneOptions(!showToneOptions);
+                          }} 
                           disabled={isEditingAi} 
                           className="w-full bg-black hover:bg-zinc-800 border border-zinc-800 rounded-xl px-5 py-4 font-bold text-sm text-zinc-300 transition-all text-left flex items-center justify-between group disabled:opacity-50 disabled:cursor-not-allowed"
                         >
@@ -1100,7 +1107,7 @@ export default function Home() {
                             <span>Rescrie tonul</span>
                           </span>
                           <span className="flex items-center gap-2">
-                            {!isStudioPaid && (
+                            {!user && (
                               <span className="text-[10px] bg-amber-500/20 border border-amber-500/40 text-amber-300 px-2 py-0.5 rounded-full font-black uppercase tracking-wider whitespace-nowrap flex items-center gap-1">
                                 🔒 PRO
                               </span>
@@ -1187,15 +1194,11 @@ export default function Home() {
                             setShowAuthModal(true);
                             return;
                           }
-                          if (!isStudioPaid) {
-                            setShowPricingModal(true);
-                            return;
-                          }
                           setActiveAiPrompt(activeAiPrompt?.action === "optimize_budget" ? null : {action: "optimize_budget", title: "Optimizează Bugetul", placeholder: "ex: 10, 20, 30", desc: "Cu ce procent dorești să reduci costurile bugetate?"});
                         }} 
                         disabled={isEditingAi} 
                         className={`w-full text-left flex items-center justify-between rounded-xl px-5 py-4 font-bold text-sm transition-all group disabled:opacity-50 disabled:cursor-not-allowed ${
-                          !isStudioPaid 
+                          !user 
                             ? "bg-zinc-900/60 hover:bg-zinc-800/80 border border-amber-500/30 text-amber-300" 
                             : "bg-black hover:bg-zinc-800 border border-zinc-800 text-zinc-300"
                         }`}
@@ -1210,7 +1213,7 @@ export default function Home() {
                             )}
                           </span>
                         </span>
-                        {!isStudioPaid && (
+                        {!user && (
                           <span className="text-[10px] bg-amber-500/20 border border-amber-500/40 text-amber-300 px-2 py-0.5 rounded-full font-black uppercase tracking-wider whitespace-nowrap flex items-center gap-1">
                             🔒 PRO
                           </span>
@@ -1224,15 +1227,11 @@ export default function Home() {
                             setShowAuthModal(true);
                             return;
                           }
-                          if (!isStudioPaid) {
-                            setShowPricingModal(true);
-                            return;
-                          }
                           setActiveAiPrompt(activeAiPrompt?.action === "add_sections" ? null : {action: "add_sections", title: "Adaugă Secțiuni Noi", placeholder: "ex: Plan de Marketing, Analiza Riscurilor", desc: "Ce informații suplimentare dorești să adaugi?"});
                         }} 
                         disabled={isEditingAi} 
                         className={`w-full text-left flex items-center justify-between rounded-xl px-5 py-4 font-bold text-sm transition-all group disabled:opacity-50 disabled:cursor-not-allowed ${
-                          !isStudioPaid 
+                          !user 
                             ? "bg-zinc-900/60 hover:bg-zinc-800/80 border border-amber-500/30 text-amber-300" 
                             : "bg-black hover:bg-zinc-800 border border-zinc-800 text-zinc-300"
                         }`}
@@ -1241,7 +1240,7 @@ export default function Home() {
                           <span className="text-emerald-500 group-hover:scale-110 transition-transform">💡</span> 
                           <span>{isEditingAi ? "Se procesează..." : "Adaugă secțiuni noi"}</span>
                         </span>
-                        {!isStudioPaid && (
+                        {!user && (
                           <span className="text-[10px] bg-amber-500/20 border border-amber-500/40 text-amber-300 px-2 py-0.5 rounded-full font-black uppercase tracking-wider whitespace-nowrap flex items-center gap-1">
                             🔒 PRO
                           </span>

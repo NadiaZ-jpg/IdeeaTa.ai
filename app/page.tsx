@@ -169,17 +169,6 @@ export default function Home() {
   }, []);
 
   const startEditing = () => {
-    // Verificam daca utilizatorul are dreptul sa editeze
-    if (!isAdmin && !isPlanPaid && !subscriptionActive && !euFundsUnlocked) {
-      if (!user) {
-        window.history.pushState({ login: true }, '', window.location.pathname + '?login=true');
-        setIsSharedView(false);
-        return;
-      }
-      setShowPricingModal(true);
-      return;
-    }
-
     setBackupResult(JSON.parse(JSON.stringify(result)));
     window.history.pushState({ isEditing: true }, '', window.location.pathname + '?edit=true');
     setIsEditing(true);
@@ -195,6 +184,16 @@ export default function Home() {
   };
 
   const saveEditing = () => {
+    if (!isAdmin && !isPlanPaid && !subscriptionActive && !euFundsUnlocked) {
+      if (!user) {
+        window.history.pushState({ login: true }, '', window.location.pathname + '?login=true');
+        setIsSharedView(false);
+        return;
+      }
+      setShowPricingModal(true);
+      return;
+    }
+
     if (window.location.search.includes('edit=true')) {
       window.history.back();
     } else {
@@ -209,8 +208,20 @@ export default function Home() {
     }
   };
 
+  const [showAuthModal, setShowAuthModal] = useState(false);
+
   const handleAiEdit = async (action: string, customStyle?: string, customInput?: string) => {
     if (isEditingAi) return;
+
+    if (!user) {
+      setShowAuthModal(true);
+      return;
+    }
+
+    if (!isAdmin && !isPlanPaid && !subscriptionActive && !euFundsUnlocked) {
+      setShowPricingModal(true);
+      return;
+    }
 
     let targetSection = "";
     if (action === "add_sections") {
@@ -772,6 +783,10 @@ export default function Home() {
   };
 
   const resetApp = () => {
+    if (!user) {
+      window.location.href = '/start';
+      return;
+    }
     setResult(null);
     setCurrency("LEI");
     setIsPaid(false);
@@ -1087,7 +1102,14 @@ export default function Home() {
                             <span className="text-emerald-500 group-hover:scale-110 transition-transform">🪄</span>
                             <span>Rescrie tonul</span>
                           </span>
-                          <span className="text-xs text-zinc-500">{showToneOptions ? "▲" : "▼"}</span>
+                          <span className="flex items-center gap-2">
+                            {!isStudioPaid && (
+                              <span className="text-[10px] bg-amber-500/20 border border-amber-500/40 text-amber-300 px-2 py-0.5 rounded-full font-black uppercase tracking-wider whitespace-nowrap flex items-center gap-1">
+                                🔒 PRO
+                              </span>
+                            )}
+                            <span className="text-xs text-zinc-500">{showToneOptions ? "▲" : "▼"}</span>
+                          </span>
                         </button>
                         
                         {showToneOptions && (
@@ -1132,8 +1154,7 @@ export default function Home() {
                         type="button" 
                         onClick={() => {
                           if (!user) {
-                            window.history.pushState({ login: true }, '', window.location.pathname + '?login=true');
-                            setIsSharedView(false);
+                            setShowAuthModal(true);
                             return;
                           }
                           if (!isStudioPaid) {
@@ -1162,26 +1183,77 @@ export default function Home() {
                         )}
                       </button>
 
-                      <button type="button" onClick={() => setActiveAiPrompt(activeAiPrompt?.action === "optimize_budget" ? null : {action: "optimize_budget", title: "Optimizează Bugetul", placeholder: "ex: 10, 20, 30", desc: "Cu ce procent dorești să reduci costurile bugetate?"})} disabled={isEditingAi} className="w-full bg-black hover:bg-zinc-800 border border-zinc-800 rounded-xl px-5 py-4 font-bold text-sm text-zinc-300 transition-all text-left flex items-center gap-3 group disabled:opacity-50 disabled:cursor-not-allowed">
-                        <span className="text-emerald-500 group-hover:scale-110 transition-transform">📉</span>
-                        <span>
-                          {isEditingAi ? "Se procesează..." : (
-                            <>
-                              Optimizează Bugetul <span className="whitespace-nowrap">(Personalizat)</span>
-                            </>
-                          )}
+                      <button 
+                        type="button" 
+                        onClick={() => {
+                          if (!user) {
+                            setShowAuthModal(true);
+                            return;
+                          }
+                          if (!isStudioPaid) {
+                            setShowPricingModal(true);
+                            return;
+                          }
+                          setActiveAiPrompt(activeAiPrompt?.action === "optimize_budget" ? null : {action: "optimize_budget", title: "Optimizează Bugetul", placeholder: "ex: 10, 20, 30", desc: "Cu ce procent dorești să reduci costurile bugetate?"});
+                        }} 
+                        disabled={isEditingAi} 
+                        className={`w-full text-left flex items-center justify-between rounded-xl px-5 py-4 font-bold text-sm transition-all group disabled:opacity-50 disabled:cursor-not-allowed ${
+                          !isStudioPaid 
+                            ? "bg-zinc-900/60 hover:bg-zinc-800/80 border border-amber-500/30 text-amber-300" 
+                            : "bg-black hover:bg-zinc-800 border border-zinc-800 text-zinc-300"
+                        }`}
+                      >
+                        <span className="flex items-center gap-3">
+                          <span className="text-emerald-500 group-hover:scale-110 transition-transform">📉</span>
+                          <span>
+                            {isEditingAi ? "Se procesează..." : (
+                              <>
+                                Optimizează Bugetul <span className="whitespace-nowrap">(Personalizat)</span>
+                              </>
+                            )}
+                          </span>
                         </span>
+                        {!isStudioPaid && (
+                          <span className="text-[10px] bg-amber-500/20 border border-amber-500/40 text-amber-300 px-2 py-0.5 rounded-full font-black uppercase tracking-wider whitespace-nowrap flex items-center gap-1">
+                            🔒 PRO
+                          </span>
+                        )}
                       </button>
 
-                      <button type="button" onClick={() => setActiveAiPrompt(activeAiPrompt?.action === "add_sections" ? null : {action: "add_sections", title: "Adaugă Secțiuni Noi", placeholder: "ex: Plan de Marketing, Analiza Riscurilor", desc: "Ce informații suplimentare dorești să adaugi?"})} disabled={isEditingAi} className="w-full bg-black hover:bg-zinc-800 border border-zinc-800 rounded-xl px-5 py-4 font-bold text-sm text-zinc-300 transition-all text-left flex items-center gap-3 group disabled:opacity-50 disabled:cursor-not-allowed">
-                        <span className="text-emerald-500 group-hover:scale-110 transition-transform">💡</span> 
-                        <span>{isEditingAi ? "Se procesează..." : "Adaugă secțiuni noi"}</span>
+                      <button 
+                        type="button" 
+                        onClick={() => {
+                          if (!user) {
+                            setShowAuthModal(true);
+                            return;
+                          }
+                          if (!isStudioPaid) {
+                            setShowPricingModal(true);
+                            return;
+                          }
+                          setActiveAiPrompt(activeAiPrompt?.action === "add_sections" ? null : {action: "add_sections", title: "Adaugă Secțiuni Noi", placeholder: "ex: Plan de Marketing, Analiza Riscurilor", desc: "Ce informații suplimentare dorești să adaugi?"});
+                        }} 
+                        disabled={isEditingAi} 
+                        className={`w-full text-left flex items-center justify-between rounded-xl px-5 py-4 font-bold text-sm transition-all group disabled:opacity-50 disabled:cursor-not-allowed ${
+                          !isStudioPaid 
+                            ? "bg-zinc-900/60 hover:bg-zinc-800/80 border border-amber-500/30 text-amber-300" 
+                            : "bg-black hover:bg-zinc-800 border border-zinc-800 text-zinc-300"
+                        }`}
+                      >
+                        <span className="flex items-center gap-3">
+                          <span className="text-emerald-500 group-hover:scale-110 transition-transform">💡</span> 
+                          <span>{isEditingAi ? "Se procesează..." : "Adaugă secțiuni noi"}</span>
+                        </span>
+                        {!isStudioPaid && (
+                          <span className="text-[10px] bg-amber-500/20 border border-amber-500/40 text-amber-300 px-2 py-0.5 rounded-full font-black uppercase tracking-wider whitespace-nowrap flex items-center gap-1">
+                            🔒 PRO
+                          </span>
+                        )}
                       </button>
 
                       <button type="button" onClick={() => {
                         if (!user) {
-                          window.history.pushState({ login: true }, '', window.location.pathname + '?login=true');
-                          setIsSharedView(false);
+                          setShowAuthModal(true);
                           return;
                         }
                         if (!isStudioPaid) {
@@ -1265,7 +1337,7 @@ export default function Home() {
     );
   }
 
-  if (!user && !isSharedView) {
+  if (!user && !isSharedView && !result) {
     return (
       <div className="min-h-screen bg-[#09090b] flex flex-col items-center justify-center p-4 font-sans relative overflow-hidden">
         {/* Background glow orbs */}
@@ -2236,7 +2308,12 @@ export default function Home() {
 
           <div className="flex flex-col lg:flex-row gap-8 items-start w-full">
             <div className="w-full lg:w-3/5 xl:w-2/3">
-              <EditForm result={result} updateField={updateField} removeField={removeField} />
+              <EditForm 
+                result={result} 
+                updateField={updateField} 
+                removeField={removeField} 
+                readOnly={!isAdmin && !isPlanPaid && !subscriptionActive && !euFundsUnlocked} 
+              />
             </div>
             {renderSidebar()}
           </div>
@@ -2961,14 +3038,58 @@ export default function Home() {
         }}
         onRequireLogin={() => {
           setShowPricingModal(false);
-          window.history.pushState({ login: true }, '', window.location.pathname + '?login=true');
-          setIsSharedView(false);
+          setShowAuthModal(true);
         }}
         userId={user?.uid || ""}
         userEmail={user?.email || ""}
         currency={currency}
         planName={result?.nume || "Plan de Afaceri"}
       />
+      {showAuthModal && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[200] flex items-center justify-center p-4">
+          <div className="bg-zinc-900 border border-zinc-800 rounded-3xl p-8 max-w-md w-full flex flex-col shadow-2xl relative overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+            <div className="absolute -top-12 -left-12 w-40 h-40 rounded-full bg-emerald-500/10 blur-3xl pointer-events-none"></div>
+            <div className="absolute -bottom-12 -right-12 w-40 h-40 rounded-full bg-amber-500/10 blur-3xl pointer-events-none"></div>
+            
+            <div className="flex justify-between items-start mb-6 relative z-10">
+              <span className="text-4xl">✨</span>
+              <button 
+                type="button" 
+                onClick={() => setShowAuthModal(false)} 
+                className="text-zinc-500 hover:text-white transition-colors"
+              >
+                ✕
+              </button>
+            </div>
+            
+            <h3 className="text-2xl font-black text-white mb-3 relative z-10">Creează-ți un cont gratuit</h3>
+            <p className="text-zinc-400 mb-6 text-sm leading-relaxed relative z-10 font-sans">
+              Creează-ți un cont gratuit pentru a folosi instrumentele noastre avansate și a personaliza planul tău de afaceri.
+            </p>
+            
+            <button 
+              type="button"
+              onClick={() => {
+                setShowAuthModal(false);
+                window.history.pushState({ login: true }, '', window.location.pathname + '?login=true');
+                setIsSharedView(false);
+              }}
+              className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 px-4 rounded-xl transition-all shadow-lg shadow-emerald-900/30 flex items-center justify-center gap-2"
+            >
+              <span>Conectare / Înregistrare</span>
+              <span>➔</span>
+            </button>
+            
+            <button
+              type="button"
+              onClick={() => setShowAuthModal(false)}
+              className="mt-3 w-full bg-zinc-800/80 hover:bg-zinc-800 text-zinc-400 hover:text-white font-bold py-3 px-4 rounded-xl transition-all text-sm"
+            >
+              Mai târziu
+            </button>
+          </div>
+        </div>
+      )}
     </main>
   );
 }

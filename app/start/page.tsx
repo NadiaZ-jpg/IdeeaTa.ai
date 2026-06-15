@@ -187,11 +187,6 @@ export default function Home() {
   }, []);
 
   const startEditing = () => {
-    if (!user) {
-      window.location.href = '/?login=true';
-      return;
-    }
-    
     setBackupResult(JSON.parse(JSON.stringify(result)));
     setIsEditing(true);
   };
@@ -202,6 +197,10 @@ export default function Home() {
   };
 
   const saveEditing = () => {
+    if (!user) {
+      window.location.href = '/?login=true';
+      return;
+    }
     setIsEditing(false);
   };
 
@@ -214,10 +213,12 @@ export default function Home() {
     }
   };
 
+  const [showAuthModal, setShowAuthModal] = useState(false);
+
   const handleAiEdit = async (action: string, customStyle?: string, customInput?: string) => {
     if (isEditingAi) return;
     if (!user) {
-      window.location.href = '/?login=true';
+      setShowAuthModal(true);
       return;
     }
 
@@ -1012,7 +1013,13 @@ export default function Home() {
                    <h3 className="text-2xl font-black text-white mb-4 flex items-center gap-3"><span className="text-emerald-500">✨</span> Instrumente</h3>
                     <button 
                       type="button" 
-                      onClick={() => handleAiEdit("investor_ready")} 
+                      onClick={() => {
+                        if (!user) {
+                          setShowAuthModal(true);
+                          return;
+                        }
+                        setShowPricingModal(true);
+                      }} 
                       disabled={isEditingAi}
                       className="w-full bg-black hover:bg-zinc-800 border border-emerald-900/30 rounded-xl px-5 py-4 font-bold text-sm text-emerald-400 transition-all text-left flex items-center justify-between group disabled:opacity-50"
                     >
@@ -1037,7 +1044,12 @@ export default function Home() {
                             <span className="text-emerald-500 group-hover:scale-110 transition-transform">🪄</span>
                             <span>Rescrie tonul</span>
                           </span>
-                          <span className="text-xs text-zinc-500">{showToneOptions ? "▲" : "▼"}</span>
+                          <span className="flex items-center gap-2">
+                            <span className="text-[10px] bg-amber-500/20 border border-amber-500/40 text-amber-300 px-2 py-0.5 rounded-full font-black uppercase tracking-wider whitespace-nowrap flex items-center gap-1">
+                              🔒 PRO
+                            </span>
+                            <span className="text-xs text-zinc-500">{showToneOptions ? "▲" : "▼"}</span>
+                          </span>
                         </button>
                         
                         {showToneOptions && (
@@ -1081,10 +1093,14 @@ export default function Home() {
                       <button 
                         type="button" 
                         onClick={() => {
-                          setActiveAiPrompt(activeAiPrompt?.action === "eu_funds_optimization" ? null : {action: "eu_funds_optimization", title: "Optimizare Fonduri Europene", isConfirm: true, desc: "Se va adapta planul pentru fonduri europene:\n1. Concepte cheie: digitalizare, sustenabilitate.\n2. Redenumirea achizițiilor pentru a fi eligibile.\n\nEști gata?"});
+                          if (!user) {
+                            setShowAuthModal(true);
+                            return;
+                          }
+                          setShowPricingModal(true);
                         }} 
                         disabled={isEditingAi} 
-                        className={`w-full text-left flex items-center justify-between rounded-xl px-5 py-4 font-bold text-sm transition-all group disabled:opacity-50 disabled:cursor-not-allowed bg-black hover:bg-zinc-800 border border-zinc-800 text-zinc-300`}
+                        className="w-full text-left flex items-center justify-between rounded-xl px-5 py-4 font-bold text-sm transition-all group disabled:opacity-50 disabled:cursor-not-allowed bg-zinc-900/60 hover:bg-zinc-800/80 border border-amber-500/30 text-amber-300"
                       >
                         <span className="flex items-center gap-3">
                           <span className="text-amber-500 group-hover:scale-110 transition-transform">🇪🇺</span>
@@ -1092,27 +1108,78 @@ export default function Home() {
                             {isEditingAi ? "Se procesează..." : "Optimizat pentru Fonduri Europene"}
                           </span>
                         </span>
-                      </button>
-
-                      <button type="button" onClick={() => setActiveAiPrompt(activeAiPrompt?.action === "optimize_budget" ? null : {action: "optimize_budget", title: "Optimizează Bugetul", placeholder: "ex: 10, 20, 30", desc: "Cu ce procent dorești să reduci costurile bugetate?"})} disabled={isEditingAi} className="w-full bg-black hover:bg-zinc-800 border border-zinc-800 rounded-xl px-5 py-4 font-bold text-sm text-zinc-300 transition-all text-left flex items-center gap-3 group disabled:opacity-50 disabled:cursor-not-allowed">
-                        <span className="text-emerald-500 group-hover:scale-110 transition-transform">📉</span>
-                        <span>
-                          {isEditingAi ? "Se procesează..." : (
-                            <>
-                              Optimizează Bugetul <span className="whitespace-nowrap">(Personalizat)</span>
-                            </>
-                          )}
+                        <span className="text-[10px] bg-amber-500/20 border border-amber-500/40 text-amber-300 px-2 py-0.5 rounded-full font-black uppercase tracking-wider whitespace-nowrap flex items-center gap-1">
+                          🔒 PRO
                         </span>
                       </button>
 
-                      <button type="button" onClick={() => setActiveAiPrompt(activeAiPrompt?.action === "add_sections" ? null : {action: "add_sections", title: "Adaugă Secțiuni Noi", placeholder: "ex: Plan de Marketing, Analiza Riscurilor", desc: "Ce informații suplimentare dorești să adaugi?"})} disabled={isEditingAi} className="w-full bg-black hover:bg-zinc-800 border border-zinc-800 rounded-xl px-5 py-4 font-bold text-sm text-zinc-300 transition-all text-left flex items-center gap-3 group disabled:opacity-50 disabled:cursor-not-allowed">
-                        <span className="text-emerald-500 group-hover:scale-110 transition-transform">💡</span> 
-                        <span>{isEditingAi ? "Se procesează..." : "Adaugă secțiuni noi"}</span>
+                      <button 
+                        type="button" 
+                        onClick={() => {
+                          if (!user) {
+                            setShowAuthModal(true);
+                            return;
+                          }
+                          setShowPricingModal(true);
+                        }} 
+                        disabled={isEditingAi} 
+                        className="w-full text-left flex items-center justify-between rounded-xl px-5 py-4 font-bold text-sm transition-all group disabled:opacity-50 disabled:cursor-not-allowed bg-zinc-900/60 hover:bg-zinc-800/80 border border-amber-500/30 text-amber-300"
+                      >
+                        <span className="flex items-center gap-3">
+                          <span className="text-emerald-500 group-hover:scale-110 transition-transform">📉</span>
+                          <span>
+                            {isEditingAi ? "Se procesează..." : (
+                              <>
+                                Optimizează Bugetul <span className="whitespace-nowrap">(Personalizat)</span>
+                              </>
+                            )}
+                          </span>
+                        </span>
+                        <span className="text-[10px] bg-amber-500/20 border border-amber-500/40 text-amber-300 px-2 py-0.5 rounded-full font-black uppercase tracking-wider whitespace-nowrap flex items-center gap-1">
+                          🔒 PRO
+                        </span>
                       </button>
 
-                      <button type="button" onClick={() => window.location.href = '/' } disabled={isEditingAi} className="w-full bg-zinc-900/80 hover:bg-zinc-800 border border-emerald-500/30 rounded-xl px-5 py-4 font-bold text-sm text-emerald-100 transition-all text-left flex items-center gap-3 group disabled:opacity-50 disabled:cursor-not-allowed shadow-[0_0_15px_rgba(16,185,129,0.1)]">
-                        <span className="text-emerald-400 group-hover:scale-110 transition-transform text-lg">🏦</span> 
-                        <span>Plan Profesionist <span className="text-amber-500">🔒</span></span>
+                      <button 
+                        type="button" 
+                        onClick={() => {
+                          if (!user) {
+                            setShowAuthModal(true);
+                            return;
+                          }
+                          setShowPricingModal(true);
+                        }} 
+                        disabled={isEditingAi} 
+                        className="w-full text-left flex items-center justify-between rounded-xl px-5 py-4 font-bold text-sm transition-all group disabled:opacity-50 disabled:cursor-not-allowed bg-zinc-900/60 hover:bg-zinc-800/80 border border-amber-500/30 text-amber-300"
+                      >
+                        <span className="flex items-center gap-3">
+                          <span className="text-emerald-500 group-hover:scale-110 transition-transform">💡</span> 
+                          <span>{isEditingAi ? "Se procesează..." : "Adaugă secțiuni noi"}</span>
+                        </span>
+                        <span className="text-[10px] bg-amber-500/20 border border-amber-500/40 text-amber-300 px-2 py-0.5 rounded-full font-black uppercase tracking-wider whitespace-nowrap flex items-center gap-1">
+                          🔒 PRO
+                        </span>
+                      </button>
+
+                      <button 
+                        type="button" 
+                        onClick={() => {
+                          if (!user) {
+                            setShowAuthModal(true);
+                            return;
+                          }
+                          setShowPricingModal(true);
+                        }} 
+                        disabled={isEditingAi} 
+                        className="w-full bg-zinc-900/80 hover:bg-zinc-800 border border-emerald-500/30 rounded-xl px-5 py-4 font-bold text-sm text-emerald-100 transition-all text-left flex items-center justify-between group disabled:opacity-50 disabled:cursor-not-allowed shadow-[0_0_15px_rgba(16,185,129,0.1)]"
+                      >
+                        <span className="flex items-center gap-3">
+                          <span className="text-emerald-400 group-hover:scale-110 transition-transform text-lg">🏦</span> 
+                          <span>Plan Profesionist</span>
+                        </span>
+                        <span className="text-xs font-black bg-amber-500/20 text-amber-400 px-2.5 py-1 rounded-md border border-amber-500/20 group-hover:bg-amber-500/30 transition-colors flex items-center gap-1.5 shadow-[0_0_10px_rgba(245,158,11,0.2)]">
+                          🔒 PRO
+                        </span>
                       </button>
                     </div>
 
@@ -2753,14 +2820,57 @@ export default function Home() {
         }}
         onRequireLogin={() => {
           setShowPricingModal(false);
-          window.location.href = '/?login=true';
+          setShowAuthModal(true);
         }}
         userId={user?.uid || ""}
         userEmail={user?.email || ""}
         currency={currency}
         planName={result?.nume || "Plan de Afaceri"}
       />
-
+      {showAuthModal && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[200] flex items-center justify-center p-4">
+          <div className="bg-zinc-900 border border-zinc-800 rounded-3xl p-8 max-w-md w-full flex flex-col shadow-2xl relative overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+            <div className="absolute -top-12 -left-12 w-40 h-40 rounded-full bg-emerald-500/10 blur-3xl pointer-events-none"></div>
+            <div className="absolute -bottom-12 -right-12 w-40 h-40 rounded-full bg-amber-500/10 blur-3xl pointer-events-none"></div>
+            
+            <div className="flex justify-between items-start mb-6 relative z-10">
+              <span className="text-4xl">✨</span>
+              <button 
+                type="button" 
+                onClick={() => setShowAuthModal(false)} 
+                className="text-zinc-500 hover:text-white transition-colors"
+              >
+                ✕
+              </button>
+            </div>
+            
+            <h3 className="text-2xl font-black text-white mb-3 relative z-10">Creează-ți un cont gratuit</h3>
+            <p className="text-zinc-400 mb-6 text-sm leading-relaxed relative z-10 font-sans">
+              Creează-ți un cont gratuit pentru a folosi instrumentele noastre AI avansate și a personaliza planul tău de afaceri.
+            </p>
+            
+            <button 
+              type="button"
+              onClick={() => {
+                setShowAuthModal(false);
+                window.location.href = '/?login=true';
+              }}
+              className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 px-4 rounded-xl transition-all shadow-lg shadow-emerald-900/30 flex items-center justify-center gap-2"
+            >
+              <span>Conectare / Înregistrare</span>
+              <span>➔</span>
+            </button>
+            
+            <button
+              type="button"
+              onClick={() => setShowAuthModal(false)}
+              className="mt-3 w-full bg-zinc-800/80 hover:bg-zinc-800 text-zinc-400 hover:text-white font-bold py-3 px-4 rounded-xl transition-all text-sm"
+            >
+              Mai târziu
+            </button>
+          </div>
+        </div>
+      )}
     </main>
   );
 }

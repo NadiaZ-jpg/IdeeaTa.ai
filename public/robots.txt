@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://ideea-ta-ai.vercel.app/sitemap.xml

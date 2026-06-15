@@ -1336,12 +1336,12 @@ export default function Home() {
 
   if (!user && !isSharedView && !result) {
     return (
-      <div className="min-h-screen bg-[#09090b] flex flex-col items-center justify-center p-4 font-sans relative overflow-hidden">
+      <div className="min-h-screen bg-[#09090b] flex flex-col items-center p-4 font-sans relative overflow-y-auto overflow-x-hidden">
         {/* Background glow orbs */}
         <div className="absolute top-[10%] left-[-15%] w-[600px] h-[600px] rounded-full bg-emerald-500/5 blur-[120px] pointer-events-none animate-pulse duration-[8000ms] z-0"></div>
         <div className="absolute top-[35%] right-[-15%] w-[650px] h-[650px] rounded-full bg-amber-500/5 blur-[150px] pointer-events-none animate-pulse duration-[12000ms] z-0"></div>
         
-        <div className="w-full max-w-md p-8 md:p-12 bg-zinc-900/80 backdrop-blur-md rounded-3xl border border-zinc-800 shadow-2xl relative z-10 flex flex-col items-center">
+        <div className="w-full max-w-md p-8 md:p-12 bg-zinc-900/80 backdrop-blur-md rounded-3xl border border-zinc-800 shadow-2xl relative z-10 flex flex-col items-center my-12 shrink-0">
           <h1 className="text-4xl font-black text-transparent bg-gradient-to-r from-zinc-400 via-emerald-400 to-zinc-400 bg-clip-text text-center mb-4 tracking-tighter">IdeeaTa.ai</h1>
           <p className="text-zinc-400 text-center mb-10 font-medium">Platforma necesită autentificare pentru a continua.</p>
           
@@ -1488,6 +1488,53 @@ export default function Home() {
               </div>
             </div>
           )}
+        </div>
+
+        {/* Landing/Descriptive Page Section for AdSense Compliance */}
+        <div className="w-full max-w-4xl mt-12 mb-20 px-8 py-16 bg-zinc-900/40 border border-zinc-800/80 rounded-3xl relative z-10 flex flex-col gap-10 text-zinc-300 backdrop-blur-sm">
+          <div className="text-center">
+            <h2 className="text-3xl font-black text-white mb-4">Generare Planuri de Afaceri cu Inteligență Artificială</h2>
+            <p className="text-zinc-400 text-lg max-w-2xl mx-auto">
+              IdeeaTa.ai oferă antreprenorilor români o suită completă de instrumente pentru scrierea, structurarea și editarea planurilor de afaceri, adaptate pentru finanțări, credite bancare sau fonduri europene.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mt-6">
+            <div className="bg-zinc-950/60 p-6 rounded-2xl border border-zinc-800/50">
+              <h3 className="text-xl font-bold text-emerald-400 mb-3">📊 Analiză SWOT & Financiară</h3>
+              <p className="text-sm text-zinc-400 leading-relaxed">
+                Obține instant matricea SWOT completă pentru piața din România. Include bugete de investiții detaliate, estimări financiare pe 12 luni, calcularea costurilor operaționale și previzionarea marjei de profit.
+              </p>
+            </div>
+            
+            <div className="bg-zinc-950/60 p-6 rounded-2xl border border-zinc-800/50">
+              <h3 className="text-xl font-bold text-emerald-400 mb-3">🇪🇺 Optimizare pentru Fonduri Europene</h3>
+              <p className="text-sm text-zinc-400 leading-relaxed">
+                Asistentul nostru analizează criteriile de eligibilitate CAEN și digitalizare pentru a adapta planul de afaceri cerințelor ghidurilor de finanțare nerambursabilă (sustenabilitate, economie circulară și transformare digitală).
+              </p>
+            </div>
+
+            <div className="bg-zinc-950/60 p-6 rounded-2xl border border-zinc-800/50">
+              <h3 className="text-xl font-bold text-emerald-400 mb-3">🏛️ Structură Standard de Proiect</h3>
+              <p className="text-sm text-zinc-400 leading-relaxed">
+                Generăm secțiuni complete de la Slogan, viziune, misiune, definirea problemelor, soluții propuse, analiza competiției, strategii comerciale go-to-market până la planul detaliat de resurse umane.
+              </p>
+            </div>
+
+            <div className="bg-zinc-950/60 p-6 rounded-2xl border border-zinc-800/50">
+              <h3 className="text-xl font-bold text-emerald-400 mb-3">✏️ Studio de Editare Avansat</h3>
+              <p className="text-sm text-zinc-400 leading-relaxed">
+                Modifică planurile de afaceri manual sau ajutat de AI direct în browser. Folosește scrierea asistată pentru extinderea, restructurarea profesională sau adaptarea tonului în câteva secunde.
+              </p>
+            </div>
+          </div>
+
+          <div className="border-t border-zinc-800/80 pt-8 mt-4 text-center">
+            <h4 className="text-lg font-bold text-white mb-2">Peste 50 de domenii de activitate</h4>
+            <p className="text-sm text-zinc-500 max-w-xl mx-auto">
+              De la HoReCa, IT & software development, clinici medicale, agricultură ecologică până la servicii de consultanță cibernecă, transformăm ideile în business-uri de succes.
+            </p>
+          </div>
         </div>
       </div>
     );

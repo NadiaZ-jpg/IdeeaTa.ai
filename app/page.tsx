@@ -313,7 +313,7 @@ export default function Home() {
   const ADMIN_EMAILS = ['contact@ideeata.ai', 'nadiaramonaz@gmail.com'];
   const isAdmin = user ? ADMIN_EMAILS.includes(user.email || '') : false;
   const isPlanPaid = isAdmin || devBypass || subscriptionActive || (result && unlockedPlans.includes(result.nume)) || isPaid;
-  const isStudioPaid = isAdmin || devBypass || subscriptionActive || euFundsUnlocked || isPaid;
+  const isStudioPaid = !!user || isAdmin || devBypass || subscriptionActive || euFundsUnlocked || isPaid;
   const isContentCopyProtected = !isPlanPaid && !isStudioPaid;
   const [isAuthLoading, setIsAuthLoading] = useState(true);
   const [authError, setAuthError] = useState<string | null>(null);

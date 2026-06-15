@@ -2430,14 +2430,6 @@ export default function Home() {
                   <>
                     <div className="w-px h-4 bg-zinc-800 flex-none" />
                     <button 
-                      onClick={() => downloadAction('pdf-summary')} 
-                      disabled={isDownloading !== null}
-                      className="flex-none hover:bg-emerald-900/50 text-emerald-400 text-[10px] sm:text-[11px] h-full px-3 rounded-lg font-black uppercase tracking-wider transition-all flex items-center justify-center whitespace-nowrap gap-1 cursor-pointer shadow-[0_0_15px_rgba(16,185,129,0.15)]"
-                    >
-                      {isDownloading === 'pdf-summary' ? "⏳..." : "🎁 Sumar Gratuit"}
-                    </button>
-                    <div className="w-px h-4 bg-zinc-800 flex-none" />
-                    <button 
                       type="button"
                       onClick={() => setShowPricingModal(true)}
                       className="flex-none text-xs text-amber-500 hover:text-amber-400 cursor-pointer px-3 h-full rounded-lg flex items-center justify-center hover:bg-zinc-800/50 hover:scale-110 transition-all"

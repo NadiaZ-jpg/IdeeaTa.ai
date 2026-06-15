@@ -574,7 +574,7 @@ export default function Home() {
 
     if (typeof window !== 'undefined') {
       const generateCount = parseInt(localStorage.getItem('demoGenerateCount') || '0');
-      if (generateCount >= 2) {
+      if (generateCount >= 3) {
         window.location.href = '/?login=true';
         return;
       }
@@ -689,7 +689,7 @@ export default function Home() {
   const resetApp = () => {
     if (typeof window !== "undefined") {
       const generateCount = parseInt(localStorage.getItem('demoGenerateCount') || '0');
-      if (generateCount >= 2) {
+      if (generateCount >= 3) {
         localStorage.removeItem("current_generated_plan");
         window.location.href = '/?login=true';
         return;

@@ -1493,7 +1493,7 @@ export default function Home() {
         {/* Landing/Descriptive Page Section for AdSense Compliance */}
         <div className="w-full max-w-4xl mt-12 mb-20 px-8 py-16 bg-zinc-900/40 border border-zinc-800/80 rounded-3xl relative z-10 flex flex-col gap-10 text-zinc-300 backdrop-blur-sm">
           <div className="text-center">
-            <h2 className="text-3xl font-black text-white mb-4">Generare Planuri de Afaceri cu Inteligență Artificială</h2>
+            <h2 className="text-3xl font-black text-white mb-4">Generare Inteligentă de Planuri de Afaceri</h2>
             <p className="text-zinc-400 text-lg max-w-2xl mx-auto">
               IdeeaTa.ai oferă antreprenorilor români o suită completă de instrumente pentru scrierea, structurarea și editarea planurilor de afaceri, adaptate pentru finanțări, credite bancare sau fonduri europene.
             </p>
@@ -1524,7 +1524,7 @@ export default function Home() {
             <div className="bg-zinc-950/60 p-6 rounded-2xl border border-zinc-800/50">
               <h3 className="text-xl font-bold text-emerald-400 mb-3">✏️ Studio de Editare Avansat</h3>
               <p className="text-sm text-zinc-400 leading-relaxed">
-                Modifică planurile de afaceri manual sau ajutat de AI direct în browser. Folosește scrierea asistată pentru extinderea, restructurarea profesională sau adaptarea tonului în câteva secunde.
+                Modifică planurile de afaceri manual sau asistat direct în browser. Folosește scrierea asistată pentru extinderea, restructurarea profesională sau adaptarea tonului în câteva secunde.
               </p>
             </div>
           </div>

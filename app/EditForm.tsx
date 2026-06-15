@@ -168,7 +168,7 @@ export function EditForm({ result, updateField, removeField, readOnly = false }:
         </div>
 
         {/* Financiar */}
-        <div className="flex flex-col gap-6 w-full pt-6 border-t border-zinc-800">
+        <div id="section-financial" className="flex flex-col gap-6 w-full pt-6 border-t border-zinc-800">
           <h3 className="text-2xl font-black mb-2 text-emerald-400">VI. Planul Financiar</h3>
 
           <div className="flex flex-col gap-2 mb-6">

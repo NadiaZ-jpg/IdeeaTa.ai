@@ -572,24 +572,20 @@ export default function Home() {
 
     let shouldStopLoading = true;
 
-    if (typeof window !== 'undefined') {
-      const generateCount = parseInt(localStorage.getItem('demoGenerateCount') || '0');
-      if (generateCount >= 3) {
-        window.location.href = '/?login=true';
-        return;
-      }
-    }
-
     if (retryCount === 0) {
+      if (typeof window !== 'undefined') {
+        const generateCount = parseInt(localStorage.getItem('demoGenerateCount') || '0');
+        if (generateCount >= 3) {
+          window.location.href = '/?login=true';
+          return;
+        }
+        localStorage.setItem('demoGenerateCount', (generateCount + 1).toString());
+      }
+
       setLoading(true);
       setMessageIndex(0);
       setResult(null);
       setIsPaid(true);
-
-      if (typeof window !== 'undefined') {
-        const generateCount = parseInt(localStorage.getItem('demoGenerateCount') || '0');
-        localStorage.setItem('demoGenerateCount', (generateCount + 1).toString());
-      }
     }
 
     try {

@@ -2356,7 +2356,7 @@ export default function Home() {
                 result={result} 
                 updateField={updateField} 
                 removeField={removeField} 
-                readOnly={!isAdmin && !isPlanPaid && !subscriptionActive && !euFundsUnlocked} 
+                readOnly={!isStudioPaid} 
               />
             </div>
             {renderSidebar()}

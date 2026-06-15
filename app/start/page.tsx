@@ -1160,27 +1160,6 @@ export default function Home() {
                           🔒 PRO
                         </span>
                       </button>
-
-                      <button 
-                        type="button" 
-                        onClick={() => {
-                          if (!user) {
-                            setShowAuthModal(true);
-                            return;
-                          }
-                          setShowPricingModal(true);
-                        }} 
-                        disabled={isEditingAi} 
-                        className="w-full bg-zinc-900/80 hover:bg-zinc-800 border border-emerald-500/30 rounded-xl px-5 py-4 font-bold text-sm text-emerald-100 transition-all text-left flex items-center justify-between group disabled:opacity-50 disabled:cursor-not-allowed shadow-[0_0_15px_rgba(16,185,129,0.1)]"
-                      >
-                        <span className="flex items-center gap-3">
-                          <span className="text-emerald-400 group-hover:scale-110 transition-transform text-lg">🏦</span> 
-                          <span>Plan Profesionist</span>
-                        </span>
-                        <span className="text-xs font-black bg-amber-500/20 text-amber-400 px-2.5 py-1 rounded-md border border-amber-500/20 group-hover:bg-amber-500/30 transition-colors flex items-center gap-1.5 shadow-[0_0_10px_rgba(245,158,11,0.2)]">
-                          🔒 PRO
-                        </span>
-                      </button>
                     </div>
 
                     {activeAiPrompt && (

@@ -176,18 +176,16 @@ export default function Home() {
 
   const cancelEditing = () => {
     setResult(backupResult);
-    if (window.location.search.includes('edit=true')) {
-      window.history.back();
-    } else {
-      setIsEditing(false);
+    setIsEditing(false);
+    if (typeof window !== "undefined" && window.location.search.includes('edit=true')) {
+      window.history.replaceState({}, document.title, window.location.pathname);
     }
   };
 
   const saveEditing = () => {
-    if (window.location.search.includes('edit=true')) {
-      window.history.back();
-    } else {
-      setIsEditing(false);
+    setIsEditing(false);
+    if (typeof window !== "undefined" && window.location.search.includes('edit=true')) {
+      window.history.replaceState({}, document.title, window.location.pathname);
     }
   };
 

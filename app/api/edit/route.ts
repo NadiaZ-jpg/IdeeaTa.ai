@@ -54,21 +54,26 @@ export async function POST(req: NextRequest) {
     } else if (action === "optimize_budget") {
       instruction = `Redu costurile din 'plan_financiar.buget_investitii' cu aproximativ ${targetSection}% și ajustează explicațiile arătând cum s-a făcut economia. Păstrează restul neatins.`;
     } else if (action === "add_sections") {
-      instruction = `Generează O SECȚIUNE NOUĂ de text pentru planul de afaceri, referitoare strict la subiectul: "${targetSection || 'orice consideri necesar'}". 
+      instruction = `Generează SECȚIUNI NOI de text pentru planul de afaceri, referitoare strict la subiectele cerute: "${targetSection || 'orice consideri necesar'}". 
       IMPORTANT:
       - Dacă cerința utilizatorului reprezintă o comandă de ștergere sau modificare a unor lucruri existente (ex: "elimină", "șterge", "modifică capitolul X"), returnează o secțiune cu titlul "⚠️ Sfat de Editare" și explică în "continut" că acest instrument AI este doar pentru a *adăuga* secțiuni noi, iar pentru ștergeri/modificări trebuie să folosească butonul 🗑️ din Studio Editare sau să editeze manual textul.
       - Nu folosi formatare de tip Tabel Markdown (cu bare verticale |). Structurează informația sub formă de listă numerotată (1., 2., 3. etc) deoarece interfața afișează doar text simplu.
       - NU RETURNĂ planul curent!
       - Returnează EXCLUSIV un JSON care conține doar o singură cheie numită "sectiuni_aditionale".
-      - Această cheie trebuie să fie un ARRAY cu un singur obiect în interior, care conține "titlu" și "continut".
+      - Această cheie trebuie să fie un ARRAY de obiecte. Fiecare obiect conține "titlu" și "continut".
+      - Dacă utilizatorul cere mai multe lucruri distincte (ex: "plan marketing și analiza riscurilor"), creează CÂTE UN OBIECT SEPARAT pentru fiecare subiect în acest array.
       - Conținutul trebuie să fie foarte detaliat, profesional, și formatat cu \\n pentru paragrafe.
       
-      Format exact obligatoriu:
+      Format exact obligatoriu (exemplu cu 2 secțiuni):
       {
         "sectiuni_aditionale": [
           {
-            "titlu": "Numele secțiunii cerute",
-            "continut": "Textul detaliat..."
+            "titlu": "Planul de Marketing",
+            "continut": "Textul detaliat pentru marketing..."
+          },
+          {
+            "titlu": "Analiza Riscurilor",
+            "continut": "Textul detaliat pentru riscuri..."
           }
         ]
       }`;

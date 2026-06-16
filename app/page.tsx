@@ -1353,7 +1353,7 @@ export default function Home() {
                 id="email"
                 name="email"
                 type="email" 
-                placeholder="Adresa de email"
+                placeholder="Adresa de email (ex: nume@email.ro)"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required

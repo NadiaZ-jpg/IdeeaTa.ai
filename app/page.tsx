@@ -89,6 +89,7 @@ export default function Home() {
   const [activeAiPrompt, setActiveAiPrompt] = useState<{action: string, title: string, placeholder?: string, desc?: string, isConfirm?: boolean} | null>(null);
   const [aiPromptInput, setAiPromptInput] = useState("");
   const [showToneOptions, setShowToneOptions] = useState(false);
+  const [aiLoadingMessageIndex, setAiLoadingMessageIndex] = useState(0);
   const [isPaid, setIsPaid] = useState(false);
   const [showPaywall, setShowPaywall] = useState(false);
   const [isPaying, setIsPaying] = useState(false);
@@ -167,6 +168,17 @@ export default function Home() {
     timeout = setTimeout(tick, 500);
     return () => clearTimeout(timeout);
   }, []);
+
+  useEffect(() => {
+    if (!isEditingAi) {
+      setAiLoadingMessageIndex(0);
+      return;
+    }
+    const interval = setInterval(() => {
+      setAiLoadingMessageIndex(prev => (prev + 1) % 4);
+    }, 4500);
+    return () => clearInterval(interval);
+  }, [isEditingAi]);
 
   const startEditing = () => {
     setBackupResult(JSON.parse(JSON.stringify(result)));
@@ -1567,13 +1579,19 @@ export default function Home() {
       )}
 
       {isEditingAi && (
-        <div className="fixed inset-0 bg-[#09090b]/90 backdrop-blur-sm z-[100] flex flex-col items-center justify-center">
+        <div className="fixed inset-0 bg-[#09090b]/90 backdrop-blur-sm z-[100] flex flex-col items-center justify-center px-4">
           <div className="w-16 h-16 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin mb-6"></div>
-          <p className="text-2xl font-bold text-white tracking-widest uppercase text-center">
-            Se rescrie documentul...
+          <p className="text-2xl font-bold text-white tracking-widest uppercase text-center transition-all duration-300">
+            {aiLoadingMessageIndex === 0 && "Se rescrie documentul..."}
+            {aiLoadingMessageIndex === 1 && "Se procesează secțiunile..."}
+            {aiLoadingMessageIndex === 2 && "Se calculează datele..."}
+            {aiLoadingMessageIndex === 3 && "Se finalizează..."}
           </p>
-          <p className="text-emerald-400 font-medium mt-3 text-center">
-            Acest proces durează 15-20 de secunde, deoarece rescriem integral secțiunile planului tău de afaceri.
+          <p className="text-emerald-400 font-medium mt-3 text-center transition-all duration-500 max-w-lg">
+            {aiLoadingMessageIndex === 0 && "Acest proces durează 15-20 de secunde. Analizăm structura actuală a documentului..."}
+            {aiLoadingMessageIndex === 1 && "Generăm secțiunile și rescriem paragrafele pentru o calitate maximă..."}
+            {aiLoadingMessageIndex === 2 && "Aplicăm calculele financiare și rafinăm tonul profesional..."}
+            {aiLoadingMessageIndex === 3 && "Ultimele retușuri. Pregătim noul tău plan de afaceri..."}
           </p>
         </div>
       )}

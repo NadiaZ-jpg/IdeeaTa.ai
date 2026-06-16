@@ -10,7 +10,7 @@ import {
   Cell
 } from 'recharts';
 
-export function BudgetPieChart({ budget, currency = "LEI" }: { budget: any[], currency?: string }) {
+export function BudgetPieChart({ budget, currency = "LEI", isPdf = false }: { budget: any[], currency?: string, isPdf?: boolean }) {
   if (!budget || budget.length === 0) return null;
 
   const data = budget.map((b) => ({
@@ -28,10 +28,10 @@ export function BudgetPieChart({ budget, currency = "LEI" }: { budget: any[], cu
       {/* Pie Chart Container */}
       <motion.div 
         className="h-[450px] w-full lg:w-1/2 outline-none flex justify-center items-center"
-        initial={{ opacity: 0, scale: 0.8, rotate: -20 }}
-        whileInView={{ opacity: 1, scale: 1, rotate: 0 }}
-        viewport={{ once: true, margin: "-50px" }}
-        transition={{ duration: 0.8, type: "spring", bounce: 0.4 }}
+        initial={isPdf ? { opacity: 1, scale: 1, rotate: 0 } : { opacity: 0, scale: 0.8, rotate: -20 }}
+        whileInView={isPdf ? undefined : { opacity: 1, scale: 1, rotate: 0 }}
+        viewport={isPdf ? undefined : { once: true, margin: "-50px" }}
+        transition={isPdf ? undefined : { duration: 0.8, type: "spring", bounce: 0.4 }}
       >
         <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
           <PieChart style={{ outline: 'none' }}>
@@ -62,10 +62,10 @@ export function BudgetPieChart({ budget, currency = "LEI" }: { budget: any[], cu
       {/* Legend Container */}
       <motion.div 
         className="w-full lg:w-1/2 flex items-center justify-center pl-0 lg:pl-10 py-4"
-        initial={{ opacity: 0, x: 20 }}
-        whileInView={{ opacity: 1, x: 0 }}
-        viewport={{ once: true, margin: "-50px" }}
-        transition={{ duration: 0.6, delay: 0.2 }}
+        initial={isPdf ? { opacity: 1, x: 0 } : { opacity: 0, x: 20 }}
+        whileInView={isPdf ? undefined : { opacity: 1, x: 0 }}
+        viewport={isPdf ? undefined : { once: true, margin: "-50px" }}
+        transition={isPdf ? undefined : { duration: 0.6, delay: 0.2 }}
       >
         <ul className="flex flex-col gap-2 p-0 m-0 w-full justify-center">
           {data.map((item, index) => {

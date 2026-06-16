@@ -102,6 +102,7 @@ ${instruction}
 Trebuie să răspunzi EXCLUSIV cu un JSON valid.
 IMPORTANT PENTRU JSON: 
 - NU folosi rânduri noi reale (unescaped newlines) în interiorul string-urilor! Pentru paragrafe, folosește strict '\\n' (escapat).
+- ESCAPEAZĂ obligatoriu ghilimelele duble din interiorul textului folosind backslash (\\"). Cel mai sigur este să folosești doar ghilimele simple (') în interiorul textului.
 - FĂRĂ virgule la finalul ultimului element din obiect sau array (fără trailing commas).
 NU adăuga formatare markdown, NU adăuga backticks (\`\`\`), NU adăuga text adițional înainte sau după JSON.`;
 
@@ -117,6 +118,7 @@ Trebuie să răspunzi EXCLUSIV cu un JSON valid, respectând structura original�
 Dacă ai primit un singur câmp, returnează-l în același format JSON.
 IMPORTANT PENTRU JSON: 
 - NU folosi rânduri noi reale (unescaped newlines) în interiorul string-urilor! Pentru paragrafe, folosește strict '\\n' (escapat).
+- ESCAPEAZĂ obligatoriu ghilimelele duble din interiorul textului folosind backslash (\\"). Cel mai sigur este să folosești doar ghilimele simple (') în interiorul textului.
 - FĂRĂ virgule la finalul ultimului element din obiect sau array (fără trailing commas).
 NU adăuga formatare markdown, NU adăuga backticks (\`\`\`), NU adăuga text adițional înainte sau după JSON.`;
     }

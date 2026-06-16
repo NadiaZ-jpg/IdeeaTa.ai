@@ -1350,18 +1350,22 @@ export default function Home() {
           <form onSubmit={handleEmailAuth} className="w-full mb-6 space-y-4">
             <div>
               <input 
+                id="email"
+                name="email"
                 type="email" 
                 placeholder="Adresa de email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                autoComplete="email"
+                autoComplete="username"
                 className="w-full bg-zinc-800/50 border border-zinc-700/50 rounded-xl px-4 py-3 text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 transition-all"
               />
             </div>
             {!isForgotMode && (
               <div>
                 <input 
+                  id="password"
+                  name="password"
                   type="password" 
                   placeholder="Parola"
                   value={password}

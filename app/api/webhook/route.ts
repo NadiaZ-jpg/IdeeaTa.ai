@@ -1,101 +1,100 @@
 import { NextRequest, NextResponse } from "next/server";
-import Stripe from "stripe";
 import { adminDb } from "@/lib/firebase-admin";
+import crypto from "crypto";
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || "sk_test_placeholder", {
-  apiVersion: "2023-10-16" as any,
-});
-
-const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET || "";
+const webhookSecret = process.env.LEMON_SQUEEZY_WEBHOOK_SECRET || "";
 
 export async function POST(req: NextRequest) {
-  const body = await req.text();
-  const signature = req.headers.get("stripe-signature");
-
-  let event: Stripe.Event;
-
   try {
-    if (!signature || !webhookSecret) {
-      if (!signature) {
-        throw new Error("Lipseste stripe-signature header");
-      }
-      if (!webhookSecret) {
-        throw new Error("Lipseste STRIPE_WEBHOOK_SECRET");
-      }
+    const rawBody = await req.text();
+    const signatureHeader = req.headers.get("X-Signature") || "";
+
+    if (!webhookSecret) {
+      console.error("Missing LEMON_SQUEEZY_WEBHOOK_SECRET");
+      return NextResponse.json({ error: "Missing secret" }, { status: 500 });
     }
-    event = stripe.webhooks.constructEvent(body, signature!, webhookSecret);
-  } catch (err: any) {
-    console.error(`Webhook signature verification failed:`, err.message);
-    return NextResponse.json({ error: `Webhook Error: ${err.message}` }, { status: 400 });
-  }
 
-  try {
-    switch (event.type) {
-      case "checkout.session.completed": {
-        const session = event.data.object as Stripe.Checkout.Session;
-        const userId = session.metadata?.userId;
-        const tier = session.metadata?.tier;
+    // Verificăm semnătura criptografică
+    const hmac = crypto.createHmac("sha256", webhookSecret);
+    const digest = Buffer.from(hmac.update(rawBody).digest("hex"), "utf8");
+    const signature = Buffer.from(signatureHeader, "utf8");
 
-        if (!userId) {
-          console.error("Nu exista userId in metadata sesiunii Stripe");
-          break;
-        }
+    if (digest.length !== signature.length || !crypto.timingSafeEqual(digest, signature)) {
+      console.error("Invalid Lemon Squeezy webhook signature");
+      return NextResponse.json({ error: "Invalid signature" }, { status: 400 });
+    }
 
-        const userRef = adminDb.collection("users").doc(userId);
-        const userDoc = await userRef.get();
-        const userData = userDoc.exists ? userDoc.data() : {};
+    const payload = JSON.parse(rawBody);
+    const eventName = payload.meta.event_name;
+    const customData = payload.meta.custom_data || {};
 
-        if (tier === "standard") {
-          const planName = session.metadata?.planName || "Plan de Afaceri";
-          const unlocked = userData?.unlockedPlans || [];
-          const updatedPlans = !unlocked.includes(planName) ? [...unlocked, planName] : unlocked;
-          await userRef.set({
-            unlockedPlans: updatedPlans,
-            stripeCustomerId: session.customer,
-          }, { merge: true });
-          console.log(`Deblocat planul "${planName}" pentru user: ${userId}`);
-        } else if (tier === "eu-funds") {
-          await userRef.set({
-            euFundsUnlocked: true,
-            stripeCustomerId: session.customer,
-          }, { merge: true });
-          console.log(`Deblocat modul Fonduri Europene pentru user: ${userId}`);
-        } else if (tier === "pro") {
-          await userRef.set({
-            subscriptionActive: true,
-            subscriptionId: session.subscription as string,
-            stripeCustomerId: session.customer,
-          }, { merge: true });
-          console.log(`Activat abonament PRO pentru user: ${userId}`);
-        }
-        break;
+    const userId = customData.userId;
+    const tier = customData.tier;
+
+    if (!userId) {
+      console.error("Webhook primit dar fara userId in custom_data");
+      return NextResponse.json({ received: true }); // Ignoram comenzile fara userId
+    }
+
+    const userRef = adminDb.collection("users").doc(userId);
+    const userDoc = await userRef.get();
+    const userData = userDoc.exists ? userDoc.data() : {};
+
+    if (eventName === "order_created") {
+      if (tier === "standard") {
+        const planName = customData.planName || "Plan de Afaceri";
+        const unlocked = userData?.unlockedPlans || [];
+        const updatedPlans = !unlocked.includes(planName) ? [...unlocked, planName] : unlocked;
+        await userRef.set({
+          unlockedPlans: updatedPlans,
+          lemonSqueezyCustomerId: payload.data.attributes.customer_id,
+        }, { merge: true });
+        console.log(`Deblocat planul "${planName}" pentru user: ${userId}`);
+      } else if (tier === "eu-funds") {
+        await userRef.set({
+          euFundsUnlocked: true,
+          lemonSqueezyCustomerId: payload.data.attributes.customer_id,
+        }, { merge: true });
+        console.log(`Deblocat modul Fonduri Europene pentru user: ${userId}`);
+      } else if (tier === "pro") {
+        await userRef.set({
+          subscriptionActive: true,
+          lemonSqueezyCustomerId: payload.data.attributes.customer_id,
+        }, { merge: true });
+        console.log(`Activat abonament PRO pentru user: ${userId} via order_created`);
       }
-
-      case "customer.subscription.deleted": {
-        const subscription = event.data.object as Stripe.Subscription;
-        const snapshot = await adminDb
-          .collection("users")
-          .where("subscriptionId", "==", subscription.id)
-          .get();
-
-        if (!snapshot.empty) {
-          const userRef = snapshot.docs[0].ref;
-          await userRef.set({
-            subscriptionActive: false,
-            subscriptionId: null,
-          }, { merge: true });
-          console.log(`Dezactivat abonament pentru user: ${userRef.id}`);
-        }
-        break;
+    } else if (eventName === "subscription_created") {
+      // In cazul abonamentelor PRO recurente, s-ar putea sa vina acest event in loc de order_created sau suplimentar
+      if (tier === "pro") {
+        await userRef.set({
+          subscriptionActive: true,
+          subscriptionId: payload.data.id,
+          lemonSqueezyCustomerId: payload.data.attributes.customer_id,
+        }, { merge: true });
+        console.log(`Activat abonament PRO pentru user: ${userId} via subscription_created`);
       }
-      
-      default:
-        console.log(`Webhook neprocesat de tip: ${event.type}`);
+    } else if (eventName === "subscription_cancelled" || eventName === "subscription_expired") {
+      const subscriptionId = payload.data.id;
+      const snapshot = await adminDb
+        .collection("users")
+        .where("subscriptionId", "==", subscriptionId)
+        .get();
+
+      if (!snapshot.empty) {
+        const docRef = snapshot.docs[0].ref;
+        await docRef.set({
+          subscriptionActive: false,
+          subscriptionId: null,
+        }, { merge: true });
+        console.log(`Dezactivat abonament pentru user: ${docRef.id}`);
+      }
+    } else {
+      console.log(`Webhook neprocesat de tip: ${eventName}`);
     }
 
     return NextResponse.json({ received: true });
   } catch (error: any) {
-    console.error("Error processing webhook:", error);
+    console.error("Error processing Lemon Squeezy webhook:", error);
     return NextResponse.json({ error: "Eroare la procesarea webhook-ului" }, { status: 500 });
   }
 }

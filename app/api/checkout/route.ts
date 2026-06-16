@@ -1,90 +1,38 @@
 import { NextRequest, NextResponse } from "next/server";
-import Stripe from "stripe";
-
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || "sk_test_placeholder", {
-  apiVersion: "2023-10-16" as any,
-});
 
 export async function POST(req: NextRequest) {
   try {
-    const { tier, currency, userId, email, planName } = await req.json();
+    const { tier, userId, email, planName } = await req.json();
 
     if (!userId) {
       return NextResponse.json({ error: "Utilizator neautentificat" }, { status: 401 });
     }
 
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
-    const selectedCurrency = currency === "EUR" ? "eur" : "ron";
+    const urls: Record<string, string> = {
+      standard: "https://ideeta.lemonsqueezy.com/checkout/buy/dbd62a14-ca39-47ea-8d4f-cd1ef1f3270e",
+      "eu-funds": "https://ideeta.lemonsqueezy.com/checkout/buy/561d5420-b48c-446e-830e-c5a25ed30b13",
+      pro: "https://ideeta.lemonsqueezy.com/checkout/buy/a3059ce5-f0e8-45d2-8dc2-ce9f9ff02100"
+    };
 
-    let lineItems: any[] = [];
-    let mode: any = "payment";
-
-    if (tier === "standard") {
-      const amount = selectedCurrency === "eur" ? 800 : 3900; // 8 EUR or 39 RON
-      lineItems = [{
-        price_data: {
-          currency: selectedCurrency,
-          product_data: {
-            name: "IdeeaTa.ai - Pachet Standard (Descărcare)",
-            description: "Deblochează descărcarea planului de afaceri curent în toate formatele premium (PDF, PowerPoint, Word).",
-          },
-          unit_amount: amount,
-        },
-        quantity: 1,
-      }];
-      mode = "payment";
-    } else if (tier === "eu-funds") {
-      const amount = selectedCurrency === "eur" ? 2000 : 9900; // 20 EUR or 99 RON
-      lineItems = [{
-        price_data: {
-          currency: selectedCurrency,
-          product_data: {
-            name: "IdeeaTa.ai - Pachet Studio + Fonduri",
-            description: "Deblochează Studio de Editare în browser și modulul de optimizare pentru Fonduri Europene.",
-          },
-          unit_amount: amount,
-        },
-        quantity: 1,
-      }];
-      mode = "payment";
-    } else if (tier === "pro") {
-      const amount = selectedCurrency === "eur" ? 2000 : 9900; // 20 EUR or 99 RON per month
-      lineItems = [{
-        price_data: {
-          currency: selectedCurrency,
-          product_data: {
-            name: "IdeeaTa.ai - Abonament Pro Nelimitat",
-            description: "Generări, descărcări și optimizări nelimitate lunar.",
-          },
-          unit_amount: amount,
-          recurring: {
-            interval: "month",
-          },
-        },
-        quantity: 1,
-      }];
-      mode = "subscription";
-    } else {
+    const baseUrl = urls[tier];
+    if (!baseUrl) {
       return NextResponse.json({ error: "Pachet invalid" }, { status: 400 });
     }
 
-    const session = await stripe.checkout.sessions.create({
-      payment_method_types: ["card"],
-      line_items: lineItems,
-      mode: mode,
-      customer_email: email || undefined,
-      metadata: {
-        userId: userId,
-        tier: tier,
-        planName: planName || "",
-      },
-      success_url: `${appUrl}?payment_success=true&session_id={CHECKOUT_SESSION_ID}&tier=${tier}`,
-      cancel_url: `${appUrl}?payment_cancelled=true`,
-    });
+    // Adaugăm query parameters pentru a trimite custom data către Lemon Squeezy
+    const checkoutUrl = new URL(baseUrl);
+    checkoutUrl.searchParams.set("checkout[custom][userId]", userId);
+    checkoutUrl.searchParams.set("checkout[custom][tier]", tier);
+    if (planName) {
+      checkoutUrl.searchParams.set("checkout[custom][planName]", planName);
+    }
+    if (email) {
+      checkoutUrl.searchParams.set("checkout[email]", email);
+    }
 
-    return NextResponse.json({ url: session.url });
+    return NextResponse.json({ url: checkoutUrl.toString() });
   } catch (error: any) {
-    console.error("Error creating checkout session:", error);
-    return NextResponse.json({ error: error.message || "Eroare la crearea sesiunii Stripe" }, { status: 500 });
+    console.error("Error creating Lemon Squeezy checkout link:", error);
+    return NextResponse.json({ error: error.message || "Eroare la procesarea plății" }, { status: 500 });
   }
 }

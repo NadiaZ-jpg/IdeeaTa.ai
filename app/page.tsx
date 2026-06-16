@@ -257,10 +257,19 @@ export default function Home() {
             alert("Timpul de răspuns a expirat. Modificarea este prea mare. Încearcă să editezi manual sau să scurtezi textul.");
             return;
           }
-          alert("Eroare de server: " + res.status);
+          
+          let errorMsg = "Eroare de server: " + res.status;
+          try {
+            const errJson = JSON.parse(text);
+            if (errJson.error) {
+              errorMsg = errJson.error;
+            }
+          } catch(e) {}
+          
+          alert(errorMsg);
           return;
         }
-        data = await res.json();
+        data = JSON.parse(await res.text());
       } catch (e) {
         console.error(e);
         alert("Eroare de rețea. Te rugăm să mai încerci o dată.");

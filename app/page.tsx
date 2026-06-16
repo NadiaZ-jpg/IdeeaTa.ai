@@ -250,13 +250,24 @@ export default function Home() {
       });
       let data;
       try {
+        if (!res.ok) {
+          const text = await res.text();
+          console.error("API Error Status:", res.status, "Body:", text);
+          if (res.status === 504) {
+            alert("Timpul de răspuns a expirat. Modificarea este prea mare. Încearcă să editezi manual sau să scurtezi textul.");
+            return;
+          }
+          alert("Eroare de server: " + res.status);
+          return;
+        }
         data = await res.json();
       } catch (e) {
+        console.error(e);
         alert("Eroare de rețea. Te rugăm să mai încerci o dată.");
         return;
       }
 
-      if (data.updatedResult) {
+      if (data && data.updatedResult) {
         try {
           const parsed = JSON.parse(data.updatedResult);
           setResult(formatObjectNumbers(parsed));

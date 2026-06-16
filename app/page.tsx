@@ -1230,7 +1230,7 @@ export default function Home() {
                             setShowAuthModal(true);
                             return;
                           }
-                          setActiveAiPrompt(activeAiPrompt?.action === "add_sections" ? null : {action: "add_sections", title: "Adaugă Secțiuni Noi", placeholder: "ex: Plan de Marketing, Analiza Riscurilor", desc: "Ce informații suplimentare dorești să adaugi?"});
+                          setActiveAiPrompt(activeAiPrompt?.action === "add_sections" ? null : {action: "add_sections", title: "Adaugă Secțiuni Noi", placeholder: "ex: Plan de Marketing, Analiza Riscurilor, Concurență", desc: "Ce informații suplimentare dorești să adaugi?"});
                         }} 
                         disabled={isEditingAi} 
                         className={`w-full text-left flex items-center justify-between rounded-xl px-5 py-4 font-bold text-sm transition-all group disabled:opacity-50 disabled:cursor-not-allowed ${

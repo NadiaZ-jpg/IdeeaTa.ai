@@ -328,6 +328,11 @@ export default function Home() {
       setIsAuthLoading(false);
       if (currentUser) {
         window.scrollTo({ top: 0 });
+      } else {
+        setResult(null);
+        if (typeof window !== "undefined") {
+          localStorage.removeItem("current_generated_plan");
+        }
       }
     });
     return () => unsubscribe();

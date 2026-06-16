@@ -76,6 +76,14 @@ const truncateText = (text: any, length: number) => {
   return text.length > length ? text.substring(0, length) + '...' : text;
 };
 
+const getDynamicTextSize = (text: any, limits = { large: 400, medium: 800, extra: 1200 }, classes = { default: 'text-2xl', medium: 'text-xl', small: 'text-lg', xsmall: 'text-base' }) => {
+  const len = typeof text === 'string' ? text.length : 0;
+  if (len > limits.extra) return classes.xsmall;
+  if (len > limits.medium) return classes.small;
+  if (len > limits.large) return classes.medium;
+  return classes.default;
+};
+
 export default function Home() {
   const [skill, setSkill] = useState("");
   const [result, setResult] = useState<any>(null);
@@ -475,11 +483,12 @@ export default function Home() {
       } else {
         setIsCheckingShared(false);
         const saved = localStorage.getItem("current_generated_plan");
-        if (saved && saved !== "null" && saved !== "undefined") {
-          try {
-            setResult(formatObjectNumbers(JSON.parse(saved)));
-          } catch (e) {
-            console.error("Eroare la incarcarea planului salvat local:", e);
+        if (saved) {
+          const parsedPlan = formatObjectNumbers(JSON.parse(saved));
+          setResult(parsedPlan);
+          if (typeof window !== "undefined" && window.location.search.includes('edit=true')) {
+            setBackupResult(JSON.parse(JSON.stringify(parsedPlan)));
+            setIsEditing(true);
           }
         }
       }
@@ -2913,13 +2922,13 @@ export default function Home() {
               <div className="grid grid-cols-2 gap-12 font-serif leading-normal text-gray-800">
                 <div>
                   <h3 className="text-3xl font-bold text-emerald-700 mb-4">Obiective (1 an)</h3>
-                  <p className="text-2xl">{result.viziune_strategie?.obiective_scurt}</p>
+                  <p className={getDynamicTextSize(result.viziune_strategie?.obiective_scurt)}>{result.viziune_strategie?.obiective_scurt}</p>
                   <h3 className="text-3xl font-bold text-emerald-700 mb-4 mt-8">Obiective (3-5 ani)</h3>
-                  <p className="text-2xl">{result.viziune_strategie?.obiective_mediu}</p>
+                  <p className={getDynamicTextSize(result.viziune_strategie?.obiective_mediu)}>{result.viziune_strategie?.obiective_mediu}</p>
                 </div>
                 <div>
                   <h3 className="text-3xl font-bold text-emerald-700 mb-4">Misiune și Valori</h3>
-                  <p className="text-2xl text-left">{result.viziune_strategie?.misiune_valori}</p>
+                  <p className={`${getDynamicTextSize(result.viziune_strategie?.misiune_valori)} text-left`}>{result.viziune_strategie?.misiune_valori}</p>
                 </div>
               </div>
             </div>
@@ -2932,11 +2941,11 @@ export default function Home() {
               </div>
               <div className="flex flex-col gap-6 font-serif leading-normal text-gray-800 text-left">
                   <div className="overflow-hidden"><h3 className="text-3xl font-bold text-emerald-700 mb-2">Clienții Țintă</h3>
-                  <p className="text-2xl">{truncateText(result.analiza_pietei?.clienti_tinta, 250)}</p></div>
+                  <p className={getDynamicTextSize(result.analiza_pietei?.clienti_tinta)}>{truncateText(result.analiza_pietei?.clienti_tinta, 500)}</p></div>
                   <div className="overflow-hidden"><h3 className="text-3xl font-bold text-emerald-700 mb-2">Concurența</h3>
-                  <p className="text-2xl">{truncateText(result.analiza_pietei?.concurenta, 250)}</p></div>
+                  <p className={getDynamicTextSize(result.analiza_pietei?.concurenta)}>{truncateText(result.analiza_pietei?.concurenta, 500)}</p></div>
                   <div className="overflow-hidden"><h3 className="text-3xl font-bold text-emerald-700 mb-2">Strategia de Marketing</h3>
-                  <p className="text-2xl">{truncateText(result.analiza_pietei?.strategie_marketing, 250)}</p></div>
+                  <p className={getDynamicTextSize(result.analiza_pietei?.strategie_marketing)}>{truncateText(result.analiza_pietei?.strategie_marketing, 500)}</p></div>
               </div>
             </div>
 
@@ -3026,15 +3035,15 @@ export default function Home() {
                 <div className="flex flex-col gap-6 overflow-hidden content-start flex-1 pl-4 text-left">
                     <div className="flex flex-col gap-2">
                        <h4 className="text-2xl font-bold text-emerald-700 leading-snug">1. Descriere Flux (Sustenabilitate / Verde)</h4>
-                       <p className="text-lg text-gray-600 leading-relaxed line-clamp-3">{result.plan_operational?.descriere_flux}</p>
+                       <p className={`${getDynamicTextSize(result.plan_operational?.descriere_flux, {large:300, medium:600, extra:900}, {default:'text-lg', medium:'text-base', small:'text-sm', xsmall:'text-xs'})} text-gray-600 leading-relaxed`}>{result.plan_operational?.descriere_flux}</p>
                     </div>
                     <div className="flex flex-col gap-2">
                        <h4 className="text-2xl font-bold text-emerald-700 leading-snug">2. Resurse Umane</h4>
-                       <p className="text-lg text-gray-600 leading-relaxed line-clamp-3">{result.plan_operational?.resurse_umane}</p>
+                       <p className={`${getDynamicTextSize(result.plan_operational?.resurse_umane, {large:300, medium:600, extra:900}, {default:'text-lg', medium:'text-base', small:'text-sm', xsmall:'text-xs'})} text-gray-600 leading-relaxed`}>{result.plan_operational?.resurse_umane}</p>
                     </div>
                     <div className="flex flex-col gap-2">
                        <h4 className="text-2xl font-bold text-emerald-700 leading-snug">3. Locație și Dotări</h4>
-                       <p className="text-lg text-gray-600 leading-relaxed line-clamp-3">{result.plan_operational?.locatie_dotari}</p>
+                       <p className={`${getDynamicTextSize(result.plan_operational?.locatie_dotari, {large:300, medium:600, extra:900}, {default:'text-lg', medium:'text-base', small:'text-sm', xsmall:'text-xs'})} text-gray-600 leading-relaxed`}>{result.plan_operational?.locatie_dotari}</p>
                     </div>
                 </div>
               </div>

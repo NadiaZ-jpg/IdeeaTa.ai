@@ -630,26 +630,33 @@ export default function Home() {
   const presentationRef = useRef<any>(null);
   const pdfPrintRef = useRef<any>(null);
 
-  const examplesList = [
-    "Consultanță Securitate Cibernetică",
-    "Analiză de Risc Instituțional",
-    "Dezvoltare Soluții AI pentru Companii",
-    "Fermă Urbană de Microplante",
-    "Consultanță Accesare Fonduri Europene",
-    "Spălătorie Auto Ecologică",
-    "Agenție de Marketing Digital",
-    "Platformă de Cursuri Online",
-    "Studio de Design Interior",
-    "Magazin Online de Produse Bio",
-    "Aplicație de Fitness",
-    "Consultanță Nutriție",
-    "Servicii de Contabilitate",
-    "Clinică Stomatologică",
-    "Cafenea de Specialitate",
-    "Service Auto Hibrid",
-    "Organizare Evenimente",
-    "Agenție de Recrutare IT"
+  const ALL_EXAMPLES = [
+    "Consultanță Securitate Cibernetică", "Analiză de Risc Instituțional", "Dezvoltare Soluții AI", "Fermă Urbană de Microplante", "Consultanță Fonduri Europene", "Spălătorie Auto Ecologică", 
+    "Agenție Marketing Digital", "Platformă Cursuri Online", "Studio Design Interior", "Magazin Online Produse Bio", "Aplicație de Fitness", "Consultanță Nutriție", 
+    "Servicii Contabilitate", "Clinică Stomatologică", "Cafenea de Specialitate", "Service Auto Hibrid", "Organizare Evenimente", "Agenție Recrutare IT", 
+    "Producție Ambalaje Biodegradabile", "Realitate Augmentată Design", "Abonament Cafea Prăjită", "Reciclare Baterii Auto", "Turism Apicol", "Telemedicină Veterinară", 
+    "Livrare Mâncare Vegană", "Închiriere Biciclete Electrice", "Optimizare SEO B2B", "Dezvoltare Aplicații Mobile", "Consultanță Juridică Online", "Curățenie Profesională Birouri", 
+    "Design Peisagistic Urban", "Educație Financiară Copii", "Platformă Freelancing Local", "Imprimare 3D Piese de Schimb", "Sistem Irigații Inteligente", "Instalare Panouri Solare", 
+    "Centru de Meditații Școlare", "Service Laptopuri și Telefoane", "Magazin Haine Sustenabile", "Cofetărie Artizanală Fără Zahăr", "Producție Săpun Natural", "Atelier Mobilă Personalizată", 
+    "Servicii Traduceri Medicale", "Fotografie de Produs E-commerce", "Agenție Turism Experiențial", "Crescătorie Ciuperci Gourmet", "Producție Jucării din Lemn", "Cabinet Psihoterapie", 
+    "Dezvoltare Jocuri Video Indie", "Servicii Agricole cu Drona", "Magazin Echipamente Outdoor", "Consultanță Resurse Umane", "Creare Conținut Video TikTok", "Închiriere Echipament Foto-Video", 
+    "Hotel pentru Animale de Companie", "Ghid Turistic Virtual", "Producție Bere Artizanală", "Servicii Copywriting Tech", "Agenție Imobiliară Premium", "Servicii Mutări și Relocare", 
+    "Curățătorie Haine Bio", "Servicii Design Grafic și Branding", "Studio Înregistrări Podcast", "Magazin Cadouri Personalizate", "Producție Sosuri Picante Artizanale", "Call Center Externalizat", 
+    "Consultanță Vânzări B2B", "Instalare Sisteme Smart Home", "Cabinet Kinetoterapie", "Salon Înfrumusețare Mobil", "Cabinet Veterinar Non-Stop", "Servicii Editare Video YouTube", 
+    "Magazin Instrumente Muzicale", "Platformă Rezervări Restaurante", "Producție Lumânări Parfumate", "Servicii Cloud Hosting", "Agenție PR și Comunicare", "Magazin Jucării Educative STEM", 
+    "Servicii Modelare 3D", "Consultanță Management de Proiect", "Platformă E-learning Corporativ", "Producție Cosmetice Vegane", "Catering Evenimente Corporate", "Magazin Ceaiuri de Specialitate", 
+    "Platformă Crowdfunding Startups", "Producție Bijuterii Handmade", "Servicii Arhitectură Minimalistă", "Platformă Vânzare Bilete Evenimente", "Franciză Fast-Food Sănătos", "Atelier Ceramică Artizanală"
   ];
+
+  const [examplesList, setExamplesList] = useState<string[]>(ALL_EXAMPLES.slice(0, 18));
+
+  useEffect(() => {
+    // Schimbare automată o dată la 14 zile
+    const twoWeeksMs = 14 * 24 * 60 * 60 * 1000;
+    const epoch = 1700000000000; 
+    const chunkIndex = Math.floor((Date.now() - epoch) / twoWeeksMs) % Math.ceil(ALL_EXAMPLES.length / 18);
+    setExamplesList(ALL_EXAMPLES.slice(chunkIndex * 18, (chunkIndex + 1) * 18));
+  }, []);
 
   const randomIdeas = [
     "Producție de ambalaje biodegradabile din miceliu",
@@ -974,7 +981,7 @@ export default function Home() {
         }
         
         if (mode === 'pdf-summary') {
-          slidesArray = slidesArray.slice(0, 3);
+          slidesArray = slidesArray.slice(0, 4);
           const ctaSlide = document.querySelector('.pdf-cta-slide');
           if (ctaSlide) {
             slidesArray.push(ctaSlide as Element);
@@ -1627,7 +1634,7 @@ export default function Home() {
 
       <div className={`${isDownloading === 'pptx' ? 'hidden' : 'flex'} flex-col items-center w-full max-w-[1600px] px-4 md:px-12 relative z-10`}>
         {user && (
-          <div className="w-full flex justify-between items-start sm:items-center py-4 border-b border-zinc-800/80 mb-6 print:hidden">
+          <div className="w-full flex justify-between items-start sm:items-center py-2 border-b border-zinc-800/80 mb-3 print:hidden">
             <div className="flex flex-col gap-2">
               <span className="text-zinc-500 text-xs font-semibold">Proiectul tău de afaceri inteligent</span>
               <a 
@@ -2933,19 +2940,29 @@ export default function Home() {
               </div>
             </div>
 
-            {/* Slide 2b: Analiza Pietei */}
+            {/* Slide 2b: Analiza Pietei (Clienti si Concurenta) */}
             <div className="pdf-presentation-slide w-[1280px] h-[720px] bg-white text-emerald-950 flex flex-col justify-start pt-20 px-24 pb-16 border-[12px] border-emerald-900 box-border relative">
               <div className="flex items-center gap-6 mb-8">
                 <div className="w-16 h-2 bg-emerald-600"></div>
-                <h2 className="text-5xl font-black font-sans uppercase tracking-widest text-emerald-800">Analiza Pieței</h2>
+                <h2 className="text-5xl font-black font-sans uppercase tracking-widest text-emerald-800">Piața și Concurența</h2>
               </div>
-              <div className="flex flex-col gap-6 font-serif leading-normal text-gray-800 text-left">
-                  <div className="overflow-hidden"><h3 className="text-3xl font-bold text-emerald-700 mb-2">Clienții Țintă</h3>
-                  <p className={getDynamicTextSize(result.analiza_pietei?.clienti_tinta)}>{truncateText(result.analiza_pietei?.clienti_tinta, 500)}</p></div>
-                  <div className="overflow-hidden"><h3 className="text-3xl font-bold text-emerald-700 mb-2">Concurența</h3>
-                  <p className={getDynamicTextSize(result.analiza_pietei?.concurenta)}>{truncateText(result.analiza_pietei?.concurenta, 500)}</p></div>
-                  <div className="overflow-hidden"><h3 className="text-3xl font-bold text-emerald-700 mb-2">Strategia de Marketing</h3>
-                  <p className={getDynamicTextSize(result.analiza_pietei?.strategie_marketing)}>{truncateText(result.analiza_pietei?.strategie_marketing, 500)}</p></div>
+              <div className="flex flex-col gap-10 font-serif leading-normal text-gray-800 text-left">
+                  <div className="overflow-hidden"><h3 className="text-3xl font-bold text-emerald-700 mb-3">Clienții Țintă</h3>
+                  <p className={getDynamicTextSize(result.analiza_pietei?.clienti_tinta)}>{truncateText(result.analiza_pietei?.clienti_tinta, 700)}</p></div>
+                  <div className="overflow-hidden"><h3 className="text-3xl font-bold text-emerald-700 mb-3">Concurența</h3>
+                  <p className={getDynamicTextSize(result.analiza_pietei?.concurenta)}>{truncateText(result.analiza_pietei?.concurenta, 700)}</p></div>
+              </div>
+            </div>
+
+            {/* Slide 2c: Strategia de Marketing */}
+            <div className="pdf-presentation-slide w-[1280px] h-[720px] bg-white text-emerald-950 flex flex-col justify-start pt-20 px-24 pb-16 border-[12px] border-emerald-900 box-border relative">
+              <div className="flex items-center gap-6 mb-8">
+                <div className="w-16 h-2 bg-emerald-600"></div>
+                <h2 className="text-5xl font-black font-sans uppercase tracking-widest text-emerald-800">Promovare</h2>
+              </div>
+              <div className="flex flex-col gap-10 font-serif leading-normal text-gray-800 text-left">
+                  <div className="overflow-hidden"><h3 className="text-3xl font-bold text-emerald-700 mb-3">Strategia de Marketing</h3>
+                  <p className={getDynamicTextSize(result.analiza_pietei?.strategie_marketing)}>{truncateText(result.analiza_pietei?.strategie_marketing, 1200)}</p></div>
               </div>
             </div>
 

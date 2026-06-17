@@ -926,50 +926,95 @@ export default function Home() {
         slide1.addText(result.nume || 'IdeeaTa', { x: 0, y: 2.5, w: '100%', h: 1, fontSize: 54, bold: true, color: '10b981', align: 'center', fontFace: 'Arial' });
         slide1.addText(result.slogan || '', { x: 0, y: 3.5, w: '100%', h: 1, fontSize: 24, italic: true, color: 'e4e4e7', align: 'center', fontFace: 'Arial' });
 
-        // Slide 2: Viziune
+        // Slide 2: Obiective 1 An
         let slide2 = pres.addSlide({ masterName: 'MASTER_SLIDE' });
-        slide2.addText('DATE GENERALE ȘI VIZIUNE', { x: 0.5, y: 0.5, w: 9, h: 0.5, fontSize: 28, bold: true, color: '10b981', fontFace: 'Arial' });
+        slide2.addText('DATE GENERALE & OBIECTIVE', { x: 0.5, y: 0.5, w: 9, h: 0.5, fontSize: 28, bold: true, color: '10b981', fontFace: 'Arial' });
         slide2.addText('Forma juridică: ' + result.date_generale?.forma_juridica + '\nCod CAEN: ' + result.date_generale?.cod_caen + '\nContact: ' + result.date_generale?.date_contact, { x: 0.5, y: 1.2, w: 9, h: 0.8, fontSize: 14, color: 'a1a1aa' });
-        
-        slide2.addText('Obiective (1 an)', { x: 0.5, y: 2.2, w: 4.2, h: 0.4, fontSize: 18, bold: true, color: '10b981' });
-        slide2.addText(formatPptText(result.viziune_strategie?.obiective_scurt), { x: 0.5, y: 2.6, w: 4.2, h: 4, fontSize: 14, valign: 'top' });
-        
-        slide2.addText('Obiective (3-5 ani)', { x: 5.2, y: 2.2, w: 4.2, h: 0.4, fontSize: 18, bold: true, color: '10b981' });
-        slide2.addText(formatPptText(result.viziune_strategie?.obiective_mediu), { x: 5.2, y: 2.6, w: 4.2, h: 4, fontSize: 14, valign: 'top' });
+        slide2.addText('Obiective (1 an)', { x: 0.5, y: 2.2, w: 9, h: 0.4, fontSize: 18, bold: true, color: '10b981' });
+        slide2.addText(formatPptText(result.viziune_strategie?.obiective_scurt), { x: 0.5, y: 2.6, w: 9, h: 4, fontSize: 14, valign: 'top' });
 
-        // Slide 3: Misiune și Piață
+        // Slide 3: Obiective 3-5 ani
         let slide3 = pres.addSlide({ masterName: 'MASTER_SLIDE' });
-        slide3.addText('MISIUNE, VALORI ȘI PIAȚĂ', { x: 0.5, y: 0.5, w: 9, h: 0.5, fontSize: 28, bold: true, color: '10b981', fontFace: 'Arial' });
-        
-        slide3.addText('Misiune și Valori', { x: 0.5, y: 1.2, w: 4.2, h: 0.4, fontSize: 18, bold: true, color: '10b981' });
-        slide3.addText(formatPptText(result.viziune_strategie?.misiune_valori), { x: 0.5, y: 1.6, w: 4.2, h: 5.5, fontSize: 14, valign: 'top' });
-        
-        slide3.addText('Clienții Țintă', { x: 5.2, y: 1.2, w: 4.2, h: 0.4, fontSize: 18, bold: true, color: '10b981' });
-        slide3.addText(formatPptText(result.analiza_pietei?.clienti_tinta), { x: 5.2, y: 1.6, w: 4.2, h: 2, fontSize: 14, valign: 'top' });
-        
-        slide3.addText('Concurența', { x: 5.2, y: 3.8, w: 4.2, h: 0.4, fontSize: 18, bold: true, color: '10b981' });
-        slide3.addText(formatPptText(result.analiza_pietei?.concurenta), { x: 5.2, y: 4.2, w: 4.2, h: 3, fontSize: 14, valign: 'top' });
+        slide3.addText('OBIECTIVE PE TERMEN MEDIU', { x: 0.5, y: 0.5, w: 9, h: 0.5, fontSize: 28, bold: true, color: '10b981', fontFace: 'Arial' });
+        slide3.addText('Obiective (3-5 ani)', { x: 0.5, y: 1.2, w: 9, h: 0.4, fontSize: 18, bold: true, color: '10b981' });
+        slide3.addText(formatPptText(result.viziune_strategie?.obiective_mediu), { x: 0.5, y: 1.6, w: 9, h: 5.5, fontSize: 14, valign: 'top' });
 
-        // Slide 4: SWOT
+        // Slide 4: Misiune si Valori
         let slide4 = pres.addSlide({ masterName: 'MASTER_SLIDE' });
-        slide4.addText('ANALIZA SWOT', { x: 0.5, y: 0.5, w: 9, h: 0.5, fontSize: 28, bold: true, color: '10b981', fontFace: 'Arial' });
-        
-        slide4.addText('PUNCTE TARI (S)', { x: 0.5, y: 1.2, w: 4.2, h: 0.4, fontSize: 18, bold: true, color: '10b981' });
-        slide4.addText(swotFormat(result.analiza_swot?.puncte_tari, 'e4e4e7'), { x: 0.5, y: 1.6, w: 4.2, h: 2.5, fontSize: 12, valign: 'top' });
-        
-        slide4.addText('SLĂBICIUNI (W)', { x: 5.2, y: 1.2, w: 4.2, h: 0.4, fontSize: 18, bold: true, color: 'ef4444' });
-        slide4.addText(swotFormat(result.analiza_swot?.puncte_slabe, 'e4e4e7'), { x: 5.2, y: 1.6, w: 4.2, h: 2.5, fontSize: 12, valign: 'top' });
+        slide4.addText('MISIUNE ȘI VALORI', { x: 0.5, y: 0.5, w: 9, h: 0.5, fontSize: 28, bold: true, color: '10b981', fontFace: 'Arial' });
+        slide4.addText(formatPptText(result.viziune_strategie?.misiune_valori), { x: 0.5, y: 1.2, w: 9, h: 5.5, fontSize: 14, valign: 'top' });
 
-        slide4.addText('OPORTUNITĂȚI (O)', { x: 0.5, y: 4.2, w: 4.2, h: 0.4, fontSize: 18, bold: true, color: '3b82f6' });
-        slide4.addText(swotFormat(result.analiza_swot?.oportunitati, 'e4e4e7'), { x: 0.5, y: 4.6, w: 4.2, h: 2.5, fontSize: 12, valign: 'top' });
-        
-        slide4.addText('AMENINȚĂRI (T)', { x: 5.2, y: 4.2, w: 4.2, h: 0.4, fontSize: 18, bold: true, color: 'eab308' });
-        slide4.addText(swotFormat(result.analiza_swot?.amenintari, 'e4e4e7'), { x: 5.2, y: 4.6, w: 4.2, h: 2.5, fontSize: 12, valign: 'top' });
-
-        // Slide 5: Plan Operațional
+        // Slide 5: Clientii Tinta
         let slide5 = pres.addSlide({ masterName: 'MASTER_SLIDE' });
-        slide5.addText('PLAN OPERAȚIONAL ȘI DE MANAGEMENT', { x: 0.5, y: 0.5, w: 9, h: 0.5, fontSize: 28, bold: true, color: '10b981', fontFace: 'Arial' });
-        slide5.addText(formatPptText(result.plan_operational?.flux_tehnologic), { x: 0.5, y: 1.2, w: 9, h: 5.5, fontSize: 14, valign: 'top' });
+        slide5.addText('PIAȚA ȘI CONCURENȚA', { x: 0.5, y: 0.5, w: 9, h: 0.5, fontSize: 28, bold: true, color: '10b981', fontFace: 'Arial' });
+        slide5.addText('Clienții Țintă', { x: 0.5, y: 1.2, w: 9, h: 0.4, fontSize: 18, bold: true, color: '10b981' });
+        slide5.addText(formatPptText(result.analiza_pietei?.clienti_tinta), { x: 0.5, y: 1.6, w: 9, h: 5.5, fontSize: 14, valign: 'top' });
+
+        // Slide 6: Concurenta
+        let slide6 = pres.addSlide({ masterName: 'MASTER_SLIDE' });
+        slide6.addText('PIAȚA ȘI CONCURENȚA', { x: 0.5, y: 0.5, w: 9, h: 0.5, fontSize: 28, bold: true, color: '10b981', fontFace: 'Arial' });
+        slide6.addText('Concurența', { x: 0.5, y: 1.2, w: 9, h: 0.4, fontSize: 18, bold: true, color: '10b981' });
+        slide6.addText(formatPptText(result.analiza_pietei?.concurenta), { x: 0.5, y: 1.6, w: 9, h: 5.5, fontSize: 14, valign: 'top' });
+
+        // Slide 7: Strategia Marketing
+        let slide7 = pres.addSlide({ masterName: 'MASTER_SLIDE' });
+        slide7.addText('PROMOVARE', { x: 0.5, y: 0.5, w: 9, h: 0.5, fontSize: 28, bold: true, color: '10b981', fontFace: 'Arial' });
+        slide7.addText('Strategia de Marketing', { x: 0.5, y: 1.2, w: 9, h: 0.4, fontSize: 18, bold: true, color: '10b981' });
+        slide7.addText(formatPptText(result.analiza_pietei?.strategie_marketing), { x: 0.5, y: 1.6, w: 9, h: 5.5, fontSize: 14, valign: 'top' });
+
+        // Slide 8: SWOT Tari
+        let slide8 = pres.addSlide({ masterName: 'MASTER_SLIDE' });
+        slide8.addText('ANALIZĂ SWOT', { x: 0.5, y: 0.5, w: 9, h: 0.5, fontSize: 28, bold: true, color: '10b981', fontFace: 'Arial' });
+        slide8.addText('PUNCTE TARI (S)', { x: 0.5, y: 1.2, w: 9, h: 0.4, fontSize: 18, bold: true, color: '10b981' });
+        slide8.addText(swotFormat(result.analiza_swot?.puncte_tari, 'e4e4e7'), { x: 0.5, y: 1.6, w: 9, h: 5.5, fontSize: 14, valign: 'top' });
+
+        // Slide 9: SWOT Slabe
+        let slide9 = pres.addSlide({ masterName: 'MASTER_SLIDE' });
+        slide9.addText('ANALIZĂ SWOT', { x: 0.5, y: 0.5, w: 9, h: 0.5, fontSize: 28, bold: true, color: 'ef4444', fontFace: 'Arial' });
+        slide9.addText('SLĂBICIUNI (W)', { x: 0.5, y: 1.2, w: 9, h: 0.4, fontSize: 18, bold: true, color: 'ef4444' });
+        slide9.addText(swotFormat(result.analiza_swot?.puncte_slabe, 'e4e4e7'), { x: 0.5, y: 1.6, w: 9, h: 5.5, fontSize: 14, valign: 'top' });
+
+        // Slide 10: SWOT Oportunitati
+        let slide10 = pres.addSlide({ masterName: 'MASTER_SLIDE' });
+        slide10.addText('ANALIZĂ SWOT', { x: 0.5, y: 0.5, w: 9, h: 0.5, fontSize: 28, bold: true, color: '3b82f6', fontFace: 'Arial' });
+        slide10.addText('OPORTUNITĂȚI (O)', { x: 0.5, y: 1.2, w: 9, h: 0.4, fontSize: 18, bold: true, color: '3b82f6' });
+        slide10.addText(swotFormat(result.analiza_swot?.oportunitati, 'e4e4e7'), { x: 0.5, y: 1.6, w: 9, h: 5.5, fontSize: 14, valign: 'top' });
+
+        // Slide 11: SWOT Amenintari
+        let slide11 = pres.addSlide({ masterName: 'MASTER_SLIDE' });
+        slide11.addText('ANALIZĂ SWOT', { x: 0.5, y: 0.5, w: 9, h: 0.5, fontSize: 28, bold: true, color: 'eab308', fontFace: 'Arial' });
+        slide11.addText('AMENINȚĂRI (T)', { x: 0.5, y: 1.2, w: 9, h: 0.4, fontSize: 18, bold: true, color: 'eab308' });
+        slide11.addText(swotFormat(result.analiza_swot?.amenintari, 'e4e4e7'), { x: 0.5, y: 1.6, w: 9, h: 5.5, fontSize: 14, valign: 'top' });
+
+        // Slide 12: Flux Tehnologic
+        let slide12 = pres.addSlide({ masterName: 'MASTER_SLIDE' });
+        slide12.addText('PLAN OPERAȚIONAL', { x: 0.5, y: 0.5, w: 9, h: 0.5, fontSize: 28, bold: true, color: '10b981', fontFace: 'Arial' });
+        slide12.addText('Descriere Flux Tehnologic', { x: 0.5, y: 1.2, w: 9, h: 0.4, fontSize: 18, bold: true, color: '10b981' });
+        slide12.addText(formatPptText(result.plan_operational?.descriere_flux), { x: 0.5, y: 1.6, w: 9, h: 5.5, fontSize: 14, valign: 'top' });
+
+        // Slide 13: Resurse Umane
+        let slide13 = pres.addSlide({ masterName: 'MASTER_SLIDE' });
+        slide13.addText('PLAN OPERAȚIONAL', { x: 0.5, y: 0.5, w: 9, h: 0.5, fontSize: 28, bold: true, color: '10b981', fontFace: 'Arial' });
+        slide13.addText('Resurse Umane', { x: 0.5, y: 1.2, w: 9, h: 0.4, fontSize: 18, bold: true, color: '10b981' });
+        slide13.addText(formatPptText(result.plan_operational?.resurse_umane), { x: 0.5, y: 1.6, w: 9, h: 5.5, fontSize: 14, valign: 'top' });
+
+        // Slide 14: Locatie
+        let slide14 = pres.addSlide({ masterName: 'MASTER_SLIDE' });
+        slide14.addText('PLAN OPERAȚIONAL', { x: 0.5, y: 0.5, w: 9, h: 0.5, fontSize: 28, bold: true, color: '10b981', fontFace: 'Arial' });
+        slide14.addText('Locație și Dotări', { x: 0.5, y: 1.2, w: 9, h: 0.4, fontSize: 18, bold: true, color: '10b981' });
+        slide14.addText(formatPptText(result.plan_operational?.locatie_dotari), { x: 0.5, y: 1.6, w: 9, h: 5.5, fontSize: 14, valign: 'top' });
+
+        // Slides for Buget (chunked)
+        const budgetItems = result.plan_financiar?.buget_investitii || [];
+        const numBudgetSlides = Math.ceil((budgetItems.length || 1) / 4);
+        for(let slideIdx = 0; slideIdx < numBudgetSlides; slideIdx++) {
+           let bSlide = pres.addSlide({ masterName: 'MASTER_SLIDE' });
+           bSlide.addText('BUGET INVESTIȚII' + (slideIdx > 0 ? ` (Partea ${slideIdx + 1})` : ''), { x: 0.5, y: 0.5, w: 9, h: 0.5, fontSize: 28, bold: true, color: '10b981', fontFace: 'Arial' });
+           
+           const chunk = budgetItems.slice(slideIdx * 4, slideIdx * 4 + 4);
+           let bText = chunk.map((b: any) => ({ text: b.item + ' - ' + formatPrice(b.cost) + '\n' + b.explicatie, options: { bullet: true, color: 'e4e4e7', breakLine: true } }));
+           bSlide.addText(bText, { x: 0.5, y: 1.2, w: 9, h: 5.5, fontSize: 14, valign: 'top' });
+        }
 
         const safeName = result?.nume?.replace(/[^a-zA-Z0-9]/g, '_') || 'Business';
         await pres.writeFile({ fileName: `IdeeaTa_Brosura_${safeName}.pptx` });
@@ -2920,49 +2965,64 @@ export default function Home() {
               <div className="absolute bottom-8 right-8 text-emerald-700/50 font-bold uppercase tracking-widest text-sm">IdeeaTa.ai</div>
             </div>
 
-            {/* Slide 2: Viziune */}
+            {/* Slide 2a: Obiective */}
             <div className="pdf-presentation-slide w-[1280px] h-[720px] bg-white text-emerald-950 flex flex-col justify-start pt-20 px-24 pb-16 border-[12px] border-emerald-900 box-border relative">
               <div className="flex items-center gap-6 mb-12">
                 <div className="w-16 h-2 bg-emerald-600"></div>
-                <h2 className="text-5xl font-black font-sans uppercase tracking-widest text-emerald-800">Viziune și Strategie</h2>
+                <h2 className="text-5xl font-black font-sans uppercase tracking-widest text-emerald-800">Obiective Strategice</h2>
               </div>
-              <div className="grid grid-cols-2 gap-12 font-serif leading-normal text-gray-800">
-                <div>
-                  <h3 className="text-3xl font-bold text-emerald-700 mb-4">Obiective (1 an)</h3>
-                  <p className={getDynamicTextSize(result.viziune_strategie?.obiective_scurt)}>{result.viziune_strategie?.obiective_scurt}</p>
-                  <h3 className="text-3xl font-bold text-emerald-700 mb-4 mt-8">Obiective (3-5 ani)</h3>
-                  <p className={getDynamicTextSize(result.viziune_strategie?.obiective_mediu)}>{result.viziune_strategie?.obiective_mediu}</p>
+              <div className="flex flex-col gap-8 font-serif leading-normal text-gray-800 text-left">
+                <div className="overflow-hidden">
+                  <h3 className="text-3xl font-bold text-emerald-700 mb-3">Obiective (1 an)</h3>
+                  <p className="text-2xl text-gray-700 leading-relaxed">{truncateText(result.viziune_strategie?.obiective_scurt, 800)}</p>
                 </div>
-                <div>
-                  <h3 className="text-3xl font-bold text-emerald-700 mb-4">Misiune și Valori</h3>
-                  <p className={`${getDynamicTextSize(result.viziune_strategie?.misiune_valori)} text-left`}>{result.viziune_strategie?.misiune_valori}</p>
+                <div className="overflow-hidden">
+                  <h3 className="text-3xl font-bold text-emerald-700 mb-3">Obiective (3-5 ani)</h3>
+                  <p className="text-2xl text-gray-700 leading-relaxed">{truncateText(result.viziune_strategie?.obiective_mediu, 800)}</p>
                 </div>
               </div>
             </div>
 
-            {/* Slide 2b: Analiza Pietei (Clienti si Concurenta) */}
+            {/* Slide 2b: Misiune si Valori */}
+            <div className="pdf-presentation-slide w-[1280px] h-[720px] bg-white text-emerald-950 flex flex-col justify-start pt-20 px-24 pb-16 border-[12px] border-emerald-900 box-border relative">
+              <div className="flex items-center gap-6 mb-12">
+                <div className="w-16 h-2 bg-emerald-600"></div>
+                <h2 className="text-5xl font-black font-sans uppercase tracking-widest text-emerald-800">Misiune și Valori</h2>
+              </div>
+              <div className="flex flex-col font-serif leading-normal text-gray-800 text-left">
+                <p className="text-2xl text-gray-700 leading-relaxed">{truncateText(result.viziune_strategie?.misiune_valori, 1500)}</p>
+              </div>
+            </div>
+
+            {/* Slide 2c: Analiza Pietei (Clienti si Concurenta) */}
             <div className="pdf-presentation-slide w-[1280px] h-[720px] bg-white text-emerald-950 flex flex-col justify-start pt-20 px-24 pb-16 border-[12px] border-emerald-900 box-border relative">
               <div className="flex items-center gap-6 mb-8">
                 <div className="w-16 h-2 bg-emerald-600"></div>
                 <h2 className="text-5xl font-black font-sans uppercase tracking-widest text-emerald-800">Piața și Concurența</h2>
               </div>
               <div className="flex flex-col gap-10 font-serif leading-normal text-gray-800 text-left">
-                  <div className="overflow-hidden"><h3 className="text-3xl font-bold text-emerald-700 mb-3">Clienții Țintă</h3>
-                  <p className={getDynamicTextSize(result.analiza_pietei?.clienti_tinta)}>{truncateText(result.analiza_pietei?.clienti_tinta, 700)}</p></div>
-                  <div className="overflow-hidden"><h3 className="text-3xl font-bold text-emerald-700 mb-3">Concurența</h3>
-                  <p className={getDynamicTextSize(result.analiza_pietei?.concurenta)}>{truncateText(result.analiza_pietei?.concurenta, 700)}</p></div>
+                  <div className="overflow-hidden">
+                    <h3 className="text-3xl font-bold text-emerald-700 mb-3">Clienții Țintă</h3>
+                    <p className="text-2xl text-gray-700 leading-relaxed">{truncateText(result.analiza_pietei?.clienti_tinta, 700)}</p>
+                  </div>
+                  <div className="overflow-hidden">
+                    <h3 className="text-3xl font-bold text-emerald-700 mb-3">Concurența</h3>
+                    <p className="text-2xl text-gray-700 leading-relaxed">{truncateText(result.analiza_pietei?.concurenta, 700)}</p>
+                  </div>
               </div>
             </div>
 
-            {/* Slide 2c: Strategia de Marketing */}
+            {/* Slide 2d: Strategia de Marketing */}
             <div className="pdf-presentation-slide w-[1280px] h-[720px] bg-white text-emerald-950 flex flex-col justify-start pt-20 px-24 pb-16 border-[12px] border-emerald-900 box-border relative">
               <div className="flex items-center gap-6 mb-8">
                 <div className="w-16 h-2 bg-emerald-600"></div>
                 <h2 className="text-5xl font-black font-sans uppercase tracking-widest text-emerald-800">Promovare</h2>
               </div>
               <div className="flex flex-col gap-10 font-serif leading-normal text-gray-800 text-left">
-                  <div className="overflow-hidden"><h3 className="text-3xl font-bold text-emerald-700 mb-3">Strategia de Marketing</h3>
-                  <p className={getDynamicTextSize(result.analiza_pietei?.strategie_marketing)}>{truncateText(result.analiza_pietei?.strategie_marketing, 1200)}</p></div>
+                  <div className="overflow-hidden">
+                    <h3 className="text-3xl font-bold text-emerald-700 mb-3">Strategia de Marketing</h3>
+                    <p className="text-2xl text-gray-700 leading-relaxed">{truncateText(result.analiza_pietei?.strategie_marketing, 1200)}</p>
+                  </div>
               </div>
             </div>
 
@@ -3042,7 +3102,7 @@ export default function Home() {
               </div>
             </div>
 
-            {/* Slide Key Features PDF */}
+            {/* Slide Key Features PDF - Descriere Flux */}
             <div className="pdf-presentation-slide w-[1280px] h-[720px] bg-white flex flex-col px-24 py-16 border-[12px] border-emerald-900 box-border relative">
               <div className="flex items-center gap-6 mb-8 shrink-0">
                 <div className="w-16 h-2 bg-emerald-600"></div>
@@ -3050,47 +3110,75 @@ export default function Home() {
               </div>
               <div className="bg-emerald-50/50 p-8 border-l-8 border-emerald-500 flex flex-col gap-6 flex-1 rounded-2xl overflow-hidden">
                 <div className="flex flex-col gap-6 overflow-hidden content-start flex-1 pl-4 text-left">
-                    <div className="flex flex-col gap-2">
-                       <h4 className="text-2xl font-bold text-emerald-700 leading-snug">1. Descriere Flux (Sustenabilitate / Verde)</h4>
-                       <p className={`${getDynamicTextSize(result.plan_operational?.descriere_flux, {large:300, medium:600, extra:900}, {default:'text-lg', medium:'text-base', small:'text-sm', xsmall:'text-xs'})} text-gray-600 leading-relaxed`}>{result.plan_operational?.descriere_flux}</p>
-                    </div>
-                    <div className="flex flex-col gap-2">
-                       <h4 className="text-2xl font-bold text-emerald-700 leading-snug">2. Resurse Umane</h4>
-                       <p className={`${getDynamicTextSize(result.plan_operational?.resurse_umane, {large:300, medium:600, extra:900}, {default:'text-lg', medium:'text-base', small:'text-sm', xsmall:'text-xs'})} text-gray-600 leading-relaxed`}>{result.plan_operational?.resurse_umane}</p>
-                    </div>
-                    <div className="flex flex-col gap-2">
-                       <h4 className="text-2xl font-bold text-emerald-700 leading-snug">3. Locație și Dotări</h4>
-                       <p className={`${getDynamicTextSize(result.plan_operational?.locatie_dotari, {large:300, medium:600, extra:900}, {default:'text-lg', medium:'text-base', small:'text-sm', xsmall:'text-xs'})} text-gray-600 leading-relaxed`}>{result.plan_operational?.locatie_dotari}</p>
+                    <div className="flex flex-col gap-4">
+                       <h4 className="text-3xl font-bold text-emerald-700 leading-snug">1. Descriere Flux (Sustenabilitate / Verde)</h4>
+                       <p className="text-2xl text-gray-700 leading-relaxed">{truncateText(result.plan_operational?.descriere_flux, 1200)}</p>
                     </div>
                 </div>
               </div>
             </div>
 
-            {/* Slide 7: Buget */}
-            <div className="pdf-presentation-slide w-[1280px] h-[720px] bg-white flex flex-col p-24 border-[12px] border-emerald-900 box-border relative">
-              <div className="flex items-center gap-6 mb-12">
+            {/* Slide Key Features PDF - Resurse Umane */}
+            <div className="pdf-presentation-slide w-[1280px] h-[720px] bg-white flex flex-col px-24 py-16 border-[12px] border-emerald-900 box-border relative">
+              <div className="flex items-center gap-6 mb-8 shrink-0">
                 <div className="w-16 h-2 bg-emerald-600"></div>
-                <h2 className="text-5xl font-black font-sans uppercase tracking-widest text-emerald-800">Buget Investiții</h2>
+                <h2 className="text-5xl font-black font-sans uppercase tracking-widest text-emerald-800">Planul Operațional</h2>
               </div>
-              <div className="grid grid-cols-2 gap-x-12 gap-y-8 font-sans items-start content-start overflow-hidden">
-                {result.plan_financiar?.buget_investitii?.slice(0, 6).map((b: any, i: number) => (
-                  <div key={i} className="flex flex-col gap-3 bg-emerald-50/50 p-6 border-l-4 border-emerald-500 rounded-xl min-h-[120px]">
-                    <div className="flex justify-between items-start gap-4">
-                      <h4 className="text-2xl font-bold text-emerald-900 flex-1 leading-tight uppercase tracking-wide line-clamp-1">{b.item}</h4>
-                      <span className="text-2xl font-black text-emerald-700 whitespace-nowrap bg-emerald-100 px-4 py-1.5 rounded-lg border border-emerald-200">{formatPrice(b.cost)}</span>
+              <div className="bg-emerald-50/50 p-8 border-l-8 border-emerald-500 flex flex-col gap-6 flex-1 rounded-2xl overflow-hidden">
+                <div className="flex flex-col gap-6 overflow-hidden content-start flex-1 pl-4 text-left">
+                    <div className="flex flex-col gap-4">
+                       <h4 className="text-3xl font-bold text-emerald-700 leading-snug">2. Resurse Umane</h4>
+                       <p className="text-2xl text-gray-700 leading-relaxed">{truncateText(result.plan_operational?.resurse_umane, 1200)}</p>
                     </div>
-                    <p className="text-xl text-gray-600 leading-snug italic line-clamp-2">{b.explicatie}</p>
-                  </div>
-                ))}
-              </div>
-              
-              <div className="absolute bottom-12 right-24">
-                 <div className="bg-emerald-900 text-white px-12 py-6 flex items-center rounded-2xl shadow-xl">
-                   <span className="text-3xl font-bold uppercase tracking-wider mr-6 text-emerald-200">Total Estimat:</span>
-                   <span className="text-5xl font-black">{formatPrice(result.plan_financiar?.buget_investitii?.reduce((sum: number, b: any) => sum + parseInt(b.cost?.toString().replace(/[^0-9]/g, '') || '0'), 0).toString())}</span>
-                 </div>
+                </div>
               </div>
             </div>
+
+            {/* Slide Key Features PDF - Locatie */}
+            <div className="pdf-presentation-slide w-[1280px] h-[720px] bg-white flex flex-col px-24 py-16 border-[12px] border-emerald-900 box-border relative">
+              <div className="flex items-center gap-6 mb-8 shrink-0">
+                <div className="w-16 h-2 bg-emerald-600"></div>
+                <h2 className="text-5xl font-black font-sans uppercase tracking-widest text-emerald-800">Planul Operațional</h2>
+              </div>
+              <div className="bg-emerald-50/50 p-8 border-l-8 border-emerald-500 flex flex-col gap-6 flex-1 rounded-2xl overflow-hidden">
+                <div className="flex flex-col gap-6 overflow-hidden content-start flex-1 pl-4 text-left">
+                    <div className="flex flex-col gap-4">
+                       <h4 className="text-3xl font-bold text-emerald-700 leading-snug">3. Locație și Dotări</h4>
+                       <p className="text-2xl text-gray-700 leading-relaxed">{truncateText(result.plan_operational?.locatie_dotari, 1200)}</p>
+                    </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Slide 7: Buget - Chunking */}
+            {Array.from({ length: Math.ceil((result.plan_financiar?.buget_investitii?.length || 1) / 4) }).map((_, slideIdx) => (
+              <div key={`pdf-budget-${slideIdx}`} className="pdf-presentation-slide w-[1280px] h-[720px] bg-white flex flex-col p-24 border-[12px] border-emerald-900 box-border relative">
+                <div className="flex items-center gap-6 mb-12">
+                  <div className="w-16 h-2 bg-emerald-600"></div>
+                  <h2 className="text-5xl font-black font-sans uppercase tracking-widest text-emerald-800">Buget Investiții {slideIdx > 0 ? `(Partea ${slideIdx + 1})` : ''}</h2>
+                </div>
+                <div className="grid grid-cols-2 gap-x-12 gap-y-8 font-sans items-start content-start overflow-hidden">
+                  {result.plan_financiar?.buget_investitii?.slice(slideIdx * 4, slideIdx * 4 + 4).map((b: any, i: number) => (
+                    <div key={i} className="flex flex-col gap-3 bg-emerald-50/50 p-6 border-l-4 border-emerald-500 rounded-xl min-h-[120px]">
+                      <div className="flex justify-between items-start gap-4">
+                        <h4 className="text-2xl font-bold text-emerald-900 flex-1 leading-tight uppercase tracking-wide line-clamp-1">{b.item}</h4>
+                        <span className="text-2xl font-black text-emerald-700 whitespace-nowrap bg-emerald-100 px-4 py-1.5 rounded-lg border border-emerald-200">{formatPrice(b.cost)}</span>
+                      </div>
+                      <p className="text-xl text-gray-600 leading-snug italic line-clamp-2">{b.explicatie}</p>
+                    </div>
+                  ))}
+                </div>
+                
+                {slideIdx === Math.ceil((result.plan_financiar?.buget_investitii?.length || 1) / 4) - 1 && (
+                  <div className="absolute bottom-12 right-24">
+                     <div className="bg-emerald-900 text-white px-12 py-6 flex items-center rounded-2xl shadow-xl">
+                       <span className="text-3xl font-bold uppercase tracking-wider mr-6 text-emerald-200">Total Estimat:</span>
+                       <span className="text-5xl font-black">{formatPrice(result.plan_financiar?.buget_investitii?.reduce((sum: number, b: any) => sum + parseInt(b.cost?.toString().replace(/[^0-9]/g, '') || '0'), 0).toString())}</span>
+                     </div>
+                  </div>
+                )}
+              </div>
+            ))}
 
             {/* Slide 8: Buget Chart */}
             <div className="pdf-presentation-slide w-[1280px] h-[720px] bg-white flex flex-col px-24 py-16 border-[12px] border-emerald-900 box-border relative">

@@ -1592,7 +1592,7 @@ export default function Home() {
 
   return (
     <main 
-      className="min-h-screen bg-[#09090b] text-white p-8 flex flex-col items-center font-sans print:hidden relative overflow-x-hidden select-none"
+      className="min-h-screen bg-[#09090b] text-white px-8 pt-2 pb-8 flex flex-col items-center font-sans print:hidden relative overflow-x-hidden select-none"
       onContextMenu={(e) => e.preventDefault()}
     >
       <div className="hidden print:block w-full h-full bg-white text-black text-center p-20 text-3xl font-bold">

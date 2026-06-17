@@ -45,6 +45,7 @@ export function BudgetPieChart({ budget, currency = "LEI", isPdf = false }: { bu
               dataKey="cost"
               stroke="none"
               nameKey="name"
+              isAnimationActive={!isPdf}
             >
               {data.map((entry, index) => (
                 <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
@@ -71,9 +72,9 @@ export function BudgetPieChart({ budget, currency = "LEI", isPdf = false }: { bu
           {data.map((item, index) => {
             const percent = totalCost > 0 ? ((item.cost / totalCost) * 100).toFixed(0) : '0';
             return (
-              <li key={`legend-item-${index}`} className="flex items-start gap-2.5 text-[14px] text-zinc-300">
-                <div className="w-3 h-3 rounded-[3px] mt-1 shrink-0 shadow-sm" style={{ backgroundColor: COLORS[index % COLORS.length] }} />
-                <span className="leading-tight">{item.name} <strong className="text-zinc-500">({percent}%)</strong></span>
+              <li key={`legend-item-${index}`} className={`flex items-start gap-2.5 ${isPdf ? 'text-[18px] text-gray-700 font-medium' : 'text-[14px] text-zinc-300'}`}>
+                <div className="w-4 h-4 rounded-[3px] mt-1 shrink-0 shadow-sm" style={{ backgroundColor: COLORS[index % COLORS.length] }} />
+                <span className="leading-tight">{item.name} <strong className={isPdf ? 'text-gray-500 font-bold' : 'text-zinc-500'}>({percent}%)</strong></span>
               </li>
             );
           })}
@@ -82,3 +83,4 @@ export function BudgetPieChart({ budget, currency = "LEI", isPdf = false }: { bu
     </div>
   );
 }
+

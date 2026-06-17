@@ -2961,7 +2961,7 @@ export default function Home() {
             <div className="pdf-presentation-slide w-[1280px] h-[720px] bg-emerald-950 text-white flex flex-col justify-center items-center p-20 relative border-[12px] border-emerald-900 box-border">
               <div className="absolute inset-0 opacity-10 bg-[radial-gradient(circle_at_center,_white_0%,_transparent_100%)]"></div>
               <h1 className="text-8xl font-black text-center mb-10 text-emerald-100 z-10 font-sans tracking-tight leading-tight">{result.nume}</h1>
-              <h2 className="text-4xl text-center italic text-emerald-300 z-10 w-3/4 leading-relaxed font-serif">„{result.slogan}”</h2>
+              <h2 className="text-lg text-center italic text-emerald-300 z-10 w-3/4 leading-relaxed font-serif">„{result.slogan}”</h2>
               <div className="absolute bottom-8 right-8 text-emerald-700/50 font-bold uppercase tracking-widest text-sm">IdeeaTa.ai</div>
             </div>
 
@@ -2969,16 +2969,16 @@ export default function Home() {
             <div className="pdf-presentation-slide w-[1280px] h-[720px] bg-white text-emerald-950 flex flex-col justify-start pt-20 px-24 pb-16 border-[12px] border-emerald-900 box-border relative">
               <div className="flex items-center gap-6 mb-12">
                 <div className="w-16 h-2 bg-emerald-600"></div>
-                <h2 className="text-5xl font-black font-sans uppercase tracking-widest text-emerald-800">Obiective Strategice</h2>
+                <h2 className="text-lg font-black font-sans uppercase tracking-widest text-emerald-800">Obiective Strategice</h2>
               </div>
               <div className="flex flex-col gap-8 font-serif leading-normal text-gray-800 text-left">
                 <div className="overflow-hidden">
-                  <h3 className="text-3xl font-bold text-emerald-700 mb-3">Obiective (1 an)</h3>
-                  <p className="text-2xl text-gray-700 leading-relaxed">{truncateText(result.viziune_strategie?.obiective_scurt, 800)}</p>
+                  <h3 className="text-lg font-bold text-emerald-700 mb-3">Obiective (1 an)</h3>
+                  <p className="text-lg text-gray-700 leading-relaxed">{truncateText(result.viziune_strategie?.obiective_scurt, 800)}</p>
                 </div>
                 <div className="overflow-hidden">
-                  <h3 className="text-3xl font-bold text-emerald-700 mb-3">Obiective (3-5 ani)</h3>
-                  <p className="text-2xl text-gray-700 leading-relaxed">{truncateText(result.viziune_strategie?.obiective_mediu, 800)}</p>
+                  <h3 className="text-lg font-bold text-emerald-700 mb-3">Obiective (3-5 ani)</h3>
+                  <p className="text-lg text-gray-700 leading-relaxed">{truncateText(result.viziune_strategie?.obiective_mediu, 800)}</p>
                 </div>
               </div>
             </div>
@@ -2987,10 +2987,10 @@ export default function Home() {
             <div className="pdf-presentation-slide w-[1280px] h-[720px] bg-white text-emerald-950 flex flex-col justify-start pt-20 px-24 pb-16 border-[12px] border-emerald-900 box-border relative">
               <div className="flex items-center gap-6 mb-12">
                 <div className="w-16 h-2 bg-emerald-600"></div>
-                <h2 className="text-5xl font-black font-sans uppercase tracking-widest text-emerald-800">Misiune și Valori</h2>
+                <h2 className="text-lg font-black font-sans uppercase tracking-widest text-emerald-800">Misiune și Valori</h2>
               </div>
               <div className="flex flex-col font-serif leading-normal text-gray-800 text-left">
-                <p className="text-2xl text-gray-700 leading-relaxed">{truncateText(result.viziune_strategie?.misiune_valori, 1500)}</p>
+                <p className="text-lg text-gray-700 leading-relaxed">{truncateText(result.viziune_strategie?.misiune_valori, 1500)}</p>
               </div>
             </div>
 
@@ -2998,16 +2998,16 @@ export default function Home() {
             <div className="pdf-presentation-slide w-[1280px] h-[720px] bg-white text-emerald-950 flex flex-col justify-start pt-20 px-24 pb-16 border-[12px] border-emerald-900 box-border relative">
               <div className="flex items-center gap-6 mb-8">
                 <div className="w-16 h-2 bg-emerald-600"></div>
-                <h2 className="text-5xl font-black font-sans uppercase tracking-widest text-emerald-800">Piața și Concurența</h2>
+                <h2 className="text-lg font-black font-sans uppercase tracking-widest text-emerald-800">Piața și Concurența</h2>
               </div>
               <div className="flex flex-col gap-10 font-serif leading-normal text-gray-800 text-left">
                   <div className="overflow-hidden">
-                    <h3 className="text-3xl font-bold text-emerald-700 mb-3">Clienții Țintă</h3>
-                    <p className="text-2xl text-gray-700 leading-relaxed">{truncateText(result.analiza_pietei?.clienti_tinta, 700)}</p>
+                    <h3 className="text-lg font-bold text-emerald-700 mb-3">Clienții Țintă</h3>
+                    <p className="text-lg text-gray-700 leading-relaxed">{truncateText(result.analiza_pietei?.clienti_tinta, 700)}</p>
                   </div>
                   <div className="overflow-hidden">
-                    <h3 className="text-3xl font-bold text-emerald-700 mb-3">Concurența</h3>
-                    <p className="text-2xl text-gray-700 leading-relaxed">{truncateText(result.analiza_pietei?.concurenta, 700)}</p>
+                    <h3 className="text-lg font-bold text-emerald-700 mb-3">Concurența</h3>
+                    <p className="text-lg text-gray-700 leading-relaxed">{truncateText(result.analiza_pietei?.concurenta, 700)}</p>
                   </div>
               </div>
             </div>
@@ -3016,12 +3016,12 @@ export default function Home() {
             <div className="pdf-presentation-slide w-[1280px] h-[720px] bg-white text-emerald-950 flex flex-col justify-start pt-20 px-24 pb-16 border-[12px] border-emerald-900 box-border relative">
               <div className="flex items-center gap-6 mb-8">
                 <div className="w-16 h-2 bg-emerald-600"></div>
-                <h2 className="text-5xl font-black font-sans uppercase tracking-widest text-emerald-800">Promovare</h2>
+                <h2 className="text-lg font-black font-sans uppercase tracking-widest text-emerald-800">Promovare</h2>
               </div>
               <div className="flex flex-col gap-10 font-serif leading-normal text-gray-800 text-left">
                   <div className="overflow-hidden">
-                    <h3 className="text-3xl font-bold text-emerald-700 mb-3">Strategia de Marketing</h3>
-                    <p className="text-2xl text-gray-700 leading-relaxed">{truncateText(result.analiza_pietei?.strategie_marketing, 1200)}</p>
+                    <h3 className="text-lg font-bold text-emerald-700 mb-3">Strategia de Marketing</h3>
+                    <p className="text-lg text-gray-700 leading-relaxed">{truncateText(result.analiza_pietei?.strategie_marketing, 1200)}</p>
                   </div>
               </div>
             </div>
@@ -3030,14 +3030,14 @@ export default function Home() {
             <div className="pdf-presentation-slide w-[1280px] h-[720px] bg-white flex flex-col px-24 py-16 border-[12px] border-emerald-900 box-border relative">
               <div className="flex items-center gap-6 mb-8 shrink-0">
                 <div className="w-16 h-2 bg-emerald-500"></div>
-                <h2 className="text-5xl font-black font-sans uppercase tracking-widest text-emerald-900">Analiză Strategica SWOT</h2>
+                <h2 className="text-lg font-black font-sans uppercase tracking-widest text-emerald-900">Analiză Strategica SWOT</h2>
               </div>
               <div className="bg-emerald-50/50 p-8 border-l-8 border-emerald-500 flex flex-col gap-6 flex-1 rounded-2xl overflow-hidden">
-                <h3 className="text-4xl font-black text-emerald-800 uppercase tracking-widest pb-4 border-b-2 border-emerald-200 shrink-0">Puncte Tari</h3>
+                <h3 className="text-lg font-black text-emerald-800 uppercase tracking-widest pb-4 border-b-2 border-emerald-200 shrink-0">Puncte Tari</h3>
                 <div className="grid grid-cols-2 gap-x-12 gap-y-6 overflow-hidden content-start flex-1">
                   {result.analiza_swot?.puncte_tari?.slice(0, 8).map((item: any, idx: number) => (
                     <div key={idx} className="flex flex-col gap-2">
-                      <h4 className="text-2xl font-bold text-emerald-700 leading-snug">✦ {item.titlu || item}</h4>
+                      <h4 className="text-lg font-bold text-emerald-700 leading-snug">✦ {item.titlu || item}</h4>
                       <p className="text-lg text-gray-600 leading-relaxed max-w-lg text-left">{item.explicatie_tehnica}</p>
                     </div>
                   ))}
@@ -3049,14 +3049,14 @@ export default function Home() {
             <div className="pdf-presentation-slide w-[1280px] h-[720px] bg-white flex flex-col px-24 py-16 border-[12px] border-emerald-900 box-border relative">
               <div className="flex items-center gap-6 mb-8 shrink-0">
                 <div className="w-16 h-2 bg-[#ff4d6d]"></div>
-                <h2 className="text-5xl font-black font-sans uppercase tracking-widest text-[#ff4d6d]">Analiză Strategica SWOT</h2>
+                <h2 className="text-lg font-black font-sans uppercase tracking-widest text-[#ff4d6d]">Analiză Strategica SWOT</h2>
               </div>
               <div className="bg-rose-50/50 p-8 border-l-8 border-[#ff4d6d] flex flex-col gap-6 flex-1 rounded-2xl overflow-hidden">
-                <h3 className="text-4xl font-black text-rose-900 uppercase tracking-widest pb-4 border-b-2 border-rose-200 shrink-0">Slăbiciuni</h3>
+                <h3 className="text-lg font-black text-rose-900 uppercase tracking-widest pb-4 border-b-2 border-rose-200 shrink-0">Slăbiciuni</h3>
                 <div className="grid grid-cols-2 gap-x-12 gap-y-6 overflow-hidden content-start flex-1">
                   {result.analiza_swot?.puncte_slabe?.slice(0, 8).map((item: any, idx: number) => (
                     <div key={idx} className="flex flex-col gap-2">
-                      <h4 className="text-2xl font-bold text-[#ff4d6d] leading-snug">✦ {item.titlu || item}</h4>
+                      <h4 className="text-lg font-bold text-[#ff4d6d] leading-snug">✦ {item.titlu || item}</h4>
                       <p className="text-lg text-gray-600 leading-relaxed max-w-lg text-left">{item.explicatie_tehnica}</p>
                     </div>
                   ))}
@@ -3068,14 +3068,14 @@ export default function Home() {
             <div className="pdf-presentation-slide w-[1280px] h-[720px] bg-white flex flex-col px-24 py-16 border-[12px] border-emerald-900 box-border relative">
               <div className="flex items-center gap-6 mb-8 shrink-0">
                 <div className="w-16 h-2 bg-blue-500"></div>
-                <h2 className="text-5xl font-black font-sans uppercase tracking-widest text-blue-600">Analiză Strategica SWOT</h2>
+                <h2 className="text-lg font-black font-sans uppercase tracking-widest text-blue-600">Analiză Strategica SWOT</h2>
               </div>
               <div className="bg-blue-50/50 p-8 border-l-8 border-blue-500 flex flex-col gap-6 flex-1 rounded-2xl overflow-hidden">
-                <h3 className="text-4xl font-black text-blue-900 uppercase tracking-widest pb-4 border-b-2 border-blue-200 shrink-0">Oportunități</h3>
+                <h3 className="text-lg font-black text-blue-900 uppercase tracking-widest pb-4 border-b-2 border-blue-200 shrink-0">Oportunități</h3>
                 <div className="grid grid-cols-2 gap-x-12 gap-y-6 overflow-hidden content-start flex-1">
                   {result.analiza_swot?.oportunitati?.slice(0, 8).map((item: any, idx: number) => (
                     <div key={idx} className="flex flex-col gap-2">
-                      <h4 className="text-2xl font-bold text-blue-600 leading-snug">✦ {item.titlu || item}</h4>
+                      <h4 className="text-lg font-bold text-blue-600 leading-snug">✦ {item.titlu || item}</h4>
                       <p className="text-lg text-gray-600 leading-relaxed max-w-lg text-left">{item.explicatie_tehnica}</p>
                     </div>
                   ))}
@@ -3087,14 +3087,14 @@ export default function Home() {
             <div className="pdf-presentation-slide w-[1280px] h-[720px] bg-white flex flex-col px-24 py-16 border-[12px] border-emerald-900 box-border relative">
               <div className="flex items-center gap-6 mb-8 shrink-0">
                 <div className="w-16 h-2 bg-orange-500"></div>
-                <h2 className="text-5xl font-black font-sans uppercase tracking-widest text-orange-600">Analiză Strategica SWOT</h2>
+                <h2 className="text-lg font-black font-sans uppercase tracking-widest text-orange-600">Analiză Strategica SWOT</h2>
               </div>
               <div className="bg-orange-50/50 p-8 border-l-8 border-orange-500 flex flex-col gap-6 flex-1 rounded-2xl overflow-hidden">
-                <h3 className="text-4xl font-black text-orange-900 uppercase tracking-widest pb-4 border-b-2 border-orange-200 shrink-0">Amenințări</h3>
+                <h3 className="text-lg font-black text-orange-900 uppercase tracking-widest pb-4 border-b-2 border-orange-200 shrink-0">Amenințări</h3>
                 <div className="grid grid-cols-2 gap-x-12 gap-y-6 overflow-hidden content-start flex-1">
                   {result.analiza_swot?.amenintari?.slice(0, 8).map((item: any, idx: number) => (
                     <div key={idx} className="flex flex-col gap-2">
-                      <h4 className="text-2xl font-bold text-orange-600 leading-snug">✦ {item.titlu || item}</h4>
+                      <h4 className="text-lg font-bold text-orange-600 leading-snug">✦ {item.titlu || item}</h4>
                       <p className="text-lg text-gray-600 leading-relaxed max-w-lg text-left">{item.explicatie_tehnica}</p>
                     </div>
                   ))}
@@ -3106,13 +3106,13 @@ export default function Home() {
             <div className="pdf-presentation-slide w-[1280px] h-[720px] bg-white flex flex-col px-24 py-16 border-[12px] border-emerald-900 box-border relative">
               <div className="flex items-center gap-6 mb-8 shrink-0">
                 <div className="w-16 h-2 bg-emerald-600"></div>
-                <h2 className="text-5xl font-black font-sans uppercase tracking-widest text-emerald-800">Planul Operațional</h2>
+                <h2 className="text-lg font-black font-sans uppercase tracking-widest text-emerald-800">Planul Operațional</h2>
               </div>
               <div className="bg-emerald-50/50 p-8 border-l-8 border-emerald-500 flex flex-col gap-6 flex-1 rounded-2xl overflow-hidden">
                 <div className="flex flex-col gap-6 overflow-hidden content-start flex-1 pl-4 text-left">
                     <div className="flex flex-col gap-4">
-                       <h4 className="text-3xl font-bold text-emerald-700 leading-snug">1. Descriere Flux (Sustenabilitate / Verde)</h4>
-                       <p className="text-2xl text-gray-700 leading-relaxed">{truncateText(result.plan_operational?.descriere_flux, 1200)}</p>
+                       <h4 className="text-lg font-bold text-emerald-700 leading-snug">1. Descriere Flux (Sustenabilitate / Verde)</h4>
+                       <p className="text-lg text-gray-700 leading-relaxed">{truncateText(result.plan_operational?.descriere_flux, 1200)}</p>
                     </div>
                 </div>
               </div>
@@ -3122,13 +3122,13 @@ export default function Home() {
             <div className="pdf-presentation-slide w-[1280px] h-[720px] bg-white flex flex-col px-24 py-16 border-[12px] border-emerald-900 box-border relative">
               <div className="flex items-center gap-6 mb-8 shrink-0">
                 <div className="w-16 h-2 bg-emerald-600"></div>
-                <h2 className="text-5xl font-black font-sans uppercase tracking-widest text-emerald-800">Planul Operațional</h2>
+                <h2 className="text-lg font-black font-sans uppercase tracking-widest text-emerald-800">Planul Operațional</h2>
               </div>
               <div className="bg-emerald-50/50 p-8 border-l-8 border-emerald-500 flex flex-col gap-6 flex-1 rounded-2xl overflow-hidden">
                 <div className="flex flex-col gap-6 overflow-hidden content-start flex-1 pl-4 text-left">
                     <div className="flex flex-col gap-4">
-                       <h4 className="text-3xl font-bold text-emerald-700 leading-snug">2. Resurse Umane</h4>
-                       <p className="text-2xl text-gray-700 leading-relaxed">{truncateText(result.plan_operational?.resurse_umane, 1200)}</p>
+                       <h4 className="text-lg font-bold text-emerald-700 leading-snug">2. Resurse Umane</h4>
+                       <p className="text-lg text-gray-700 leading-relaxed">{truncateText(result.plan_operational?.resurse_umane, 1200)}</p>
                     </div>
                 </div>
               </div>
@@ -3138,13 +3138,13 @@ export default function Home() {
             <div className="pdf-presentation-slide w-[1280px] h-[720px] bg-white flex flex-col px-24 py-16 border-[12px] border-emerald-900 box-border relative">
               <div className="flex items-center gap-6 mb-8 shrink-0">
                 <div className="w-16 h-2 bg-emerald-600"></div>
-                <h2 className="text-5xl font-black font-sans uppercase tracking-widest text-emerald-800">Planul Operațional</h2>
+                <h2 className="text-lg font-black font-sans uppercase tracking-widest text-emerald-800">Planul Operațional</h2>
               </div>
               <div className="bg-emerald-50/50 p-8 border-l-8 border-emerald-500 flex flex-col gap-6 flex-1 rounded-2xl overflow-hidden">
                 <div className="flex flex-col gap-6 overflow-hidden content-start flex-1 pl-4 text-left">
                     <div className="flex flex-col gap-4">
-                       <h4 className="text-3xl font-bold text-emerald-700 leading-snug">3. Locație și Dotări</h4>
-                       <p className="text-2xl text-gray-700 leading-relaxed">{truncateText(result.plan_operational?.locatie_dotari, 1200)}</p>
+                       <h4 className="text-lg font-bold text-emerald-700 leading-snug">3. Locație și Dotări</h4>
+                       <p className="text-lg text-gray-700 leading-relaxed">{truncateText(result.plan_operational?.locatie_dotari, 1200)}</p>
                     </div>
                 </div>
               </div>
@@ -3155,16 +3155,16 @@ export default function Home() {
               <div key={`pdf-budget-${slideIdx}`} className="pdf-presentation-slide w-[1280px] h-[720px] bg-white flex flex-col p-24 border-[12px] border-emerald-900 box-border relative">
                 <div className="flex items-center gap-6 mb-12">
                   <div className="w-16 h-2 bg-emerald-600"></div>
-                  <h2 className="text-5xl font-black font-sans uppercase tracking-widest text-emerald-800">Buget Investiții {slideIdx > 0 ? `(Partea ${slideIdx + 1})` : ''}</h2>
+                  <h2 className="text-lg font-black font-sans uppercase tracking-widest text-emerald-800">Buget Investiții {slideIdx > 0 ? `(Partea ${slideIdx + 1})` : ''}</h2>
                 </div>
                 <div className="grid grid-cols-2 gap-x-12 gap-y-8 font-sans items-start content-start overflow-hidden">
                   {result.plan_financiar?.buget_investitii?.slice(slideIdx * 4, slideIdx * 4 + 4).map((b: any, i: number) => (
                     <div key={i} className="flex flex-col gap-3 bg-emerald-50/50 p-6 border-l-4 border-emerald-500 rounded-xl min-h-[120px]">
                       <div className="flex justify-between items-start gap-4">
-                        <h4 className="text-2xl font-bold text-emerald-900 flex-1 leading-tight uppercase tracking-wide line-clamp-1">{b.item}</h4>
-                        <span className="text-2xl font-black text-emerald-700 whitespace-nowrap bg-emerald-100 px-4 py-1.5 rounded-lg border border-emerald-200">{formatPrice(b.cost)}</span>
+                        <h4 className="text-lg font-bold text-emerald-900 flex-1 leading-tight uppercase tracking-wide line-clamp-1">{b.item}</h4>
+                        <span className="text-lg font-black text-emerald-700 whitespace-nowrap bg-emerald-100 px-4 py-1.5 rounded-lg border border-emerald-200">{formatPrice(b.cost)}</span>
                       </div>
-                      <p className="text-xl text-gray-600 leading-snug italic line-clamp-2">{b.explicatie}</p>
+                      <p className="text-lg text-gray-600 leading-snug italic line-clamp-2">{b.explicatie}</p>
                     </div>
                   ))}
                 </div>
@@ -3172,8 +3172,8 @@ export default function Home() {
                 {slideIdx === Math.ceil((result.plan_financiar?.buget_investitii?.length || 1) / 4) - 1 && (
                   <div className="absolute bottom-12 right-24">
                      <div className="bg-emerald-900 text-white px-12 py-6 flex items-center rounded-2xl shadow-xl">
-                       <span className="text-3xl font-bold uppercase tracking-wider mr-6 text-emerald-200">Total Estimat:</span>
-                       <span className="text-5xl font-black">{formatPrice(result.plan_financiar?.buget_investitii?.reduce((sum: number, b: any) => sum + parseInt(b.cost?.toString().replace(/[^0-9]/g, '') || '0'), 0).toString())}</span>
+                       <span className="text-lg font-bold uppercase tracking-wider mr-6 text-emerald-200">Total Estimat:</span>
+                       <span className="text-lg font-black">{formatPrice(result.plan_financiar?.buget_investitii?.reduce((sum: number, b: any) => sum + parseInt(b.cost?.toString().replace(/[^0-9]/g, '') || '0'), 0).toString())}</span>
                      </div>
                   </div>
                 )}
@@ -3184,7 +3184,7 @@ export default function Home() {
             <div className="pdf-presentation-slide w-[1280px] h-[720px] bg-white flex flex-col px-24 py-16 border-[12px] border-emerald-900 box-border relative">
               <div className="flex items-center gap-6 mb-8 shrink-0">
                 <div className="w-16 h-2 bg-emerald-600"></div>
-                <h2 className="text-5xl font-black font-sans uppercase tracking-widest text-emerald-800">Distribuția Costurilor</h2>
+                <h2 className="text-lg font-black font-sans uppercase tracking-widest text-emerald-800">Distribuția Costurilor</h2>
               </div>
               <div className="flex-1 w-full bg-emerald-50/50 p-8 rounded-2xl border border-emerald-100">
                   <BudgetPieChart budget={result.plan_financiar?.buget_investitii} currency={currency} isPdf={true} />
@@ -3196,10 +3196,10 @@ export default function Home() {
               <div key={`pdf-custom-white-${idx}`} className="pdf-presentation-slide w-[1280px] h-[720px] bg-white flex flex-col px-24 py-16 border-[12px] border-emerald-900 box-border relative">
                 <div className="flex items-center gap-6 mb-8 shrink-0">
                   <div className="w-16 h-2 bg-emerald-600"></div>
-                  <h2 className="text-5xl font-black font-sans uppercase tracking-widest text-emerald-800">{sec.titlu}</h2>
+                  <h2 className="text-lg font-black font-sans uppercase tracking-widest text-emerald-800">{sec.titlu}</h2>
                 </div>
                 <div className="flex-1 w-full bg-emerald-50/50 p-8 rounded-2xl border border-emerald-100">
-                  <p className="text-zinc-700 text-2xl italic leading-relaxed whitespace-pre-line overflow-hidden max-h-full">
+                  <p className="text-zinc-700 text-lg italic leading-relaxed whitespace-pre-line overflow-hidden max-h-full">
                     {formatNumberedText(sec.continut)}
                   </p>
                 </div>
@@ -3209,10 +3209,10 @@ export default function Home() {
             {/* CTA Slide (For PDF Summary) */}
             <div className="pdf-cta-slide w-[1280px] h-[720px] bg-emerald-950 flex flex-col justify-center items-center p-24 border-[12px] border-emerald-900 box-border relative text-center">
               <h2 className="text-6xl font-black text-white mb-8">Acesta a fost doar un scurt rezumat.</h2>
-              <p className="text-3xl text-emerald-200 mb-12 max-w-4xl leading-relaxed">
+              <p className="text-lg text-emerald-200 mb-12 max-w-4xl leading-relaxed">
                 Pentru a obține <strong>Analiza SWOT detaliată, Bugetul de investiții, Strategia de Piață completă și Planul Operațional</strong>, deblochează pachetul complet!
               </p>
-              <div className="bg-emerald-500 text-white px-12 py-6 rounded-2xl text-4xl font-bold shadow-2xl">
+              <div className="bg-emerald-500 text-white px-12 py-6 rounded-2xl text-lg font-bold shadow-2xl">
                 Vizitează IdeeaTa.ai
               </div>
             </div>

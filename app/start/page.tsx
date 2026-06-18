@@ -1288,26 +1288,48 @@ export default function Home() {
       <div className="absolute top-[35%] right-[-15%] w-[650px] h-[650px] rounded-full bg-amber-500/5 blur-[150px] pointer-events-none animate-pulse duration-[12000ms] z-0"></div>
 
       {isDownloading && (
-        <div className="fixed inset-0 bg-[#09090b]/90 backdrop-blur-sm z-[100] flex flex-col items-center justify-center">
-          <div className="w-16 h-16 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin mb-6"></div>
-          <p className="text-2xl font-bold text-white tracking-widest uppercase text-center">
-            {isDownloading === 'pptx' ? 'Se generează broșură de prezentare...' : isDownloading === 'pdf' ? 'Se generează prezentarea...' : 'Se generează document...'}
-          </p>
-          <p className="text-emerald-400 font-medium mt-3 text-center">
-            Acest proces durează câteva momente pentru a asigura calitatea maximă.
-          </p>
+        <div className="fixed inset-0 bg-[#09090b]/90 backdrop-blur-sm z-[100] flex items-center justify-between px-6">
+          {/* Left Ad */}
+          <div className="hidden lg:flex flex-col items-center justify-center w-[180px] xl:w-[220px] h-[400px] bg-zinc-900/60 border border-zinc-800/60 rounded-2xl overflow-hidden shrink-0">
+            <AdBanner dataAdSlot="1111111111" dataAdFormat="vertical" dataFullWidthResponsive="false" />
+          </div>
+          {/* Center */}
+          <div className="flex flex-col items-center justify-center flex-1 px-4">
+            <div className="w-16 h-16 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin mb-6"></div>
+            <p className="text-2xl font-bold text-white tracking-widest uppercase text-center">
+              {isDownloading === 'pptx' ? 'Se generează broșură de prezentare...' : isDownloading === 'pdf' ? 'Se generează prezentarea...' : 'Se generează document...'}
+            </p>
+            <p className="text-emerald-400 font-medium mt-3 text-center">
+              Acest proces durează câteva momente pentru a asigura calitatea maximă.
+            </p>
+          </div>
+          {/* Right Ad */}
+          <div className="hidden lg:flex flex-col items-center justify-center w-[180px] xl:w-[220px] h-[400px] bg-zinc-900/60 border border-zinc-800/60 rounded-2xl overflow-hidden shrink-0">
+            <AdBanner dataAdSlot="2222222222" dataAdFormat="vertical" dataFullWidthResponsive="false" />
+          </div>
         </div>
       )}
 
       {isEditingAi && (
-        <div className="fixed inset-0 bg-[#09090b]/90 backdrop-blur-sm z-[100] flex flex-col items-center justify-center">
-          <div className="w-16 h-16 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin mb-6"></div>
-          <p className="text-2xl font-bold text-white tracking-widest uppercase text-center">
-            AI-ul rescrie documentul...
-          </p>
-          <p className="text-emerald-400 font-medium mt-3 text-center">
-            Acest proces durează 15-20 de secunde, deoarece rescriem integral secțiunile planului tău de afaceri.
-          </p>
+        <div className="fixed inset-0 bg-[#09090b]/90 backdrop-blur-sm z-[100] flex items-center justify-between px-6">
+          {/* Left Ad */}
+          <div className="hidden lg:flex flex-col items-center justify-center w-[180px] xl:w-[220px] h-[400px] bg-zinc-900/60 border border-zinc-800/60 rounded-2xl overflow-hidden shrink-0">
+            <AdBanner dataAdSlot="3333333333" dataAdFormat="vertical" dataFullWidthResponsive="false" />
+          </div>
+          {/* Center */}
+          <div className="flex flex-col items-center justify-center flex-1 px-4">
+            <div className="w-16 h-16 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin mb-6"></div>
+            <p className="text-2xl font-bold text-white tracking-widest uppercase text-center">
+              AI-ul rescrie documentul...
+            </p>
+            <p className="text-emerald-400 font-medium mt-3 text-center">
+              Acest proces durează 15-20 de secunde, deoarece rescriem integral secțiunile planului tău de afaceri.
+            </p>
+          </div>
+          {/* Right Ad */}
+          <div className="hidden lg:flex flex-col items-center justify-center w-[180px] xl:w-[220px] h-[400px] bg-zinc-900/60 border border-zinc-800/60 rounded-2xl overflow-hidden shrink-0">
+            <AdBanner dataAdSlot="4444444444" dataAdFormat="vertical" dataFullWidthResponsive="false" />
+          </div>
         </div>
       )}
 

@@ -2,7 +2,8 @@ const { GoogleGenAI } = require("@google/genai");
 
 async function test() {
   // Use a hardcoded dummy API key for testing, or rely on process.env.GEMINI_API_KEY if we have it locally
-  const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+  const apiKey = process.env.GEMINI_API_KEY?.trim() || "";
+  const ai = new GoogleGenAI({ apiKey });
   
   const instruction = `Generează O SECȚIUNE NOUĂ de text pentru planul de afaceri, referitoare strict la subiectul: "Plan de Marketing". 
       IMPORTANT:

@@ -76,6 +76,25 @@ const truncateText = (text: any, length: number) => {
   return text.length > length ? text.substring(0, length) + '...' : text;
 };
 
+const splitTextIntoSlides = (text: any, maxChars: number = 800): string[] => {
+  if (!text || typeof text !== 'string') return [];
+  const paragraphs = text.split('\n');
+  const slides: string[] = [];
+  let currentSlide = "";
+  for (const para of paragraphs) {
+    if ((currentSlide + "\n" + para).length > maxChars && currentSlide.trim().length > 0) {
+      slides.push(currentSlide.trim());
+      currentSlide = para;
+    } else {
+      currentSlide = currentSlide ? currentSlide + "\n" + para : para;
+    }
+  }
+  if (currentSlide.trim().length > 0) {
+    slides.push(currentSlide.trim());
+  }
+  return slides;
+};
+
 const getDynamicTextSize = (text: any, limits = { large: 400, medium: 800, extra: 1200 }, classes = { default: 'text-2xl', medium: 'text-xl', small: 'text-lg', xsmall: 'text-base' }) => {
   const len = typeof text === 'string' ? text.length : 0;
   if (len > limits.extra) return classes.xsmall;
@@ -349,10 +368,11 @@ export default function Home() {
   const [innerMockupTab, setInnerMockupTab] = useState('SWOT');
   
   const [user, setUser] = useState<User | null>(null);
+  const [promoCodeUnlocked, setPromoCodeUnlocked] = useState(false);
   const ADMIN_EMAILS = ['contact@ideeata.ai', 'nadiaramonaz@gmail.com'];
   const isAdmin = user ? ADMIN_EMAILS.includes(user.email || '') : false;
-  const isPlanPaid = isAdmin || devBypass || subscriptionActive || (result && unlockedPlans.includes(result.nume)) || isPaid;
-  const isStudioPaid = isAdmin || devBypass || subscriptionActive || euFundsUnlocked || isPaid;
+  const isPlanPaid = promoCodeUnlocked || isAdmin || devBypass || subscriptionActive || (result && unlockedPlans.includes(result.nume)) || isPaid;
+  const isStudioPaid = promoCodeUnlocked || isAdmin || devBypass || subscriptionActive || euFundsUnlocked || isPaid;
   const isContentCopyProtected = !isPlanPaid && !isStudioPaid;
   const [isAuthLoading, setIsAuthLoading] = useState(true);
   const [authError, setAuthError] = useState<string | null>(null);
@@ -1016,6 +1036,18 @@ export default function Home() {
            bSlide.addText(bText, { x: 0.5, y: 1.2, w: 9, h: 5.5, fontSize: 11, valign: 'top' });
         }
 
+        // Slides for Custom/Additional Sections
+        result.sectiuni_aditionale?.forEach((sec: any) => {
+           if (!sec || !sec.continut) return;
+           const slides = splitTextIntoSlides(sec.continut, 700);
+           slides.forEach((slideContent, slideIdx) => {
+              let cSlide = pres.addSlide({ masterName: 'MASTER_SLIDE' });
+              const secTitle = (sec.titlu || 'Secțiune Adițională').toUpperCase();
+              cSlide.addText(secTitle + (slides.length > 1 ? ` (Partea ${slideIdx + 1})` : ''), { x: 0.5, y: 0.5, w: 9, h: 0.5, fontSize: 22, bold: true, color: '10b981', fontFace: 'Arial' });
+              cSlide.addText(formatPptText(slideContent), { x: 0.5, y: 1.2, w: 9, h: 5.5, fontSize: 11, valign: 'top' });
+           });
+        });
+
         const safeName = result?.nume?.replace(/[^a-zA-Z0-9]/g, '_') || 'Business';
         await pres.writeFile({ fileName: `IdeeaTa_Brosura_${safeName}.pptx` });
       } else if (mode === 'pdf' || mode === 'pdf-summary') {
@@ -1069,6 +1101,17 @@ export default function Home() {
         const suffix = mode === 'pdf-summary' ? '_Sumar_Gratuit' : '';
         pdf.save(`IdeeaTa_Prezentare_${safeName}${suffix}.pdf`);
       } else if (mode === 'word') {
+          let chartImgHtml = "";
+          const chartElement = document.getElementById("docx-chart-container");
+          if (chartElement) {
+             try {
+                const chartDataUrl = await toPng(chartElement, { backgroundColor: '#ffffff', style: { color: '#000000' } });
+                chartImgHtml = `<div style="text-align:center; margin-bottom: 24px; font-family: Arial, sans-serif;"><h3 style="color: #065f46;">Distribuția Costurilor</h3><img src="${chartDataUrl}" width="600" style="display:block; margin: 0 auto;" /><br/></div>`;
+             } catch (err) {
+                console.error("Failed to capture chart for Word export:", err);
+             }
+          }
+
           const preHtml = "<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'><head><meta charset='utf-8'><title>Plan de Afaceri</title><style>body, ul, li, p, td { text-align: justify; }</style></head><body>";
           const postHtml = "</body></html>";
           
@@ -1147,7 +1190,8 @@ export default function Home() {
               <p style="font-family: Arial, sans-serif; line-height: 1.6; font-size: 14px; font-style: italic;">
                   ${result.plan_financiar?.strategie_financiara}
               </p>
-              <h3 style="font-family: Arial, sans-serif; font-size: 16px;">Buget Investiții</h3>
+              ${chartImgHtml}
+              <h3 style="font-family: Arial, sans-serif; font-size: 16px;">Detalii Buget Investiții</h3>
               <ul style="font-family: Arial, sans-serif; line-height: 1.6; font-size: 14px;">
                   ${[...(result.plan_financiar?.buget_investitii || [])].sort((a: any, b: any) => parseInt(b.cost?.toString().replace(/[^0-9]/g, '') || '0') - parseInt(a.cost?.toString().replace(/[^0-9]/g, '') || '0')).map((b: any) => `<li><strong>${b.item}</strong> - <span style="color:#065f46;">${formatPrice(b.cost)}</span><br/><span style="color:#555; font-style:italic;">${b.explicatie}</span></li>`).join('') || ''}
               </ul>
@@ -2718,7 +2762,7 @@ export default function Home() {
                  {formatNumberedText(result.plan_financiar?.strategie_financiara)}
                </div>
 
-               <div className="mb-16">
+               <div className="mb-16" id="docx-chart-container">
                  <h4 className="text-zinc-500 font-bold uppercase tracking-wider mb-6 text-sm">Distribuția costurilor</h4>
                  <BudgetPieChart budget={result.plan_financiar?.buget_investitii} currency={currency} />
                </div>
@@ -2936,19 +2980,25 @@ export default function Home() {
             </div>
 
             {/* Custom Sections Slides (Dark Mode) */}
-            {result.sectiuni_aditionale?.map((sec: any, idx: number) => (
-              <div key={`pdf-custom-dark-${idx}`} className="presentation-slide w-[1280px] h-[720px] bg-[#09090b] flex flex-col p-24 border-[12px] border-zinc-900 box-border relative">
-                <div className="flex items-center gap-6 mb-12 shrink-0">
-                  <div className="w-16 h-2 bg-emerald-500"></div>
-                  <h2 className="text-5xl font-black font-sans uppercase tracking-widest text-emerald-400">{sec.titlu}</h2>
+            {result.sectiuni_aditionale?.flatMap((sec: any, secIdx: number) => {
+              if (!sec || !sec.continut) return [];
+              const slides = splitTextIntoSlides(sec.continut, 700);
+              return slides.map((slideContent, slideIdx) => (
+                <div key={`pdf-custom-dark-${secIdx}-${slideIdx}`} className="presentation-slide w-[1280px] h-[720px] bg-[#09090b] flex flex-col p-24 border-[12px] border-zinc-900 box-border relative overflow-hidden">
+                  <div className="flex items-center gap-6 mb-8 shrink-0">
+                    <div className="w-16 h-2 bg-emerald-500"></div>
+                    <h2 className="text-3xl font-black font-sans uppercase tracking-widest text-emerald-400 line-clamp-1">
+                      {sec.titlu || 'Secțiune Adițională'} {slides.length > 1 ? `(Partea ${slideIdx + 1})` : ''}
+                    </h2>
+                  </div>
+                  <div className="flex-1 w-full bg-zinc-900/50 p-8 rounded-3xl border border-zinc-800 overflow-hidden">
+                    <p className="text-zinc-300 text-base italic leading-relaxed whitespace-pre-line">
+                      {formatNumberedText(slideContent)}
+                    </p>
+                  </div>
                 </div>
-                <div className="flex-1 w-full bg-zinc-900/50 p-8 rounded-3xl border border-zinc-800">
-                  <p className="text-zinc-300 text-2xl italic leading-relaxed whitespace-pre-line overflow-hidden max-h-full">
-                    {formatNumberedText(sec.continut)}
-                  </p>
-                </div>
-              </div>
-            ))}
+              ));
+            })}
           </div>
         </div>
       )}
@@ -3192,19 +3242,25 @@ export default function Home() {
             </div>
 
             {/* Custom Sections Slides (White Mode) */}
-            {result.sectiuni_aditionale?.map((sec: any, idx: number) => (
-              <div key={`pdf-custom-white-${idx}`} className="pdf-presentation-slide w-[1280px] h-[720px] bg-white flex flex-col px-24 py-16 border-[12px] border-emerald-900 box-border relative">
-                <div className="flex items-center gap-6 mb-8 shrink-0">
-                  <div className="w-16 h-2 bg-emerald-600"></div>
-                  <h2 className="text-lg font-black font-sans uppercase tracking-widest text-emerald-800">{sec.titlu}</h2>
+            {result.sectiuni_aditionale?.flatMap((sec: any, secIdx: number) => {
+              if (!sec || !sec.continut) return [];
+              const slides = splitTextIntoSlides(sec.continut, 700);
+              return slides.map((slideContent, slideIdx) => (
+                <div key={`pdf-custom-white-${secIdx}-${slideIdx}`} className="pdf-presentation-slide w-[1280px] h-[720px] bg-white flex flex-col px-24 py-16 border-[12px] border-emerald-900 box-border relative overflow-hidden">
+                  <div className="flex items-center gap-6 mb-8 shrink-0">
+                    <div className="w-16 h-2 bg-emerald-600"></div>
+                    <h2 className="text-lg font-black font-sans uppercase tracking-widest text-emerald-800 line-clamp-1">
+                      {sec.titlu || 'Secțiune Adițională'} {slides.length > 1 ? `(Partea ${slideIdx + 1})` : ''}
+                    </h2>
+                  </div>
+                  <div className="flex-1 w-full bg-emerald-50/50 p-8 rounded-2xl border border-emerald-100 overflow-hidden">
+                    <p className="text-zinc-700 text-base italic leading-relaxed whitespace-pre-line">
+                      {formatNumberedText(slideContent)}
+                    </p>
+                  </div>
                 </div>
-                <div className="flex-1 w-full bg-emerald-50/50 p-8 rounded-2xl border border-emerald-100">
-                  <p className="text-zinc-700 text-lg italic leading-relaxed whitespace-pre-line overflow-hidden max-h-full">
-                    {formatNumberedText(sec.continut)}
-                  </p>
-                </div>
-              </div>
-            ))}
+              ));
+            })}
 
             {/* CTA Slide (For PDF Summary) */}
             <div className="pdf-cta-slide w-[1280px] h-[720px] bg-emerald-950 flex flex-col justify-center items-center p-24 border-[12px] border-emerald-900 box-border relative text-center">
@@ -3226,6 +3282,7 @@ export default function Home() {
           setShowPricingModal(false);
           setPendingDownloadMode(null);
         }}
+        onSuccess={() => setPromoCodeUnlocked(true)}
         onRequireLogin={() => {
           setShowPricingModal(false);
           setShowAuthModal(true);

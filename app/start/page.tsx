@@ -76,6 +76,25 @@ const truncateText = (text: any, length: number) => {
   return text.length > length ? text.substring(0, length) + '...' : text;
 };
 
+const splitTextIntoSlides = (text: any, maxChars: number = 800): string[] => {
+  if (!text || typeof text !== 'string') return [];
+  const paragraphs = text.split('\n');
+  const slides: string[] = [];
+  let currentSlide = "";
+  for (const para of paragraphs) {
+    if ((currentSlide + "\n" + para).length > maxChars && currentSlide.trim().length > 0) {
+      slides.push(currentSlide.trim());
+      currentSlide = para;
+    } else {
+      currentSlide = currentSlide ? currentSlide + "\n" + para : para;
+    }
+  }
+  if (currentSlide.trim().length > 0) {
+    slides.push(currentSlide.trim());
+  }
+  return slides;
+};
+
 
 export default function Home() {
   const [skill, setSkill] = useState("");
@@ -325,6 +344,7 @@ export default function Home() {
   const [innerMockupTab, setInnerMockupTab] = useState('SWOT');
   
   const [user, setUser] = useState<any>(null);
+  const [promoCodeUnlocked, setPromoCodeUnlocked] = useState(false);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
@@ -333,10 +353,10 @@ export default function Home() {
     return () => unsubscribe();
   }, []);
   const ADMIN_EMAILS = ['contact@ideeata.ai', 'nadiaramonaz@gmail.com'];
-  const isAdmin = false;
-  const isPlanPaid = false;
-  const isStudioPaid = false;
-  const isContentCopyProtected = true;
+  const isAdmin = user ? ADMIN_EMAILS.includes(user.email || '') : false;
+  const isPlanPaid = promoCodeUnlocked || isAdmin;
+  const isStudioPaid = promoCodeUnlocked || isAdmin;
+  const isContentCopyProtected = !isPlanPaid && !isStudioPaid;
   const [isAuthLoading, setIsAuthLoading] = useState(false);
   const [authError, setAuthError] = useState<string | null>(null);
   const [email, setEmail] = useState("");
@@ -785,50 +805,107 @@ export default function Home() {
         slide1.addText(result.nume || 'IdeeaTa', { x: 0, y: 2.5, w: '100%', h: 1, fontSize: 54, bold: true, color: '10b981', align: 'center', fontFace: 'Arial' });
         slide1.addText(result.slogan || '', { x: 0, y: 3.5, w: '100%', h: 1, fontSize: 24, italic: true, color: 'e4e4e7', align: 'center', fontFace: 'Arial' });
 
-        // Slide 2: Viziune
+        // Slide 2: Obiective 1 An
         let slide2 = pres.addSlide({ masterName: 'MASTER_SLIDE' });
-        slide2.addText('DATE GENERALE ȘI VIZIUNE', { x: 0.5, y: 0.5, w: 9, h: 0.5, fontSize: 28, bold: true, color: '10b981', fontFace: 'Arial' });
-        slide2.addText('Forma juridică: ' + result.date_generale?.forma_juridica + '\nCod CAEN: ' + result.date_generale?.cod_caen + '\nContact: ' + result.date_generale?.date_contact, { x: 0.5, y: 1.2, w: 9, h: 0.8, fontSize: 14, color: 'a1a1aa' });
-        
-        slide2.addText('Obiective (1 an)', { x: 0.5, y: 2.2, w: 4.2, h: 0.4, fontSize: 18, bold: true, color: '10b981' });
-        slide2.addText(formatPptText(result.viziune_strategie?.obiective_scurt), { x: 0.5, y: 2.6, w: 4.2, h: 4, fontSize: 14, valign: 'top' });
-        
-        slide2.addText('Obiective (3-5 ani)', { x: 5.2, y: 2.2, w: 4.2, h: 0.4, fontSize: 18, bold: true, color: '10b981' });
-        slide2.addText(formatPptText(result.viziune_strategie?.obiective_mediu), { x: 5.2, y: 2.6, w: 4.2, h: 4, fontSize: 14, valign: 'top' });
+        slide2.addText('DATE GENERALE & OBIECTIVE', { x: 0.5, y: 0.5, w: 9, h: 0.5, fontSize: 28, bold: true, color: '10b981', fontFace: 'Arial' });
+        slide2.addText('Forma juridică: ' + result.date_generale?.forma_juridica + '\nCod CAEN: ' + result.date_generale?.cod_caen + '\nContact: ' + result.date_generale?.date_contact, { x: 0.5, y: 1.2, w: 9, h: 0.8, fontSize: 12, color: 'a1a1aa' });
+        slide2.addText('Obiective (1 an)', { x: 0.5, y: 2.2, w: 9, h: 0.4, fontSize: 16, bold: true, color: '10b981' });
+        slide2.addText(formatPptText(result.viziune_strategie?.obiective_scurt), { x: 0.5, y: 2.6, w: 9, h: 4, fontSize: 12, valign: 'top' });
 
-        // Slide 3: Misiune și Piață
+        // Slide 3: Obiective 3-5 ani
         let slide3 = pres.addSlide({ masterName: 'MASTER_SLIDE' });
-        slide3.addText('MISIUNE, VALORI ȘI PIAȚĂ', { x: 0.5, y: 0.5, w: 9, h: 0.5, fontSize: 28, bold: true, color: '10b981', fontFace: 'Arial' });
-        
-        slide3.addText('Misiune și Valori', { x: 0.5, y: 1.2, w: 4.2, h: 0.4, fontSize: 18, bold: true, color: '10b981' });
-        slide3.addText(formatPptText(result.viziune_strategie?.misiune_valori), { x: 0.5, y: 1.6, w: 4.2, h: 5.5, fontSize: 14, valign: 'top' });
-        
-        slide3.addText('Clienții Țintă', { x: 5.2, y: 1.2, w: 4.2, h: 0.4, fontSize: 18, bold: true, color: '10b981' });
-        slide3.addText(formatPptText(result.analiza_pietei?.clienti_tinta), { x: 5.2, y: 1.6, w: 4.2, h: 2, fontSize: 14, valign: 'top' });
-        
-        slide3.addText('Concurența', { x: 5.2, y: 3.8, w: 4.2, h: 0.4, fontSize: 18, bold: true, color: '10b981' });
-        slide3.addText(formatPptText(result.analiza_pietei?.concurenta), { x: 5.2, y: 4.2, w: 4.2, h: 3, fontSize: 14, valign: 'top' });
+        slide3.addText('OBIECTIVE PE TERMEN MEDIU', { x: 0.5, y: 0.5, w: 9, h: 0.5, fontSize: 28, bold: true, color: '10b981', fontFace: 'Arial' });
+        slide3.addText('Obiective (3-5 ani)', { x: 0.5, y: 1.2, w: 9, h: 0.4, fontSize: 16, bold: true, color: '10b981' });
+        slide3.addText(formatPptText(result.viziune_strategie?.obiective_mediu), { x: 0.5, y: 1.6, w: 9, h: 5.5, fontSize: 12, valign: 'top' });
 
-        // Slide 4: SWOT
+        // Slide 4: Misiune si Valori
         let slide4 = pres.addSlide({ masterName: 'MASTER_SLIDE' });
-        slide4.addText('ANALIZA SWOT', { x: 0.5, y: 0.5, w: 9, h: 0.5, fontSize: 28, bold: true, color: '10b981', fontFace: 'Arial' });
-        
-        slide4.addText('PUNCTE TARI (S)', { x: 0.5, y: 1.2, w: 4.2, h: 0.4, fontSize: 18, bold: true, color: '10b981' });
-        slide4.addText(swotFormat(result.analiza_swot?.puncte_tari, 'e4e4e7'), { x: 0.5, y: 1.6, w: 4.2, h: 2.5, fontSize: 12, valign: 'top' });
-        
-        slide4.addText('SLĂBICIUNI (W)', { x: 5.2, y: 1.2, w: 4.2, h: 0.4, fontSize: 18, bold: true, color: 'ef4444' });
-        slide4.addText(swotFormat(result.analiza_swot?.puncte_slabe, 'e4e4e7'), { x: 5.2, y: 1.6, w: 4.2, h: 2.5, fontSize: 12, valign: 'top' });
+        slide4.addText('MISIUNE ȘI VALORI', { x: 0.5, y: 0.5, w: 9, h: 0.5, fontSize: 28, bold: true, color: '10b981', fontFace: 'Arial' });
+        slide4.addText(formatPptText(result.viziune_strategie?.misiune_valori), { x: 0.5, y: 1.2, w: 9, h: 5.5, fontSize: 12, valign: 'top' });
 
-        slide4.addText('OPORTUNITĂȚI (O)', { x: 0.5, y: 4.2, w: 4.2, h: 0.4, fontSize: 18, bold: true, color: '3b82f6' });
-        slide4.addText(swotFormat(result.analiza_swot?.oportunitati, 'e4e4e7'), { x: 0.5, y: 4.6, w: 4.2, h: 2.5, fontSize: 12, valign: 'top' });
-        
-        slide4.addText('AMENINȚĂRI (T)', { x: 5.2, y: 4.2, w: 4.2, h: 0.4, fontSize: 18, bold: true, color: 'eab308' });
-        slide4.addText(swotFormat(result.analiza_swot?.amenintari, 'e4e4e7'), { x: 5.2, y: 4.6, w: 4.2, h: 2.5, fontSize: 12, valign: 'top' });
-
-        // Slide 5: Plan Operațional
+        // Slide 5: Clientii Tinta
         let slide5 = pres.addSlide({ masterName: 'MASTER_SLIDE' });
-        slide5.addText('PLAN OPERAȚIONAL ȘI DE MANAGEMENT', { x: 0.5, y: 0.5, w: 9, h: 0.5, fontSize: 28, bold: true, color: '10b981', fontFace: 'Arial' });
-        slide5.addText(formatPptText(result.plan_operational?.flux_tehnologic), { x: 0.5, y: 1.2, w: 9, h: 5.5, fontSize: 14, valign: 'top' });
+        slide5.addText('PIAȚA ȘI CONCURENȚA', { x: 0.5, y: 0.5, w: 9, h: 0.5, fontSize: 28, bold: true, color: '10b981', fontFace: 'Arial' });
+        slide5.addText('Clienții Țintă', { x: 0.5, y: 1.2, w: 9, h: 0.4, fontSize: 16, bold: true, color: '10b981' });
+        slide5.addText(formatPptText(result.analiza_pietei?.clienti_tinta), { x: 0.5, y: 1.6, w: 9, h: 5.5, fontSize: 11, valign: 'top' });
+
+        // Slide 6: Concurenta
+        let slide6 = pres.addSlide({ masterName: 'MASTER_SLIDE' });
+        slide6.addText('PIAȚA ȘI CONCURENȚA', { x: 0.5, y: 0.5, w: 9, h: 0.5, fontSize: 28, bold: true, color: '10b981', fontFace: 'Arial' });
+        slide6.addText('Concurența', { x: 0.5, y: 1.2, w: 9, h: 0.4, fontSize: 16, bold: true, color: '10b981' });
+        slide6.addText(formatPptText(result.analiza_pietei?.concurenta), { x: 0.5, y: 1.6, w: 9, h: 5.5, fontSize: 11, valign: 'top' });
+
+        // Slide 7: Strategia Marketing
+        let slide7 = pres.addSlide({ masterName: 'MASTER_SLIDE' });
+        slide7.addText('PROMOVARE', { x: 0.5, y: 0.5, w: 9, h: 0.5, fontSize: 28, bold: true, color: '10b981', fontFace: 'Arial' });
+        slide7.addText('Strategia de Marketing', { x: 0.5, y: 1.2, w: 9, h: 0.4, fontSize: 16, bold: true, color: '10b981' });
+        slide7.addText(formatPptText(result.analiza_pietei?.strategie_marketing), { x: 0.5, y: 1.6, w: 9, h: 5.5, fontSize: 11, valign: 'top' });
+
+        // Slide 8: SWOT Tari
+        let slide8 = pres.addSlide({ masterName: 'MASTER_SLIDE' });
+        slide8.addText('ANALIZĂ SWOT', { x: 0.5, y: 0.5, w: 9, h: 0.5, fontSize: 28, bold: true, color: '10b981', fontFace: 'Arial' });
+        slide8.addText('PUNCTE TARI (S)', { x: 0.5, y: 1.2, w: 9, h: 0.4, fontSize: 16, bold: true, color: '10b981' });
+        slide8.addText(swotFormat(result.analiza_swot?.puncte_tari, 'e4e4e7'), { x: 0.5, y: 1.6, w: 9, h: 5.5, fontSize: 11, valign: 'top' });
+
+        // Slide 9: SWOT Slabe
+        let slide9 = pres.addSlide({ masterName: 'MASTER_SLIDE' });
+        slide9.addText('ANALIZĂ SWOT', { x: 0.5, y: 0.5, w: 9, h: 0.5, fontSize: 28, bold: true, color: 'ef4444', fontFace: 'Arial' });
+        slide9.addText('SLĂBICIUNI (W)', { x: 0.5, y: 1.2, w: 9, h: 0.4, fontSize: 16, bold: true, color: 'ef4444' });
+        slide9.addText(swotFormat(result.analiza_swot?.puncte_slabe, 'e4e4e7'), { x: 0.5, y: 1.6, w: 9, h: 5.5, fontSize: 11, valign: 'top' });
+
+        // Slide 10: SWOT Oportunitati
+        let slide10 = pres.addSlide({ masterName: 'MASTER_SLIDE' });
+        slide10.addText('ANALIZĂ SWOT', { x: 0.5, y: 0.5, w: 9, h: 0.5, fontSize: 28, bold: true, color: '3b82f6', fontFace: 'Arial' });
+        slide10.addText('OPORTUNITĂȚI (O)', { x: 0.5, y: 1.2, w: 9, h: 0.4, fontSize: 16, bold: true, color: '3b82f6' });
+        slide10.addText(swotFormat(result.analiza_swot?.oportunitati, 'e4e4e7'), { x: 0.5, y: 1.6, w: 9, h: 5.5, fontSize: 11, valign: 'top' });
+
+        // Slide 11: SWOT Amenintari
+        let slide11 = pres.addSlide({ masterName: 'MASTER_SLIDE' });
+        slide11.addText('ANALIZĂ SWOT', { x: 0.5, y: 0.5, w: 9, h: 0.5, fontSize: 28, bold: true, color: 'eab308', fontFace: 'Arial' });
+        slide11.addText('AMENINȚĂRI (T)', { x: 0.5, y: 1.2, w: 9, h: 0.4, fontSize: 16, bold: true, color: 'eab308' });
+        slide11.addText(swotFormat(result.analiza_swot?.amenintari, 'e4e4e7'), { x: 0.5, y: 1.6, w: 9, h: 5.5, fontSize: 11, valign: 'top' });
+
+        // Slide 12: Flux Tehnologic
+        let slide12 = pres.addSlide({ masterName: 'MASTER_SLIDE' });
+        slide12.addText('PLAN OPERAȚIONAL', { x: 0.5, y: 0.5, w: 9, h: 0.5, fontSize: 28, bold: true, color: '10b981', fontFace: 'Arial' });
+        slide12.addText('Descriere Flux Tehnologic', { x: 0.5, y: 1.2, w: 9, h: 0.4, fontSize: 16, bold: true, color: '10b981' });
+        slide12.addText(formatPptText(result.plan_operational?.descriere_flux), { x: 0.5, y: 1.6, w: 9, h: 5.5, fontSize: 11, valign: 'top' });
+
+        // Slide 13: Resurse Umane
+        let slide13 = pres.addSlide({ masterName: 'MASTER_SLIDE' });
+        slide13.addText('PLAN OPERAȚIONAL', { x: 0.5, y: 0.5, w: 9, h: 0.5, fontSize: 28, bold: true, color: '10b981', fontFace: 'Arial' });
+        slide13.addText('Resurse Umane', { x: 0.5, y: 1.2, w: 9, h: 0.4, fontSize: 16, bold: true, color: '10b981' });
+        slide13.addText(formatPptText(result.plan_operational?.resurse_umane), { x: 0.5, y: 1.6, w: 9, h: 5.5, fontSize: 11, valign: 'top' });
+
+        // Slide 14: Locatie
+        let slide14 = pres.addSlide({ masterName: 'MASTER_SLIDE' });
+        slide14.addText('PLAN OPERAȚIONAL', { x: 0.5, y: 0.5, w: 9, h: 0.5, fontSize: 28, bold: true, color: '10b981', fontFace: 'Arial' });
+        slide14.addText('Locație și Dotări', { x: 0.5, y: 1.2, w: 9, h: 0.4, fontSize: 16, bold: true, color: '10b981' });
+        slide14.addText(formatPptText(result.plan_operational?.locatie_dotari), { x: 0.5, y: 1.6, w: 9, h: 5.5, fontSize: 11, valign: 'top' });
+
+        // Slides for Buget (chunked)
+        const budgetItems = result.plan_financiar?.buget_investitii || [];
+        const numBudgetSlides = Math.ceil((budgetItems.length || 1) / 4);
+        for(let slideIdx = 0; slideIdx < numBudgetSlides; slideIdx++) {
+           let bSlide = pres.addSlide({ masterName: 'MASTER_SLIDE' });
+           bSlide.addText('BUGET INVESTIȚII' + (slideIdx > 0 ? ` (Partea ${slideIdx + 1})` : ''), { x: 0.5, y: 0.5, w: 9, h: 0.5, fontSize: 28, bold: true, color: '10b981', fontFace: 'Arial' });
+           
+           const chunk = budgetItems.slice(slideIdx * 4, slideIdx * 4 + 4);
+           let bText = chunk.map((b: any) => ({ text: b.item + ' - ' + formatPrice(b.cost) + '\n' + b.explicatie, options: { bullet: true, color: 'e4e4e7', breakLine: true } }));
+           bSlide.addText(bText, { x: 0.5, y: 1.2, w: 9, h: 5.5, fontSize: 11, valign: 'top' });
+        }
+
+        // Slides for Custom/Additional Sections
+        result.sectiuni_aditionale?.forEach((sec: any) => {
+           if (!sec || !sec.continut) return;
+           const slides = splitTextIntoSlides(sec.continut, 700);
+           slides.forEach((slideContent, slideIdx) => {
+              let cSlide = pres.addSlide({ masterName: 'MASTER_SLIDE' });
+              const secTitle = (sec.titlu || 'Secțiune Adițională').toUpperCase();
+              cSlide.addText(secTitle + (slides.length > 1 ? ` (Partea ${slideIdx + 1})` : ''), { x: 0.5, y: 0.5, w: 9, h: 0.5, fontSize: 22, bold: true, color: '10b981', fontFace: 'Arial' });
+              cSlide.addText(formatPptText(slideContent), { x: 0.5, y: 1.2, w: 9, h: 5.5, fontSize: 11, valign: 'top' });
+           });
+        });
 
         const safeName = result?.nume?.replace(/[^a-zA-Z0-9]/g, '_') || 'Business';
         await pres.writeFile({ fileName: `IdeeaTa_Brosura_${safeName}.pptx` });
@@ -893,7 +970,18 @@ export default function Home() {
         const suffix = mode === 'pdf-summary' ? '_Sumar_Gratuit' : '';
         pdf.save(`IdeeaTa_Prezentare_${safeName}${suffix}.pdf`);
       } else if (mode === 'word') {
-          const preHtml = "<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'><head><meta charset='utf-8'><title>Plan de Afaceri</title></head><body>";
+          let chartImgHtml = "";
+          const chartElement = document.getElementById("docx-chart-container");
+          if (chartElement) {
+             try {
+                const chartDataUrl = await toPng(chartElement, { backgroundColor: '#ffffff', style: { color: '#000000' } });
+                chartImgHtml = `<div style="text-align:center; margin-bottom: 24px; font-family: Arial, sans-serif;"><h3 style="color: #065f46;">Distribuția Costurilor</h3><img src="${chartDataUrl}" width="600" style="display:block; margin: 0 auto;" /><br/></div>`;
+             } catch (err) {
+                console.error("Failed to capture chart for Word export:", err);
+             }
+          }
+
+          const preHtml = "<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'><head><meta charset='utf-8'><title>Plan de Afaceri</title><style>body, ul, li, p, td { text-align: justify; }</style></head><body>";
           const postHtml = "</body></html>";
           
           let html = `
@@ -960,11 +1048,17 @@ export default function Home() {
                   <li style="margin-bottom: 10px;"><strong>Locație și Dotări Necesare:</strong><br/>${result.plan_operational?.locatie_dotari}</li>
               </ol>
 
+              ${(result.sectiuni_aditionale && result.sectiuni_aditionale.length > 0) ? result.sectiuni_aditionale.map((sec: any) => `
+                <h2 style="font-family: Arial, sans-serif; color: #065f46; margin-top: 24px;">${sec.titlu || 'Secțiune Adițională'}</h2>
+                <p style="font-family: Arial, sans-serif; line-height: 1.6; font-size: 14px; white-space: pre-line; text-align: justify;">${sec.continut || ''}</p>
+              `).join('') : ''}
+
               <h2 style="font-family: Arial, sans-serif; color: #065f46;">VI. Planul Financiar</h2>
               <p style="font-family: Arial, sans-serif; line-height: 1.6; font-size: 14px; font-style: italic;">
                   ${result.plan_financiar?.strategie_financiara}
               </p>
-              <h3 style="font-family: Arial, sans-serif; font-size: 16px;">Buget Investiții</h3>
+              ${chartImgHtml}
+              <h3 style="font-family: Arial, sans-serif; font-size: 16px;">Detalii Buget Investiții</h3>
               <ul style="font-family: Arial, sans-serif; line-height: 1.6; font-size: 14px;">
                   ${[...(result.plan_financiar?.buget_investitii || [])].sort((a: any, b: any) => parseInt(b.cost?.toString().replace(/[^0-9]/g, '') || '0') - parseInt(a.cost?.toString().replace(/[^0-9]/g, '') || '0')).map((b: any) => `<li><strong>${b.item}</strong> - <span style="color:#065f46;">${formatPrice(b.cost)}</span><br/><span style="color:#555; font-style:italic;">${b.explicatie}</span></li>`).join('') || ''}
               </ul>
@@ -2279,12 +2373,11 @@ export default function Home() {
                <h3 className="pdf-section text-emerald-400 text-sm font-black uppercase mb-6 tracking-[0.2em] text-center drop-shadow-md print:text-emerald-800 print:drop-shadow-none">
                  VI. Planul Financiar
                </h3>
-               
-               <div className="pdf-section text-zinc-300 italic text-left leading-relaxed max-w-4xl mx-auto mb-10 print:text-gray-700 whitespace-pre-line">
+                <div className="pdf-section text-zinc-300 italic text-left leading-relaxed max-w-4xl mx-auto mb-10 print:text-gray-700 whitespace-pre-line">
                  {formatNumberedText(result.plan_financiar?.strategie_financiara)}
                </div>
 
-               <div className="mb-16">
+               <div className="mb-16" id="docx-chart-container">
                  <h4 className="text-zinc-500 font-bold uppercase tracking-wider mb-6 text-sm">Distribuția costurilor</h4>
                  <BudgetPieChart budget={result.plan_financiar?.buget_investitii} currency={currency} />
                </div>
@@ -2785,6 +2878,7 @@ export default function Home() {
           setShowPricingModal(false);
           setPendingDownloadMode(null);
         }}
+        onSuccess={() => setPromoCodeUnlocked(true)}
         onRequireLogin={() => {
           setShowPricingModal(false);
           setShowAuthModal(true);

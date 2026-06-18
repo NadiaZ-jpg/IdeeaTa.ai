@@ -3,7 +3,8 @@ import { NextRequest, NextResponse } from "next/server";
 
 export const maxDuration = 60;
 
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+const apiKey = process.env.GEMINI_API_KEY?.trim() || "";
+const ai = new GoogleGenAI({ apiKey });
 
 const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 

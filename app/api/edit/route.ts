@@ -156,6 +156,16 @@ NU adăuga formatare markdown, NU adăuga backticks (\`\`\`), NU adăuga text ad
     
     // Sanitize common JSON errors
     text = text.replace(/,\s*([}\]])/g, '$1'); // Fix trailing commas
+    
+    // Fix unescaped control characters inside JSON string values (the main cause of "Bad control character" errors)
+    // This replaces literal newlines/tabs/carriage returns inside JSON strings with their escaped versions
+    text = text.replace(/"((?:[^"\\]|\\.)*)"/g, (_match: string, inner: string) => {
+      const fixed = inner
+        .replace(/\n/g, '\\n')
+        .replace(/\r/g, '\\r')
+        .replace(/\t/g, '\\t');
+      return '"' + fixed + '"';
+    });
 
     let mergedResult = result;
     try {

@@ -12,6 +12,7 @@ import { signInWithPopup, GoogleAuthProvider, FacebookAuthProvider, onAuthStateC
 import { doc, onSnapshot, setDoc, getDoc, increment, arrayUnion } from 'firebase/firestore';
 import { PricingModal } from '@/components/PricingModal';
 import { AdBanner } from '@/components/AdBanner';
+import { generateDocxBlob } from '@/lib/generateDocx';
 
 const formatNumberedText = (text: string | undefined) => {
   if (typeof text !== 'string') return text;
@@ -963,119 +964,23 @@ export default function Home() {
           if (currentShareId) {
             pdfUrl = `https://ideea-ta-ai.vercel.app/shared/${currentShareId}`;
           }
-          pdf.link(1280/2 - 200, 720 - 180, 400, 100, { url: pdfUrl });
-        }
-        
-        const safeName = result?.nume?.replace(/[^a-zA-Z0-9]/g, '_') || 'Business';
-        const suffix = mode === 'pdf-summary' ? '_Sumar_Gratuit' : '';
-        pdf.save(`IdeeaTa_Prezentare_${safeName}${suffix}.pdf`);
-      } else if (mode === 'word') {
-          let chartImgHtml = "";
+          } else if (mode === 'word') {
+          // Capture chart image for embedding in Word document
+          let chartDataUrl: string | null = null;
           const chartElement = document.getElementById("docx-chart-container");
           if (chartElement) {
-             try {
-                const chartDataUrl = await toPng(chartElement, { backgroundColor: '#ffffff', style: { color: '#000000' } });
-                chartImgHtml = `<div style="text-align:center; margin-bottom: 24px; font-family: Arial, sans-serif;"><h3 style="color: #065f46;">Distribuția Costurilor</h3><img src="${chartDataUrl}" width="600" style="display:block; margin: 0 auto;" /><br/></div>`;
-             } catch (err) {
-                console.error("Failed to capture chart for Word export:", err);
-             }
+            try {
+              chartDataUrl = await toPng(chartElement, { backgroundColor: '#ffffff', style: { color: '#000000' } });
+            } catch (err) {
+              console.error("Failed to capture chart for Word export:", err);
+            }
           }
 
-          const preHtml = "<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'><head><meta charset='utf-8'><title>Plan de Afaceri</title><style>body, ul, li, p, td { text-align: justify; }</style></head><body>";
-          const postHtml = "</body></html>";
-          
-          let html = `
-              <h1 style="text-align:center; font-family: Arial, sans-serif;">${result.nume || ''}</h1>
-              <h3 style="text-align:center; color: #555; font-style: italic; font-family: Arial, sans-serif;">„${result.slogan || ''}”</h3>
-              <hr />
-              
-              <h2 style="font-family: Arial, sans-serif; color: #065f46;">I & II. Date Generale și Viziune</h2>
-              <table width="100%" cellpadding="5" cellspacing="0" style="font-family: Arial, sans-serif; font-size: 14px; margin-bottom: 20px;">
-                <tr><td width="30%"><strong>Forma Juridică:</strong></td><td>${result.date_generale?.forma_juridica}</td></tr>
-                <tr><td><strong>Cod CAEN:</strong></td><td>${result.date_generale?.cod_caen}</td></tr>
-                <tr><td><strong>Date Contact:</strong></td><td>${result.date_generale?.date_contact}</td></tr>
-              </table>
-              <h3 style="font-family: Arial, sans-serif; font-size: 16px;">Viziune și Strategie</h3>
-              <ul style="font-family: Arial, sans-serif; font-size: 14px;">
-                <li style="margin-bottom: 10px;"><strong>Obiective pe Termen Scurt:</strong><br/>${result.viziune_strategie?.obiective_scurt}</li>
-                <li style="margin-bottom: 10px;"><strong>Obiective pe Termen Mediu:</strong><br/>${result.viziune_strategie?.obiective_mediu}</li>
-                <li style="margin-bottom: 10px;"><strong>Misiune și Valori:</strong><br/>${result.viziune_strategie?.misiune_valori}</li>
-              </ul>
-
-              <h2 style="font-family: Arial, sans-serif; color: #065f46;">III. Analiza Pieței și Promovarea</h2>
-              <ul style="font-family: Arial, sans-serif; font-size: 14px;">
-                <li style="margin-bottom: 10px;"><strong>Clienții Țintă:</strong><br/>${result.analiza_pietei?.clienti_tinta}</li>
-                <li style="margin-bottom: 10px;"><strong>Concurența:</strong><br/>${result.analiza_pietei?.concurenta}</li>
-                <li style="margin-bottom: 10px;"><strong>Strategia de Marketing:</strong><br/>${result.analiza_pietei?.strategie_marketing}</li>
-              </ul>
-
-              <h2 style="font-family: Arial, sans-serif; color: #065f46;">IV. Analiza SWOT</h2>
-              <table width="100%" border="1" cellpadding="10" cellspacing="0" style="border-collapse: collapse; font-family: Arial, sans-serif; width: 100%;">
-                  <tr>
-                      <td width="50%" valign="top">
-                          <h3 style="color: #065f46;">Puncte Tari (S)</h3>
-                          <ul>
-                              ${result.analiza_swot?.puncte_tari?.map((item: any) => `<li><strong style="color:#065f46;">${item.titlu || item}</strong><br/>${item.explicatie_tehnica}</li>`).join('') || ''}
-                          </ul>
-                      </td>
-                      <td width="50%" valign="top">
-                          <h3 style="color: #9a3412;">Slăbiciuni (W)</h3>
-                          <ul>
-                              ${result.analiza_swot?.puncte_slabe?.map((item: any) => `<li><strong style="color:#9a3412;">${item.titlu || item}</strong><br/>${item.explicatie_tehnica}</li>`).join('') || ''}
-                          </ul>
-                      </td>
-                  </tr>
-                  <tr>
-                      <td width="50%" valign="top">
-                          <h3 style="color: #1e40af;">Oportunități (O)</h3>
-                          <ul>
-                              ${result.analiza_swot?.oportunitati?.map((item: any) => `<li><strong style="color:#1e40af;">${item.titlu || item}</strong><br/>${item.explicatie_tehnica}</li>`).join('') || ''}
-                          </ul>
-                      </td>
-                      <td width="50%" valign="top">
-                          <h3 style="color: #991b1b;">Amenințări (T)</h3>
-                          <ul>
-                              ${result.analiza_swot?.amenintari?.map((item: any) => `<li><strong style="color:#991b1b;">${item.titlu || item}</strong><br/>${item.explicatie_tehnica}</li>`).join('') || ''}
-                          </ul>
-                      </td>
-                  </tr>
-              </table>
-              
-              <h2 style="font-family: Arial, sans-serif; color: #065f46; margin-top: 24px;">V. Planul Operațional și de Management</h2>
-              <ol style="font-family: Arial, sans-serif; line-height: 1.6; font-size: 14px; padding-left: 20px;">
-                  <li style="margin-bottom: 10px;"><strong>Descriere Flux Tehnologic:</strong><br/>${result.plan_operational?.descriere_flux}</li>
-                  <li style="margin-bottom: 10px;"><strong>Resurse Umane (Organigramă):</strong><br/>${result.plan_operational?.resurse_umane}</li>
-                  <li style="margin-bottom: 10px;"><strong>Locație și Dotări Necesare:</strong><br/>${result.plan_operational?.locatie_dotari}</li>
-              </ol>
-
-              ${(result.sectiuni_aditionale && result.sectiuni_aditionale.length > 0) ? result.sectiuni_aditionale.map((sec: any) => `
-                <h2 style="font-family: Arial, sans-serif; color: #065f46; margin-top: 24px;">${sec.titlu || 'Secțiune Adițională'}</h2>
-                <p style="font-family: Arial, sans-serif; line-height: 1.6; font-size: 14px; white-space: pre-line; text-align: justify;">${sec.continut || ''}</p>
-              `).join('') : ''}
-
-              <h2 style="font-family: Arial, sans-serif; color: #065f46;">VI. Planul Financiar</h2>
-              <p style="font-family: Arial, sans-serif; line-height: 1.6; font-size: 14px; font-style: italic;">
-                  ${result.plan_financiar?.strategie_financiara}
-              </p>
-              ${chartImgHtml}
-              <h3 style="font-family: Arial, sans-serif; font-size: 16px;">Detalii Buget Investiții</h3>
-              <ul style="font-family: Arial, sans-serif; line-height: 1.6; font-size: 14px;">
-                  ${[...(result.plan_financiar?.buget_investitii || [])].sort((a: any, b: any) => parseInt(b.cost?.toString().replace(/[^0-9]/g, '') || '0') - parseInt(a.cost?.toString().replace(/[^0-9]/g, '') || '0')).map((b: any) => `<li><strong>${b.item}</strong> - <span style="color:#065f46;">${formatPrice(b.cost)}</span><br/><span style="color:#555; font-style:italic;">${b.explicatie}</span></li>`).join('') || ''}
-              </ul>
-              <h3 style="text-align:right; font-family: Arial, sans-serif; color: #065f46;">
-                  Total Estimat: ${formatPrice(result.plan_financiar?.buget_investitii?.reduce((sum: number, b: any) => sum + parseInt(b.cost?.toString().replace(/[^0-9]/g, '') || '0'), 0).toString())}
-              </h3>
-          `;
-          
-          const blob = new Blob(['\ufeff', preHtml + html + postHtml], {
-              type: 'application/msword'
-          });
+          const blob = await generateDocxBlob(result, chartDataUrl);
           const link = document.createElement('a');
           link.href = URL.createObjectURL(blob);
-          
           const safeName = result?.nume?.replace(/[^a-zA-Z0-9]/g, '_') || 'Business';
-          link.download = `IdeeaTa_Document_${safeName}.doc`;
-          
+          link.download = `IdeeaTa_Document_${safeName}.docx`;
           document.body.appendChild(link);
           link.click();
           document.body.removeChild(link);

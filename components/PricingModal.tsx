@@ -30,23 +30,27 @@ export function PricingModal({ isOpen, onClose, onSuccess, onRequireLogin, userI
     setLoadingTier(tier);
     setError(null);
     try {
-      const res = await fetch("/api/checkout", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          tier,
-          currency,
-          userId,
-          email: userEmail,
-          planName: tier === "standard" ? planName : undefined,
-        }),
-      });
- 
-      const data = await res.json();
-      if (data.url) {
-        window.location.href = data.url;
+      let checkoutUrl = "";
+      
+      // Lemon Squeezy Checkout URLs
+      if (tier === "standard") {
+        checkoutUrl = "https://ideeta.lemonsqueezy.com/checkout/buy/dbd62a14-ca39-47ea-8d4f-cd1ef1f3270e";
+      } else if (tier === "eu-funds") {
+        checkoutUrl = "https://ideeta.lemonsqueezy.com/checkout/buy/561d5420-b48c-446e-830e-c5a25ed30b13";
+      } else if (tier === "pro") {
+        checkoutUrl = "https://ideeta.lemonsqueezy.com/checkout/buy/a3059ce5-f0e8-45d2-8dc2-ce9f9ff02100";
+      }
+
+      if (checkoutUrl) {
+        const urlObj = new URL(checkoutUrl);
+        if (userEmail) urlObj.searchParams.set("checkout[email]", userEmail);
+        urlObj.searchParams.set("checkout[custom][userId]", userId);
+        if (tier === "standard" && planName) {
+           urlObj.searchParams.set("checkout[custom][planName]", planName);
+        }
+        window.location.href = urlObj.toString();
       } else {
-        throw new Error(data.error || "Eroare necunoscută la generarea plății.");
+        throw new Error("Pachet invalid.");
       }
     } catch (err: any) {
       console.error(err);
@@ -271,7 +275,7 @@ export function PricingModal({ isOpen, onClose, onSuccess, onRequireLogin, userI
         <div className="flex justify-center items-center gap-6 mt-2 opacity-50 text-[10px] text-zinc-500 border-t border-zinc-900 pt-6">
           <span className="flex items-center gap-1.5 font-bold uppercase tracking-wider">🔒 Conexiune Securizată SSL</span>
           <span className="flex items-center gap-1.5 font-bold uppercase tracking-wider">🛡 PCI-DSS Securitate Card</span>
-          <span className="flex items-center gap-1.5 font-bold uppercase tracking-wider">💳 Procesat Securizat prin Stripe</span>
+          <span className="flex items-center gap-1.5 font-bold uppercase tracking-wider">💳 Procesat Securizat prin Lemon Squeezy</span>
         </div>
 
       </div>

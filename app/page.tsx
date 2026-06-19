@@ -271,11 +271,14 @@ export default function Home() {
     setAiPromptInput("");
     setShowToneOptions(false);
     try {
-      const res = await fetch("/api/edit", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ result, action, customStyle, targetSection })
-      });
+      const [res] = await Promise.all([
+        fetch("/api/edit", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ result, action, customStyle, targetSection })
+        }),
+        new Promise(resolve => setTimeout(resolve, 12000))
+      ]);
       let data;
       try {
         if (!res.ok) {
@@ -757,11 +760,14 @@ export default function Home() {
     }
 
     try {
-      const res = await fetch("/api/generate", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ skill }),
-      });
+      const [res] = await Promise.all([
+        fetch("/api/generate", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ skill }),
+        }),
+        new Promise(resolve => setTimeout(resolve, 12000))
+      ]);
 
       let data;
       try {
@@ -1122,6 +1128,8 @@ export default function Home() {
           link.click();
           document.body.removeChild(link);
       }
+
+      await new Promise(resolve => setTimeout(resolve, 12000));
     } catch (e) {
       console.error("Eroare la generarea documentului", e);
       alert("A apărut o eroare la salvarea documentului.");

@@ -942,11 +942,11 @@ export default function Home() {
             if (!text) return [];
             let stripped = text.replace(/^(?:În primul an:?|În următorii(?:\s*\d+(?:-\d+)?\s*ani)?:?|Obiective(?:le)?[^:]*:?|Pentru primul an:?|Pe termen scurt:?|Pe termen mediu:?)\s*/i, '').replace(/\*\*/g, '');
             return stripped.split('\n').filter(l => l.trim().length > 0).map(l => {
-                return { text: l.trim(), options: { bullet: false, color, breakLine: true } };
+                return { text: l.trim(), options: { bullet: false, color, breakLine: true, fontFace: 'Times New Roman' } };
             });
         };
 
-        const swotFormat = (arr: any[], color: string) => arr?.map((i: any) => ({ text: (i.titlu || i) + '\n' + (i.explicatie_tehnica || ''), options: { color, bullet: true, breakLine: true } })) || [];
+        const swotFormat = (arr: any[], color: string) => arr?.map((i: any) => ({ text: (i.titlu || i) + '\n' + (i.explicatie_tehnica || ''), options: { color, bullet: true, breakLine: true, fontFace: 'Times New Roman' } })) || [];
 
         // Slide 1: Title
         let slide1 = pres.addSlide({ masterName: 'MASTER_SLIDE' });
@@ -956,14 +956,14 @@ export default function Home() {
         // Slide 2: Obiective 1 An
         let slide2 = pres.addSlide({ masterName: 'MASTER_SLIDE' });
         slide2.addText('DATE GENERALE & OBIECTIVE', { x: 0.5, y: 0.5, w: 9, h: 0.5, fontSize: 28, bold: true, color: '10b981', fontFace: 'Times New Roman' });
-        slide2.addText('Forma juridică: ' + result.date_generale?.forma_juridica + '\nCod CAEN: ' + result.date_generale?.cod_caen + '\nContact: ' + result.date_generale?.date_contact, { x: 0.5, y: 1.2, w: 9, h: 0.8, fontSize: 12, color: 'a1a1aa' });
-        slide2.addText('Obiective (1 an)', { x: 0.5, y: 2.2, w: 9, h: 0.4, fontSize: 16, bold: true, color: '10b981' });
+        slide2.addText('Forma juridică: ' + result.date_generale?.forma_juridica + '\nCod CAEN: ' + result.date_generale?.cod_caen + '\nContact: ' + result.date_generale?.date_contact, { x: 0.5, y: 1.2, w: 9, h: 0.8, fontSize: 12, color: 'a1a1aa', fontFace: 'Times New Roman' });
+        slide2.addText('Obiective (1 an)', { x: 0.5, y: 2.2, w: 9, h: 0.4, fontSize: 16, bold: true, color: '10b981', fontFace: 'Times New Roman' });
         slide2.addText(formatPptText(result.viziune_strategie?.obiective_scurt), { x: 0.5, y: 2.6, w: 9, h: 4, fontSize: 12, valign: 'top' });
 
         // Slide 3: Obiective 3-5 ani
         let slide3 = pres.addSlide({ masterName: 'MASTER_SLIDE' });
         slide3.addText('OBIECTIVE PE TERMEN MEDIU', { x: 0.5, y: 0.5, w: 9, h: 0.5, fontSize: 28, bold: true, color: '10b981', fontFace: 'Times New Roman' });
-        slide3.addText('Obiective (3-5 ani)', { x: 0.5, y: 1.2, w: 9, h: 0.4, fontSize: 16, bold: true, color: '10b981' });
+        slide3.addText('Obiective (3-5 ani)', { x: 0.5, y: 1.2, w: 9, h: 0.4, fontSize: 16, bold: true, color: '10b981', fontFace: 'Times New Roman' });
         slide3.addText(formatPptText(result.viziune_strategie?.obiective_mediu), { x: 0.5, y: 1.6, w: 9, h: 5.5, fontSize: 12, valign: 'top' });
 
         // Slide 4: Misiune si Valori
@@ -974,61 +974,61 @@ export default function Home() {
         // Slide 5: Clientii Tinta
         let slide5 = pres.addSlide({ masterName: 'MASTER_SLIDE' });
         slide5.addText('PIAȚA ȘI CONCURENȚA', { x: 0.5, y: 0.5, w: 9, h: 0.5, fontSize: 28, bold: true, color: '10b981', fontFace: 'Times New Roman' });
-        slide5.addText('Clienții Țintă', { x: 0.5, y: 1.2, w: 9, h: 0.4, fontSize: 16, bold: true, color: '10b981' });
+        slide5.addText('Clienții Țintă', { x: 0.5, y: 1.2, w: 9, h: 0.4, fontSize: 16, bold: true, color: '10b981', fontFace: 'Times New Roman' });
         slide5.addText(formatPptText(result.analiza_pietei?.clienti_tinta), { x: 0.5, y: 1.6, w: 9, h: 5.5, fontSize: 11, valign: 'top' });
 
         // Slide 6: Concurenta
         let slide6 = pres.addSlide({ masterName: 'MASTER_SLIDE' });
         slide6.addText('PIAȚA ȘI CONCURENȚA', { x: 0.5, y: 0.5, w: 9, h: 0.5, fontSize: 28, bold: true, color: '10b981', fontFace: 'Times New Roman' });
-        slide6.addText('Concurența', { x: 0.5, y: 1.2, w: 9, h: 0.4, fontSize: 16, bold: true, color: '10b981' });
+        slide6.addText('Concurența', { x: 0.5, y: 1.2, w: 9, h: 0.4, fontSize: 16, bold: true, color: '10b981', fontFace: 'Times New Roman' });
         slide6.addText(formatPptText(result.analiza_pietei?.concurenta), { x: 0.5, y: 1.6, w: 9, h: 5.5, fontSize: 11, valign: 'top' });
 
         // Slide 7: Strategia Marketing
         let slide7 = pres.addSlide({ masterName: 'MASTER_SLIDE' });
         slide7.addText('PROMOVARE', { x: 0.5, y: 0.5, w: 9, h: 0.5, fontSize: 28, bold: true, color: '10b981', fontFace: 'Times New Roman' });
-        slide7.addText('Strategia de Marketing', { x: 0.5, y: 1.2, w: 9, h: 0.4, fontSize: 16, bold: true, color: '10b981' });
+        slide7.addText('Strategia de Marketing', { x: 0.5, y: 1.2, w: 9, h: 0.4, fontSize: 16, bold: true, color: '10b981', fontFace: 'Times New Roman' });
         slide7.addText(formatPptText(result.analiza_pietei?.strategie_marketing), { x: 0.5, y: 1.6, w: 9, h: 5.5, fontSize: 11, valign: 'top' });
 
         // Slide 8: SWOT Tari
         let slide8 = pres.addSlide({ masterName: 'MASTER_SLIDE' });
         slide8.addText('ANALIZĂ SWOT', { x: 0.5, y: 0.5, w: 9, h: 0.5, fontSize: 28, bold: true, color: '10b981', fontFace: 'Times New Roman' });
-        slide8.addText('PUNCTE TARI (S)', { x: 0.5, y: 1.2, w: 9, h: 0.4, fontSize: 16, bold: true, color: '10b981' });
+        slide8.addText('PUNCTE TARI (S)', { x: 0.5, y: 1.2, w: 9, h: 0.4, fontSize: 16, bold: true, color: '10b981', fontFace: 'Times New Roman' });
         slide8.addText(swotFormat(result.analiza_swot?.puncte_tari, 'e4e4e7'), { x: 0.5, y: 1.6, w: 9, h: 5.5, fontSize: 11, valign: 'top' });
 
         // Slide 9: SWOT Slabe
         let slide9 = pres.addSlide({ masterName: 'MASTER_SLIDE' });
         slide9.addText('ANALIZĂ SWOT', { x: 0.5, y: 0.5, w: 9, h: 0.5, fontSize: 28, bold: true, color: 'ef4444', fontFace: 'Times New Roman' });
-        slide9.addText('SLĂBICIUNI (W)', { x: 0.5, y: 1.2, w: 9, h: 0.4, fontSize: 16, bold: true, color: 'ef4444' });
+        slide9.addText('SLĂBICIUNI (W)', { x: 0.5, y: 1.2, w: 9, h: 0.4, fontSize: 16, bold: true, color: 'ef4444', fontFace: 'Times New Roman' });
         slide9.addText(swotFormat(result.analiza_swot?.puncte_slabe, 'e4e4e7'), { x: 0.5, y: 1.6, w: 9, h: 5.5, fontSize: 11, valign: 'top' });
 
         // Slide 10: SWOT Oportunitati
         let slide10 = pres.addSlide({ masterName: 'MASTER_SLIDE' });
         slide10.addText('ANALIZĂ SWOT', { x: 0.5, y: 0.5, w: 9, h: 0.5, fontSize: 28, bold: true, color: '3b82f6', fontFace: 'Times New Roman' });
-        slide10.addText('OPORTUNITĂȚI (O)', { x: 0.5, y: 1.2, w: 9, h: 0.4, fontSize: 16, bold: true, color: '3b82f6' });
+        slide10.addText('OPORTUNITĂȚI (O)', { x: 0.5, y: 1.2, w: 9, h: 0.4, fontSize: 16, bold: true, color: '3b82f6', fontFace: 'Times New Roman' });
         slide10.addText(swotFormat(result.analiza_swot?.oportunitati, 'e4e4e7'), { x: 0.5, y: 1.6, w: 9, h: 5.5, fontSize: 11, valign: 'top' });
 
         // Slide 11: SWOT Amenintari
         let slide11 = pres.addSlide({ masterName: 'MASTER_SLIDE' });
         slide11.addText('ANALIZĂ SWOT', { x: 0.5, y: 0.5, w: 9, h: 0.5, fontSize: 28, bold: true, color: 'eab308', fontFace: 'Times New Roman' });
-        slide11.addText('AMENINȚĂRI (T)', { x: 0.5, y: 1.2, w: 9, h: 0.4, fontSize: 16, bold: true, color: 'eab308' });
+        slide11.addText('AMENINȚĂRI (T)', { x: 0.5, y: 1.2, w: 9, h: 0.4, fontSize: 16, bold: true, color: 'eab308', fontFace: 'Times New Roman' });
         slide11.addText(swotFormat(result.analiza_swot?.amenintari, 'e4e4e7'), { x: 0.5, y: 1.6, w: 9, h: 5.5, fontSize: 11, valign: 'top' });
 
         // Slide 12: Flux Tehnologic
         let slide12 = pres.addSlide({ masterName: 'MASTER_SLIDE' });
         slide12.addText('PLAN OPERAȚIONAL', { x: 0.5, y: 0.5, w: 9, h: 0.5, fontSize: 28, bold: true, color: '10b981', fontFace: 'Times New Roman' });
-        slide12.addText('Descriere Flux Tehnologic', { x: 0.5, y: 1.2, w: 9, h: 0.4, fontSize: 16, bold: true, color: '10b981' });
+        slide12.addText('Descriere Flux Tehnologic', { x: 0.5, y: 1.2, w: 9, h: 0.4, fontSize: 16, bold: true, color: '10b981', fontFace: 'Times New Roman' });
         slide12.addText(formatPptText(result.plan_operational?.descriere_flux), { x: 0.5, y: 1.6, w: 9, h: 5.5, fontSize: 11, valign: 'top' });
 
         // Slide 13: Resurse Umane
         let slide13 = pres.addSlide({ masterName: 'MASTER_SLIDE' });
         slide13.addText('PLAN OPERAȚIONAL', { x: 0.5, y: 0.5, w: 9, h: 0.5, fontSize: 28, bold: true, color: '10b981', fontFace: 'Times New Roman' });
-        slide13.addText('Resurse Umane', { x: 0.5, y: 1.2, w: 9, h: 0.4, fontSize: 16, bold: true, color: '10b981' });
+        slide13.addText('Resurse Umane', { x: 0.5, y: 1.2, w: 9, h: 0.4, fontSize: 16, bold: true, color: '10b981', fontFace: 'Times New Roman' });
         slide13.addText(formatPptText(result.plan_operational?.resurse_umane), { x: 0.5, y: 1.6, w: 9, h: 5.5, fontSize: 11, valign: 'top' });
 
         // Slide 14: Locatie
         let slide14 = pres.addSlide({ masterName: 'MASTER_SLIDE' });
         slide14.addText('PLAN OPERAȚIONAL', { x: 0.5, y: 0.5, w: 9, h: 0.5, fontSize: 28, bold: true, color: '10b981', fontFace: 'Times New Roman' });
-        slide14.addText('Locație și Dotări', { x: 0.5, y: 1.2, w: 9, h: 0.4, fontSize: 16, bold: true, color: '10b981' });
+        slide14.addText('Locație și Dotări', { x: 0.5, y: 1.2, w: 9, h: 0.4, fontSize: 16, bold: true, color: '10b981', fontFace: 'Times New Roman' });
         slide14.addText(formatPptText(result.plan_operational?.locatie_dotari), { x: 0.5, y: 1.6, w: 9, h: 5.5, fontSize: 11, valign: 'top' });
 
         // Slides for Buget (chunked)
@@ -1039,8 +1039,22 @@ export default function Home() {
            bSlide.addText('BUGET INVESTIȚII' + (slideIdx > 0 ? ` (Partea ${slideIdx + 1})` : ''), { x: 0.5, y: 0.5, w: 9, h: 0.5, fontSize: 28, bold: true, color: '10b981', fontFace: 'Times New Roman' });
            
            const chunk = budgetItems.slice(slideIdx * 4, slideIdx * 4 + 4);
-           let bText = chunk.map((b: any) => ({ text: b.item + ' - ' + formatPrice(b.cost) + '\n' + b.explicatie, options: { bullet: true, color: 'e4e4e7', breakLine: true } }));
+           let bText = chunk.map((b: any) => ({ text: b.item + ' - ' + formatPrice(b.cost) + '\n' + b.explicatie, options: { bullet: true, color: 'e4e4e7', breakLine: true, fontFace: 'Times New Roman' } }));
            bSlide.addText(bText, { x: 0.5, y: 1.2, w: 9, h: 5.5, fontSize: 11, valign: 'top' });
+        }
+
+        // Slide FINANCIAR: Pie chart + legenda
+        let finSlide = pres.addSlide({ masterName: 'MASTER_SLIDE' });
+        finSlide.addText('DISTRIBUȚIA COSTURILOR', { x: 0.5, y: 0.5, w: 9, h: 0.5, fontSize: 28, bold: true, color: '10b981', fontFace: 'Times New Roman' });
+        finSlide.addText(result.plan_financiar?.strategie_financiara || '', { x: 0.5, y: 1.1, w: 9, h: 0.7, fontSize: 9, color: 'a1a1aa', wrap: true, fontFace: 'Times New Roman' });
+        try {
+          const chartEl = document.getElementById('pptx-export-chart');
+          if (chartEl) {
+            const chartPng = await toPng(chartEl, { backgroundColor: '#09090b', style: { color: '#ffffff' } });
+            finSlide.addImage({ data: chartPng, x: 0.5, y: 1.8, w: 9, h: 4.05 });
+          }
+        } catch (err) {
+          console.error('Failed to add chart to PPTX:', err);
         }
 
         // Slides for Custom/Additional Sections
@@ -1110,7 +1124,7 @@ export default function Home() {
       } else if (mode === 'word') {
           // Capture chart image for embedding in Word document
           let chartDataUrl: string | null = null;
-          const chartElement = document.getElementById("docx-chart-container");
+          const chartElement = document.getElementById("docx-export-chart-hidden");
           if (chartElement) {
             try {
               chartDataUrl = await toPng(chartElement, { backgroundColor: '#ffffff', style: { color: '#000000' } });

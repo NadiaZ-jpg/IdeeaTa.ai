@@ -87,17 +87,34 @@ const splitTextIntoSlides = (text: any, maxChars: number = 1500): string[] => {
   const targetChars = Math.min(maxChars, idealCharsPerSlide + 150);
 
   const slides: string[] = [];
-  let currentSlide = "";
-  for (const para of paragraphs) {
-    if ((currentSlide + "\n" + para).length > targetChars && currentSlide.trim().length > 0) {
-      slides.push(currentSlide.trim());
-      currentSlide = para;
-    } else {
-      currentSlide = currentSlide ? currentSlide + "\n" + para : para;
+  let currentParas: string[] = [];
+  let currentLen = 0;
+
+  for (let i = 0; i < paragraphs.length; i++) {
+    const para = paragraphs[i];
+    const paraLen = para.length + (currentParas.length > 0 ? 1 : 0);
+    
+    if (currentLen + paraLen > targetChars && currentParas.length > 0) {
+      let lastPara = currentParas[currentParas.length - 1].trim();
+      // Avoid orphaned headings or short intro lines at the bottom of a slide
+      if (lastPara.length > 0 && lastPara.length < 150 && currentParas.length > 1) {
+        const headingPara = currentParas.pop();
+        slides.push(currentParas.join('\n').trim());
+        currentParas = [headingPara!];
+        currentLen = headingPara!.length;
+      } else {
+        slides.push(currentParas.join('\n').trim());
+        currentParas = [];
+        currentLen = 0;
+      }
     }
+    
+    currentParas.push(para);
+    currentLen += paraLen;
   }
-  if (currentSlide.trim().length > 0) {
-    slides.push(currentSlide.trim());
+  
+  if (currentParas.length > 0) {
+    slides.push(currentParas.join('\n').trim());
   }
   return slides;
 };
@@ -436,6 +453,18 @@ export default function Home() {
     };
   }, [isContentCopyProtected]);
 
+  // Prevenire inchidere accidentala a paginii
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (result) {
+        e.preventDefault();
+        e.returnValue = '';
+      }
+    };
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [result]);
+
   const handleGoogleLogin = () => {
     const provider = new GoogleAuthProvider();
     signInWithPopup(auth, provider)
@@ -771,6 +800,7 @@ export default function Home() {
       }
     }
     setIsDownloading(mode as any);
+    await new Promise(resolve => setTimeout(resolve, 500));
     try {
       let shareId = null;
       if (mode === 'pdf-summary' || mode === 'pdf') {
@@ -826,76 +856,43 @@ export default function Home() {
         slide2.addText('Obiective (1 an)', { x: 0.5, y: 2.2, w: 9, h: 0.4, fontSize: 16, bold: true, color: '10b981' });
         slide2.addText(formatPptText(result.viziune_strategie?.obiective_scurt), { x: 0.5, y: 2.6, w: 9, h: 4, fontSize: 12, valign: 'top' });
 
-        // Slide 3: Obiective 3-5 ani
-        let slide3 = pres.addSlide({ masterName: 'MASTER_SLIDE' });
-        slide3.addText('OBIECTIVE PE TERMEN MEDIU', { x: 0.5, y: 0.5, w: 9, h: 0.5, fontSize: 28, bold: true, color: '10b981', fontFace: 'Times New Roman' });
-        slide3.addText('Obiective (3-5 ani)', { x: 0.5, y: 1.2, w: 9, h: 0.4, fontSize: 16, bold: true, color: '10b981' });
-        slide3.addText(formatPptText(result.viziune_strategie?.obiective_mediu), { x: 0.5, y: 1.6, w: 9, h: 5.5, fontSize: 12, valign: 'top' });
+        const addTextSlide = (mainTitle: string, subTitle: string, contentStr: string | undefined) => {
+           if(!contentStr) return;
+           const slides = splitTextIntoSlides(contentStr, 1300);
+           slides.forEach((content, slideIdx) => {
+             let slide = pres.addSlide({ masterName: 'MASTER_SLIDE' });
+             slide.addText(mainTitle, { x: 0.5, y: 0.5, w: 9, h: 0.5, fontSize: 28, bold: true, color: '10b981', fontFace: 'Times New Roman' });
+             slide.addText(subTitle + (slides.length > 1 ? ` (Partea ${slideIdx + 1})` : ''), { x: 0.5, y: 1.2, w: 9, h: 0.4, fontSize: 16, bold: true, color: '10b981', fontFace: 'Times New Roman' });
+             slide.addText(formatPptText(content), { x: 0.5, y: 1.6, w: 9, h: 5.5, fontSize: 11, valign: 'top' });
+           });
+        };
 
-        // Slide 4: Misiune si Valori
-        let slide4 = pres.addSlide({ masterName: 'MASTER_SLIDE' });
-        slide4.addText('MISIUNE ȘI VALORI', { x: 0.5, y: 0.5, w: 9, h: 0.5, fontSize: 28, bold: true, color: '10b981', fontFace: 'Times New Roman' });
-        slide4.addText(formatPptText(result.viziune_strategie?.misiune_valori), { x: 0.5, y: 1.2, w: 9, h: 5.5, fontSize: 12, valign: 'top' });
+        const addSwotSlide = (mainTitle: string, subTitle: string, color: string, swotArr: any[]) => {
+           if(!swotArr || !swotArr.length) return;
+           const contentStr = swotArr.map((i: any) => '• ' + (i.titlu || i) + '\n  ' + (i.explicatie_tehnica || '')).join('\n\n');
+           const slides = splitTextIntoSlides(contentStr, 1100);
+           slides.forEach((content, slideIdx) => {
+             let slide = pres.addSlide({ masterName: 'MASTER_SLIDE' });
+             slide.addText(mainTitle, { x: 0.5, y: 0.5, w: 9, h: 0.5, fontSize: 28, bold: true, color, fontFace: 'Times New Roman' });
+             slide.addText(subTitle + (slides.length > 1 ? ` (Partea ${slideIdx + 1})` : ''), { x: 0.5, y: 1.2, w: 9, h: 0.4, fontSize: 16, bold: true, color, fontFace: 'Times New Roman' });
+             slide.addText(formatPptText(content, 'e4e4e7'), { x: 0.5, y: 1.6, w: 9, h: 5.5, fontSize: 11, valign: 'top' });
+           });
+        };
 
-        // Slide 5: Clientii Tinta
-        let slide5 = pres.addSlide({ masterName: 'MASTER_SLIDE' });
-        slide5.addText('PIAȚA ȘI CONCURENȚA', { x: 0.5, y: 0.5, w: 9, h: 0.5, fontSize: 28, bold: true, color: '10b981', fontFace: 'Times New Roman' });
-        slide5.addText('Clienții Țintă', { x: 0.5, y: 1.2, w: 9, h: 0.4, fontSize: 16, bold: true, color: '10b981' });
-        slide5.addText(formatPptText(result.analiza_pietei?.clienti_tinta), { x: 0.5, y: 1.6, w: 9, h: 5.5, fontSize: 11, valign: 'top' });
+        addTextSlide('OBIECTIVE PE TERMEN MEDIU', 'Obiective (3-5 ani)', result.viziune_strategie?.obiective_mediu);
+        addTextSlide('MISIUNE ȘI VALORI', 'Misiune și Valori', result.viziune_strategie?.misiune_valori);
+        addTextSlide('PIAȚA ȘI CONCURENȚA', 'Clienții Țintă', result.analiza_pietei?.clienti_tinta);
+        addTextSlide('PIAȚA ȘI CONCURENȚA', 'Concurența', result.analiza_pietei?.concurenta);
+        addTextSlide('PROMOVARE', 'Strategia de Marketing', result.analiza_pietei?.strategie_marketing);
 
-        // Slide 6: Concurenta
-        let slide6 = pres.addSlide({ masterName: 'MASTER_SLIDE' });
-        slide6.addText('PIAȚA ȘI CONCURENȚA', { x: 0.5, y: 0.5, w: 9, h: 0.5, fontSize: 28, bold: true, color: '10b981', fontFace: 'Times New Roman' });
-        slide6.addText('Concurența', { x: 0.5, y: 1.2, w: 9, h: 0.4, fontSize: 16, bold: true, color: '10b981' });
-        slide6.addText(formatPptText(result.analiza_pietei?.concurenta), { x: 0.5, y: 1.6, w: 9, h: 5.5, fontSize: 11, valign: 'top' });
+        addSwotSlide('ANALIZĂ SWOT', 'PUNCTE TARI (S)', '10b981', result.analiza_swot?.puncte_tari);
+        addSwotSlide('ANALIZĂ SWOT', 'SLĂBICIUNI (W)', 'ef4444', result.analiza_swot?.puncte_slabe);
+        addSwotSlide('ANALIZĂ SWOT', 'OPORTUNITĂȚI (O)', '3b82f6', result.analiza_swot?.oportunitati);
+        addSwotSlide('ANALIZĂ SWOT', 'AMENINȚĂRI (T)', 'eab308', result.analiza_swot?.amenintari);
 
-        // Slide 7: Strategia Marketing
-        let slide7 = pres.addSlide({ masterName: 'MASTER_SLIDE' });
-        slide7.addText('PROMOVARE', { x: 0.5, y: 0.5, w: 9, h: 0.5, fontSize: 28, bold: true, color: '10b981', fontFace: 'Times New Roman' });
-        slide7.addText('Strategia de Marketing', { x: 0.5, y: 1.2, w: 9, h: 0.4, fontSize: 16, bold: true, color: '10b981' });
-        slide7.addText(formatPptText(result.analiza_pietei?.strategie_marketing), { x: 0.5, y: 1.6, w: 9, h: 5.5, fontSize: 11, valign: 'top' });
-
-        // Slide 8: SWOT Tari
-        let slide8 = pres.addSlide({ masterName: 'MASTER_SLIDE' });
-        slide8.addText('ANALIZĂ SWOT', { x: 0.5, y: 0.5, w: 9, h: 0.5, fontSize: 28, bold: true, color: '10b981', fontFace: 'Times New Roman' });
-        slide8.addText('PUNCTE TARI (S)', { x: 0.5, y: 1.2, w: 9, h: 0.4, fontSize: 16, bold: true, color: '10b981' });
-        slide8.addText(swotFormat(result.analiza_swot?.puncte_tari, 'e4e4e7'), { x: 0.5, y: 1.6, w: 9, h: 5.5, fontSize: 11, valign: 'top' });
-
-        // Slide 9: SWOT Slabe
-        let slide9 = pres.addSlide({ masterName: 'MASTER_SLIDE' });
-        slide9.addText('ANALIZĂ SWOT', { x: 0.5, y: 0.5, w: 9, h: 0.5, fontSize: 28, bold: true, color: 'ef4444', fontFace: 'Times New Roman' });
-        slide9.addText('SLĂBICIUNI (W)', { x: 0.5, y: 1.2, w: 9, h: 0.4, fontSize: 16, bold: true, color: 'ef4444' });
-        slide9.addText(swotFormat(result.analiza_swot?.puncte_slabe, 'e4e4e7'), { x: 0.5, y: 1.6, w: 9, h: 5.5, fontSize: 11, valign: 'top' });
-
-        // Slide 10: SWOT Oportunitati
-        let slide10 = pres.addSlide({ masterName: 'MASTER_SLIDE' });
-        slide10.addText('ANALIZĂ SWOT', { x: 0.5, y: 0.5, w: 9, h: 0.5, fontSize: 28, bold: true, color: '3b82f6', fontFace: 'Times New Roman' });
-        slide10.addText('OPORTUNITĂȚI (O)', { x: 0.5, y: 1.2, w: 9, h: 0.4, fontSize: 16, bold: true, color: '3b82f6' });
-        slide10.addText(swotFormat(result.analiza_swot?.oportunitati, 'e4e4e7'), { x: 0.5, y: 1.6, w: 9, h: 5.5, fontSize: 11, valign: 'top' });
-
-        // Slide 11: SWOT Amenintari
-        let slide11 = pres.addSlide({ masterName: 'MASTER_SLIDE' });
-        slide11.addText('ANALIZĂ SWOT', { x: 0.5, y: 0.5, w: 9, h: 0.5, fontSize: 28, bold: true, color: 'eab308', fontFace: 'Times New Roman' });
-        slide11.addText('AMENINȚĂRI (T)', { x: 0.5, y: 1.2, w: 9, h: 0.4, fontSize: 16, bold: true, color: 'eab308' });
-        slide11.addText(swotFormat(result.analiza_swot?.amenintari, 'e4e4e7'), { x: 0.5, y: 1.6, w: 9, h: 5.5, fontSize: 11, valign: 'top' });
-
-        // Slide 12: Flux Tehnologic
-        let slide12 = pres.addSlide({ masterName: 'MASTER_SLIDE' });
-        slide12.addText('PLAN OPERAȚIONAL', { x: 0.5, y: 0.5, w: 9, h: 0.5, fontSize: 28, bold: true, color: '10b981', fontFace: 'Times New Roman' });
-        slide12.addText('Descriere Flux Tehnologic', { x: 0.5, y: 1.2, w: 9, h: 0.4, fontSize: 16, bold: true, color: '10b981' });
-        slide12.addText(formatPptText(result.plan_operational?.descriere_flux), { x: 0.5, y: 1.6, w: 9, h: 5.5, fontSize: 11, valign: 'top' });
-
-        // Slide 13: Resurse Umane
-        let slide13 = pres.addSlide({ masterName: 'MASTER_SLIDE' });
-        slide13.addText('PLAN OPERAȚIONAL', { x: 0.5, y: 0.5, w: 9, h: 0.5, fontSize: 28, bold: true, color: '10b981', fontFace: 'Times New Roman' });
-        slide13.addText('Resurse Umane', { x: 0.5, y: 1.2, w: 9, h: 0.4, fontSize: 16, bold: true, color: '10b981' });
-        slide13.addText(formatPptText(result.plan_operational?.resurse_umane), { x: 0.5, y: 1.6, w: 9, h: 5.5, fontSize: 11, valign: 'top' });
-
-        // Slide 14: Locatie
-        let slide14 = pres.addSlide({ masterName: 'MASTER_SLIDE' });
-        slide14.addText('PLAN OPERAȚIONAL', { x: 0.5, y: 0.5, w: 9, h: 0.5, fontSize: 28, bold: true, color: '10b981', fontFace: 'Times New Roman' });
-        slide14.addText('Locație și Dotări', { x: 0.5, y: 1.2, w: 9, h: 0.4, fontSize: 16, bold: true, color: '10b981' });
-        slide14.addText(formatPptText(result.plan_operational?.locatie_dotari), { x: 0.5, y: 1.6, w: 9, h: 5.5, fontSize: 11, valign: 'top' });
+        addTextSlide('PLAN OPERAȚIONAL', 'Descriere Flux Tehnologic', result.plan_operational?.descriere_flux);
+        addTextSlide('PLAN OPERAȚIONAL', 'Resurse Umane', result.plan_operational?.resurse_umane);
+        addTextSlide('PLAN OPERAȚIONAL', 'Locație și Dotări', result.plan_operational?.locatie_dotari);
 
         // Slides for Buget (chunked)
         const budgetItems = result.plan_financiar?.buget_investitii || [];
@@ -1337,12 +1334,7 @@ export default function Home() {
       )}
 
       {isDownloading && (
-        <div className="fixed inset-0 bg-[#09090b]/90 backdrop-blur-sm z-[100] flex items-center justify-between px-6">
-          {/* Left Ad */}
-          <div className="hidden lg:flex flex-col items-center justify-center w-[180px] xl:w-[220px] h-[400px] bg-zinc-900/60 border border-zinc-800/60 rounded-2xl overflow-hidden shrink-0">
-            <AdBanner dataAdSlot="3098389905" dataAdFormat="vertical" dataFullWidthResponsive="false" />
-          </div>
-          {/* Center */}
+        <div className="fixed inset-0 bg-[#09090b]/90 backdrop-blur-sm z-[100] flex items-center justify-center">
           <div className="flex flex-col items-center justify-center flex-1 px-4">
             <div className="w-16 h-16 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin mb-6"></div>
             <p className="text-2xl font-bold text-white tracking-widest uppercase text-center">
@@ -1352,20 +1344,11 @@ export default function Home() {
               Acest proces durează câteva momente pentru a asigura calitatea maximă.
             </p>
           </div>
-          {/* Right Ad */}
-          <div className="hidden lg:flex flex-col items-center justify-center w-[180px] xl:w-[220px] h-[400px] overflow-hidden shrink-0">
-            <AdBanner dataAdSlot="2222222222" dataAdFormat="vertical" dataFullWidthResponsive="false" />
-          </div>
         </div>
       )}
 
       {isEditingAi && (
-        <div className="fixed inset-0 bg-[#09090b]/90 backdrop-blur-sm z-[100] flex items-center justify-between px-6">
-          {/* Left Ad */}
-          <div className="hidden lg:flex flex-col items-center justify-center w-[180px] xl:w-[220px] h-[400px] overflow-hidden shrink-0">
-            <AdBanner dataAdSlot="8674150210" dataAdFormat="vertical" dataFullWidthResponsive="false" />
-          </div>
-          {/* Center */}
+        <div className="fixed inset-0 bg-[#09090b]/90 backdrop-blur-sm z-[100] flex items-center justify-center">
           <div className="flex flex-col items-center justify-center flex-1 px-4">
             <div className="w-16 h-16 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin mb-6"></div>
             <p className="text-2xl font-bold text-white tracking-widest uppercase text-center">
@@ -1374,10 +1357,6 @@ export default function Home() {
             <p className="text-emerald-400 font-medium mt-3 text-center">
               Acest proces durează 15-20 de secunde, deoarece rescriem integral secțiunile planului tău de afaceri.
             </p>
-          </div>
-          {/* Right Ad */}
-          <div className="hidden lg:flex flex-col items-center justify-center w-[180px] xl:w-[220px] h-[400px] overflow-hidden shrink-0">
-            <AdBanner dataAdSlot="4444444444" dataAdFormat="vertical" dataFullWidthResponsive="false" />
           </div>
         </div>
       )}
@@ -2359,12 +2338,12 @@ export default function Home() {
                </div>
 
                {/* Hidden chart dedicated for DOCX Export (Light Mode + Static) */}
-               <div className="absolute left-[-9999px] top-[-9999px] w-[1000px] h-[450px] bg-white flex flex-col items-center justify-center" id="docx-export-chart">
+               <div className="fixed left-0 top-0 opacity-0 pointer-events-none z-[-1] w-[1000px] h-[450px] bg-white flex flex-col items-center justify-center" id="docx-export-chart">
                  <BudgetPieChart budget={result.plan_financiar?.buget_investitii} currency={currency} isPdf={true} />
                </div>
 
                {/* Hidden chart dedicated for PPTX Export (Dark Mode + Static) */}
-               <div className="absolute left-[-9999px] top-[-9999px] w-[1000px] h-[450px] bg-[#09090b] flex flex-col items-center justify-center" id="pptx-export-chart">
+               <div className="fixed left-0 top-0 opacity-0 pointer-events-none z-[-1] w-[1000px] h-[450px] bg-[#09090b] flex flex-col items-center justify-center" id="pptx-export-chart">
                  <BudgetPieChart budget={result.plan_financiar?.buget_investitii} currency={currency} isPptx={true} />
                </div>
 

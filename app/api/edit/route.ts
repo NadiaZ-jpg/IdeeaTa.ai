@@ -26,6 +26,7 @@ function extractRelevantSection(result: any, action: string) {
         plan_operational: result.plan_operational,
         analiza_swot: result.analiza_swot,
         plan_financiar: result.plan_financiar,
+        sectiuni_aditionale: result.sectiuni_aditionale || []
       };
     case "shorten_for_export":
       return {
@@ -79,14 +80,15 @@ export async function POST(req: NextRequest) {
         ]
       }`;
     } else if (action === "eu_funds_optimization") {
-      instruction = "Optimizează planul pentru Fonduri Europene. Ajustează limbajul din plan_operational și SWOT (digitalizare, inovare, sustenabilitate). Reformulează elementele din planul financiar pentru categorii eligibile UE.";
+      instruction = "Optimizează planul pentru Fonduri Europene. 1. Ajustează limbajul din plan_operational și SWOT (digitalizare, inovare, sustenabilitate). 2. Reformulează elementele din planul financiar pentru categorii eligibile UE. 3. OBLIGATORIU: Returnează și o secțiune suplimentară cu cheia 'sectiuni_aditionale' (care să fie o listă de obiecte cu 'titlu' și 'continut') care să includă un singur capitol numit 'Aliniere Fonduri Europene', explicând în detaliu felul în care planul se aliniază la Pactul Verde și normele de digitalizare europene.";
     } else if (action === "investor_ready") {
       instruction = `Transformă planul într-un document pentru investitori sau credite bancare integrând:
 1. Rezumat Executiv în 'viziune_strategie'.
 2. Matrice de diferențiere în 'analiza_pietei.concurenta'.
 3. Go-To-Market cu CAC/LTV în 'analiza_pietei.strategie_marketing'.
 4. Plan de Contingență în 'analiza_swot.amenintari'.
-5. 3 Scenarii Financiare (pesimist/realist/optimist) în 'plan_financiar.strategie_financiara'.`;
+5. 3 Scenarii Financiare (pesimist/realist/optimist) în 'plan_financiar.strategie_financiara'.
+6. OBLIGATORIU: Returnează și o secțiune suplimentară cu cheia 'sectiuni_aditionale' (care să fie o listă de obiecte cu 'titlu' și 'continut') care să includă un singur capitol numit 'Plan Profesionist (Investitori & Bănci)', prezentând rezumatul atractivității financiare și al exit-ului.`;
     } else if (action === "shorten_for_export") {
       instruction = "Scurtează și sintetizează drastic textul (analiza pieței, planul operațional, SWOT, strategia financiară). Menține esența dar folosește fraze scurte. Redu volumul la jumătate pentru slide-uri.";
     } else {
@@ -225,9 +227,19 @@ NU adăuga formatare markdown, NU adăuga backticks (\`\`\`), NU adăuga text ad
             : parsed.sectiuni_aditionale;
         }
       } else {
-        mergedResult = parsed;
+        // Deep merge for isFullPlan to avoid losing fields if AI omits them
+        mergedResult = { ...result, ...parsed };
+        if (parsed.plan_financiar) mergedResult.plan_financiar = { ...result.plan_financiar, ...parsed.plan_financiar };
+        if (parsed.analiza_swot) mergedResult.analiza_swot = { ...result.analiza_swot, ...parsed.analiza_swot };
+        if (parsed.viziune_strategie) mergedResult.viziune_strategie = { ...result.viziune_strategie, ...parsed.viziune_strategie };
+        if (parsed.analiza_pietei) mergedResult.analiza_pietei = { ...result.analiza_pietei, ...parsed.analiza_pietei };
+        if (parsed.plan_operational) mergedResult.plan_operational = { ...result.plan_operational, ...parsed.plan_operational };
+        if (parsed.sectiuni_aditionale) {
+          mergedResult.sectiuni_aditionale = result.sectiuni_aditionale 
+            ? [...result.sectiuni_aditionale, ...parsed.sectiuni_aditionale]
+            : parsed.sectiuni_aditionale;
+        }
       }
-    } catch (parseError: any) {
       console.error("JSON PARSE ERROR:", parseError, text);
       return NextResponse.json({ error: "Eroare AI Formatare: " + parseError.message + "\n\nFragment primit: " + text.substring(0, 150) }, { status: 400 });
     }

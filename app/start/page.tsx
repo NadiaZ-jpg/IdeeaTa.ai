@@ -2277,19 +2277,19 @@ export default function Home() {
                   </div>
                 </div>
                 <div>
-                  <p className="whitespace-pre-line text-left leading-relaxed"><strong className="text-white print:text-black block mb-1">Obiective (1 an):</strong>{formatNumberedText(result.viziune_strategie?.obiective_scurt)}</p>
-                  <p className="mt-4 whitespace-pre-line text-left leading-relaxed"><strong className="text-white print:text-black block mb-1">Obiective (3-5 ani):</strong>{formatNumberedText(result.viziune_strategie?.obiective_mediu)}</p>
+                  <p className="whitespace-pre-line text-justify leading-relaxed"><strong className="text-white print:text-black block mb-1">Obiective (1 an):</strong>{formatNumberedText(result.viziune_strategie?.obiective_scurt)}</p>
+                  <p className="mt-4 whitespace-pre-line text-justify leading-relaxed"><strong className="text-white print:text-black block mb-1">Obiective (3-5 ani):</strong>{formatNumberedText(result.viziune_strategie?.obiective_mediu)}</p>
                 </div>
               </div>
-              <div className="mt-6 pt-6 border-t border-zinc-800/50 text-zinc-300 print:border-gray-200 print:text-gray-800 text-left leading-relaxed">
-                  <p className="whitespace-pre-line text-left leading-relaxed"><strong className="text-white print:text-black">Misiune și Valori:</strong> {formatNumberedText(result.viziune_strategie?.misiune_valori)}</p>
+              <div className="mt-6 pt-6 border-t border-zinc-800/50 text-zinc-300 print:border-gray-200 print:text-gray-800 text-justify leading-relaxed">
+                  <p className="whitespace-pre-line text-justify leading-relaxed"><strong className="text-white print:text-black">Misiune și Valori:</strong> {formatNumberedText(result.viziune_strategie?.misiune_valori)}</p>
               </div>
             </div>
 
             {/* Analiza Pietei */}
             <div id="section-market" className="pdf-section mb-10 bg-zinc-900/50 p-10 rounded-3xl border-l-4 border-emerald-500 shadow-inner print:shadow-none print:bg-transparent print:border-l-4 print:border-emerald-700 print:text-black">
               <h3 className="text-emerald-400 text-sm font-black uppercase mb-6 tracking-[0.2em]">III. Analiza Pieței și Promovarea</h3>
-              <div className="space-y-6 text-zinc-300 print:text-gray-800 text-left leading-relaxed">
+              <div className="space-y-6 text-zinc-300 print:text-gray-800 text-justify leading-relaxed">
                 <div className="text-left"><strong className="text-white print:text-black block mb-1">Clienții Țintă:</strong> <span className="italic whitespace-pre-line">{formatNumberedText(result.analiza_pietei?.clienti_tinta)}</span></div>
                 <div className="text-left"><strong className="text-white print:text-black block mb-1">Concurența:</strong> <span className="italic whitespace-pre-line">{formatNumberedText(result.analiza_pietei?.concurenta)}</span></div>
                 <div className="text-left"><strong className="text-white print:text-black block mb-1">Strategia de Marketing:</strong> <span className="italic whitespace-pre-line">{formatNumberedText(result.analiza_pietei?.strategie_marketing)}</span></div>
@@ -2315,7 +2315,7 @@ export default function Home() {
                         className="bg-emerald-950/10 p-5 rounded-2xl border border-emerald-900/30 border-l-4 border-l-emerald-500 shadow-[inset_0_0_20px_rgba(52,211,153,0.05)] transition-all duration-300 hover:bg-[#960018] hover:border-[#ff4d6d] hover:border-l-[#ff4d6d] hover:-translate-y-1 hover:shadow-[0_0_20px_rgba(255,77,109,0.4)] group cursor-default print:border-gray-200 print:border-l-4 print:border-l-emerald-700 print:bg-transparent print:text-black print:break-inside-avoid print:p-3 print:shadow-none"
                       >
                         <span className="text-zinc-100 font-black text-xl block mb-2 group-hover:text-white transition-colors print:text-black uppercase tracking-wider print:text-lg">✦ {item.titlu || item}</span>
-                        <p className="text-zinc-400 text-lg italic leading-relaxed text-left group-hover:text-white/90 transition-colors print:text-gray-700 print:text-base whitespace-pre-line">{formatNumberedText(item.explicatie_tehnica)}</p>
+                        <p className="text-zinc-400 text-lg italic leading-relaxed text-justify group-hover:text-white/90 transition-colors print:text-gray-700 print:text-base whitespace-pre-line">{formatNumberedText(item.explicatie_tehnica)}</p>
                       </div>
                     ))}
                   </div>
@@ -2326,7 +2326,7 @@ export default function Home() {
             {/* Operational */}
             <div id="section-operational" className="pdf-section mb-10 bg-zinc-900/50 p-10 rounded-3xl border-l-4 border-emerald-500 shadow-inner print:shadow-none print:bg-transparent print:border-l-4 print:border-emerald-700 print:text-black">
               <h3 className="text-emerald-400 text-sm font-black uppercase mb-6 tracking-[0.2em]">V. Planul Operațional și de Management</h3>
-              <ol className="space-y-6 text-zinc-300 print:text-gray-800 list-decimal pl-6 text-left leading-relaxed">
+              <ol className="space-y-6 text-zinc-300 print:text-gray-800 list-decimal pl-6 text-justify leading-relaxed">
                 <li className="pl-2 text-left"><strong className="text-white print:text-black block mb-1">Descriere Flux Tehnologic:</strong> <span className="italic whitespace-pre-line">{formatNumberedText(result.plan_operational?.descriere_flux)}</span></li>
                 <li className="pl-2 text-left"><strong className="text-white print:text-black block mb-1">Resurse Umane:</strong> <span className="italic whitespace-pre-line">{formatNumberedText(result.plan_operational?.resurse_umane)}</span></li>
                 <li className="pl-2 text-left"><strong className="text-white print:text-black block mb-1">Locație și Dotări:</strong> <span className="italic whitespace-pre-line">{formatNumberedText(result.plan_operational?.locatie_dotari)}</span></li>
@@ -2338,7 +2338,7 @@ export default function Home() {
               {result.sectiuni_aditionale?.map((sec: any, idx: number) => (
                 <div key={`custom-${idx}`} className="pdf-section mb-10 bg-zinc-900/50 p-10 rounded-3xl border-l-4 border-emerald-500 shadow-inner print:shadow-none print:bg-transparent print:border-l-4 print:border-emerald-700 print:text-black">
                   <h3 className="text-emerald-400 text-sm font-black uppercase mb-6 tracking-[0.2em]">{sec.titlu}</h3>
-                  <p className="text-zinc-300 italic text-left leading-relaxed print:text-gray-800 whitespace-pre-line">
+                  <p className="text-zinc-300 italic text-justify leading-relaxed print:text-gray-800 whitespace-pre-line">
                     {formatNumberedText(sec.continut)}
                   </p>
                 </div>
@@ -2349,7 +2349,7 @@ export default function Home() {
                <h3 className="pdf-section text-emerald-400 text-sm font-black uppercase mb-6 tracking-[0.2em] text-center drop-shadow-md print:text-emerald-800 print:drop-shadow-none">
                  VI. Planul Financiar
                </h3>
-                <div className="pdf-section text-zinc-300 italic text-left leading-relaxed max-w-4xl mx-auto mb-10 print:text-gray-700 whitespace-pre-line">
+                <div className="pdf-section text-zinc-300 italic text-justify leading-relaxed max-w-4xl mx-auto mb-10 print:text-gray-700 whitespace-pre-line">
                  {formatNumberedText(result.plan_financiar?.strategie_financiara)}
                </div>
 

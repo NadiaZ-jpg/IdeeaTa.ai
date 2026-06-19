@@ -34,6 +34,8 @@ function sectionHeading(text: string): Paragraph {
         font: FONT,
       }),
     ],
+    keepNext: true,
+    keepLines: true,
     spacing: { before: 480, after: 160 },
     border: {
       bottom: {
@@ -252,6 +254,7 @@ export async function generateDocxBlob(
       width: { size: 100, type: WidthType.PERCENTAGE },
       rows: [
         new TableRow({
+          cantSplit: true,
           children: [
             new TableCell({
               children: [
@@ -272,6 +275,7 @@ export async function generateDocxBlob(
           ],
         }),
         new TableRow({
+          cantSplit: true,
           children: [
             new TableCell({
               children: [

@@ -902,7 +902,7 @@ export default function Home() {
         finSlide.addText('DISTRIBUȚIA COSTURILOR', { x: 0.5, y: 0.5, w: 9, h: 0.5, fontSize: 28, bold: true, color: '10b981', fontFace: 'Arial' });
         finSlide.addText(result.plan_financiar?.strategie_financiara || '', { x: 0.5, y: 1.1, w: 9, h: 0.7, fontSize: 9, color: 'a1a1aa', wrap: true });
         try {
-          const chartEl = document.getElementById('docx-chart-container');
+          const chartEl = document.getElementById('pptx-export-chart');
           if (chartEl) {
             const chartPng = await toPng(chartEl, { backgroundColor: '#09090b', style: { color: '#ffffff' } });
             finSlide.addImage({ data: chartPng, x: 0.3, y: 2.0, w: 4.8, h: 4.8 });
@@ -985,7 +985,7 @@ export default function Home() {
       } else if (mode === 'word') {
           // Capture chart image for embedding in Word document
           let chartDataUrl: string | null = null;
-          const chartElement = document.getElementById("docx-chart-container");
+          const chartElement = document.getElementById("docx-export-chart");
           if (chartElement) {
             try {
               chartDataUrl = await toPng(chartElement, { backgroundColor: '#ffffff', style: { color: '#000000' } });
@@ -2322,9 +2322,19 @@ export default function Home() {
                  {formatNumberedText(result.plan_financiar?.strategie_financiara)}
                </div>
 
-               <div className="mb-16" id="docx-chart-container">
+               <div className="mb-16">
                  <h4 className="text-zinc-500 font-bold uppercase tracking-wider mb-6 text-sm">Distribuția costurilor</h4>
                  <BudgetPieChart budget={result.plan_financiar?.buget_investitii} currency={currency} />
+               </div>
+
+               {/* Hidden chart dedicated for DOCX Export (Light Mode + Static) */}
+               <div className="absolute left-[-9999px] top-[-9999px] w-[1000px] bg-white flex flex-col items-center justify-center p-8" id="docx-export-chart">
+                 <BudgetPieChart budget={result.plan_financiar?.buget_investitii} currency={currency} isPdf={true} />
+               </div>
+
+               {/* Hidden chart dedicated for PPTX Export (Dark Mode + Static) */}
+               <div className="absolute left-[-9999px] top-[-9999px] w-[800px] h-[550px] bg-[#09090b] flex flex-col items-center justify-center p-8" id="pptx-export-chart">
+                 <BudgetPieChart budget={result.plan_financiar?.buget_investitii} currency={currency} isPptx={true} />
                </div>
 
                <div className="grid grid-cols-1 gap-6 print:gap-3">

@@ -77,13 +77,19 @@ const truncateText = (text: any, length: number) => {
   return text.length > length ? text.substring(0, length) + '...' : text;
 };
 
-const splitTextIntoSlides = (text: any, maxChars: number = 800): string[] => {
+const splitTextIntoSlides = (text: any, maxChars: number = 1500): string[] => {
   if (!text || typeof text !== 'string') return [];
   const paragraphs = text.split('\n');
+  
+  const totalLength = text.length;
+  const numSlides = Math.ceil(totalLength / maxChars);
+  const idealCharsPerSlide = Math.ceil(totalLength / numSlides);
+  const targetChars = Math.min(maxChars, idealCharsPerSlide + 150);
+
   const slides: string[] = [];
   let currentSlide = "";
   for (const para of paragraphs) {
-    if ((currentSlide + "\n" + para).length > maxChars && currentSlide.trim().length > 0) {
+    if ((currentSlide + "\n" + para).length > targetChars && currentSlide.trim().length > 0) {
       slides.push(currentSlide.trim());
       currentSlide = para;
     } else {
@@ -920,7 +926,7 @@ export default function Home() {
         // Slides for Custom/Additional Sections
         result.sectiuni_aditionale?.forEach((sec: any) => {
            if (!sec || !sec.continut) return;
-           const slides = splitTextIntoSlides(sec.continut, 700);
+           const slides = splitTextIntoSlides(sec.continut, 1500);
            slides.forEach((slideContent, slideIdx) => {
               let cSlide = pres.addSlide({ masterName: 'MASTER_SLIDE' });
               const secTitle = (sec.titlu || 'Secțiune Adițională').toUpperCase();

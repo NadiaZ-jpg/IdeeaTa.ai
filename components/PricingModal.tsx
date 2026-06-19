@@ -60,15 +60,9 @@ export function PricingModal({ isOpen, onClose, onSuccess, onRequireLogin, userI
   };
  
   const getPriceDisplay = (tier: string) => {
-    if (currency === "EUR") {
-      if (tier === "standard") return "8 EUR";
-      if (tier === "eu-funds") return "20 EUR";
-      if (tier === "pro") return "20 EUR";
-    } else {
-      if (tier === "standard") return "39 RON";
-      if (tier === "eu-funds") return "99 RON";
-      if (tier === "pro") return "99 RON";
-    }
+    if (tier === "standard") return "39 RON";
+    if (tier === "eu-funds") return "99 RON";
+    if (tier === "pro") return "99 RON";
     return "";
   };
 

@@ -787,7 +787,8 @@ export default function Home() {
           title: 'MASTER_SLIDE',
           background: { color: '09090b' },
           objects: [
-            { rect: { x: 0, y: 0, w: '100%', h: 0.1, fill: { color: '10b981' } } }
+            { rect: { x: 0, y: 0, w: '100%', h: 0.1, fill: { color: '10b981' } } },
+            { rect: { x: 9.9, y: 0, w: 0.1, h: '100%', fill: { color: '10b981' } } }
           ]
         });
 
@@ -895,6 +896,28 @@ export default function Home() {
            let bText = chunk.map((b: any) => ({ text: b.item + ' - ' + formatPrice(b.cost) + '\n' + b.explicatie, options: { bullet: true, color: 'e4e4e7', breakLine: true } }));
            bSlide.addText(bText, { x: 0.5, y: 1.2, w: 9, h: 5.5, fontSize: 11, valign: 'top' });
         }
+
+        // Slide FINANCIAR: Pie chart + legenda
+        let finSlide = pres.addSlide({ masterName: 'MASTER_SLIDE' });
+        finSlide.addText('DISTRIBUȚIA COSTURILOR', { x: 0.5, y: 0.5, w: 9, h: 0.5, fontSize: 28, bold: true, color: '10b981', fontFace: 'Arial' });
+        finSlide.addText(result.plan_financiar?.strategie_financiara || '', { x: 0.5, y: 1.1, w: 9, h: 0.7, fontSize: 9, color: 'a1a1aa', wrap: true });
+        try {
+          const chartEl = document.getElementById('docx-chart-container');
+          if (chartEl) {
+            const chartPng = await toPng(chartEl, { backgroundColor: '#09090b', style: { color: '#ffffff' } });
+            finSlide.addImage({ data: chartPng, x: 0.3, y: 2.0, w: 4.8, h: 4.8 });
+          }
+        } catch (err) {
+          console.error('Failed to add chart to PPTX:', err);
+        }
+        const legendColorsPptx = ['10b981', '3b82f6', 'f59e0b', 'ef4444', '8b5cf6', 'ec4899', '06b6d4', 'f97316', 'a3e635', 'fb923c'];
+        const totalBudgetPptx = budgetItems.reduce((sum: number, b: any) => sum + parseInt(b.cost?.toString().replace(/[^0-9]/g, '') || '0'), 0);
+        budgetItems.slice(0, 9).forEach((b: any, idx: number) => {
+          const pct = totalBudgetPptx > 0 ? Math.round(parseInt(b.cost?.toString().replace(/[^0-9]/g, '') || '0') / totalBudgetPptx * 100) : 0;
+          const col = legendColorsPptx[idx % legendColorsPptx.length];
+          finSlide.addShape('rect' as any, { x: 5.3, y: 2.05 + idx * 0.52, w: 0.18, h: 0.18, fill: { color: col }, line: { color: col, width: 0 } });
+          finSlide.addText(`${b.item}: ${pct}% (${formatPrice(b.cost)})`, { x: 5.55, y: 2.0 + idx * 0.52, w: 4.1, h: 0.45, fontSize: 8.5, color: 'e4e4e7', valign: 'middle' });
+        });
 
         // Slides for Custom/Additional Sections
         result.sectiuni_aditionale?.forEach((sec: any) => {

@@ -2977,6 +2977,16 @@ export default function Home() {
         </div>
       )}
 
+      {/* Hidden chart dedicated for PPTX Export (Dark Mode + Static) */}
+      <div className="fixed left-0 top-0 opacity-0 pointer-events-none z-[-1] w-[1000px] h-[450px] bg-[#09090b] flex flex-col items-center justify-center" id="pptx-export-chart">
+        <BudgetPieChart budget={result?.plan_financiar?.buget_investitii} currency={currency} isPptx={true} />
+      </div>
+
+      {/* Hidden chart dedicated for DOCX Export (White Mode + Static) */}
+      <div className="fixed left-0 top-0 opacity-0 pointer-events-none z-[-1] w-[800px] h-[400px] bg-white flex flex-col items-center justify-center" id="docx-export-chart-hidden">
+        <BudgetPieChart budget={result?.plan_financiar?.buget_investitii} currency={currency} isPdf={true} />
+      </div>
+
       {/* PREZENTARE PDF - ALB CU VERDE, MULTIPLE SLIDES */}
       {result && (
         <div className="fixed top-[-9999px] left-[-9999px] w-[1280px] opacity-0 pointer-events-none z-[-50]">

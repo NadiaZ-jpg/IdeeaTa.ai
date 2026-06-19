@@ -22,11 +22,12 @@ function extractRelevantSection(result: any, action: string) {
         analiza_swot: result.analiza_swot,
       };
     case "eu_funds_optimization":
+    case "investor_ready":
+      // Do not send the whole plan to prevent massive rewrites and timeouts.
+      // We only need basic context to generate the new standalone chapter.
       return {
-        plan_operational: result.plan_operational,
-        analiza_swot: result.analiza_swot,
-        plan_financiar: result.plan_financiar,
-        sectiuni_aditionale: result.sectiuni_aditionale || []
+        nume_afacere: result.nume_afacere,
+        viziune_strategie: result.viziune_strategie
       };
     case "shorten_for_export":
       return {
@@ -80,15 +81,15 @@ export async function POST(req: NextRequest) {
         ]
       }`;
     } else if (action === "eu_funds_optimization") {
-      instruction = "Optimizează planul pentru Fonduri Europene. 1. Ajustează limbajul din plan_operational și SWOT (digitalizare, inovare, sustenabilitate). 2. Reformulează elementele din planul financiar pentru categorii eligibile UE. 3. OBLIGATORIU: Returnează și o secțiune suplimentară cu cheia 'sectiuni_aditionale' (care să fie o listă de obiecte cu 'titlu' și 'continut') care să includă un singur capitol numit 'Aliniere Fonduri Europene', explicând în detaliu felul în care planul se aliniază la Pactul Verde și normele de digitalizare europene.";
+      instruction = `Generează un capitol complet NOU și detaliat pentru accesarea Fondurilor Europene.
+OBLIGATORIU: Returnează DOAR o cheie 'sectiuni_aditionale' (o listă cu un obiect cu 'titlu' și 'continut').
+Titlul trebuie să fie fix: 'Aliniere Fonduri Europene'.
+Conținutul (minim 3 paragrafe detaliate) trebuie să explice convingător felul în care planul se aliniază la Pactul Verde (sustenabilitate), normele de digitalizare europene, inovare și egalitate de șanse. NU scrie și alte secțiuni!`;
     } else if (action === "investor_ready") {
-      instruction = `Transformă planul într-un document pentru investitori sau credite bancare integrând:
-1. Rezumat Executiv în 'viziune_strategie'.
-2. Matrice de diferențiere în 'analiza_pietei.concurenta'.
-3. Go-To-Market cu CAC/LTV în 'analiza_pietei.strategie_marketing'.
-4. Plan de Contingență în 'analiza_swot.amenintari'.
-5. 3 Scenarii Financiare (pesimist/realist/optimist) în 'plan_financiar.strategie_financiara'.
-6. OBLIGATORIU: Returnează și o secțiune suplimentară cu cheia 'sectiuni_aditionale' (care să fie o listă de obiecte cu 'titlu' și 'continut') care să includă un singur capitol numit 'Plan Profesionist (Investitori & Bănci)', prezentând rezumatul atractivității financiare și al exit-ului.`;
+      instruction = `Generează un capitol complet NOU și ultra-detaliat, optimizat special pentru atragerea de investitori și credite bancare.
+OBLIGATORIU: Returnează DOAR o cheie 'sectiuni_aditionale' (o listă cu un obiect cu 'titlu' și 'continut').
+Titlul trebuie să fie fix: 'Plan Profesionist (Investitori & Bănci)'.
+Conținutul (minim 4 paragrafe ample) trebuie să includă o argumentație solidă de business: Rezumat Executiv, Matrice de diferențiere, Go-To-Market cu CAC/LTV, Plan de Contingență și atractivitatea scenariilor financiare. NU scrie și alte secțiuni!`;
     } else if (action === "shorten_for_export") {
       instruction = "Scurtează și sintetizează drastic textul (analiza pieței, planul operațional, SWOT, strategia financiară). Menține esența dar folosește fraze scurte. Redu volumul la jumătate pentru slide-uri.";
     } else {
@@ -96,9 +97,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Use only the relevant section for most actions to reduce token usage
-    const relevantData = extractRelevantSection(result, action);
-    const isFullPlan = action === "investor_ready";
-    const inputData = isFullPlan ? result : relevantData;
+    const inputData = extractRelevantSection(result, action);
 
     let prompt = `Ești un consultant de afaceri expert. 
 Aici sunt informațiile de bază ale planului curent pentru context:
@@ -227,7 +226,7 @@ NU adăuga formatare markdown, NU adăuga backticks (\`\`\`), NU adăuga text ad
             : parsed.sectiuni_aditionale;
         }
       } else {
-        // Deep merge for isFullPlan to avoid losing fields if AI omits them
+        // Deep merge to avoid losing fields if AI omits them
         mergedResult = { ...result, ...parsed };
         if (parsed.plan_financiar) mergedResult.plan_financiar = { ...result.plan_financiar, ...parsed.plan_financiar };
         if (parsed.analiza_swot) mergedResult.analiza_swot = { ...result.analiza_swot, ...parsed.analiza_swot };

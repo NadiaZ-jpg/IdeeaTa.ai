@@ -211,33 +211,18 @@ NU adăuga formatare markdown, NU adăuga backticks (\`\`\`), NU adăuga text ad
         }
       }
 
-      if (!isFullPlan) {
-        // Deep merge only modified sections back into original
-        mergedResult = { ...result, ...parsed };
-        // Preserve nested objects properly
-        if (parsed.plan_financiar) mergedResult.plan_financiar = { ...result.plan_financiar, ...parsed.plan_financiar };
-        if (parsed.analiza_swot) mergedResult.analiza_swot = { ...result.analiza_swot, ...parsed.analiza_swot };
-        if (parsed.viziune_strategie) mergedResult.viziune_strategie = { ...result.viziune_strategie, ...parsed.viziune_strategie };
-        if (parsed.analiza_pietei) mergedResult.analiza_pietei = { ...result.analiza_pietei, ...parsed.analiza_pietei };
-        if (parsed.plan_operational) mergedResult.plan_operational = { ...result.plan_operational, ...parsed.plan_operational };
-        if (parsed.sectiuni_aditionale) {
-          mergedResult.sectiuni_aditionale = result.sectiuni_aditionale 
-            ? [...result.sectiuni_aditionale, ...parsed.sectiuni_aditionale]
-            : parsed.sectiuni_aditionale;
-        }
-      } else {
-        // Deep merge to avoid losing fields if AI omits them
-        mergedResult = { ...result, ...parsed };
-        if (parsed.plan_financiar) mergedResult.plan_financiar = { ...result.plan_financiar, ...parsed.plan_financiar };
-        if (parsed.analiza_swot) mergedResult.analiza_swot = { ...result.analiza_swot, ...parsed.analiza_swot };
-        if (parsed.viziune_strategie) mergedResult.viziune_strategie = { ...result.viziune_strategie, ...parsed.viziune_strategie };
-        if (parsed.analiza_pietei) mergedResult.analiza_pietei = { ...result.analiza_pietei, ...parsed.analiza_pietei };
-        if (parsed.plan_operational) mergedResult.plan_operational = { ...result.plan_operational, ...parsed.plan_operational };
-        if (parsed.sectiuni_aditionale) {
-          mergedResult.sectiuni_aditionale = result.sectiuni_aditionale 
-            ? [...result.sectiuni_aditionale, ...parsed.sectiuni_aditionale]
-            : parsed.sectiuni_aditionale;
-        }
+      // Deep merge only modified sections back into original
+      // Preserve nested objects properly
+      mergedResult = { ...result, ...parsed };
+      if (parsed.plan_financiar) mergedResult.plan_financiar = { ...result.plan_financiar, ...parsed.plan_financiar };
+      if (parsed.analiza_swot) mergedResult.analiza_swot = { ...result.analiza_swot, ...parsed.analiza_swot };
+      if (parsed.viziune_strategie) mergedResult.viziune_strategie = { ...result.viziune_strategie, ...parsed.viziune_strategie };
+      if (parsed.analiza_pietei) mergedResult.analiza_pietei = { ...result.analiza_pietei, ...parsed.analiza_pietei };
+      if (parsed.plan_operational) mergedResult.plan_operational = { ...result.plan_operational, ...parsed.plan_operational };
+      if (parsed.sectiuni_aditionale) {
+        mergedResult.sectiuni_aditionale = result.sectiuni_aditionale 
+          ? [...result.sectiuni_aditionale, ...parsed.sectiuni_aditionale]
+          : parsed.sectiuni_aditionale;
       }
     } catch (parseError: any) {
       console.error("JSON PARSE ERROR:", parseError, text);

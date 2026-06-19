@@ -1628,6 +1628,31 @@ export default function Home() {
       <div className="absolute top-[10%] left-[-15%] w-[600px] h-[600px] rounded-full bg-emerald-500/5 blur-[120px] pointer-events-none animate-pulse duration-[8000ms] z-0"></div>
       <div className="absolute top-[35%] right-[-15%] w-[650px] h-[650px] rounded-full bg-amber-500/5 blur-[150px] pointer-events-none animate-pulse duration-[12000ms] z-0"></div>
 
+      {loading && !result && (
+        <div className="fixed inset-0 bg-[#09090b]/90 backdrop-blur-sm z-[100] flex items-center justify-between px-6">
+          {/* Left Ad */}
+          <div className="hidden lg:flex flex-col items-center justify-center w-[180px] xl:w-[220px] h-[400px] overflow-hidden shrink-0">
+            <AdBanner dataAdSlot="1111111111" dataAdFormat="vertical" dataFullWidthResponsive="false" />
+          </div>
+
+          {/* Center loading content */}
+          <div className="flex flex-col items-center justify-center flex-1 px-4">
+            <div className="w-16 h-16 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin mb-6"></div>
+            <p className="text-2xl font-bold text-white tracking-widest uppercase text-center transition-all duration-300">
+              IdeeaTa prinde viață...
+            </p>
+            <p className="text-emerald-400 font-medium mt-3 text-center transition-all duration-500 max-w-lg">
+              {loadingMessages[messageIndex]}
+            </p>
+          </div>
+
+          {/* Right Ad */}
+          <div className="hidden lg:flex flex-col items-center justify-center w-[180px] xl:w-[220px] h-[400px] overflow-hidden shrink-0">
+            <AdBanner dataAdSlot="3333333333" dataAdFormat="vertical" dataFullWidthResponsive="false" />
+          </div>
+        </div>
+      )}
+
       {isDownloading && (
         <div className="fixed inset-0 bg-[#09090b]/90 backdrop-blur-sm z-[100] flex items-center justify-between px-6">
           {/* Left Ad */}

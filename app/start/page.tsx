@@ -1315,7 +1315,7 @@ export default function Home() {
         <div className="fixed inset-0 bg-[#09090b]/90 backdrop-blur-sm z-[100] flex items-center justify-between px-6">
           {/* Left Ad */}
           <div className="hidden lg:flex flex-col items-center justify-center w-[180px] xl:w-[220px] h-[400px] overflow-hidden shrink-0">
-            <AdBanner dataAdSlot="1111111111" dataAdFormat="vertical" dataFullWidthResponsive="false" />
+            <AdBanner dataAdSlot="3098389905" dataAdFormat="vertical" dataFullWidthResponsive="false" />
           </div>
 
           {/* Center loading content */}
@@ -1331,7 +1331,7 @@ export default function Home() {
 
           {/* Right Ad */}
           <div className="hidden lg:flex flex-col items-center justify-center w-[180px] xl:w-[220px] h-[400px] overflow-hidden shrink-0">
-            <AdBanner dataAdSlot="3333333333" dataAdFormat="vertical" dataFullWidthResponsive="false" />
+            <AdBanner dataAdSlot="8674150210" dataAdFormat="vertical" dataFullWidthResponsive="false" />
           </div>
         </div>
       )}
@@ -1340,7 +1340,7 @@ export default function Home() {
         <div className="fixed inset-0 bg-[#09090b]/90 backdrop-blur-sm z-[100] flex items-center justify-between px-6">
           {/* Left Ad */}
           <div className="hidden lg:flex flex-col items-center justify-center w-[180px] xl:w-[220px] h-[400px] bg-zinc-900/60 border border-zinc-800/60 rounded-2xl overflow-hidden shrink-0">
-            <AdBanner dataAdSlot="1111111111" dataAdFormat="vertical" dataFullWidthResponsive="false" />
+            <AdBanner dataAdSlot="3098389905" dataAdFormat="vertical" dataFullWidthResponsive="false" />
           </div>
           {/* Center */}
           <div className="flex flex-col items-center justify-center flex-1 px-4">
@@ -1363,7 +1363,7 @@ export default function Home() {
         <div className="fixed inset-0 bg-[#09090b]/90 backdrop-blur-sm z-[100] flex items-center justify-between px-6">
           {/* Left Ad */}
           <div className="hidden lg:flex flex-col items-center justify-center w-[180px] xl:w-[220px] h-[400px] overflow-hidden shrink-0">
-            <AdBanner dataAdSlot="3333333333" dataAdFormat="vertical" dataFullWidthResponsive="false" />
+            <AdBanner dataAdSlot="8674150210" dataAdFormat="vertical" dataFullWidthResponsive="false" />
           </div>
           {/* Center */}
           <div className="flex flex-col items-center justify-center flex-1 px-4">

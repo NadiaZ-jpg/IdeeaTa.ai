@@ -10,6 +10,7 @@ import { signInWithPopup, GoogleAuthProvider, FacebookAuthProvider, onAuthStateC
 import { doc, onSnapshot, setDoc, getDoc, increment, arrayUnion } from 'firebase/firestore';
 import { PricingModal } from '@/components/PricingModal';
 import { AdBanner } from '@/components/AdBanner';
+import { generateDocxBlob } from '@/lib/generateDocx';
 
 const BudgetPieChart = dynamic(() => import('./BudgetChart').then(mod => mod.BudgetPieChart), { ssr: false });
 

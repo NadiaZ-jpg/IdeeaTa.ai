@@ -346,7 +346,7 @@ export async function generateDocxBlob(
           children: [
             new ImageRun({
               data: arrayBuffer,
-              transformation: { width: 500, height: 320 },
+              transformation: { width: 550, height: 250 },
               type: "png",
             }),
           ],

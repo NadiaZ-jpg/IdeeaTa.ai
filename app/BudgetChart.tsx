@@ -26,10 +26,10 @@ export function BudgetPieChart({ budget, currency = "LEI", isPdf = false, isPptx
   const disableAnimation = isPdf || isPptx;
 
   return (
-    <div className="flex flex-col lg:flex-row gap-8 w-full h-full items-center justify-center select-none outline-none pointer-events-none md:pointer-events-auto">
+    <div className={`flex ${isPdf || isPptx ? 'flex-row' : 'flex-col lg:flex-row'} gap-8 w-full h-full items-center justify-center select-none outline-none pointer-events-none md:pointer-events-auto`}>
       {/* Pie Chart Container */}
       <motion.div 
-        className="h-[450px] w-full lg:w-1/2 outline-none flex justify-center items-center"
+        className={`h-[450px] ${isPdf || isPptx ? 'w-1/2' : 'w-full lg:w-1/2'} outline-none flex justify-center items-center`}
         initial={disableAnimation ? { opacity: 1, scale: 1, rotate: 0 } : { opacity: 0, scale: 0.8, rotate: -20 }}
         whileInView={disableAnimation ? undefined : { opacity: 1, scale: 1, rotate: 0 }}
         viewport={disableAnimation ? undefined : { once: true, margin: "-50px" }}
@@ -64,7 +64,7 @@ export function BudgetPieChart({ budget, currency = "LEI", isPdf = false, isPptx
 
       {/* Legend Container */}
       <motion.div 
-        className="w-full lg:w-1/2 flex items-center justify-center pl-0 lg:pl-10 py-4"
+        className={`${isPdf || isPptx ? 'w-1/2 pl-10' : 'w-full lg:w-1/2 pl-0 lg:pl-10'} flex items-center justify-center py-4`}
         initial={disableAnimation ? { opacity: 1, x: 0 } : { opacity: 0, x: 20 }}
         whileInView={disableAnimation ? undefined : { opacity: 1, x: 0 }}
         viewport={disableAnimation ? undefined : { once: true, margin: "-50px" }}

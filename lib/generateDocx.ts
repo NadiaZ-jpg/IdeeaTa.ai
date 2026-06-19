@@ -90,6 +90,8 @@ function numberedItem(num: number, label: string, value: string): Paragraph[] {
         new TextRun({ text: `${num}. `, bold: true, size: 24, font: FONT }),
         new TextRun({ text: label, bold: true, size: 24, font: FONT, color: COLOR_EMERALD }),
       ],
+      keepNext: true,
+      keepLines: true,
       spacing: { before: 120, after: 40 },
     }),
     new Paragraph({

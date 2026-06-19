@@ -956,15 +956,10 @@ export default function Home() {
           pdf.link(300, 680, 680, 40, { url: pdfUrl });
         }
         
-        if (mode === 'pdf-summary') {
-          // Add invisible clickable link over the "Vino pe IdeeaTa" button on the last page
-          pdf.setPage(pdf.getNumberOfPages());
-          let pdfUrl = 'https://ideea-ta-ai.vercel.app/';
-          const currentShareId = result?.id || shareId;
-          if (currentShareId) {
-            pdfUrl = `https://ideea-ta-ai.vercel.app/shared/${currentShareId}`;
-          }
-          } else if (mode === 'word') {
+        const safeName = result?.nume?.replace(/[^a-zA-Z0-9]/g, '_') || 'Business';
+        const suffix = mode === 'pdf-summary' ? '_Sumar_Gratuit' : '';
+        pdf.save(`IdeeaTa_Prezentare_${safeName}${suffix}.pdf`);
+      } else if (mode === 'word') {
           // Capture chart image for embedding in Word document
           let chartDataUrl: string | null = null;
           const chartElement = document.getElementById("docx-chart-container");

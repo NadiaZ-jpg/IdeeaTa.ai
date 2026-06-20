@@ -1,3 +1,5 @@
+import Link from 'next/link';
+
 export default function ContactPage() {
   return (
     <div className="min-h-screen bg-[#09090b] text-zinc-300 py-24 px-4 sm:px-8 flex items-center justify-center">
@@ -7,7 +9,7 @@ export default function ContactPage() {
 
         <h1 className="text-4xl md:text-5xl font-black text-white mb-6 relative z-10">Contactează-ne</h1>
         
-        <p className="text-zinc-400 text-lg mb-10 leading-relaxed max-w-lg mx-auto relative z-10">
+        <p className="text-zinc-400 text-lg mb-10 leading-relaxed max-w-lg mx-auto relative z-10 text-justify">
           Ai o întrebare legată de platformă, întâmpini o problemă tehnică sau vrei să colaborăm? Scrie-ne și îți vom răspunde în cel mai scurt timp!
         </p>
 
@@ -18,8 +20,14 @@ export default function ContactPage() {
           </a>
         </div>
 
-        <div className="mt-8 pt-8 border-t border-zinc-800/50 text-zinc-500 text-sm relative z-10">
-          <p>Timpul mediu de răspuns este de 24-48 de ore, de luni până vineri.</p>
+        <div className="mt-8 pt-8 border-t border-zinc-800/50 text-zinc-500 text-sm relative z-10 mb-8">
+          <p className="text-justify">Timpul mediu de răspuns este de 24-48 de ore, de luni până vineri.</p>
+        </div>
+
+        <div className="flex justify-center relative z-10">
+          <Link href="/start" className="bg-emerald-600 hover:bg-emerald-500 text-white px-8 py-4 rounded-xl font-bold transition-all shadow-lg shadow-emerald-900/30 no-underline">
+            Validează-ți ideea chiar acum
+          </Link>
         </div>
       </div>
     </div>

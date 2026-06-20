@@ -1,7 +1,9 @@
+import Link from 'next/link';
+
 export default function CookiesPage() {
   return (
     <div className="min-h-screen bg-[#09090b] text-zinc-300 py-24 px-4 sm:px-8">
-      <div className="max-w-4xl mx-auto prose prose-invert prose-emerald">
+      <div className="max-w-4xl mx-auto prose prose-invert prose-emerald text-justify">
         <h1>Politica de Cookie-uri</h1>
         <p><strong>Ultima actualizare:</strong> Iunie 2026</p>
 
@@ -44,6 +46,12 @@ export default function CookiesPage() {
         <p>Vom actualiza periodic această Politică de Cookie-uri. Orice schimbare va fi valabilă imediat după afișarea variantei revizuite pe site.</p>
 
         <p><em>Dacă aveți întrebări suplimentare, ne găsiți la: <a href="mailto:contact@ideeata.ai" className="text-emerald-400">contact@ideeata.ai</a>.</em></p>
+        
+        <div className="flex justify-center mt-12 mb-12">
+          <Link href="/start" className="bg-emerald-600 hover:bg-emerald-500 text-white px-8 py-4 rounded-xl font-bold transition-all shadow-lg shadow-emerald-900/30 no-underline">
+            Validează-ți ideea chiar acum
+          </Link>
+        </div>
       </div>
     </div>
   );

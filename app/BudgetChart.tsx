@@ -35,8 +35,8 @@ export function BudgetPieChart({ budget, currency = "LEI", isPdf = false, isPptx
         viewport={disableAnimation ? undefined : { once: true, margin: "-50px" }}
         transition={disableAnimation ? undefined : { duration: 0.8, type: "spring", bounce: 0.4 }}
       >
-        <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
-          <PieChart style={{ outline: 'none' }}>
+        {disableAnimation ? (
+          <PieChart width={isPptx ? 500 : 400} height={isPptx ? 450 : 400} style={{ outline: 'none' }}>
             <Pie
               data={data}
               cx="50%"
@@ -47,19 +47,40 @@ export function BudgetPieChart({ budget, currency = "LEI", isPdf = false, isPptx
               dataKey="cost"
               stroke="none"
               nameKey="name"
-              isAnimationActive={!disableAnimation}
+              isAnimationActive={false}
             >
               {data.map((entry, index) => (
                 <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
               ))}
             </Pie>
-            <Tooltip 
-              formatter={(value: any) => [`${Number(value).toLocaleString()} ${currency}`, "Cost"]}
-              contentStyle={{ backgroundColor: '#09090b', borderColor: '#27272a', color: '#fff', borderRadius: '12px', outline: 'none', fontSize: '13px' }}
-              itemStyle={{ color: '#10b981', fontWeight: 'bold' }}
-            />
           </PieChart>
-        </ResponsiveContainer>
+        ) : (
+          <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
+            <PieChart style={{ outline: 'none' }}>
+              <Pie
+                data={data}
+                cx="50%"
+                cy="50%"
+                innerRadius={90}
+                outerRadius={160}
+                paddingAngle={3}
+                dataKey="cost"
+                stroke="none"
+                nameKey="name"
+                isAnimationActive={true}
+              >
+                {data.map((entry, index) => (
+                  <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                ))}
+              </Pie>
+              <Tooltip 
+                formatter={(value: any) => [`${Number(value).toLocaleString()} ${currency}`, "Cost"]}
+                contentStyle={{ backgroundColor: '#09090b', borderColor: '#27272a', color: '#fff', borderRadius: '12px', outline: 'none', fontSize: '13px' }}
+                itemStyle={{ color: '#10b981', fontWeight: 'bold' }}
+              />
+            </PieChart>
+          </ResponsiveContainer>
+        )}
       </motion.div>
 
       {/* Legend Container */}

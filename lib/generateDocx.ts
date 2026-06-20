@@ -205,6 +205,28 @@ export async function generateDocxBlob(
             startAngle += sliceAngle;
           });
 
+          // Draw inner hole for doughnut
+          ctx.beginPath();
+          ctx.arc(cx, cy, radius * 0.55, 0, 2 * Math.PI);
+          ctx.fillStyle = '#18181b';
+          ctx.fill();
+          
+          // Draw Total in center
+          ctx.fillStyle = '#a1a1aa';
+          ctx.font = '14px Arial';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText('TOTAL', cx, cy - 15);
+          
+          ctx.fillStyle = '#10b981';
+          ctx.font = 'bold 20px Arial';
+          
+          // Formateaza totalul frumos
+          const formatPrice = (val: number) => {
+             return new Intl.NumberFormat('de-DE').format(val) + ' EUR';
+          };
+          ctx.fillText(formatPrice(total), cx, cy + 12);
+
           // Draw legend
           const lx = 480;
           let ly = Math.max(40, 200 - (items.length * 15));

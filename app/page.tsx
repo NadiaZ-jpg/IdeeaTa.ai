@@ -394,18 +394,22 @@ export default function Home() {
           setResult(formatObjectNumbers(parsed));
           
           setTimeout(() => {
-            let targetId = "";
-            if (action === "add_sections") {
-               const newIdx = (parsed.sectiuni_aditionale?.length || 1) - 1;
-               targetId = `custom-section-${newIdx}`;
-            }
-            else if (action === "optimize_budget") targetId = "section-financial";
-            else if (action === "professional_tone" || action === "eu_funds_optimization" || action === "investor_ready") targetId = "section-general";
-            
-            if (targetId) {
-              document.getElementById(targetId)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            }
-          }, 800);
+             let targetId = "";
+             if (action === "add_sections") {
+                targetId = "section-custom";
+             }
+             else if (action === "optimize_budget") targetId = "section-financial";
+             else if (action === "professional_tone" || action === "eu_funds_optimization" || action === "investor_ready") targetId = "section-general";
+             
+             if (targetId) {
+               const el = document.getElementById(targetId);
+               if (action === "add_sections" && el && el.lastElementChild) {
+                 el.lastElementChild.scrollIntoView({ behavior: 'smooth', block: 'center' });
+               } else if (el) {
+                 el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+               }
+             }
+           }, 800);
         } catch (err) {
           console.error("Failed to parse JSON:", err);
           alert("Sistemul a returnat un format invalid. Mai încearcă o dată.");
@@ -791,21 +795,20 @@ export default function Home() {
   const pdfPrintRef = useRef<any>(null);
 
   const ALL_EXAMPLES = [
-    "Consultanță Securitate Cibernetică", "Analiză de Risc Instituțional", "Dezvoltare Soluții AI", "Fermă Urbană de Microplante", "Consultanță Fonduri Europene", "Spălătorie Auto Ecologică", 
-    "Agenție Marketing Digital", "Platformă Cursuri Online", "Studio Design Interior", "Magazin Online Produse Bio", "Aplicație de Fitness", "Consultanță Nutriție", 
-    "Servicii Contabilitate", "Clinică Stomatologică", "Cafenea de Specialitate", "Service Auto Hibrid", "Organizare Evenimente", "Agenție Recrutare IT", 
-    "Producție Ambalaje Biodegradabile", "Realitate Augmentată Design", "Abonament Cafea Prăjită", "Reciclare Baterii Auto", "Turism Apicol", "Telemedicină Veterinară", 
-    "Livrare Mâncare Vegană", "Închiriere Biciclete Electrice", "Optimizare SEO B2B", "Dezvoltare Aplicații Mobile", "Consultanță Juridică Online", "Curățenie Profesională Birouri", 
-    "Design Peisagistic Urban", "Educație Financiară Copii", "Platformă Freelancing Local", "Imprimare 3D Piese de Schimb", "Sistem Irigații Inteligente", "Instalare Panouri Solare", 
-    "Centru de Meditații Școlare", "Service Laptopuri și Telefoane", "Magazin Haine Sustenabile", "Cofetărie Artizanală Fără Zahăr", "Producție Săpun Natural", "Atelier Mobilă Personalizată", 
-    "Servicii Traduceri Medicale", "Fotografie de Produs E-commerce", "Agenție Turism Experiențial", "Crescătorie Ciuperci Gourmet", "Producție Jucării din Lemn", "Cabinet Psihoterapie", 
-    "Dezvoltare Jocuri Video Indie", "Servicii Agricole cu Drona", "Magazin Echipamente Outdoor", "Consultanță Resurse Umane", "Creare Conținut Video TikTok", "Închiriere Echipament Foto-Video", 
-    "Hotel pentru Animale de Companie", "Ghid Turistic Virtual", "Producție Bere Artizanală", "Servicii Copywriting Tech", "Agenție Imobiliară Premium", "Servicii Mutări și Relocare", 
-    "Curățătorie Haine Bio", "Servicii Design Grafic și Branding", "Studio Înregistrări Podcast", "Magazin Cadouri Personalizate", "Producție Sosuri Picante Artizanale", "Call Center Externalizat", 
-    "Consultanță Vânzări B2B", "Instalare Sisteme Smart Home", "Cabinet Kinetoterapie", "Salon Înfrumusețare Mobil", "Cabinet Veterinar Non-Stop", "Servicii Editare Video YouTube", 
-    "Magazin Instrumente Muzicale", "Platformă Rezervări Restaurante", "Producție Lumânări Parfumate", "Servicii Cloud Hosting", "Agenție PR și Comunicare", "Magazin Jucării Educative STEM", 
-    "Servicii Modelare 3D", "Consultanță Management de Proiect", "Platformă E-learning Corporativ", "Producție Cosmetice Vegane", "Catering Evenimente Corporate", "Magazin Ceaiuri de Specialitate", 
-    "Platformă Crowdfunding Startups", "Producție Bijuterii Handmade", "Servicii Arhitectură Minimalistă", "Platformă Vânzare Bilete Evenimente", "Franciză Fast-Food Sănătos", "Atelier Ceramică Artizanală"
+    // Idei Clasice
+    "Brutărie și Patiserie Tradițională", "Spălătorie Auto Self-Service", "Salon de Înfrumusețare și Frizerie", "Restaurant cu Specific Tradițional", "Firmă de Curățenie Profesională", "Magazin Mixt de Cartier", "Atelier Auto și Vulcanizare", "Firmă de Construcții și Amenajări Interioare", "Cabinet Stomatologic", "Firmă de Contabilitate", "Farmacie de Cartier", "Cabinet Veterinar Non-Stop", "Servicii de Mutări și Relocare", "Agenție Imobiliară", "Crescătorie de Păsări sau Ferma Agricolă",
+    
+    // Idei Șic & Premium
+    "Matcha Bar & Cafenea de Specialitate", "Studio de Pilates și Yoga Boutique", "Atelier de Parfumuri Personalizate", "Boutique cu Haine Vintage Selecționate", "Concept Store cu Design Românesc", "Florărie Minimalistă cu Abonamente", "Cofetărie Artizanală French-Inspired", "Studio de Design Interior și Arhitectură", "Salon de Cosmetică Organică", "Galerie de Artă Contemporană și Cafenea", "Magazin de Vinuri și Brânzeturi Fine", "Servicii de Planificare a Nunților de Lux", "Atelier Ceramică Artizanală",
+    
+    // Idei pentru Tineri (Gen Z / Millennials)
+    "Studio și Arenă de E-Sports", "Cafenea cu Board Games și Jocuri Retro", "Agenție de Influencer Marketing și TikTok", "Magazin de Resale pentru Sneakers Rari", "Aplicație de Dating Bazată pe Interese Comune", "Platformă E-learning pentru Educație Financiară", "Producție de Haine Streetwear Sustenabile", "Servicii de Creare Conținut Video (UGC)", "Hub de Coworking pentru Nomazi Digitali", "Platformă Freelancing Local", "Dezvoltare Jocuri Video Indie", "Servicii Arhitectură Minimalistă",
+    
+    // Idei Originale și Inovatoare
+    "Hotel și Servicii de Îngrijire pentru Plante", "Catering cu Meniu Personalizat pe Baza ADN-ului", "Producție de Ambalaje Biodegradabile din Miceliu", "Aplicație AI pentru Traducerea Limbajului Semnelor", "Platformă de Matchmaking pentru Co-fondatori", "Fermă Hidroponică Urbană de Microplante", "Servicii de Design Peisagistic pe Balcoane și Terase", "Atelier de Conversie a Mașinilor Clasice în Electrice", "Aplicație de Realitate Augmentată pentru Mobilier", "Reciclare Baterii Auto", "Telemedicină Veterinară",
+    
+    // Idei Tech & Servicii
+    "Consultanță Securitate Cibernetică", "Analiză de Risc Instituțional", "Dezvoltare Soluții AI", "Consultanță Fonduri Europene", "Agenție Marketing Digital", "Platformă Cursuri Online", "Magazin Online Produse Bio", "Aplicație de Fitness", "Consultanță Nutriție", "Livrare Mâncare Vegană", "Închiriere Biciclete Electrice", "Optimizare SEO B2B", "Dezvoltare Aplicații Mobile", "Consultanță Juridică Online"
   ];
 
   const [examplesList, setExamplesList] = useState<string[]>(ALL_EXAMPLES.slice(0, 18));
@@ -1039,11 +1042,11 @@ export default function Home() {
             if (!text) return [];
             let stripped = text.replace(/^(?:În primul an:?|În următorii(?:\s*\d+(?:-\d+)?\s*ani)?:?|Obiective(?:le)?[^:]*:?|Pentru primul an:?|Pe termen scurt:?|Pe termen mediu:?)\s*/i, '').replace(/\*\*/g, '');
             return stripped.split('\n').filter(l => l.trim().length > 0).map(l => {
-                return { text: l.trim(), options: { bullet: false, color, breakLine: true, fontFace: 'Times New Roman' } };
+                return { text: l.trim(), options: { bullet: false, color, breakLine: true, fontFace: 'Times New Roman', align: 'justify' as any } as any };
             });
         };
 
-        const swotFormat = (arr: any[], color: string) => arr?.map((i: any) => ({ text: (i.titlu || i) + '\n' + (i.explicatie_tehnica || ''), options: { color, bullet: true, breakLine: true, fontFace: 'Times New Roman' } })) || [];
+        const swotFormat = (arr: any[], color: string) => arr?.map((i: any) => ({ text: (i.titlu || i) + '\n' + (i.explicatie_tehnica || ''), options: { color, bullet: true, breakLine: true, fontFace: 'Times New Roman', align: 'justify' as any } as any })) || [];
 
         // Slide 1: Title
         let slide1 = pres.addSlide({ masterName: 'MASTER_SLIDE' });
@@ -1118,14 +1121,17 @@ export default function Home() {
                values: result.plan_financiar.buget_investitii.map((i: any) => parseInt(i.cost.toString().replace(/[^0-9]/g, "")))
              }
            ];
-           cSlide.addChart(pres.ChartType.pie, dataChartPie, { 
+           cSlide.addChart(pres.ChartType.doughnut, dataChartPie, { 
               x: 1.8, y: 1.8, w: 6.4, h: 3.5, 
               showLegend: true, legendPos: 'r', 
-              showPercent: true, 
-              dataLabelColor: 'ffffff',
-              dataLabelFontSize: 12,
+              showPercent: true,
+              dataLabelPosition: 'outEnd',
+              holeSize: 50,
+              dataLabelColor: 'e4e4e7',
+              dataLabelFontSize: 10,
               legendColor: 'e4e4e7',
-              legendFontSize: 12,
+              legendFontSize: 10,
+              showTitle: false,
               chartColors: ['10b981', '3b82f6', 'f59e0b', 'ef4444', '8b5cf6', 'ec4899', '14b8a6']
            });
         }
@@ -1195,7 +1201,14 @@ export default function Home() {
         const suffix = mode === 'pdf-summary' ? '_Sumar_Gratuit' : '';
         pdf.save(`IdeeaTa_Prezentare_${safeName}${suffix}.pdf`);
       } else if (mode === 'word') {
-          const blob = await generateDocxBlob(result);
+          const chartElement = document.getElementById("docx-export-chart-hidden");
+          let chartDataUrl = null;
+          if (chartElement) {
+             try {
+                chartDataUrl = await toPng(chartElement, { backgroundColor: '#ffffff' });
+             } catch(e) { console.error(e); }
+          }
+          const blob = await generateDocxBlob(result, chartDataUrl);
           const link = document.createElement('a');
           link.href = URL.createObjectURL(blob);
           const safeName2 = result?.nume?.replace(/[^a-zA-Z0-9]/g, '_') || 'Business';

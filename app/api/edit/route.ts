@@ -115,8 +115,93 @@ IMPORTANT PENTRU JSON:
 - FĂRĂ virgule la finalul ultimului element din obiect sau array (fără trailing commas).
 NU adăuga formatare markdown, NU adăuga backticks (\`\`\`), NU adăuga text adițional înainte sau după JSON.`;
 
-    if (action !== "add_sections") {
-      prompt = `Ești un consultant de afaceri expert. 
+    const callGemini = async (sysPrompt: string) => {
+      let retries = 3;
+      while (retries > 0) {
+        try {
+          const response = await ai.models.generateContent({
+            model: "gemini-2.5-flash",
+            contents: sysPrompt,
+            config: { responseMimeType: "application/json" }
+          });
+          return response.text || "";
+        } catch (e: any) {
+          console.error(`Eroare Gemini:`, e.message);
+          retries--;
+          if (retries === 0) throw e;
+          await sleep(1500);
+        }
+      }
+      return "";
+    };
+
+    const cleanJsonString = (raw: string) => {
+      let t = raw.replace(/^```(json)?\n?/i, '').replace(/\n?```$/i, '').trim();
+      const firstBrace = t.indexOf('{');
+      const lastBrace = t.lastIndexOf('}');
+      if (firstBrace !== -1 && lastBrace !== -1 && lastBrace >= firstBrace) {
+        t = t.substring(firstBrace, lastBrace + 1);
+      }
+      t = t.replace(/,\s*([}\]])/g, '$1');
+      t = t.replace(/"((?:[^"\\]|\\.)*)"/g, (_match: string, inner: string) => {
+        return '"' + inner.replace(/\n/g, '\\n').replace(/\r/g, '\\r').replace(/\t/g, '\\t') + '"';
+      });
+      return t;
+    };
+
+    let parsed: any = {};
+    const isBigAction = action === "eu_funds_optimization" || action === "investor_ready" || action === "professional_tone";
+
+    if (isBigAction) {
+       const pViziune = { viziune_strategie: result.viziune_strategie };
+       const pPiata = { analiza_pietei: result.analiza_pietei };
+       const pOperational = { plan_operational: result.plan_operational };
+       const pSwot = { analiza_swot: result.analiza_swot };
+       const pFinanciar = { plan_financiar: { strategie_financiara: result.plan_financiar?.strategie_financiara } };
+
+       const buildPrompt = (segment: any) => `Ești un consultant de afaceri expert. 
+Acționează asupra următorului segment de plan de afaceri.
+${instruction}
+
+Plan curent:
+${JSON.stringify(segment)}
+
+Trebuie să răspunzi EXCLUSIV cu un JSON valid, respectând structura originală a segmentului primit.
+Dacă ai primit un singur câmp, returnează-l în același format JSON.
+IMPORTANT PENTRU JSON: 
+- NU folosi rânduri noi reale (unescaped newlines) în interiorul string-urilor! Pentru paragrafe, folosește strict '\\n' (escapat).
+- ESCAPEAZĂ obligatoriu ghilimelele duble din interiorul textului folosind backslash (\\"). Cel mai sigur este să folosești doar ghilimele simple (') în interiorul textului.
+- FĂRĂ virgule la finalul ultimului element din obiect sau array (fără trailing commas).
+NU adăuga formatare markdown, NU adăuga backticks (\`\`\`), NU adăuga text adițional înainte sau după JSON.`;
+
+       const [resViz, resPiata, resOp, resSwot, resFin] = await Promise.all([
+          callGemini(buildPrompt(pViziune)),
+          callGemini(buildPrompt(pPiata)),
+          callGemini(buildPrompt(pOperational)),
+          callGemini(buildPrompt(pSwot)),
+          callGemini(buildPrompt(pFinanciar))
+       ]);
+       
+       const txtViz = cleanJsonString(resViz);
+       const txtPiata = cleanJsonString(resPiata);
+       const txtOp = cleanJsonString(resOp);
+       const txtSwot = cleanJsonString(resSwot);
+       const txtFin = cleanJsonString(resFin);
+
+       try {
+         const p1 = txtViz ? JSON.parse(txtViz) : {};
+         const p2 = txtPiata ? JSON.parse(txtPiata) : {};
+         const p3 = txtOp ? JSON.parse(txtOp) : {};
+         const p4 = txtSwot ? JSON.parse(txtSwot) : {};
+         const p5 = txtFin ? JSON.parse(txtFin) : {};
+         parsed = { ...p1, ...p2, ...p3, ...p4, ...p5 };
+       } catch (e: any) {
+         console.error("Parse error in parallel split");
+         return NextResponse.json({ error: "Eroare AI Formatare (Trunchiere pe sectiune): " + e.message + "\n\nFragmente:\n" + txtViz.substring(0, 30) + "...\n" + txtPiata.substring(0, 30) }, { status: 400 });
+       }
+    } else {
+       if (action !== "add_sections") {
+         prompt = `Ești un consultant de afaceri expert. 
 Acționează asupra următorului segment de plan de afaceri.
 ${instruction}
 
@@ -130,77 +215,33 @@ IMPORTANT PENTRU JSON:
 - ESCAPEAZĂ obligatoriu ghilimelele duble din interiorul textului folosind backslash (\\"). Cel mai sigur este să folosești doar ghilimele simple (') în interiorul textului.
 - FĂRĂ virgule la finalul ultimului element din obiect sau array (fără trailing commas).
 NU adăuga formatare markdown, NU adăuga backticks (\`\`\`), NU adăuga text adițional înainte sau după JSON.`;
-    }
-
-    let response;
-    let retries = 3;
-    while (retries > 0) {
-      try {
-        response = await ai.models.generateContent({
-          model: "gemini-2.5-flash",
-          contents: prompt,
-          config: {
-            responseMimeType: "application/json",
-          }
-        });
-        break;
-      } catch (e: any) {
-        console.error(`Eroare editare Gemini. Incercari ramase: ${retries - 1}`, e.message);
-        retries--;
-        if (retries === 0) throw e;
-        await sleep(1500);
-      }
-    }
-
-    let text = response?.text || "";
-    
-    // Remove markdown if Gemini adds it despite responseMimeType
-    text = text.replace(/^```(json)?\n?/i, '').replace(/\n?```$/i, '').trim();
-    
-    // Bulletproof: Extract from first '{' to last '}' to ignore any trailing text/garbage
-    const firstBrace = text.indexOf('{');
-    const lastBrace = text.lastIndexOf('}');
-    if (firstBrace !== -1 && lastBrace !== -1) {
-      text = text.substring(firstBrace, lastBrace + 1);
-    }
-    
-    // Sanitize common JSON errors
-    text = text.replace(/,\s*([}\]])/g, '$1'); // Fix trailing commas
-    
-    // Fix unescaped control characters inside JSON string values (the main cause of "Bad control character" errors)
-    // This replaces literal newlines/tabs/carriage returns inside JSON strings with their escaped versions
-    text = text.replace(/"((?:[^"\\]|\\.)*)"/g, (_match: string, inner: string) => {
-      const fixed = inner
-        .replace(/\n/g, '\\n')
-        .replace(/\r/g, '\\r')
-        .replace(/\t/g, '\\t');
-      return '"' + fixed + '"';
-    });
-
-    let mergedResult = result;
-    try {
-      let parsed: any;
-      try {
-        parsed = JSON.parse(text);
-      } catch (parseErr: any) {
-        // If Gemini returned multiple concatenated objects (e.g. {} {}), try to parse them as an array and take the first one
-        if (parseErr.message.includes('Unexpected non-whitespace character') || parseErr.message.includes('Unexpected token')) {
-          try {
-            const arrayFixed = '[' + text.replace(/\}\s*\{/g, '},{').replace(/\]\s*\[/g, '],[') + ']';
-            const parsedArray = JSON.parse(arrayFixed);
-            if (Array.isArray(parsedArray) && parsedArray.length > 0) {
-              parsed = parsedArray[0];
-            } else {
-              throw parseErr;
-            }
-          } catch {
-            throw parseErr; // Throw original error if fallback fails
-          }
-        } else {
-          throw parseErr;
-        }
-      }
-      
+       }
+       
+       const res = await callGemini(prompt);
+       const text = cleanJsonString(res);
+       
+       try {
+         parsed = JSON.parse(text);
+       } catch (parseErr: any) {
+         if (parseErr.message.includes('Unexpected non-whitespace character') || parseErr.message.includes('Unexpected token')) {
+           try {
+             const arrayFixed = '[' + text.replace(/\}\s*\{/g, '},{').replace(/\]\s*\[/g, '],[') + ']';
+             const parsedArray = JSON.parse(arrayFixed);
+             if (Array.isArray(parsedArray) && parsedArray.length > 0) {
+               parsed = parsedArray[0];
+             } else {
+               throw parseErr;
+             }
+           } catch {
+             console.error("JSON PARSE ERROR:", parseErr, text);
+             return NextResponse.json({ error: "Eroare AI Formatare: " + parseErr.message + "\n\nFragment primit: " + text.substring(0, 150) }, { status: 400 });
+           }
+         } else {
+           console.error("JSON PARSE ERROR:", parseErr, text);
+           return NextResponse.json({ error: "Eroare AI Formatare: " + parseErr.message + "\n\nFragment primit: " + text.substring(0, 150) }, { status: 400 });
+         }
+       }
+       
       // Safety checks for add_sections in case Gemini returns an array or raw object
       if (action === "add_sections") {
         if (Array.isArray(parsed)) {
@@ -210,7 +251,6 @@ NU adăuga formatare markdown, NU adăuga backticks (\`\`\`), NU adăuga text ad
         } else if (parsed.sectiuni_aditionale && !Array.isArray(parsed.sectiuni_aditionale)) {
           parsed.sectiuni_aditionale = [parsed.sectiuni_aditionale];
         } else if (!parsed.sectiuni_aditionale) {
-          // If Gemini returned something like { "noi_sectiuni": [ ... ] }
           for (const key of Object.keys(parsed)) {
             if (Array.isArray(parsed[key])) {
               parsed = { sectiuni_aditionale: parsed[key] };
@@ -219,10 +259,9 @@ NU adăuga formatare markdown, NU adăuga backticks (\`\`\`), NU adăuga text ad
           }
         }
       }
+    }
 
-      // Deep merge only modified sections back into original
-      // Preserve nested objects properly
-      mergedResult = { ...result, ...parsed };
+      let mergedResult = { ...result, ...parsed };
       if (parsed.plan_financiar) mergedResult.plan_financiar = { ...result.plan_financiar, ...parsed.plan_financiar };
       if (parsed.analiza_swot) mergedResult.analiza_swot = { ...result.analiza_swot, ...parsed.analiza_swot };
       if (parsed.viziune_strategie) mergedResult.viziune_strategie = { ...result.viziune_strategie, ...parsed.viziune_strategie };
@@ -233,11 +272,6 @@ NU adăuga formatare markdown, NU adăuga backticks (\`\`\`), NU adăuga text ad
           ? [...result.sectiuni_aditionale, ...parsed.sectiuni_aditionale]
           : parsed.sectiuni_aditionale;
       }
-    } catch (parseError: any) {
-      console.error("JSON PARSE ERROR:", parseError, text);
-      return NextResponse.json({ error: "Eroare AI Formatare: " + parseError.message + "\n\nFragment primit: " + text.substring(0, 150) }, { status: 400 });
-    }
-
     return NextResponse.json({ updatedResult: JSON.stringify(mergedResult) });
   } catch (error: any) {
     console.error("Error editing content:", error);

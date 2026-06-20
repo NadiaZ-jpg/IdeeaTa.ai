@@ -159,8 +159,14 @@ export async function generateDocxBlob(
       canvas.height = 400;
       const ctx = canvas.getContext('2d');
       if (ctx) {
-        ctx.fillStyle = '#ffffff';
-        ctx.fillRect(0, 0, 800, 400);
+        ctx.fillStyle = '#18181b';
+        if (ctx.roundRect) {
+          ctx.beginPath();
+          ctx.roundRect(0, 0, 800, 400, 24);
+          ctx.fill();
+        } else {
+          ctx.fillRect(0, 0, 800, 400);
+        }
 
         const colors = ['#10b981', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#14b8a6'];
         const values = items.map((i: any) => parseInt((i.cost || i.valoare || "0").toString().replace(/[^0-9]/g, '')) || 0);
@@ -207,7 +213,7 @@ export async function generateDocxBlob(
             ctx.fillStyle = colors[i % colors.length];
             ctx.fillRect(lx, ly - 12, 20, 20);
             
-            ctx.fillStyle = '#333333';
+            ctx.fillStyle = '#e4e4e7';
             ctx.font = '16px Arial';
             ctx.textAlign = 'left';
             ctx.textBaseline = 'middle';
@@ -412,6 +418,7 @@ export async function generateDocxBlob(
       const arrayBuffer = await response.arrayBuffer();
       children.push(
         new Paragraph({
+          keepNext: true,
           children: [
             new TextRun({
               text: "Distribuția Costurilor",
@@ -430,7 +437,7 @@ export async function generateDocxBlob(
           children: [
             new ImageRun({
               data: arrayBuffer,
-              transformation: { width: 550, height: 250 },
+              transformation: { width: 550, height: 275 },
               type: "png",
             }),
           ],

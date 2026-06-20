@@ -1043,11 +1043,13 @@ export default function Home() {
              }
            ];
            cSlide.addChart(pres.ChartType.pie, dataChartPie, { 
-              x: 1.5, y: 1.5, w: 7, h: 4, 
+              x: 1.8, y: 1.8, w: 6.4, h: 3.5, 
               showLegend: true, legendPos: 'r', 
               showPercent: true, 
               dataLabelColor: 'ffffff',
               dataLabelFontSize: 12,
+              legendColor: 'e4e4e7',
+              legendFontSize: 12,
               chartColors: ['10b981', '3b82f6', 'f59e0b', 'ef4444', '8b5cf6', 'ec4899', '14b8a6']
            });
         }

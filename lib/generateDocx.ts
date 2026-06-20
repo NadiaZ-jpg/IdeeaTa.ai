@@ -149,6 +149,84 @@ export async function generateDocxBlob(
 ): Promise<Blob> {
   const children: (Paragraph | Table)[] = [];
 
+  // Generate a pure canvas pie chart if budget exists
+  let finalChartDataUrl = chartDataUrl;
+  if (!finalChartDataUrl && result?.plan_financiar?.buget_investitii?.length > 0 && typeof document !== 'undefined') {
+    try {
+      const items = result.plan_financiar.buget_investitii;
+      const canvas = document.createElement('canvas');
+      canvas.width = 800;
+      canvas.height = 400;
+      const ctx = canvas.getContext('2d');
+      if (ctx) {
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, 0, 800, 400);
+
+        const colors = ['#10b981', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#14b8a6'];
+        const values = items.map((i: any) => parseInt((i.cost || i.valoare || "0").toString().replace(/[^0-9]/g, '')) || 0);
+        const total = values.reduce((a: number, b: number) => a + b, 0);
+
+        const cx = 250;
+        const cy = 200;
+        const radius = 160;
+
+        let startAngle = -Math.PI / 2;
+
+        if (total > 0) {
+          // Draw pie
+          values.forEach((val: number, i: number) => {
+            if (val === 0) return;
+            const sliceAngle = (val / total) * 2 * Math.PI;
+            ctx.beginPath();
+            ctx.moveTo(cx, cy);
+            ctx.arc(cx, cy, radius, startAngle, startAngle + sliceAngle);
+            ctx.closePath();
+            ctx.fillStyle = colors[i % colors.length];
+            ctx.fill();
+
+            // Draw percentage
+            const midAngle = startAngle + sliceAngle / 2;
+            const px = cx + Math.cos(midAngle) * (radius * 0.65);
+            const py = cy + Math.sin(midAngle) * (radius * 0.65);
+            const perc = Math.round((val / total) * 100) + '%';
+            
+            ctx.fillStyle = '#ffffff';
+            ctx.font = 'bold 16px Arial';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(perc, px, py);
+
+            startAngle += sliceAngle;
+          });
+
+          // Draw legend
+          const lx = 480;
+          let ly = Math.max(40, 200 - (items.length * 15));
+          items.forEach((item: any, i: number) => {
+            if (values[i] === 0) return;
+            ctx.fillStyle = colors[i % colors.length];
+            ctx.fillRect(lx, ly - 12, 20, 20);
+            
+            ctx.fillStyle = '#333333';
+            ctx.font = '16px Arial';
+            ctx.textAlign = 'left';
+            ctx.textBaseline = 'middle';
+            
+            let label = item.item || item.nume || "Investiție";
+            if (label.length > 30) label = label.substring(0, 27) + '...';
+            
+            ctx.fillText(label, lx + 30, ly - 2);
+            ly += 30;
+          });
+
+          finalChartDataUrl = canvas.toDataURL('image/png');
+        }
+      }
+    } catch (e) {
+      console.error("Failed to draw canvas pie chart for docx", e);
+    }
+  }
+
   // ── Cover ──
   children.push(
     new Paragraph({
@@ -328,9 +406,9 @@ export async function generateDocxBlob(
   children.push(spacer());
 
   // Chart image
-  if (chartDataUrl) {
+  if (finalChartDataUrl) {
     try {
-      const response = await fetch(chartDataUrl);
+      const response = await fetch(finalChartDataUrl);
       const arrayBuffer = await response.arrayBuffer();
       children.push(
         new Paragraph({

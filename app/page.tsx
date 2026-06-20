@@ -1006,7 +1006,7 @@ export default function Home() {
 
         const addTextSlide = (mainTitle: string, subTitle: string, contentStr: string | undefined) => {
            if(!contentStr) return;
-           const slides = splitTextIntoSlides(contentStr, 1300);
+           const slides = splitTextIntoSlides(contentStr, 1800);
            slides.forEach((content, slideIdx) => {
              let slide = pres.addSlide({ masterName: 'MASTER_SLIDE' });
              slide.addText(mainTitle, { x: 0.5, y: 0.5, w: 9, h: 0.5, fontSize: 28, bold: true, color: '10b981', fontFace: 'Times New Roman' });
@@ -1018,7 +1018,7 @@ export default function Home() {
         const addSwotSlide = (mainTitle: string, subTitle: string, color: string, swotArr: any[]) => {
            if(!swotArr || !swotArr.length) return;
            const contentStr = swotArr.map((i: any) => '• ' + (i.titlu || i) + '\n  ' + (i.explicatie_tehnica || '')).join('\n\n');
-           const slides = splitTextIntoSlides(contentStr, 1100);
+           const slides = splitTextIntoSlides(contentStr, 1600);
            slides.forEach((content, slideIdx) => {
              let slide = pres.addSlide({ masterName: 'MASTER_SLIDE' });
              slide.addText(mainTitle, { x: 0.5, y: 0.5, w: 9, h: 0.5, fontSize: 28, bold: true, color, fontFace: 'Times New Roman' });
@@ -1071,7 +1071,7 @@ export default function Home() {
         // Slides for Custom/Additional Sections
         result.sectiuni_aditionale?.forEach((sec: any) => {
            if (!sec || !sec.continut) return;
-           const slides = splitTextIntoSlides(sec.continut, 1500);
+           const slides = splitTextIntoSlides(sec.continut, 2000);
            slides.forEach((slideContent, slideIdx) => {
               let cSlide = pres.addSlide({ masterName: 'MASTER_SLIDE' });
               const secTitle = (sec.titlu || 'Secțiune Adițională').toUpperCase();
@@ -2964,7 +2964,7 @@ export default function Home() {
             {/* Custom Sections Slides (Dark Mode) */}
             {result.sectiuni_aditionale?.flatMap((sec: any, secIdx: number) => {
               if (!sec || !sec.continut) return [];
-              const slides = splitTextIntoSlides(sec.continut, 1500);
+              const slides = splitTextIntoSlides(sec.continut, 2000);
               return slides.map((slideContent, slideIdx) => (
                 <div key={`pdf-custom-dark-${secIdx}-${slideIdx}`} className="presentation-slide w-[1280px] h-[720px] bg-[#09090b] flex flex-col p-24 border-[12px] border-zinc-900 box-border relative overflow-hidden">
                   <div className="flex items-center gap-6 mb-8 shrink-0">
@@ -3236,7 +3236,7 @@ export default function Home() {
             {/* Custom Sections Slides (White Mode) */}
             {result.sectiuni_aditionale?.flatMap((sec: any, secIdx: number) => {
               if (!sec || !sec.continut) return [];
-              const slides = splitTextIntoSlides(sec.continut, 1500);
+              const slides = splitTextIntoSlides(sec.continut, 2000);
               return slides.map((slideContent, slideIdx) => (
                 <div key={`pdf-custom-white-${secIdx}-${slideIdx}`} className="pdf-presentation-slide w-[1280px] h-[720px] bg-white flex flex-col px-24 py-16 border-[12px] border-emerald-900 box-border relative overflow-hidden">
                   <div className="flex items-center gap-6 mb-8 shrink-0">

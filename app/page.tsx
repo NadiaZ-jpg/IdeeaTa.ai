@@ -141,6 +141,14 @@ export default function Home() {
   const [aiPromptInput, setAiPromptInput] = useState("");
   const [showToneOptions, setShowToneOptions] = useState(false);
   const [aiLoadingMessageIndex, setAiLoadingMessageIndex] = useState(0);
+
+  useEffect(() => {
+    if (activeAiPrompt) {
+      setTimeout(() => {
+        document.getElementById('ai-prompt-box')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }, 50);
+    }
+  }, [activeAiPrompt]);
   const [isPaid, setIsPaid] = useState(false);
   const [showPaywall, setShowPaywall] = useState(false);
   const [isPaying, setIsPaying] = useState(false);
@@ -1345,7 +1353,7 @@ export default function Home() {
                     </div>
 
                     {activeAiPrompt && (
-                      <div className="mt-4 p-4 bg-zinc-950 border border-zinc-800 rounded-xl animate-in fade-in slide-in-from-top-2 duration-200">
+                      <div id="ai-prompt-box" className="mt-4 p-4 bg-zinc-950 border border-zinc-800 rounded-xl animate-in fade-in slide-in-from-top-2 duration-200">
                         <h4 className="text-sm font-bold text-zinc-200 mb-2">{activeAiPrompt.title}</h4>
                         <p className="text-xs text-zinc-400 mb-3 whitespace-pre-line">{activeAiPrompt.desc}</p>
                         

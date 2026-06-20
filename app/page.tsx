@@ -94,7 +94,7 @@ const splitTextIntoSlides = (text: any, maxChars: number = 1500): string[] => {
     const para = paragraphs[i];
     const paraLen = para.length + (currentParas.length > 0 ? 1 : 0);
     
-    if (currentLen + paraLen > targetChars && currentParas.length > 0) {
+    if (currentLen + paraLen > targetChars && currentParas.length > 0 && !(currentParas.length === 1 && currentLen < 200)) {
       let lastPara = currentParas[currentParas.length - 1].trim();
       // Avoid orphaned headings or short intro lines at the bottom of a slide
       if (lastPara.length > 0 && lastPara.length < 150 && currentParas.length > 1) {
@@ -1660,7 +1660,7 @@ export default function Home() {
           <div className="flex flex-col items-center justify-center flex-1 px-4">
             <div className="w-16 h-16 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin mb-6"></div>
             <p className="text-2xl font-bold text-white tracking-widest uppercase text-center transition-all duration-300">
-              IdeeaTa prinde viață...
+              Ideea Ta prinde viață...
             </p>
             <p className="text-emerald-400 font-medium mt-3 text-center transition-all duration-500 max-w-lg">
               {loadingMessages[messageIndex]}

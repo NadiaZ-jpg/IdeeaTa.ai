@@ -113,33 +113,33 @@ function formatPrice(val: any): string {
   return num.toLocaleString("ro-RO") + " RON";
 }
 
-function swotCellParagraphs(items: any[], color: string): Paragraph[] {
+const swotItemParagraphs = (items: any[], title: string, color: string): Paragraph[] => {
+  const list: Paragraph[] = [];
+  list.push(
+    new Paragraph({
+      keepNext: true,
+      children: [new TextRun({ text: title, bold: true, color, font: FONT, size: 24 })],
+      spacing: { before: 240, after: 120 },
+    })
+  );
   if (!items || items.length === 0) {
-    return [new Paragraph({ children: [new TextRun({ text: "-", font: FONT, size: 20 })] })];
+    list.push(new Paragraph({ children: [new TextRun({ text: "-", font: FONT, size: 20 })] }));
+    return list;
   }
-  return items.map(
-    (item: any) =>
+  items.forEach((item: any) => {
+    list.push(
       new Paragraph({
         children: [
-          new TextRun({
-            text: `• ${item.titlu || String(item)}: `,
-            bold: true,
-            color,
-            font: FONT,
-            size: 20,
-          }),
-          new TextRun({
-            text: item.explicatie_tehnica || "",
-            font: FONT,
-            size: 20,
-            color: COLOR_TEXT,
-          }),
+          new TextRun({ text: `• ${item.titlu || String(item)}: `, bold: true, color, font: FONT, size: 20 }),
+          new TextRun({ text: item.explicatie_tehnica || "", font: FONT, size: 20, color: COLOR_TEXT }),
         ],
-        spacing: { after: 60 },
+        spacing: { after: 120 },
         alignment: AlignmentType.JUSTIFIED,
       })
-  );
-}
+    );
+  });
+  return list;
+};
 
 // ─── Main generator ─────────────────────────────────────────────────────────
 
@@ -330,58 +330,16 @@ export async function generateDocxBlob(
   if (piata.clienti_tinta) children.push(labelValue("Clienții Țintă", piata.clienti_tinta));
   if (piata.concurenta) children.push(labelValue("Concurența", piata.concurenta));
   if (piata.strategie_marketing) children.push(labelValue("Strategia de Marketing", piata.strategie_marketing));
+  if (piata.tendinte_piata) children.push(labelValue("Tendințe Piață", piata.tendinte_piata));
 
   // ── IV. SWOT ──
   children.push(sectionHeading("IV. Analiza SWOT"));
   const swot = result.analiza_swot || {};
 
-  children.push(
-    new Table({
-      width: { size: 100, type: WidthType.PERCENTAGE },
-      rows: [
-        new TableRow({
-          cantSplit: true,
-          children: [
-            new TableCell({
-              children: [
-                new Paragraph({ children: [new TextRun({ text: "Puncte Tari (S)", bold: true, color: COLOR_EMERALD, font: FONT, size: 22 })] }),
-                ...swotCellParagraphs(swot.puncte_tari, COLOR_EMERALD),
-              ],
-              width: { size: 50, type: WidthType.PERCENTAGE },
-              shading: { fill: "f0fdf4", type: ShadingType.CLEAR },
-            }),
-            new TableCell({
-              children: [
-                new Paragraph({ children: [new TextRun({ text: "Slăbiciuni (W)", bold: true, color: COLOR_ORANGE, font: FONT, size: 22 })] }),
-                ...swotCellParagraphs(swot.puncte_slabe, COLOR_ORANGE),
-              ],
-              width: { size: 50, type: WidthType.PERCENTAGE },
-              shading: { fill: "fff7ed", type: ShadingType.CLEAR },
-            }),
-          ],
-        }),
-        new TableRow({
-          cantSplit: true,
-          children: [
-            new TableCell({
-              children: [
-                new Paragraph({ children: [new TextRun({ text: "Oportunități (O)", bold: true, color: COLOR_BLUE, font: FONT, size: 22 })] }),
-                ...swotCellParagraphs(swot.oportunitati, COLOR_BLUE),
-              ],
-              shading: { fill: "eff6ff", type: ShadingType.CLEAR },
-            }),
-            new TableCell({
-              children: [
-                new Paragraph({ children: [new TextRun({ text: "Amenințări (T)", bold: true, color: COLOR_RED, font: FONT, size: 22 })] }),
-                ...swotCellParagraphs(swot.amenintari, COLOR_RED),
-              ],
-              shading: { fill: "fef2f2", type: ShadingType.CLEAR },
-            }),
-          ],
-        }),
-      ],
-    })
-  );
+  children.push(...swotItemParagraphs(swot.puncte_tari, "Puncte Tari (S)", COLOR_EMERALD));
+  children.push(...swotItemParagraphs(swot.puncte_slabe, "Slăbiciuni (W)", COLOR_ORANGE));
+  children.push(...swotItemParagraphs(swot.oportunitati, "Oportunități (O)", COLOR_BLUE));
+  children.push(...swotItemParagraphs(swot.amenintari, "Amenințări (T)", COLOR_RED));
 
   children.push(spacer());
 
@@ -520,7 +478,7 @@ export async function generateDocxBlob(
       {
         properties: {
           page: {
-            margin: { top: 1440, bottom: 1440, left: 1701, right: 1701 },
+            margin: { top: 1134, bottom: 1134, left: 1134, right: 1134 },
           },
         },
         children,

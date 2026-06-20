@@ -532,33 +532,30 @@ export default function Home() {
       }
     } finally {
       setIsEmailLoading(false);
-    }
-  };
-  
   const inputRef = useRef<any>(null);
   const brochureRef = useRef<any>(null);
   const presentationRef = useRef<any>(null);
   const pdfPrintRef = useRef<any>(null);
 
   const examplesList = [
-    "Consultanță Securitate Cibernetică",
-    "Analiză de Risc Instituțional",
-    "Dezvoltare Soluții AI pentru Companii",
-    "Fermă Urbană de Microplante",
-    "Consultanță Accesare Fonduri Europene",
-    "Spălătorie Auto Ecologică",
-    "Agenție de Marketing Digital",
-    "Platformă de Cursuri Online",
-    "Studio de Design Interior",
-    "Magazin Online de Produse Bio",
+    "Consultanță Fonduri Europene",
+    "Agenție Marketing Digital",
+    "Platformă Cursuri Online",
+    "Magazin Online Produse Bio",
     "Aplicație de Fitness",
     "Consultanță Nutriție",
-    "Servicii de Contabilitate",
-    "Clinică Stomatologică",
-    "Cafenea de Specialitate",
+    "Livrare Mâncare Vegană",
+    "Închiriere Biciclete Electrice",
+    "Optimizare SEO B2B",
+    "Dezvoltare Aplicații Mobile",
+    "Consultanță Juridică Online",
+    "Consultanță Securitate Cibernetică",
+    "Fermă Urbană de Microplante",
     "Service Auto Hibrid",
-    "Organizare Evenimente",
-    "Agenție de Recrutare IT"
+    "Organizare Evenimente Corporate",
+    "Agenție de Recrutare IT",
+    "Platformă de Telemedicină",
+    "Atelier de Reciclare Creativă"
   ];
 
   const randomIdeas = [
@@ -1535,8 +1532,8 @@ export default function Home() {
                     onChange={(e) => setSkill(e.target.value)}
                     onKeyDown={handleKeyDown}
                     disabled={loading}
-                    placeholder={animatedPlaceholder || "Crează un plan pentru... (ex: Consultanță securitate)"}
-                    className="relative w-full h-32 p-6 rounded-2xl bg-[#09090b] border border-zinc-700 outline-none focus:border-emerald-500 transition-all text-xl shadow-inner resize-none placeholder:text-zinc-600 font-medium text-white"
+                    placeholder={animatedPlaceholder || "Descrie ideea ta aici... (ex: Platformă de cursuri online de programare cu asistent AI pentru copii de 10-14 ani)"}
+                    className="relative w-full h-32 p-6 rounded-2xl bg-[#09090b] border border-zinc-700 outline-none focus:border-emerald-500 transition-all text-xl shadow-inner resize-none placeholder:text-zinc-600 font-sans font-medium text-white leading-relaxed"
                   />
                 </div>
                 

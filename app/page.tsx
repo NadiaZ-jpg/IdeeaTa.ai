@@ -129,7 +129,50 @@ const getDynamicTextSize = (text: any, limits = { large: 400, medium: 800, extra
 
 export default function Home() {
   const [skill, setSkill] = useState("");
-  const [result, setResult] = useState<any>(null);
+  const [resultState, setResultState] = useState<any>(null);
+  const [versions, setVersionsState] = useState<{ [key: string]: any }>({});
+  const activeVersionIdRef = useRef<string>("original");
+  const [activeVersionId, _setActiveVersionId] = useState<string>("original");
+
+  const setActiveVersionId = (id: string) => {
+    activeVersionIdRef.current = id;
+    _setActiveVersionId(id);
+  };
+
+  const setVersions = (valOrFn: any) => {
+     setVersionsState((prev: any) => {
+        const nextVal = typeof valOrFn === 'function' ? valOrFn(prev) : valOrFn;
+        if (typeof window !== "undefined") {
+           if (Object.keys(nextVal).length > 0) {
+             localStorage.setItem("current_versions", JSON.stringify({versions: nextVal, activeVersionId: activeVersionIdRef.current}));
+           } else {
+             localStorage.removeItem("current_versions");
+           }
+        }
+        return nextVal;
+     });
+  };
+
+  const setResult = (valOrFn: any) => {
+    setResultState((prev: any) => {
+      const nextVal = typeof valOrFn === 'function' ? valOrFn(prev) : valOrFn;
+      if (nextVal === null) {
+        setVersions({});
+        setActiveVersionId("original");
+      } else {
+        setVersions((prevVers: any) => {
+           const newVers = { ...prevVers, [activeVersionIdRef.current]: nextVal };
+           if (typeof window !== "undefined") {
+             localStorage.setItem("current_versions", JSON.stringify({versions: newVers, activeVersionId: activeVersionIdRef.current}));
+           }
+           return newVers;
+        });
+      }
+      return nextVal;
+    });
+  };
+
+  const result = resultState;
   const [loading, setLoading] = useState(false);
   const [fxRate, setFxRate] = useState(0.201);
   const [currency, setCurrency] = useState("LEI");
@@ -341,6 +384,13 @@ export default function Home() {
       if (data && data.updatedResult) {
         try {
           const parsed = JSON.parse(data.updatedResult);
+          
+          if (action === "eu_funds_optimization") {
+            setActiveVersionId("eu_funds");
+          } else if (action === "investor_ready") {
+            setActiveVersionId("investor");
+          }
+          
           setResult(formatObjectNumbers(parsed));
           
           setTimeout(() => {
@@ -539,13 +589,25 @@ export default function Home() {
           .finally(() => setIsCheckingShared(false));
       } else {
         setIsCheckingShared(false);
-        const saved = localStorage.getItem("current_generated_plan");
-        if (saved) {
-          const parsedPlan = formatObjectNumbers(JSON.parse(saved));
-          setResult(parsedPlan);
+        const savedVersionsStr = localStorage.getItem("current_versions");
+        if (savedVersionsStr) {
+          const {versions: v, activeVersionId: a} = JSON.parse(savedVersionsStr);
+          setVersionsState(v);
+          setActiveVersionId(a);
+          setResultState(v[a]);
           if (typeof window !== "undefined" && window.location.search.includes('edit=true')) {
-            setBackupResult(JSON.parse(JSON.stringify(parsedPlan)));
+            setBackupResult(JSON.parse(JSON.stringify(v[a])));
             setIsEditing(true);
+          }
+        } else {
+          const saved = localStorage.getItem("current_generated_plan");
+          if (saved) {
+            const parsedPlan = formatObjectNumbers(JSON.parse(saved));
+            setResult(parsedPlan);
+            if (typeof window !== "undefined" && window.location.search.includes('edit=true')) {
+              setBackupResult(JSON.parse(JSON.stringify(parsedPlan)));
+              setIsEditing(true);
+            }
           }
         }
       }
@@ -574,10 +636,23 @@ export default function Home() {
         setResult(null); // Ne intoarcem la pagina de start
       } else if (isIdea && !isEdit) {
         // Suntem pe pagina cu ideea, trebuie sa ne asiguram ca result exista (restauram din localStorage daca e cazul)
-        setResult((prevResult: any) => {
+        setResultState((prevResult: any) => {
           if (!prevResult) {
+            const savedVersionsStr = localStorage.getItem("current_versions");
+            if (savedVersionsStr) {
+               const {versions: v, activeVersionId: a} = JSON.parse(savedVersionsStr);
+               setVersionsState(v);
+               setActiveVersionId(a);
+               return v[a];
+            }
             const saved = localStorage.getItem("current_generated_plan");
-            return saved && saved !== "null" && saved !== "undefined" ? formatObjectNumbers(JSON.parse(saved)) : null;
+            if (saved && saved !== "null" && saved !== "undefined") {
+               const parsed = formatObjectNumbers(JSON.parse(saved));
+               setVersionsState({ original: parsed });
+               setActiveVersionId("original");
+               return parsed;
+            }
+            return null;
           }
           return prevResult;
         });
@@ -586,8 +661,9 @@ export default function Home() {
       // Gestioneaza Login / Share View logic
       if (!user) {
         if (!isLogin) {
+          const savedVersionsStr = localStorage.getItem("current_versions");
           const saved = localStorage.getItem("current_generated_plan");
-          if (saved && saved !== "null" && saved !== "undefined") {
+          if (savedVersionsStr || (saved && saved !== "null" && saved !== "undefined")) {
             setIsSharedView(true);
           }
         } else {
@@ -2571,6 +2647,35 @@ export default function Home() {
             </div>
             </div>
           </div>
+
+          {Object.keys(versions).length > 1 && !isEditing && (
+            <div className="flex flex-wrap gap-2 mb-6 border-b border-zinc-800 pb-2 w-full max-w-5xl justify-center sm:justify-start">
+              {versions.original && (
+                <button 
+                  onClick={() => { setActiveVersionId('original'); setResultState(versions.original); }} 
+                  className={`px-5 py-2.5 rounded-t-xl transition-all duration-300 font-bold text-sm tracking-wide flex items-center gap-2 ${activeVersionId === 'original' ? 'bg-[#09090b] border-t border-l border-r border-emerald-500/50 text-emerald-400 shadow-[0_-10px_20px_-10px_rgba(16,185,129,0.15)] relative z-10 translate-y-[1px]' : 'bg-zinc-900/50 border-t border-l border-r border-zinc-800 text-zinc-500 hover:text-zinc-300 hover:bg-zinc-900'}`}
+                >
+                  📝 Varianta Originală
+                </button>
+              )}
+              {versions.eu_funds && (
+                <button 
+                  onClick={() => { setActiveVersionId('eu_funds'); setResultState(versions.eu_funds); }} 
+                  className={`px-5 py-2.5 rounded-t-xl transition-all duration-300 font-bold text-sm tracking-wide flex items-center gap-2 ${activeVersionId === 'eu_funds' ? 'bg-[#09090b] border-t border-l border-r border-emerald-500/50 text-emerald-400 shadow-[0_-10px_20px_-10px_rgba(16,185,129,0.15)] relative z-10 translate-y-[1px]' : 'bg-zinc-900/50 border-t border-l border-r border-zinc-800 text-zinc-500 hover:text-zinc-300 hover:bg-zinc-900'}`}
+                >
+                  🇪🇺 Optimizat Fonduri UE
+                </button>
+              )}
+              {versions.investor && (
+                <button 
+                  onClick={() => { setActiveVersionId('investor'); setResultState(versions.investor); }} 
+                  className={`px-5 py-2.5 rounded-t-xl transition-all duration-300 font-bold text-sm tracking-wide flex items-center gap-2 ${activeVersionId === 'investor' ? 'bg-[#09090b] border-t border-l border-r border-emerald-500/50 text-emerald-400 shadow-[0_-10px_20px_-10px_rgba(16,185,129,0.15)] relative z-10 translate-y-[1px]' : 'bg-zinc-900/50 border-t border-l border-r border-zinc-800 text-zinc-500 hover:text-zinc-300 hover:bg-zinc-900'}`}
+                >
+                  🏦 Plan Investitori
+                </button>
+              )}
+            </div>
+          )}
 
           {!isEditing && (
             <div 

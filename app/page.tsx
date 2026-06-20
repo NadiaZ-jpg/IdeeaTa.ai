@@ -308,7 +308,7 @@ export default function Home() {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ result, action, customStyle, targetSection })
         }),
-        new Promise(resolve => setTimeout(resolve, 12000))
+        new Promise(resolve => setTimeout(resolve, 2000))
       ]);
       let data;
       try {
@@ -345,7 +345,10 @@ export default function Home() {
           
           setTimeout(() => {
             let targetId = "";
-            if (action === "eu_funds_optimization") targetId = "section-general";
+            if (action === "eu_funds_optimization" || action === "investor_ready") {
+               const newIdx = (parsed.sectiuni_aditionale?.length || 1) - 1;
+               targetId = `custom-section-${newIdx}`;
+            }
             else if (action === "optimize_budget") targetId = "section-financial";
             else if (action === "add_sections") targetId = "section-custom";
             else if (action === "professional_tone") targetId = "section-general";
@@ -740,48 +743,7 @@ export default function Home() {
     setExamplesList(ALL_EXAMPLES.slice(chunkIndex * 18, (chunkIndex + 1) * 18));
   }, []);
 
-  const randomIdeas = [
-    "Producție de ambalaje biodegradabile din miceliu",
-    "Aplicație de realitate augmentată pentru design interior",
-    "Serviciu de abonament pentru cafea de specialitate prăjită local",
-    "Reciclare și recondiționare baterii pentru mașini electrice",
-    "Turism apicol și experiențe de degustare la stupină",
-    "Platformă de telemedicină veterinară",
-    "Atelier de conversie a mașinilor clasice în mașini electrice",
-    "Sistem de irigații inteligente bazate pe senzori IoT",
-    "Catering cu meniu complet personalizat pe baza ADN-ului",
-    "Agenție de turism pentru experiențe de „digital detox”",
-    "Fermă hidroponică urbană pentru microplante și ierburi aromatice",
-    "Aplicație AI pentru traducerea limbajului semnelor în timp real",
-    "Închiriere de haine de designer pe bază de abonament",
-    "Platformă de cursuri online pentru meserii tradiționale uitate",
-    "Servicii de curățenie folosind exclusiv produse ecologice și ozon",
-    "Cafenea dedicată pasionaților de board games cu bibliotecă de jocuri",
-    "Creșă și grădiniță cu program de educație forestieră (în natură)",
-    "Aplicație pentru planificarea meselor și reducerea risipei alimentare",
-    "Serviciu de curierat rapid folosind exclusiv biciclete cargo electrice",
-    "Magazin zero-waste cu produse vrac și ambalaje returnabile",
-    "Platformă de crowdfunding pentru proiecte de energie regenerabilă comunitară",
-    "Serviciu de închiriere echipamente de camping și drumeție",
-    "Aplicație care conectează bucătarii locali cu oameni care doresc mâncare de casă",
-    "Producție de mobilier modular pentru spații mici din materiale reciclate",
-    "Centru de terapie prin realitate virtuală pentru fobii și anxietate",
-    "Serviciu de planificare a nunților sustenabile și eco-friendly",
-    "Aplicație care recompensează utilizatorii pentru reciclarea corectă a deșeurilor",
-    "Platformă B2B pentru schimbul și vânzarea materialelor de construcții surplus",
-    "Atelier de reparații și personalizare pentru încălțăminte sport (sneakers)",
-    "Servicii de consultanță pentru companii privind tranziția la săptămâna de lucru de 4 zile",
-    "Platformă de meditații online bazată pe inteligență artificială adaptativă",
-    "Abonament de cutii lunare cu produse de la fermieri și artizani locali",
-    "Aplicație pentru găsirea și rezervarea de stații de încărcare pentru vehicule electrice private",
-    "Serviciu de design de grădini pe balcoane și terase pentru apartamente",
-    "Producție de hrană premium pentru animale de companie din insecte",
-    "Platformă de matchmaking pentru co-fondatori de startup-uri",
-    "Serviciu de închiriere de drone pentru fotografie și inspecții imobiliare",
-    "Aplicație de fitness cu antrenamente generate de AI în funcție de echipamentul disponibil",
-    "Organizare de tabere de reconversie profesională accelerată în IT pentru adulți",
-    "Serviciu de „pet sitting” (bona pentru animale) cu monitorizare video integrată"
-  ];
+  const randomIdeas = ALL_EXAMPLES;
 
   const loadingMessages = [
     "Se inițiază analiza de piață...",
@@ -824,7 +786,7 @@ export default function Home() {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ skill }),
         }),
-        new Promise(resolve => setTimeout(resolve, 12000))
+        new Promise(resolve => setTimeout(resolve, 2000))
       ]);
 
       let data;
@@ -1066,28 +1028,35 @@ export default function Home() {
            bSlide.addText('BUGET INVESTIȚII' + (slideIdx > 0 ? ` (Partea ${slideIdx + 1})` : ''), { x: 0.5, y: 0.5, w: 9, h: 0.5, fontSize: 28, bold: true, color: '10b981', fontFace: 'Times New Roman' });
            
            const chunk = budgetItems.slice(slideIdx * 4, slideIdx * 4 + 4);
-           let bText = chunk.map((b: any) => ({ text: b.item + ' - ' + formatPrice(b.cost) + '\n' + b.explicatie, options: { bullet: true, color: 'e4e4e7', breakLine: true, fontFace: 'Times New Roman' } }));
+              let bText = chunk.map((b: any) => ({ text: b.item + ' - ' + formatPrice(b.cost) + '\n' + b.explicatie, options: { bullet: true, color: 'e4e4e7', breakLine: true, fontFace: 'Times New Roman' } }));
            bSlide.addText(bText, { x: 0.5, y: 1.2, w: 9, h: 5.5, fontSize: 11, valign: 'top' });
         }
 
-        // Slide FINANCIAR: Pie chart + legenda
-        let finSlide = pres.addSlide({ masterName: 'MASTER_SLIDE' });
-        finSlide.addText('DISTRIBUȚIA COSTURILOR', { x: 0.5, y: 0.5, w: 9, h: 0.5, fontSize: 28, bold: true, color: '10b981', fontFace: 'Times New Roman' });
-        finSlide.addText(result.plan_financiar?.strategie_financiara || '', { x: 0.5, y: 1.1, w: 9, h: 0.7, fontSize: 9, color: 'a1a1aa', wrap: true, fontFace: 'Times New Roman' });
-        try {
-          const chartEl = document.getElementById('pptx-export-chart');
-          if (chartEl) {
-            const chartPng = await toPng(chartEl, { backgroundColor: '#09090b', style: { color: '#ffffff' } });
-            finSlide.addImage({ data: chartPng, x: 0.5, y: 1.8, w: 9, h: 4.05 });
-          }
-        } catch (err) {
-          console.error('Failed to add chart to PPTX:', err);
+        // Slide 8: Buget Chart (Native PPTX Chart)
+        let cSlide = pres.addSlide({ masterName: 'MASTER_SLIDE' });
+        cSlide.addText('PLAN FINANCIAR - DISTRIBUȚIA COSTURILOR', { x: 0.5, y: 0.5, w: 9, h: 0.5, fontSize: 22, bold: true, color: '10b981', fontFace: 'Times New Roman' });
+        if (result?.plan_financiar?.buget_investitii && result.plan_financiar.buget_investitii.length > 0) {
+           let dataChartPie = [
+             {
+               name: "Buget",
+               labels: result.plan_financiar.buget_investitii.map((i: any) => i.item),
+               values: result.plan_financiar.buget_investitii.map((i: any) => parseInt(i.cost.toString().replace(/[^0-9]/g, "")))
+             }
+           ];
+           cSlide.addChart(pres.ChartType.pie, dataChartPie, { 
+              x: 1.5, y: 1.5, w: 7, h: 4, 
+              showLegend: true, legendPos: 'r', 
+              showPercent: true, 
+              dataLabelColor: 'ffffff',
+              dataLabelFontSize: 12,
+              chartColors: ['10b981', '3b82f6', 'f59e0b', 'ef4444', '8b5cf6', 'ec4899', '14b8a6']
+           });
         }
 
         // Slides for Custom/Additional Sections
         result.sectiuni_aditionale?.forEach((sec: any) => {
            if (!sec || !sec.continut) return;
-           const slides = splitTextIntoSlides(sec.continut, 1100);
+           const slides = splitTextIntoSlides(sec.continut, 1800);
            slides.forEach((slideContent, slideIdx) => {
               let cSlide = pres.addSlide({ masterName: 'MASTER_SLIDE' });
               const secTitle = (sec.titlu || 'Secțiune Adițională').toUpperCase();
@@ -1149,18 +1118,7 @@ export default function Home() {
         const suffix = mode === 'pdf-summary' ? '_Sumar_Gratuit' : '';
         pdf.save(`IdeeaTa_Prezentare_${safeName}${suffix}.pdf`);
       } else if (mode === 'word') {
-          // Capture chart image for embedding in Word document
-          let chartDataUrl: string | null = null;
-          const chartElement = document.getElementById("docx-export-chart-hidden");
-          if (chartElement) {
-            try {
-              chartDataUrl = await toPng(chartElement, { backgroundColor: '#ffffff', style: { color: '#000000' } });
-            } catch (err) {
-              console.error("Failed to capture chart for Word export:", err);
-            }
-          }
-
-          const blob = await generateDocxBlob(result, chartDataUrl);
+          const blob = await generateDocxBlob(result);
           const link = document.createElement('a');
           link.href = URL.createObjectURL(blob);
           const safeName2 = result?.nume?.replace(/[^a-zA-Z0-9]/g, '_') || 'Business';
@@ -1170,7 +1128,7 @@ export default function Home() {
           document.body.removeChild(link);
       }
 
-      await new Promise(resolve => setTimeout(resolve, 12000));
+      await new Promise(resolve => setTimeout(resolve, 2000));
     } catch (e) {
       console.error("Eroare la generarea documentului", e);
       alert("A apărut o eroare la salvarea documentului.");
@@ -1257,6 +1215,12 @@ export default function Home() {
                         onClick={() => {
                           if (!user) {
                             setShowAuthModal(true);
+                            return;
+                          }
+                          const isAlreadyAdded = result?.sectiuni_aditionale?.findIndex((sec: any) => sec.titlu.includes("Fonduri Europene") || sec.titlu.includes("Fondurilor Europene"));
+                          if (isAlreadyAdded !== undefined && isAlreadyAdded >= 0) {
+                            alert("Acest capitol a fost deja adăugat! Te redirecționăm către el.");
+                            document.getElementById(`custom-section-${isAlreadyAdded}`)?.scrollIntoView({ behavior: "smooth", block: "center" });
                             return;
                           }
                           if (!isStudioPaid) {
@@ -1348,6 +1312,12 @@ export default function Home() {
                       <button type="button" onClick={() => {
                         if (!user) {
                           setShowAuthModal(true);
+                          return;
+                        }
+                        const isAlreadyAdded = result?.sectiuni_aditionale?.findIndex((sec: any) => sec.titlu.includes("Plan Profesionist") || sec.titlu.includes("Investitori"));
+                        if (isAlreadyAdded !== undefined && isAlreadyAdded >= 0) {
+                          alert("Acest capitol a fost deja adăugat! Te redirecționăm către el.");
+                          document.getElementById(`custom-section-${isAlreadyAdded}`)?.scrollIntoView({ behavior: "smooth", block: "center" });
                           return;
                         }
                         if (!isStudioPaid) {
@@ -2980,7 +2950,7 @@ export default function Home() {
             {/* Custom Sections Slides (Dark Mode) */}
             {result.sectiuni_aditionale?.flatMap((sec: any, secIdx: number) => {
               if (!sec || !sec.continut) return [];
-              const slides = splitTextIntoSlides(sec.continut, 1100);
+              const slides = splitTextIntoSlides(sec.continut, 1800);
               return slides.map((slideContent, slideIdx) => (
                 <div key={`pdf-custom-dark-${secIdx}-${slideIdx}`} className="presentation-slide w-[1280px] h-[720px] bg-[#09090b] flex flex-col p-24 border-[12px] border-zinc-900 box-border relative overflow-hidden">
                   <div className="flex items-center gap-6 mb-8 shrink-0">
@@ -3252,7 +3222,7 @@ export default function Home() {
             {/* Custom Sections Slides (White Mode) */}
             {result.sectiuni_aditionale?.flatMap((sec: any, secIdx: number) => {
               if (!sec || !sec.continut) return [];
-              const slides = splitTextIntoSlides(sec.continut, 1100);
+              const slides = splitTextIntoSlides(sec.continut, 1800);
               return slides.map((slideContent, slideIdx) => (
                 <div key={`pdf-custom-white-${secIdx}-${slideIdx}`} className="pdf-presentation-slide w-[1280px] h-[720px] bg-white flex flex-col px-24 py-16 border-[12px] border-emerald-900 box-border relative overflow-hidden">
                   <div className="flex items-center gap-6 mb-8 shrink-0">

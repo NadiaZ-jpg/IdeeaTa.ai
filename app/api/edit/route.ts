@@ -157,6 +157,13 @@ NU adăuga formatare markdown, NU adăuga backticks (\`\`\`), NU adăuga text ad
     // Remove markdown if Gemini adds it despite responseMimeType
     text = text.replace(/^```(json)?\n?/i, '').replace(/\n?```$/i, '').trim();
     
+    // Bulletproof: Extract from first '{' to last '}' to ignore any trailing text/garbage
+    const firstBrace = text.indexOf('{');
+    const lastBrace = text.lastIndexOf('}');
+    if (firstBrace !== -1 && lastBrace !== -1) {
+      text = text.substring(firstBrace, lastBrace + 1);
+    }
+    
     // Sanitize common JSON errors
     text = text.replace(/,\s*([}\]])/g, '$1'); // Fix trailing commas
     

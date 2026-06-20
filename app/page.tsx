@@ -736,10 +736,10 @@ export default function Home() {
   const [examplesList, setExamplesList] = useState<string[]>(ALL_EXAMPLES.slice(0, 18));
 
   useEffect(() => {
-    // Schimbare automată o dată la 14 zile
-    const twoWeeksMs = 14 * 24 * 60 * 60 * 1000;
+    // Schimbare automată o dată la 7 zile
+    const oneWeekMs = 7 * 24 * 60 * 60 * 1000;
     const epoch = 1700000000000; 
-    const chunkIndex = Math.floor((Date.now() - epoch) / twoWeeksMs) % Math.ceil(ALL_EXAMPLES.length / 18);
+    const chunkIndex = Math.floor((Date.now() - epoch) / oneWeekMs) % Math.ceil(ALL_EXAMPLES.length / 18);
     setExamplesList(ALL_EXAMPLES.slice(chunkIndex * 18, (chunkIndex + 1) * 18));
   }, []);
 

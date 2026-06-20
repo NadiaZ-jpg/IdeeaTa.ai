@@ -13,22 +13,16 @@ function extractRelevantSection(result: any, action: string) {
   switch (action) {
     case "optimize_budget":
       return { plan_financiar: result.plan_financiar };
-    case "professional_tone":
-      return {
-        viziune_strategie: result.viziune_strategie,
-        analiza_pietei: result.analiza_pietei,
-        plan_operational: result.plan_operational,
-        plan_financiar: { strategie_financiara: result.plan_financiar?.strategie_financiara },
-        analiza_swot: result.analiza_swot,
-      };
-    case "eu_funds_optimization":
-    case "investor_ready":
-      // Do not send the whole plan to prevent massive rewrites and timeouts.
-      // We only need basic context to generate the new standalone chapter.
-      return {
-        nume_afacere: result.nume_afacere,
-        viziune_strategie: result.viziune_strategie
-      };
+      case "professional_tone":
+      case "eu_funds_optimization":
+      case "investor_ready":
+        return {
+          viziune_strategie: result.viziune_strategie,
+          analiza_pietei: result.analiza_pietei,
+          plan_operational: result.plan_operational,
+          plan_financiar: { strategie_financiara: result.plan_financiar?.strategie_financiara },
+          analiza_swot: result.analiza_swot,
+        };
     case "shorten_for_export":
       return {
         viziune_strategie: result.viziune_strategie,
@@ -81,15 +75,23 @@ export async function POST(req: NextRequest) {
         ]
       }`;
     } else if (action === "eu_funds_optimization") {
-      instruction = `Generează un capitol complet NOU și detaliat pentru accesarea Fondurilor Europene.
-OBLIGATORIU: Returnează DOAR o cheie 'sectiuni_aditionale' (o listă cu un obiect cu 'titlu' și 'continut').
-Titlul trebuie să fie fix: 'Aliniere Fonduri Europene'.
-Conținutul (minim 3 paragrafe detaliate) trebuie să explice convingător felul în care planul se aliniază la Pactul Verde (sustenabilitate), normele de digitalizare europene, inovare și egalitate de șanse. NU scrie și alte secțiuni!`;
+      instruction = `RESCRIE ÎNTREAGA STRUCTURĂ a acestui plan de afaceri pentru a fi "OPTIMIZAT PENTRU FONDURI EUROPENE".
+Trebuie să traduci ideea în limbajul birocratic și strategic al Uniunii Europene, bifând criteriile stricte:
+1. Alinierea strategică perfectă (Relevanța): Demonstrează cum proiectul contribuie la digitalizare, tranziție verde și reducerea amprentei de carbon.
+2. Matricea logică și Indicatorii de performanță (KPIs): Adaugă obiective clare (Output, Outcome, Impact) în vizune și strategie.
+3. Bugetarea corectă: Menționează principiul raportului calitate-preț, cash-flow-ul și eligibilitatea cheltuielilor în strategia financiară.
+4. Criterii transversale: Integrează nativ Egalitatea de șanse, non-discriminarea și principiul DNSH (Dezvoltare durabilă / A nu aduce prejudicii semnificative mediului).
+5. Sustenabilitatea post-proiect: Demonstrează clar cum investiția va continua să funcționeze 3-5 ani de la finalizare.
+IMPORTANT: Păstrează structura JSON originală, dar rescrie și îmbogățește masiv conținutul capitolelor existente! Nu modifica cifrele brute.`;
     } else if (action === "investor_ready") {
-      instruction = `Generează un capitol complet NOU și ultra-detaliat, optimizat special pentru atragerea de investitori și credite bancare.
-OBLIGATORIU: Returnează DOAR o cheie 'sectiuni_aditionale' (o listă cu un obiect cu 'titlu' și 'continut').
-Titlul trebuie să fie fix: 'Plan Profesionist (Investitori & Bănci)'.
-Conținutul (minim 4 paragrafe ample) trebuie să includă o argumentație solidă de business: Rezumat Executiv, Matrice de diferențiere, Go-To-Market cu CAC/LTV, Plan de Contingență și atractivitatea scenariilor financiare. NU scrie și alte secțiuni!`;
+      instruction = `RESCRIE ÎNTREAGA STRUCTURĂ a acestui plan de afaceri pentru a atrage investitori și bănci ("PLAN PROFESIONIST").
+Transformă limbajul pentru a pune accent masiv pe viabilitate comercială, managementul riscului și profitabilitate:
+1. Dinamică financiară impecabilă: Introdu proiecții de Cash-Flow, IRR, NPV, ROI și DSCR în strategia financiară.
+2. Analiza de senzitivitate și Scenarii de risc: Simulează eșecul controlat (ce se întâmplă dacă costurile cresc sau vânzările scad).
+3. Validarea pieței (Market Traction): Detaliază piața (TAM, SAM, SOM), Unit Economics (CAC vs LTV 1:3) și Barierele la intrare (Moat).
+4. Finanțare și Strategie de Exit: Explică 'skin in the game', destinația clară a capitalului (runway) și Strategia de Exit (IPO, achiziție).
+5. Echipa de Management: Subliniază competențele complementare și track record-ul.
+IMPORTANT: Păstrează structura JSON originală (viziune_strategie, analiza_pietei, plan_operational, analiza_swot, plan_financiar), dar rescrie și îmbogățește masiv conținutul capitolelor existente! Nu modifica cifrele brute ale bugetului investiției, ci adaugă explicațiile financiare teoretice în 'strategie_financiara'.`;
     } else if (action === "shorten_for_export") {
       instruction = "Scurtează și sintetizează drastic textul (analiza pieței, planul operațional, SWOT, strategia financiară). Menține esența dar folosește fraze scurte. Redu volumul la jumătate pentru slide-uri.";
     } else {

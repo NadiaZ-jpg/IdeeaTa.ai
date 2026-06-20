@@ -336,8 +336,6 @@ export default function Home() {
         console.error(e);
         alert("Eroare de rețea. Te rugăm să mai încerci o dată.");
         return;
-      }
-
       if (data && data.updatedResult) {
         try {
           const parsed = JSON.parse(data.updatedResult);
@@ -345,13 +343,12 @@ export default function Home() {
           
           setTimeout(() => {
             let targetId = "";
-            if (action === "eu_funds_optimization" || action === "investor_ready") {
+            if (action === "add_sections") {
                const newIdx = (parsed.sectiuni_aditionale?.length || 1) - 1;
                targetId = `custom-section-${newIdx}`;
             }
             else if (action === "optimize_budget") targetId = "section-financial";
-            else if (action === "add_sections") targetId = "section-custom";
-            else if (action === "professional_tone") targetId = "section-general";
+            else if (action === "professional_tone" || action === "eu_funds_optimization" || action === "investor_ready") targetId = "section-general";
             
             if (targetId) {
               document.getElementById(targetId)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -1008,7 +1005,7 @@ export default function Home() {
         addTextSlide('OBIECTIVE PE TERMEN MEDIU', 'Obiective (3-5 ani)', result.viziune_strategie?.obiective_mediu);
         addTextSlide('MISIUNE ȘI VALORI', 'Misiune și Valori', result.viziune_strategie?.misiune_valori);
         addTextSlide('PIAȚA ȘI CONCURENȚA', 'Clienții Țintă', result.analiza_pietei?.clienti_tinta);
-        addTextSlide('PIAȚA ȘI CONCURENȚA', 'Concurența', result.analiza_pietei?.concurenta);
+        addTextSlide('PIAȚA ȘI CONCURENȚA', 'Concurența', result.analiza_pietei?.concurența);
         addTextSlide('PROMOVARE', 'Strategia de Marketing', result.analiza_pietei?.strategie_marketing);
 
         addSwotSlide('ANALIZĂ SWOT', 'PUNCTE TARI (S)', '10b981', result.analiza_swot?.puncte_tari);
@@ -1215,12 +1212,6 @@ export default function Home() {
                         onClick={() => {
                           if (!user) {
                             setShowAuthModal(true);
-                            return;
-                          }
-                          const isAlreadyAdded = result?.sectiuni_aditionale?.findIndex((sec: any) => sec.titlu.includes("Fonduri Europene") || sec.titlu.includes("Fondurilor Europene"));
-                          if (isAlreadyAdded !== undefined && isAlreadyAdded >= 0) {
-                            alert("Acest capitol a fost deja adăugat! Te redirecționăm către el.");
-                            document.getElementById(`custom-section-${isAlreadyAdded}`)?.scrollIntoView({ behavior: "smooth", block: "center" });
                             return;
                           }
                           if (!isStudioPaid) {
@@ -2076,7 +2067,7 @@ export default function Home() {
                   </div>
                   <h4 className="text-2xl font-bold text-white mb-3">Plan Profesionist</h4>
                   <p className="text-zinc-400 text-base md:text-lg leading-relaxed">
-                    Atrage investitori și bănci cu un format extins ce include metrici CAC/LTV, plan de risc și scenarii financiare multiple.
+                    Rescrie complet planul pentru a atrage investitori și bănci. Include limbaj corporativ, metrici financiare (CAC/LTV) și strategii de mitigare a riscului.
                   </p>
                 </div>
               </div>
@@ -2712,7 +2703,7 @@ export default function Home() {
             {/* Additional AI Sections */}
             <div id="section-custom">
               {result.sectiuni_aditionale?.map((sec: any, idx: number) => (
-                <div key={`custom-${idx}`} className="pdf-section mb-10 bg-zinc-900/50 p-10 rounded-3xl border-l-4 border-emerald-500 shadow-inner print:shadow-none print:bg-transparent print:border-l-4 print:border-emerald-700 print:text-black">
+                <div id={`custom-section-${idx}`} key={`custom-${idx}`} className="pdf-section mb-10 bg-zinc-900/50 p-10 rounded-3xl border-l-4 border-emerald-500 shadow-inner print:shadow-none print:bg-transparent print:border-l-4 print:border-emerald-700 print:text-black">
                   <h3 className="text-emerald-400 text-sm font-black uppercase mb-6 tracking-[0.2em]">{sec.titlu}</h3>
                   <p className="text-zinc-300 italic text-justify leading-relaxed print:text-gray-800 whitespace-pre-line">
                     {formatNumberedText(sec.continut)}

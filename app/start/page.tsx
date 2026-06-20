@@ -532,6 +532,9 @@ export default function Home() {
       }
     } finally {
       setIsEmailLoading(false);
+    }
+  };
+
   const inputRef = useRef<any>(null);
   const brochureRef = useRef<any>(null);
   const presentationRef = useRef<any>(null);
@@ -955,17 +958,10 @@ export default function Home() {
         const suffix = mode === 'pdf-summary' ? '_Sumar_Gratuit' : '';
         pdf.save(`IdeeaTa_Prezentare_${safeName}${suffix}.pdf`);
       } else if (mode === 'word') {
-          // Capture chart image for embedding in Word document
+          // Bypass html-to-image for Word export and use the native canvas fallback in generateDocx.ts
+          // which produces a clean chart on a white background suitable for DOCX.
           let chartDataUrl: string | null = null;
-          const chartElement = document.getElementById("docx-export-chart");
-          if (chartElement) {
-            try {
-              chartDataUrl = await toPng(chartElement, { backgroundColor: '#ffffff', style: { color: '#000000' } });
-            } catch (err) {
-              console.error("Failed to capture chart for Word export:", err);
-            }
-          }
-
+          
           const blob = await generateDocxBlob(result, chartDataUrl);
           const link = document.createElement('a');
           link.href = URL.createObjectURL(blob);

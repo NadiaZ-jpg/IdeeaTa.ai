@@ -159,7 +159,7 @@ export async function generateDocxBlob(
       canvas.height = 400;
       const ctx = canvas.getContext('2d');
       if (ctx) {
-        ctx.fillStyle = '#18181b';
+        ctx.fillStyle = '#ffffff';
         if (ctx.roundRect) {
           ctx.beginPath();
           ctx.roundRect(0, 0, 800, 400, 24);
@@ -208,11 +208,11 @@ export async function generateDocxBlob(
           // Draw inner hole for doughnut
           ctx.beginPath();
           ctx.arc(cx, cy, radius * 0.55, 0, 2 * Math.PI);
-          ctx.fillStyle = '#18181b';
+          ctx.fillStyle = '#ffffff';
           ctx.fill();
           
           // Draw Total in center
-          ctx.fillStyle = '#a1a1aa';
+          ctx.fillStyle = '#6b7280';
           ctx.font = '14px Arial';
           ctx.textAlign = 'center';
           ctx.textBaseline = 'middle';
@@ -227,27 +227,27 @@ export async function generateDocxBlob(
           };
           ctx.fillText(formatPrice(total), cx, cy + 12);
 
-          // Draw legend
-          const lx = 480;
-          let ly = Math.max(40, 200 - (items.length * 15));
-          items.forEach((item: any, i: number) => {
-            if (values[i] === 0) return;
-            ctx.fillStyle = colors[i % colors.length];
-            ctx.fillRect(lx, ly - 12, 20, 20);
-            
-            ctx.fillStyle = '#e4e4e7';
-            ctx.font = '16px Arial';
-            ctx.textAlign = 'left';
-            ctx.textBaseline = 'middle';
-            
-            let label = item.item || item.nume || "Investiție";
-            if (label.length > 30) label = label.substring(0, 27) + '...';
-            
-            ctx.fillText(label, lx + 30, ly - 2);
-            ly += 30;
-          });
+            // Draw legend
+            const lx = 480;
+            let ly = Math.max(40, 200 - (items.length * 15));
+            items.forEach((item: any, i: number) => {
+              if (values[i] === 0) return;
+              ctx.fillStyle = colors[i % colors.length];
+              ctx.fillRect(lx, ly - 12, 20, 20);
+              
+              ctx.fillStyle = '#1f2937';
+              ctx.font = '16px Arial';
+              ctx.textAlign = 'left';
+              ctx.textBaseline = 'middle';
+              
+              let label = item.item || item.nume || "Investiție";
+              if (label.length > 30) label = label.substring(0, 27) + '...';
+              
+              ctx.fillText(label, lx + 30, ly - 2);
+              ly += 30;
+            });
 
-          finalChartDataUrl = canvas.toDataURL('image/png');
+            finalChartDataUrl = canvas.toDataURL('image/png');
         }
       }
     } catch (e) {

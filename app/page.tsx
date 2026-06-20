@@ -249,14 +249,14 @@ export default function Home() {
     setResult(backupResult);
     setIsEditing(false);
     if (typeof window !== "undefined" && window.location.search.includes('edit=true')) {
-      window.history.replaceState({}, document.title, window.location.pathname);
+      window.history.replaceState({}, document.title, window.location.pathname + '?view=idea');
     }
   };
 
   const saveEditing = () => {
     setIsEditing(false);
     if (typeof window !== "undefined" && window.location.search.includes('edit=true')) {
-      window.history.replaceState({}, document.title, window.location.pathname);
+      window.history.replaceState({}, document.title, window.location.pathname + '?view=idea');
     }
   };
 
@@ -559,16 +559,31 @@ export default function Home() {
   // Asculta evenimentul de back (popstate) pentru a restaura documentul cand utilizatorul da "Inapoi" de la login
   useEffect(() => {
     const handlePopState = () => {
+      const searchParams = new URLSearchParams(window.location.search);
+      const isEdit = searchParams.get('edit') === 'true';
+      const isIdea = searchParams.get('view') === 'idea' || searchParams.has('sharedId');
+      const isLogin = searchParams.get('login') === 'true';
+
       // Gestioneaza Studio Editare
-      if (!window.location.search.includes('edit=true')) {
-        setIsEditing(false);
-      } else {
-        setIsEditing(true);
+      setIsEditing(isEdit);
+
+      // Gestioneaza Idea vs Start (Daca nu suntem in login, edit sau idea, inseamna ca suntem pe prima pagina)
+      if (!isIdea && !isEdit && !isLogin) {
+        setResult(null); // Ne intoarcem la pagina de start
+      } else if (isIdea && !isEdit) {
+        // Suntem pe pagina cu ideea, trebuie sa ne asiguram ca result exista (restauram din localStorage daca e cazul)
+        setResult((prevResult: any) => {
+          if (!prevResult) {
+            const saved = localStorage.getItem("current_generated_plan");
+            return saved && saved !== "null" && saved !== "undefined" ? formatObjectNumbers(JSON.parse(saved)) : null;
+          }
+          return prevResult;
+        });
       }
 
-      // Gestioneaza Login
+      // Gestioneaza Login / Share View logic
       if (!user) {
-        if (!window.location.search.includes('login=true')) {
+        if (!isLogin) {
           const saved = localStorage.getItem("current_generated_plan");
           if (saved && saved !== "null" && saved !== "undefined") {
             setIsSharedView(true);
@@ -840,6 +855,7 @@ export default function Home() {
         try {
           const finalResult = JSON.parse(cleanJson);
           setResult(formatObjectNumbers(finalResult));
+          window.history.pushState({ view: 'idea' }, '', window.location.pathname + '?view=idea');
           setSkill(""); 
           
           // Scroll dynamically to the top of the page to show the top of the new plan

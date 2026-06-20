@@ -336,6 +336,8 @@ export default function Home() {
         console.error(e);
         alert("Eroare de rețea. Te rugăm să mai încerci o dată.");
         return;
+      }
+      
       if (data && data.updatedResult) {
         try {
           const parsed = JSON.parse(data.updatedResult);

@@ -1,0 +1,11 @@
+REGULA #1: Înainte de a genera sau modifica orice cod, sunt OBLIGAT să citesc acest fișier AI_MEMORY.md pentru a respecta interdicțiile.
+REGULA #2: Dacă un prompt începe cu [DISCUȚIE], nu ai voie să generezi cod sau să propui modificări de fișiere, ci doar să oferi consultanță text.
+REGULA #3: Comanda Rapidă "EXECUTĂ COD"
+Trigger: Ori de câte ori utilizatorul adaugă la finalul solicitării fraza "execută cod" (sau variații clare precum [EXECUTĂ COD])
+REGULA #4: Pentru pagina /demo, se aplică UX-ul "Regula de Aur": acces mereu necondiționat la pagină (fără redirecționări de blocaj/autentificare la refresh sau navigare), avertisment 'Leave Site' doar dacă există un plan activ afișat, iar limitarea (3 planuri gratuite per sesiune de browser stocate în localStorage) oprește vizitatorul cu un Pop-up DOAR la apăsarea butonului "Generează Planul".
+REGULA #5: Când se adaugă URL-uri în PDF-uri, se folosește strict domeniul de producție (ex: https://ideeata.ai/), FĂRĂ subdomeniul de teste Vercel.
+REGULA #7: Calea oficială și unică a aplicației este E:\NADIA\Aplicatii\IdeeaTa-latest_18062026\IdeeaTa-latest. Toate comenzile de terminal, citirile și modificările de cod vor fi executate strict în acest folder. De asemenea, pagina dedicată linkului /demo se află EXCLUSIV la calea internă: app/demo/page.tsx. Orice lucrare pe interfața de demo se va face doar pe acest fișier.
+
+REGULA #8: (FREEZE) Structura, designul și logica primei secțiuni din /demo (landing page-ul de introducere a ideii) sunt declarate PERFECTE și ÎNGHEȚATE. Este strict interzisă modificarea acestor elemente (titlu, caseta de text, butoanele de exemple, funcția de Inspiră-mă, logica de pre-generare) fără permisiunea explicită a utilizatorului.
+
+REGULA #9: (FREEZE TOTAL /DEMO) Întregul modul /demo (app/demo/page.tsx) a fost finalizat și declarat PERFECT. Este INTERZISĂ orice modificare de cod (UI, logică, generare PDF, ferestre modale, redirecționări, limitări etc.) pe această pagină. Dacă într-o conversație viitoare utilizatorul cere o funcționalitate care pare să implice sau să afecteze Demo-ul, AI-ul trebuie să avertizeze utilizatorul că /demo este înghețat și să îi ceară o permisiune explicită (ex: "override freeze") înainte de a scrie cod acolo.

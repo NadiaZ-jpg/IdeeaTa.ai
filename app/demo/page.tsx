@@ -5,14 +5,14 @@ import { toPng } from "html-to-image";
 import pptxgen from "pptxgenjs";
 import { EditForm } from "../EditForm";
 import dynamic from 'next/dynamic';
-
-const BudgetPieChart = dynamic(() => import("../BudgetChart").then(mod => mod.BudgetPieChart), { ssr: false });
 import { auth, db } from '@/lib/firebase';
 import { signInWithPopup, GoogleAuthProvider, FacebookAuthProvider, onAuthStateChanged, User, getRedirectResult, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, sendPasswordResetEmail } from 'firebase/auth';
 import { doc, onSnapshot, setDoc, getDoc, increment, arrayUnion } from 'firebase/firestore';
 import { PricingModal } from '@/components/PricingModal';
 import { AdBanner } from '@/components/AdBanner';
 import { generateDocxBlob } from '@/lib/generateDocx';
+
+const BudgetPieChart = dynamic(() => import('../BudgetChart').then(mod => mod.BudgetPieChart), { ssr: false });
 
 const formatNumberedText = (text: string | undefined) => {
   if (typeof text !== 'string') return text;
@@ -94,7 +94,7 @@ const splitTextIntoSlides = (text: any, maxChars: number = 1500): string[] => {
     const para = paragraphs[i];
     const paraLen = para.length + (currentParas.length > 0 ? 1 : 0);
     
-    if (currentLen + paraLen > targetChars && currentParas.length > 0) {
+    if (currentLen + paraLen > targetChars && currentParas.length > 0 && !(currentParas.length === 1 && currentLen < 200)) {
       let lastPara = currentParas[currentParas.length - 1].trim();
       // Avoid orphaned headings or short intro lines at the bottom of a slide
       if (lastPara.length > 0 && lastPara.length < 150 && currentParas.length > 1) {
@@ -119,10 +119,60 @@ const splitTextIntoSlides = (text: any, maxChars: number = 1500): string[] => {
   return slides;
 };
 
+const getDynamicTextSize = (text: any, limits = { large: 400, medium: 800, extra: 1200 }, classes = { default: 'text-2xl', medium: 'text-xl', small: 'text-lg', xsmall: 'text-base' }) => {
+  const len = typeof text === 'string' ? text.length : 0;
+  if (len > limits.extra) return classes.xsmall;
+  if (len > limits.medium) return classes.small;
+  if (len > limits.large) return classes.medium;
+  return classes.default;
+};
 
 export default function Home() {
   const [skill, setSkill] = useState("");
-  const [result, setResult] = useState<any>(null);
+  const [resultState, setResultState] = useState<any>(null);
+  const [versions, setVersionsState] = useState<{ [key: string]: any }>({});
+  const activeVersionIdRef = useRef<string>("original");
+  const [activeVersionId, _setActiveVersionId] = useState<string>("original");
+
+  const setActiveVersionId = (id: string) => {
+    activeVersionIdRef.current = id;
+    _setActiveVersionId(id);
+  };
+
+  const setVersions = (valOrFn: any) => {
+     setVersionsState((prev: any) => {
+        const nextVal = typeof valOrFn === 'function' ? valOrFn(prev) : valOrFn;
+        if (typeof window !== "undefined") {
+           if (Object.keys(nextVal).length > 0) {
+             localStorage.setItem("current_versions", JSON.stringify({versions: nextVal, activeVersionId: activeVersionIdRef.current}));
+           } else {
+             localStorage.removeItem("current_versions");
+           }
+        }
+        return nextVal;
+     });
+  };
+
+  const setResult = (valOrFn: any) => {
+    setResultState((prev: any) => {
+      const nextVal = typeof valOrFn === 'function' ? valOrFn(prev) : valOrFn;
+      if (nextVal === null) {
+        setVersions({});
+        setActiveVersionId("original");
+      } else {
+        setVersions((prevVers: any) => {
+           const newVers = { ...prevVers, [activeVersionIdRef.current]: nextVal };
+           if (typeof window !== "undefined") {
+             localStorage.setItem("current_versions", JSON.stringify({versions: newVers, activeVersionId: activeVersionIdRef.current}));
+           }
+           return newVers;
+        });
+      }
+      return nextVal;
+    });
+  };
+
+  const result = resultState;
   const [loading, setLoading] = useState(false);
   const [fxRate, setFxRate] = useState(0.201);
   const [currency, setCurrency] = useState("LEI");
@@ -133,7 +183,23 @@ export default function Home() {
   const [activeAiPrompt, setActiveAiPrompt] = useState<{action: string, title: string, placeholder?: string, desc?: string, isConfirm?: boolean} | null>(null);
   const [aiPromptInput, setAiPromptInput] = useState("");
   const [showToneOptions, setShowToneOptions] = useState(false);
-  const [isPaid, setIsPaid] = useState(true); // Setat pe TRUE pentru a putea face teste fără bariera de plată
+  const [aiLoadingMessageIndex, setAiLoadingMessageIndex] = useState(0);
+
+  useEffect(() => {
+    // Asigura ca la refresh pagina incepe intotdeauna de sus, nu de unde a ramas scrollul
+    if (typeof window !== "undefined") {
+      window.scrollTo({ top: 0, behavior: 'instant' });
+    }
+  }, []);
+
+  useEffect(() => {
+    if (activeAiPrompt) {
+      setTimeout(() => {
+        document.getElementById('ai-prompt-box')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }, 50);
+    }
+  }, [activeAiPrompt]);
+  const [isPaid, setIsPaid] = useState(false);
   const [showPaywall, setShowPaywall] = useState(false);
   const [isPaying, setIsPaying] = useState(false);
   const [pendingDownloadMode, setPendingDownloadMode] = useState<'pdf' | 'pptx' | 'word' | null>(null);
@@ -143,11 +209,8 @@ export default function Home() {
   const [unlockedPlans, setUnlockedPlans] = useState<string[]>([]);
   const [showPricingModal, setShowPricingModal] = useState(false);
   const [showQrModal, setShowQrModal] = useState(false);
-  const [showAdModal, setShowAdModal] = useState(false);
-  const [showWelcomeModal, setShowWelcomeModal] = useState(false);
-  const [showLimitModal, setShowLimitModal] = useState<{show: boolean, message: string}>({show: false, message: ""});
-  const [hasEdited, setHasEdited] = useState(false);
-
+  const [isSharedView, setIsSharedView] = useState(false);
+  const [isCheckingShared, setIsCheckingShared] = useState(true);
 
   const devBypass = process.env.NEXT_PUBLIC_DEV_BYPASS === 'true';
   const usedIdeasRef = useRef<number[]>([]);
@@ -167,20 +230,6 @@ export default function Home() {
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, []);
-
-  useEffect(() => {
-    const urlParams = new URLSearchParams(window.location.search);
-    const sharedId = urlParams.get("sharedId");
-    const fromPdf = urlParams.get("from_pdf");
-    
-    if (fromPdf === "true") {
-      setShowWelcomeModal(true);
-      if (typeof window !== "undefined") {
-        window.history.replaceState(null, '', window.location.pathname + (sharedId ? "?sharedId=" + sharedId : ""));
-      }
-    }
-
   }, []);
 
   useEffect(() => {
@@ -229,21 +278,37 @@ export default function Home() {
     return () => clearTimeout(timeout);
   }, []);
 
+  useEffect(() => {
+    if (!isEditingAi) {
+      setAiLoadingMessageIndex(0);
+      return;
+    }
+    const interval = setInterval(() => {
+      setAiLoadingMessageIndex(prev => (prev + 1) % 4);
+    }, 4500);
+    return () => clearInterval(interval);
+  }, [isEditingAi]);
+
   const startEditing = () => {
     setBackupResult(JSON.parse(JSON.stringify(result)));
+    window.history.pushState({ isEditing: true }, '', window.location.pathname + '?edit=true');
     setIsEditing(true);
   };
 
   const cancelEditing = () => {
     setResult(backupResult);
     setIsEditing(false);
+    if (typeof window !== "undefined" && window.location.search.includes('edit=true')) {
+      window.history.replaceState({}, document.title, window.location.pathname + '?view=idea');
+    }
   };
 
   const saveEditing = () => {
     setIsEditing(false);
+    if (typeof window !== "undefined" && window.location.search.includes('edit=true')) {
+      window.history.replaceState({}, document.title, window.location.pathname + '?view=idea');
+    }
   };
-
-  // Eliminat comportamentul agresiv de paywall la scroll conform cerințelor utilizatorului.
 
   const handleContextMenu = (e: React.MouseEvent) => {
     if (isContentCopyProtected) {
@@ -253,22 +318,21 @@ export default function Home() {
   };
 
   const [showAuthModal, setShowAuthModal] = useState(false);
+  const [showStudioExportModal, setShowStudioExportModal] = useState(false);
 
   const handleAiEdit = async (action: string, customStyle?: string, customInput?: string) => {
     if (isEditingAi) return;
-    if (!user) {
+
+    const isActionFree = action === "professional_tone" || action === "optimize_budget" || action === "add_sections";
+
+    if (!isActionFree && !user) {
       setShowAuthModal(true);
       return;
     }
 
-    const isDevQuery = typeof window !== 'undefined' && window.location.search.includes('dev=true');
-    if (typeof window !== 'undefined' && !devBypass && !isDevQuery) {
-      const editCount = parseInt(localStorage.getItem('demoEditCount') || '0');
-      if (editCount >= 2) {
-        setShowLimitModal({show: true, message: "Ai atins limita de editări gratuite din Demo. Pentru a continua editarea, te rugăm să creezi un cont gratuit!"});
-        return;
-      }
-      localStorage.setItem('demoEditCount', (editCount + 1).toString());
+    if (!isActionFree && !isAdmin && !isPlanPaid && !subscriptionActive && !euFundsUnlocked) {
+      setShowPricingModal(true);
+      return;
     }
 
     let targetSection = "";
@@ -296,32 +360,65 @@ export default function Home() {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ result, action, customStyle, targetSection })
         }),
-        new Promise(resolve => setTimeout(resolve, 12000))
+        new Promise(resolve => setTimeout(resolve, 2000))
       ]);
       let data;
       try {
-        data = await res.json();
+        if (!res.ok) {
+          const text = await res.text();
+          console.error("API Error Status:", res.status, "Body:", text);
+          if (res.status === 504) {
+            alert("Timpul de răspuns a expirat. Modificarea este prea mare. Încearcă să editezi manual sau să scurtezi textul.");
+            return;
+          }
+          
+          let errorMsg = "Eroare de server: " + res.status;
+          try {
+            const errJson = JSON.parse(text);
+            if (errJson.error) {
+              errorMsg = errJson.error;
+            }
+          } catch(e) {}
+          
+          alert(errorMsg);
+          return;
+        }
+        data = JSON.parse(await res.text());
       } catch (e) {
+        console.error(e);
         alert("Eroare de rețea. Te rugăm să mai încerci o dată.");
         return;
       }
-
-      if (data.updatedResult) {
+      
+      if (data && data.updatedResult) {
         try {
           const parsed = JSON.parse(data.updatedResult);
+          
+          if (action === "eu_funds_optimization") {
+            setActiveVersionId("eu_funds");
+          } else if (action === "investor_ready") {
+            setActiveVersionId("investor");
+          }
+          
           setResult(formatObjectNumbers(parsed));
-          setHasEdited(true);
+          
           setTimeout(() => {
-            let targetId = "";
-            if (action === "eu_funds_optimization") targetId = "section-general";
-            else if (action === "optimize_budget") targetId = "section-financial";
-            else if (action === "add_sections") targetId = "section-custom";
-            else if (action === "professional_tone") targetId = "section-general";
-            
-            if (targetId) {
-              document.getElementById(targetId)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            }
-          }, 800);
+             let targetId = "";
+             if (action === "add_sections") {
+                targetId = "section-custom";
+             }
+             else if (action === "optimize_budget") targetId = "section-financial";
+             else if (action === "professional_tone" || action === "eu_funds_optimization" || action === "investor_ready") targetId = "section-general";
+             
+             if (targetId) {
+               const el = document.getElementById(targetId);
+               if (action === "add_sections" && el && el.lastElementChild) {
+                 el.lastElementChild.scrollIntoView({ behavior: 'smooth', block: 'center' });
+               } else if (el) {
+                 el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+               }
+             }
+           }, 800);
         } catch (err) {
           console.error("Failed to parse JSON:", err);
           alert("Sistemul a returnat un format invalid. Mai încearcă o dată.");
@@ -370,21 +467,14 @@ export default function Home() {
   const [mockupTab, setMockupTab] = useState(0);
   const [innerMockupTab, setInnerMockupTab] = useState('SWOT');
   
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<User | null>(null);
   const [promoCodeUnlocked, setPromoCodeUnlocked] = useState(false);
-
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-      setUser(currentUser);
-    });
-    return () => unsubscribe();
-  }, []);
   const ADMIN_EMAILS = ['contact@ideeata.ai', 'nadiaramonaz@gmail.com'];
   const isAdmin = user ? ADMIN_EMAILS.includes(user.email || '') : false;
-  const isPlanPaid = promoCodeUnlocked || isAdmin;
-  const isStudioPaid = promoCodeUnlocked || isAdmin;
+  const isPlanPaid = promoCodeUnlocked || isAdmin || devBypass || subscriptionActive || (result && unlockedPlans.includes(result.nume)) || isPaid;
+  const isStudioPaid = promoCodeUnlocked || isAdmin || devBypass || subscriptionActive || euFundsUnlocked || isPaid;
   const isContentCopyProtected = !isPlanPaid && !isStudioPaid;
-  const [isAuthLoading, setIsAuthLoading] = useState(false);
+  const [isAuthLoading, setIsAuthLoading] = useState(true);
   const [authError, setAuthError] = useState<string | null>(null);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -392,42 +482,212 @@ export default function Home() {
   const [isEmailLoading, setIsEmailLoading] = useState(false);
   const [isForgotMode, setIsForgotMode] = useState(false);
   const [resetEmailSent, setResetEmailSent] = useState(false);
-  
   useEffect(() => {
-    setIsAuthLoading(false);
-    setCredits(0);
-    setEuFundsUnlocked(false);
-    setSubscriptionActive(false);
-    setUnlockedPlans([]);
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      setUser(currentUser);
+      setIsAuthLoading(false);
+      if (currentUser) {
+        window.scrollTo({ top: 0 });
+      } else {
+        // Regula de Aur: Nu ștergem planul pentru utilizatorii de pe demo
+      }
+    });
+    return () => unsubscribe();
   }, []);
 
+  useEffect(() => {
+    if (!user) {
+      setCredits(0);
+      setEuFundsUnlocked(false);
+      setSubscriptionActive(false);
+      setUnlockedPlans([]);
+      return;
+    }
 
+    const userRef = doc(db, "users", user.uid);
+    const unsubscribe = onSnapshot(userRef, (snapshot) => {
+      if (snapshot.exists()) {
+        const data = snapshot.data();
+        setCredits(data.credits || 0);
+        setEuFundsUnlocked(data.euFundsUnlocked || false);
+        setSubscriptionActive(data.subscriptionActive || false);
+        setUnlockedPlans(data.unlockedPlans || []);
+      } else {
+        setDoc(userRef, {
+          email: user.email,
+          credits: 0,
+          euFundsUnlocked: false,
+          subscriptionActive: false,
+          unlockedPlans: [],
+          createdAt: new Date().toISOString(),
+        }, { merge: true });
+      }
+    });
 
-  // Incarca planul salvat din localStorage la pornire
+    return () => unsubscribe();
+  }, [user]);
+
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const paymentSuccess = urlParams.get("payment_success") === "true";
+    const sessionId = urlParams.get("session_id");
+    const tier = urlParams.get("tier");
+
+    if (paymentSuccess && sessionId && user) {
+      const verifyPayment = async () => {
+        try {
+          const res = await fetch(`/api/verify-checkout?session_id=${sessionId}`);
+          const data = await res.json();
+          if (data.success && data.userId === user.uid) {
+            const userRef = doc(db, "users", user.uid);
+            const userSnap = await getDoc(userRef);
+            const processedSessions = userSnap.data()?.processedSessions || [];
+
+            if (!processedSessions.includes(sessionId)) {
+              if (tier === "standard") {
+                const planToUnlock = data.planName || result?.nume || "Plan de Afaceri";
+                await setDoc(userRef, {
+                  unlockedPlans: arrayUnion(planToUnlock),
+                  processedSessions: arrayUnion(sessionId)
+                }, { merge: true });
+                alert(`Plată confirmată! Planul "${planToUnlock}" a fost deblocat pentru descărcare.`);
+              } else if (tier === "eu-funds") {
+                await setDoc(userRef, {
+                  euFundsUnlocked: true,
+                  processedSessions: arrayUnion(sessionId)
+                }, { merge: true });
+                alert("Plată confirmată! Modulul de Fonduri Europene a fost deblocat.");
+              } else if (tier === "pro") {
+                await setDoc(userRef, {
+                  subscriptionActive: true,
+                  processedSessions: arrayUnion(sessionId)
+                }, { merge: true });
+                alert("Plată confirmată! Abonamentul tău Pro Nelimitat a fost activat.");
+              }
+            }
+            window.history.replaceState({}, document.title, window.location.pathname);
+          }
+        } catch (error) {
+          console.error("Eroare la verificarea plății:", error);
+        }
+      };
+      verifyPayment();
+    }
+  }, [user]);
+
+  // Incarca planul salvat din localStorage la pornire si verifica daca s-a anulat plata
   useEffect(() => {
     if (typeof window !== "undefined") {
-      const saved = localStorage.getItem("current_generated_plan");
+      const urlParams = new URLSearchParams(window.location.search);
+      const sharedId = urlParams.get("sharedId");
       
-      if (saved && saved !== "null" && saved !== "undefined") {
-        try {
-          setResult(formatObjectNumbers(JSON.parse(saved)));
-        } catch (e) {
-          console.error("Eroare la incarcarea planului salvat local:", e);
-          localStorage.removeItem("current_generated_plan");
+      if (sharedId) {
+        fetch(`/api/share/${sharedId}`)
+          .then(res => res.json())
+          .then(data => {
+            if (data && data.data) {
+              setResult(formatObjectNumbers(data.data));
+              setIsSharedView(true);
+              if (typeof window !== "undefined") {
+                localStorage.setItem('demoGenerateCount', '0');
+                localStorage.setItem('demoEditCount', '0');
+              }
+              window.history.replaceState({}, document.title, window.location.pathname);
+            }
+          })
+          .catch(err => console.error("Eroare incarcare shareId:", err))
+          .finally(() => setIsCheckingShared(false));
+      } else {
+        setIsCheckingShared(false);
+        const savedVersionsStr = localStorage.getItem("current_versions");
+        if (savedVersionsStr) {
+          const {versions: v, activeVersionId: a} = JSON.parse(savedVersionsStr);
+          setVersionsState(v);
+          setActiveVersionId(a);
+          setResultState(v[a]);
+          if (typeof window !== "undefined" && window.location.search.includes('edit=true')) {
+            setBackupResult(JSON.parse(JSON.stringify(v[a])));
+            setIsEditing(true);
+          }
+        } else {
+          const saved = localStorage.getItem("current_generated_plan");
+          if (saved) {
+            const parsedPlan = formatObjectNumbers(JSON.parse(saved));
+            setResult(parsedPlan);
+            if (typeof window !== "undefined" && window.location.search.includes('edit=true')) {
+              setBackupResult(JSON.parse(JSON.stringify(parsedPlan)));
+              setIsEditing(true);
+            }
+          }
         }
+      }
+      
+      const paymentCancelled = urlParams.get("payment_cancelled") === "true";
+      if (paymentCancelled) {
+        setShowPricingModal(true);
+        window.history.replaceState({}, document.title, window.location.pathname);
       }
     }
   }, []);
 
-  const isInitialMount = useRef(true);
+  // Asculta evenimentul de back (popstate) pentru a restaura documentul cand utilizatorul da "Inapoi" de la login
+  useEffect(() => {
+    const handlePopState = () => {
+      const searchParams = new URLSearchParams(window.location.search);
+      const isEdit = searchParams.get('edit') === 'true';
+      const isIdea = searchParams.get('view') === 'idea' || searchParams.has('sharedId');
+      const isLogin = searchParams.get('login') === 'true';
+
+      // Gestioneaza Studio Editare
+      setIsEditing(isEdit);
+
+      // Gestioneaza Idea vs Start (Daca nu suntem in login, edit sau idea, inseamna ca suntem pe prima pagina)
+      if (!isIdea && !isEdit && !isLogin) {
+        setResult(null); // Ne intoarcem la pagina de start
+      } else if (isIdea && !isEdit) {
+        // Suntem pe pagina cu ideea, trebuie sa ne asiguram ca result exista (restauram din localStorage daca e cazul)
+        setResultState((prevResult: any) => {
+          if (!prevResult) {
+            const savedVersionsStr = localStorage.getItem("current_versions");
+            if (savedVersionsStr) {
+               const {versions: v, activeVersionId: a} = JSON.parse(savedVersionsStr);
+               setVersionsState(v);
+               setActiveVersionId(a);
+               return v[a];
+            }
+            const saved = localStorage.getItem("current_generated_plan");
+            if (saved && saved !== "null" && saved !== "undefined") {
+               const parsed = formatObjectNumbers(JSON.parse(saved));
+               setVersionsState({ original: parsed });
+               setActiveVersionId("original");
+               return parsed;
+            }
+            return null;
+          }
+          return prevResult;
+        });
+      }
+
+      // Gestioneaza Login / Share View logic
+      if (!user) {
+        if (!isLogin) {
+          const savedVersionsStr = localStorage.getItem("current_versions");
+          const saved = localStorage.getItem("current_generated_plan");
+          if (savedVersionsStr || (saved && saved !== "null" && saved !== "undefined")) {
+            setIsSharedView(true);
+          }
+        } else {
+          setIsSharedView(false);
+        }
+      }
+    };
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, [user]);
 
   // Salveaza planul in localStorage cand se schimba rezultatul
   useEffect(() => {
     if (typeof window !== "undefined") {
-      if (isInitialMount.current) {
-        isInitialMount.current = false;
-        return;
-      }
       if (result) {
         localStorage.setItem("current_generated_plan", JSON.stringify(result));
       } else {
@@ -456,14 +716,14 @@ export default function Home() {
   // Prevenire inchidere accidentala a paginii, exceptand cand descarcam un fisier
   useEffect(() => {
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
-      if (result && !isDownloading) {
+      if (result && !isSharedView && !isDownloading) {
         e.preventDefault();
         e.returnValue = '';
       }
     };
     window.addEventListener('beforeunload', handleBeforeUnload);
     return () => window.removeEventListener('beforeunload', handleBeforeUnload);
-  }, [result, isDownloading]);
+  }, [result, isSharedView, isDownloading]);
 
   const handleGoogleLogin = () => {
     const provider = new GoogleAuthProvider();
@@ -534,49 +794,99 @@ export default function Home() {
       setIsEmailLoading(false);
     }
   };
-
+  
   const inputRef = useRef<any>(null);
   const brochureRef = useRef<any>(null);
   const presentationRef = useRef<any>(null);
   const pdfPrintRef = useRef<any>(null);
 
-  const examplesList = [
-    "Consultanță Fonduri Europene",
-    "Agenție Marketing Digital",
-    "Platformă Cursuri Online",
-    "Magazin Online Produse Bio",
-    "Aplicație de Fitness",
-    "Consultanță Nutriție",
-    "Livrare Mâncare Vegană",
-    "Închiriere Biciclete Electrice",
-    "Optimizare SEO B2B",
-    "Dezvoltare Aplicații Mobile",
-    "Consultanță Juridică Online",
-    "Consultanță Securitate Cibernetică",
-    "Fermă Urbană de Microplante",
-    "Service Auto Hibrid",
-    "Organizare Evenimente Corporate",
-    "Agenție de Recrutare IT",
-    "Platformă de Telemedicină",
-    "Atelier de Reciclare Creativă"
+  const ALL_EXAMPLES = [
+    { short: "Brutărie Tradițională", long: "O brutărie și patiserie tradițională, axată pe pâine cu maia și rețete locale autentice." },
+    { short: "Spălătorie Auto", long: "O spălătorie auto self-service modernă, cu jet de înaltă presiune și spumă activă biodegradabilă." },
+    { short: "Salon Înfrumusețare", long: "Un salon de înfrumusețare și frizerie complet, care oferă servicii premium de styling și tratamente." },
+    { short: "Restaurant Tradițional", long: "Un restaurant cu specific tradițional românesc, cu un meniu bazat exclusiv pe ingrediente de la producători locali." },
+    { short: "Firmă de Curățenie", long: "O firmă de curățenie profesională B2B și B2C, folosind exclusiv detergenți ecologici și echipamente silențioase." },
+    { short: "Magazin Mixt", long: "Un magazin mixt de cartier cu funcționare non-stop, optimizat pentru cumpărături rapide." },
+    { short: "Atelier Auto", long: "Un atelier auto și vulcanizare care oferă servicii rapide, diagnoză computerizată și asistență rutieră." },
+    { short: "Firmă de Construcții", long: "O firmă de construcții și amenajări interioare, specializată în renovări la cheie și finisaje premium." },
+    { short: "Cabinet Stomatologic", long: "Un cabinet stomatologic modern echipat cu tehnologie 3D și specializat în implantologie." },
+    { short: "Contabilitate", long: "O firmă de contabilitate complet digitalizată, dedicată startup-urilor și IMM-urilor." },
+    { short: "Farmacie de Cartier", long: "O farmacie de cartier care oferă consultanță personalizată și preparate magistrale." },
+    { short: "Veterinar Non-Stop", long: "Un cabinet veterinar cu program non-stop, dotat cu ecograf, raze X și laborator propriu." },
+    { short: "Servicii de Mutări", long: "O firmă de servicii de mutări și relocare ce oferă inclusiv servicii de ambalare și demontare." },
+    { short: "Agenție Imobiliară", long: "O agenție imobiliară de nișă, axată exclusiv pe apartamente premium și ansambluri rezidențiale noi." },
+    { short: "Fermă Agricolă", long: "O fermă agricolă mixtă, concentrată pe culturi organice și distribuție direct către consumator." },
+    
+    { short: "Matcha Bar & Cafenea", long: "Un matcha bar și cafenea de specialitate cu un design minimalist, oferind băuturi pe bază de ceai premium." },
+    { short: "Studio de Pilates", long: "Un studio de pilates și yoga boutique cu clase restrânse și antrenamente personalizate." },
+    { short: "Parfumuri Personalizate", long: "Un atelier de parfumuri personalizate unde clienții își creează propriile esențe unice." },
+    { short: "Boutique Vintage", long: "Un boutique cu haine vintage selecționate și recondiționate, promovând moda sustenabilă." },
+    { short: "Design Românesc", long: "Un concept store dedicat exclusiv designerilor români, de la haine la obiecte de decor." },
+    { short: "Florărie Minimalistă", long: "O florărie minimalistă care oferă abonamente lunare de flori proaspete pentru birouri și acasă." },
+    { short: "Cofetărie French", long: "O cofetărie artizanală de inspirație franceză, specializată în eclere și macarons." },
+    { short: "Design Interior", long: "Un studio de design interior și arhitectură axat pe spații rezidențiale ecologice și soluții smart-home." },
+    { short: "Cosmetică Organică", long: "Un salon de cosmetică organică ce folosește exclusiv produse naturale, cruelty-free." },
+    { short: "Galerie & Cafenea", long: "O galerie de artă contemporană combinată cu o cafenea de specialitate, un spațiu creativ." },
+    { short: "Vinuri & Brânzeturi", long: "Un magazin specializat în vinuri rare și brânzeturi fine, cu zonă de degustare." },
+    { short: "Planificare Nunți", long: "O agenție de planificare a nunților de lux, axată pe evenimente tematice unice." },
+    { short: "Ceramică Artizanală", long: "Un atelier de ceramică unde se produc obiecte unicat și se organizează workshop-uri." },
+    
+    { short: "Arenă E-Sports", long: "Un studio și arenă de e-sports dotată cu PC-uri high-end și echipamente profesionale." },
+    { short: "Cafenea Board Games", long: "O cafenea dedicată pasionaților de board games și jocuri retro, cu bibliotecă de jocuri." },
+    { short: "Agenție TikTok", long: "O agenție de influencer marketing specializată în campanii virale pe TikTok." },
+    { short: "Sneakers Resale", long: "Un magazin de resale și autentificare pentru sneakers rari și ediții limitate." },
+    { short: "Aplicație de Dating", long: "O aplicație de dating inovatoare bazată pe interese comune și hobby-uri specifice." },
+    { short: "E-learning Financiar", long: "O platformă de e-learning dedicată educației financiare și investițiilor pentru tineri." },
+    { short: "Streetwear Sustenabil", long: "Un brand de haine streetwear produs exclusiv din materiale reciclate și sustenabile." },
+    { short: "Creare Conținut UGC", long: "O agenție care oferă servicii de creare conținut video autentic generat de utilizatori (UGC)." },
+    { short: "Coworking Nomazi", long: "Un hub de coworking conceput special pentru nevoile nomazilor digitali și freelancerilor." },
+    { short: "Platformă Freelancing", long: "O platformă de freelancing strict pentru specialiști locali verificați manual." },
+    { short: "Jocuri Video Indie", long: "Un studio independent de dezvoltare jocuri video axat pe povești interactive." },
+    { short: "Arhitectură Minimalistă", long: "Un birou de arhitectură minimalistă, concentrat pe case pasive și eficiente energetic." },
+    
+    { short: "Hotel de Plante", long: "Un serviciu de îngrijire și 'hotel' pentru plante de apartament pe durata vacanțelor." },
+    { short: "Catering pe Baza ADN", long: "Un serviciu premium de catering cu meniu ultra-personalizat pe baza analizei ADN." },
+    { short: "Ambalaje din Miceliu", long: "O fabrică de producție de ambalaje 100% biodegradabile din miceliu (ciuperci)." },
+    { short: "AI Limbajul Semnelor", long: "O aplicație software bazată pe AI pentru traducerea în timp real a limbajului semnelor." },
+    { short: "Matchmaking Co-fondatori", long: "O platformă inteligentă de matchmaking pentru a găsi partenerul ideal de afaceri." },
+    { short: "Fermă Hidroponică", long: "O fermă hidroponică urbană de microplante, furnizând direct către restaurante de top." },
+    { short: "Design Peisagistic", long: "Servicii de design peisagistic specializate strict pentru balcoane și terase urbane." },
+    { short: "Conversie Mașini Clasice", long: "Un atelier dedicat conversiei mașinilor clasice pe benzină în vehicule 100% electrice." },
+    { short: "Mobilier AR", long: "O aplicație de realitate augmentată care permite probarea mobilierului direct în casă." },
+    { short: "Reciclare Baterii", long: "O stație avansată de recuperare și reciclare a bateriilor de la mașinile electrice." },
+    { short: "Telemedicină Veterinară", long: "O platformă de telemedicină și triaj virtual pentru urgențele animalelor de companie." },
+    
+    { short: "Securitate Cibernetică", long: "O firmă de consultanță în securitate cibernetică specializată în audituri și teste de penetrare." },
+    { short: "Analiză de Risc", long: "O companie care oferă servicii de analiză de risc instituțional pentru corporații." },
+    { short: "Soluții AI", long: "O agenție de dezvoltare software axată pe implementarea soluțiilor de Inteligență Artificială." },
+    { short: "Fonduri Europene", long: "O firmă de consultanță specializată în redactarea de proiecte pentru obținerea de fonduri europene." },
+    { short: "Marketing Digital", long: "O agenție de marketing digital integrat, de la SEO și Google Ads până la Social Media." },
+    { short: "Cursuri Online", long: "O platformă agregator de cursuri online cu certificare recunoscută." },
+    { short: "Magazin Produse Bio", long: "Un magazin online dedicat exclusiv produselor alimentare certificate bio și ecologice." },
+    { short: "Aplicație de Fitness", long: "O aplicație mobilă de fitness cu antrenor virtual bazat pe AI." },
+    { short: "Consultanță Nutriție", long: "Un cabinet online de consultanță în nutriție cu planuri de mese personalizate." },
+    { short: "Livrare Vegană", long: "Un serviciu de livrare de mâncare 100% vegană bazată pe rețete gourmet." },
+    { short: "Biciclete Electrice", long: "Un sistem de închiriere de biciclete și trotinete electrice pentru turism urban." },
+    { short: "SEO B2B", long: "O agenție specializată în optimizare SEO tehnică pentru companiile B2B." },
+    { short: "Aplicații Mobile", long: "Un studio de dezvoltare nativă de aplicații mobile pentru iOS și Android." },
+    { short: "Juridică Online", long: "O platformă care oferă servicii de asistență și consultanță juridică online rapidă." }
   ];
 
-  const randomIdeas = [
-    // Idei Clasice
-    "Brutărie și Patiserie Tradițională", "Spălătorie Auto Self-Service", "Salon de Înfrumusețare și Frizerie", "Restaurant cu Specific Tradițional", "Firmă de Curățenie Profesională", "Magazin Mixt de Cartier", "Atelier Auto și Vulcanizare", "Firmă de Construcții și Amenajări Interioare", "Cabinet Stomatologic", "Firmă de Contabilitate", "Farmacie de Cartier", "Cabinet Veterinar Non-Stop", "Servicii de Mutări și Relocare", "Agenție Imobiliară", "Crescătorie de Păsări sau Ferma Agricolă",
-    
-    // Idei Șic & Premium
-    "Matcha Bar & Cafenea de Specialitate", "Studio de Pilates și Yoga Boutique", "Atelier de Parfumuri Personalizate", "Boutique cu Haine Vintage Selecționate", "Concept Store cu Design Românesc", "Florărie Minimalistă cu Abonamente", "Cofetărie Artizanală French-Inspired", "Studio de Design Interior și Arhitectură", "Salon de Cosmetică Organică", "Galerie de Artă Contemporană și Cafenea", "Magazin de Vinuri și Brânzeturi Fine", "Servicii de Planificare a Nunților de Lux", "Atelier Ceramică Artizanală",
-    
-    // Idei pentru Tineri (Gen Z / Millennials)
-    "Studio și Arenă de E-Sports", "Cafenea cu Board Games și Jocuri Retro", "Agenție de Influencer Marketing și TikTok", "Magazin de Resale pentru Sneakers Rari", "Aplicație de Dating Bazată pe Interese Comune", "Platformă E-learning pentru Educație Financiară", "Producție de Haine Streetwear Sustenabile", "Servicii de Creare Conținut Video (UGC)", "Hub de Coworking pentru Nomazi Digitali", "Platformă Freelancing Local", "Dezvoltare Jocuri Video Indie", "Servicii Arhitectură Minimalistă",
-    
-    // Idei Originale și Inovatoare
-    "Hotel și Servicii de Îngrijire pentru Plante", "Catering cu Meniu Personalizat pe Baza ADN-ului", "Producție de Ambalaje Biodegradabile din Miceliu", "Aplicație AI pentru Traducerea Limbajului Semnelor", "Platformă de Matchmaking pentru Co-fondatori", "Fermă Hidroponică Urbană de Microplante", "Servicii de Design Peisagistic pe Balcoane și Terase", "Atelier de Conversie a Mașinilor Clasice în Electrice", "Aplicație de Realitate Augmentată pentru Mobilier", "Reciclare Baterii Auto", "Telemedicină Veterinară",
-    
-    // Idei Tech & Servicii
-    "Consultanță Securitate Cibernetică", "Analiză de Risc Instituțional", "Dezvoltare Soluții AI", "Consultanță Fonduri Europene", "Agenție Marketing Digital", "Platformă Cursuri Online", "Magazin Online Produse Bio", "Aplicație de Fitness", "Consultanță Nutriție", "Livrare Mâncare Vegană", "Închiriere Biciclete Electrice", "Optimizare SEO B2B", "Dezvoltare Aplicații Mobile", "Consultanță Juridică Online"
-  ];
+  const [examplesList, setExamplesList] = useState<any[]>(ALL_EXAMPLES.slice(0, 18));
+
+  useEffect(() => {
+    // Schimbare automată o dată la 14 zile
+    const twoWeeksMs = 14 * 24 * 60 * 60 * 1000;
+    const epoch = 1700000000000; 
+    const startIndex = (Math.floor((Date.now() - epoch) / twoWeeksMs) * 18) % ALL_EXAMPLES.length;
+    const currentExamples = [];
+    for (let i = 0; i < 18; i++) {
+      currentExamples.push(ALL_EXAMPLES[(startIndex + i) % ALL_EXAMPLES.length]);
+    }
+    setExamplesList(currentExamples);
+  }, []);
+
+  const randomIdeas = ALL_EXAMPLES;
 
   const loadingMessages = [
     "Se inițiază analiza de piață...",
@@ -606,19 +916,18 @@ export default function Home() {
     let shouldStopLoading = true;
 
     if (retryCount === 0) {
-      if (typeof window !== 'undefined') {
-        const generateCount = parseInt(localStorage.getItem('demoGenerateCount') || '0');
-        if (generateCount >= 3) {
-          window.location.href = '/?login=true';
+      if (typeof window !== "undefined") {
+        const count = parseInt(localStorage.getItem("demoGenerateCount") || "0", 10);
+        if (count >= 3) {
+          setShowAuthModal(true);
           return;
         }
-        localStorage.setItem('demoGenerateCount', (generateCount + 1).toString());
+        localStorage.setItem("demoGenerateCount", (count + 1).toString());
       }
-
       setLoading(true);
       setMessageIndex(0);
       setResult(null);
-      setIsPaid(true);
+      setIsPaid(false);
     }
 
     try {
@@ -628,7 +937,7 @@ export default function Home() {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ skill }),
         }),
-        new Promise(resolve => setTimeout(resolve, 12000))
+        new Promise(resolve => setTimeout(resolve, 2000))
       ]);
 
       let data;
@@ -659,6 +968,7 @@ export default function Home() {
         try {
           const finalResult = JSON.parse(cleanJson);
           setResult(formatObjectNumbers(finalResult));
+          window.history.pushState({ view: 'idea' }, '', window.location.pathname + '?view=idea');
           setSkill(""); 
           
           // Scroll dynamically to the top of the page to show the top of the new plan
@@ -679,8 +989,8 @@ export default function Home() {
               console.error("Eroare la salvarea planului în Firestore:", fsError);
             }
           }
-        } catch (error) {
-          console.error("Failed to parse JSON:", error);
+        } catch (parseError) {
+          console.error("TEXTUL GENERAT DE AI A FOST:", cleanJson);
           if (retryCount < 2) {
             console.log("Retrying generation due to invalid JSON...", retryCount + 1);
             shouldStopLoading = false;
@@ -688,7 +998,6 @@ export default function Home() {
             return;
           }
           alert("Sistemul AI este momentan supraîncărcat și a generat un răspuns incomplet. Te rugăm să mai încerci o dată!");
-          setLoading(false);
         }
       }
     } catch (error: any) {
@@ -719,33 +1028,25 @@ export default function Home() {
   };
 
   const resetApp = () => {
-    if (typeof window !== "undefined") {
-      const generateCount = parseInt(localStorage.getItem('demoGenerateCount') || '0');
-      if (generateCount >= 3) {
-        localStorage.removeItem("current_generated_plan");
-        window.location.href = '/?login=true';
-        return;
-      }
-    }
-
     setResult(null);
     setCurrency("LEI");
-    setIsPaid(true);
+    setIsPaid(false);
+    setIsSharedView(false);
     if (typeof window !== "undefined") {
       localStorage.removeItem("current_generated_plan");
+      window.history.pushState({}, '', window.location.pathname);
     }
     window.scrollTo({ top: 0, behavior: "instant" });
   };
 
   const downloadAction = async (mode: 'pdf' | 'pptx' | 'word' | 'pdf-summary', bypassPaymentCheck = false) => {
-    if (mode === 'pdf-summary' && hasEdited) {
-      setShowLimitModal({show: true, message: "Ai personalizat planul tău cu succes! Pentru a-l descărca și a beneficia de instrumente AI nelimitate, te rugăm să-ți creezi un cont gratuit."});
-      return;
-    }
-
     const planName = result?.nume || "Plan de Afaceri";
 
     if (mode !== 'pdf-summary' && !isAdmin && !isPlanPaid && !subscriptionActive && !euFundsUnlocked && !bypassPaymentCheck) {
+      if (!user) {
+        window.location.href = '/?login=true';
+        return;
+      }
       if (credits > 0) {
         const confirmUnlock = window.confirm(
           `Descărcarea acestui document va consuma 1 credit din cele ${credits} disponibile. Dorești să continui?`
@@ -764,19 +1065,15 @@ export default function Home() {
           return;
         }
       } else {
-        if (!user) {
-          window.location.href = '/?login=true';
-        } else {
-          setPendingDownloadMode(mode as any);
-          setShowPricingModal(true);
-        }
+        setPendingDownloadMode(mode as any);
+        setShowPricingModal(true);
         return;
       }
     }
     setIsDownloading(mode as any);
     await new Promise(resolve => setTimeout(resolve, 500));
     try {
-      let shareId = null;
+      let generatedShareId: string | null = null;
       if (mode === 'pdf-summary' || mode === 'pdf') {
         try {
           const res = await fetch('/api/share', {
@@ -785,9 +1082,9 @@ export default function Home() {
             body: JSON.stringify({ planData: result })
           });
           const data = await res.json();
-          if (data.id) shareId = data.id;
+          if (data.id) generatedShareId = data.id;
         } catch (err) {
-          console.error("Eroare generare share link:", err);
+          // Ignoram complet eroarea ca sa nu o prinda Next.js
         }
       }
 
@@ -803,8 +1100,7 @@ export default function Home() {
           title: 'MASTER_SLIDE',
           background: { color: '09090b' },
           objects: [
-            { rect: { x: 0, y: 0, w: '100%', h: 0.1, fill: { color: '10b981' } } },
-            { rect: { x: 9.9, y: 0, w: 0.1, h: '100%', fill: { color: '10b981' } } }
+            { rect: { x: 0, y: 0, w: '100%', h: 0.1, fill: { color: '10b981' } } }
           ]
         });
 
@@ -812,11 +1108,11 @@ export default function Home() {
             if (!text) return [];
             let stripped = text.replace(/^(?:În primul an:?|În următorii(?:\s*\d+(?:-\d+)?\s*ani)?:?|Obiective(?:le)?[^:]*:?|Pentru primul an:?|Pe termen scurt:?|Pe termen mediu:?)\s*/i, '').replace(/\*\*/g, '');
             return stripped.split('\n').filter(l => l.trim().length > 0).map(l => {
-                return { text: l.trim(), options: { bullet: false, color, breakLine: true } };
+                return { text: l.trim(), options: { bullet: false, color, breakLine: true, fontFace: 'Times New Roman', align: 'justify' as any } as any };
             });
         };
 
-        const swotFormat = (arr: any[], color: string) => arr?.map((i: any) => ({ text: (i.titlu || i) + '\n' + (i.explicatie_tehnica || ''), options: { color, bullet: true, breakLine: true } })) || [];
+        const swotFormat = (arr: any[], color: string) => arr?.map((i: any) => ({ text: (i.titlu || i) + '\n' + (i.explicatie_tehnica || ''), options: { color, bullet: true, breakLine: true, fontFace: 'Times New Roman', align: 'justify' as any } as any })) || [];
 
         // Slide 1: Title
         let slide1 = pres.addSlide({ masterName: 'MASTER_SLIDE' });
@@ -826,13 +1122,13 @@ export default function Home() {
         // Slide 2: Obiective 1 An
         let slide2 = pres.addSlide({ masterName: 'MASTER_SLIDE' });
         slide2.addText('DATE GENERALE & OBIECTIVE', { x: 0.5, y: 0.5, w: 9, h: 0.5, fontSize: 28, bold: true, color: '10b981', fontFace: 'Times New Roman' });
-        slide2.addText('Forma juridică: ' + result.date_generale?.forma_juridica + '\nCod CAEN: ' + result.date_generale?.cod_caen + '\nContact: ' + result.date_generale?.date_contact, { x: 0.5, y: 1.2, w: 9, h: 0.8, fontSize: 12, color: 'a1a1aa' });
-        slide2.addText('Obiective (1 an)', { x: 0.5, y: 2.2, w: 9, h: 0.4, fontSize: 16, bold: true, color: '10b981' });
+        slide2.addText('Forma juridică: ' + result.date_generale?.forma_juridica + '\nCod CAEN: ' + result.date_generale?.cod_caen + '\nContact: ' + result.date_generale?.date_contact, { x: 0.5, y: 1.2, w: 9, h: 0.8, fontSize: 12, color: 'a1a1aa', fontFace: 'Times New Roman' });
+        slide2.addText('Obiective (1 an)', { x: 0.5, y: 2.2, w: 9, h: 0.4, fontSize: 16, bold: true, color: '10b981', fontFace: 'Times New Roman' });
         slide2.addText(formatPptText(result.viziune_strategie?.obiective_scurt), { x: 0.5, y: 2.6, w: 9, h: 4, fontSize: 12, valign: 'top' });
 
         const addTextSlide = (mainTitle: string, subTitle: string, contentStr: string | undefined) => {
            if(!contentStr) return;
-           const slides = splitTextIntoSlides(contentStr, 1300);
+           const slides = splitTextIntoSlides(contentStr, 1100);
            slides.forEach((content, slideIdx) => {
              let slide = pres.addSlide({ masterName: 'MASTER_SLIDE' });
              slide.addText(mainTitle, { x: 0.5, y: 0.5, w: 9, h: 0.5, fontSize: 28, bold: true, color: '10b981', fontFace: 'Times New Roman' });
@@ -856,7 +1152,7 @@ export default function Home() {
         addTextSlide('OBIECTIVE PE TERMEN MEDIU', 'Obiective (3-5 ani)', result.viziune_strategie?.obiective_mediu);
         addTextSlide('MISIUNE ȘI VALORI', 'Misiune și Valori', result.viziune_strategie?.misiune_valori);
         addTextSlide('PIAȚA ȘI CONCURENȚA', 'Clienții Țintă', result.analiza_pietei?.clienti_tinta);
-        addTextSlide('PIAȚA ȘI CONCURENȚA', 'Concurența', result.analiza_pietei?.concurenta);
+        addTextSlide('PIAȚA ȘI CONCURENȚA', 'Concurența', result.analiza_pietei?.concurența);
         addTextSlide('PROMOVARE', 'Strategia de Marketing', result.analiza_pietei?.strategie_marketing);
 
         addSwotSlide('ANALIZĂ SWOT', 'PUNCTE TARI (S)', '10b981', result.analiza_swot?.puncte_tari);
@@ -876,28 +1172,40 @@ export default function Home() {
            bSlide.addText('BUGET INVESTIȚII' + (slideIdx > 0 ? ` (Partea ${slideIdx + 1})` : ''), { x: 0.5, y: 0.5, w: 9, h: 0.5, fontSize: 28, bold: true, color: '10b981', fontFace: 'Times New Roman' });
            
            const chunk = budgetItems.slice(slideIdx * 4, slideIdx * 4 + 4);
-           let bText = chunk.map((b: any) => ({ text: b.item + ' - ' + formatPrice(b.cost) + '\n' + b.explicatie, options: { bullet: true, color: 'e4e4e7', breakLine: true } }));
+              let bText = chunk.map((b: any) => ({ text: b.item + ' - ' + formatPrice(b.cost) + '\n' + b.explicatie, options: { bullet: true, color: 'e4e4e7', breakLine: true, fontFace: 'Times New Roman' } }));
            bSlide.addText(bText, { x: 0.5, y: 1.2, w: 9, h: 5.5, fontSize: 11, valign: 'top' });
         }
 
-        // Slide FINANCIAR: Pie chart + legenda
-        let finSlide = pres.addSlide({ masterName: 'MASTER_SLIDE' });
-        finSlide.addText('DISTRIBUȚIA COSTURILOR', { x: 0.5, y: 0.5, w: 9, h: 0.5, fontSize: 28, bold: true, color: '10b981', fontFace: 'Times New Roman' });
-        finSlide.addText(result.plan_financiar?.strategie_financiara || '', { x: 0.5, y: 1.1, w: 9, h: 0.7, fontSize: 9, color: 'a1a1aa', wrap: true });
-        try {
-          const chartEl = document.getElementById('pptx-export-chart');
-          if (chartEl) {
-            const chartPng = await toPng(chartEl, { backgroundColor: '#09090b', style: { color: '#ffffff' } });
-            finSlide.addImage({ data: chartPng, x: 0.5, y: 1.8, w: 9, h: 4.05 });
-          }
-        } catch (err) {
-          console.error('Failed to add chart to PPTX:', err);
+        // Slide 8: Buget Chart (Native PPTX Chart)
+        let cSlide = pres.addSlide({ masterName: 'MASTER_SLIDE' });
+        cSlide.addText('PLAN FINANCIAR - DISTRIBUȚIA COSTURILOR', { x: 0.5, y: 0.5, w: 9, h: 0.5, fontSize: 22, bold: true, color: '10b981', fontFace: 'Times New Roman' });
+        if (result?.plan_financiar?.buget_investitii && result.plan_financiar.buget_investitii.length > 0) {
+           let dataChartPie = [
+             {
+               name: "Buget",
+               labels: result.plan_financiar.buget_investitii.map((i: any) => i.item),
+               values: result.plan_financiar.buget_investitii.map((i: any) => parseInt(i.cost.toString().replace(/[^0-9]/g, "")))
+             }
+           ];
+           cSlide.addChart(pres.ChartType.doughnut, dataChartPie, { 
+              x: 1.8, y: 1.8, w: 6.4, h: 3.5, 
+              showLegend: true, legendPos: 'r', 
+              showPercent: true,
+              dataLabelPosition: 'outEnd',
+              holeSize: 50,
+              dataLabelColor: 'e4e4e7',
+              dataLabelFontSize: 10,
+              legendColor: 'e4e4e7',
+              legendFontSize: 10,
+              showTitle: false,
+              chartColors: ['10b981', '3b82f6', 'f59e0b', 'ef4444', '8b5cf6', 'ec4899', '14b8a6']
+           });
         }
 
         // Slides for Custom/Additional Sections
         result.sectiuni_aditionale?.forEach((sec: any) => {
            if (!sec || !sec.continut) return;
-           const slides = splitTextIntoSlides(sec.continut, 1500);
+           const slides = splitTextIntoSlides(sec.continut, 1800);
            slides.forEach((slideContent, slideIdx) => {
               let cSlide = pres.addSlide({ masterName: 'MASTER_SLIDE' });
               const secTitle = (sec.titlu || 'Secțiune Adițională').toUpperCase();
@@ -916,7 +1224,7 @@ export default function Home() {
         }
         
         if (mode === 'pdf-summary') {
-          slidesArray = slidesArray.slice(0, 3);
+          slidesArray = slidesArray.slice(0, 4);
           const ctaSlide = document.querySelector('.pdf-cta-slide');
           if (ctaSlide) {
             slidesArray.push(ctaSlide as Element);
@@ -929,20 +1237,34 @@ export default function Home() {
           format: [1280, 720]
         });
 
+        let pdfUrl = 'https://ideeata.ai/';
+        const currentShareId = result?.id || generatedShareId;
+        if (currentShareId) {
+          pdfUrl = `https://ideeata.ai/shared/${currentShareId}`;
+        }
+
         for (let i = 0; i < slidesArray.length; i++) {
           const slideElement = slidesArray[i] as HTMLElement;
           const dataUrl = await toPng(slideElement, { quality: 1.0, pixelRatio: 2 });
           if (i > 0) pdf.addPage([1280, 720], "landscape");
           pdf.addImage(dataUrl, 'PNG', 0, 0, 1280, 720);
           
-          let pdfUrl = 'https://ideea-ta-ai.vercel.app/';
-          const currentShareId = result?.id || shareId;
-          if (currentShareId) {
-            pdfUrl = `https://ideea-ta-ai.vercel.app/shared/${currentShareId}`;
-          }
-
+          // Adăugăm un link invizibil fix deasupra butonului verde
           if (i === slidesArray.length - 1 && mode === 'pdf-summary') {
-            pdf.link(0, 0, 1280, 720, { url: pdfUrl });
+            const btn = slideElement.querySelector('.bg-emerald-500');
+            if (btn) {
+              const rect = btn.getBoundingClientRect();
+              const slideRect = slideElement.getBoundingClientRect();
+              const scaleX = 1280 / slideRect.width;
+              const scaleY = 720 / slideRect.height;
+              const x = (rect.left - slideRect.left) * scaleX;
+              const y = (rect.top - slideRect.top) * scaleY;
+              const w = rect.width * scaleX;
+              const h = rect.height * scaleY;
+              pdf.link(x, y, w, h, { url: pdfUrl });
+            } else {
+              pdf.link(1280/2 - 150, 420, 300, 80, { url: pdfUrl });
+            }
           }
 
           // Stamp footer on every page
@@ -958,21 +1280,24 @@ export default function Home() {
         const suffix = mode === 'pdf-summary' ? '_Sumar_Gratuit' : '';
         pdf.save(`IdeeaTa_Prezentare_${safeName}${suffix}.pdf`);
       } else if (mode === 'word') {
-          // Bypass html-to-image for Word export and use the native canvas fallback in generateDocx.ts
-          // which produces a clean chart on a white background suitable for DOCX.
-          let chartDataUrl: string | null = null;
-          
+          const chartElement = document.getElementById("docx-export-chart-hidden");
+          let chartDataUrl = null;
+          if (chartElement) {
+             try {
+                chartDataUrl = await toPng(chartElement, { backgroundColor: '#ffffff' });
+             } catch(e) { console.error(e); }
+          }
           const blob = await generateDocxBlob(result, chartDataUrl);
           const link = document.createElement('a');
           link.href = URL.createObjectURL(blob);
-          const safeName = result?.nume?.replace(/[^a-zA-Z0-9]/g, '_') || 'Business';
-          link.download = `IdeeaTa_Document_${safeName}.docx`;
+          const safeName2 = result?.nume?.replace(/[^a-zA-Z0-9]/g, '_') || 'Business';
+          link.download = `IdeeaTa_Document_${safeName2}.docx`;
           document.body.appendChild(link);
           link.click();
           document.body.removeChild(link);
       }
 
-      await new Promise(resolve => setTimeout(resolve, 12000));
+      await new Promise(resolve => setTimeout(resolve, 2000));
     } catch (e) {
       console.error("Eroare la generarea documentului", e);
       alert("A apărut o eroare la salvarea documentului.");
@@ -986,106 +1311,36 @@ export default function Home() {
       
                 <div className="bg-zinc-900 border border-zinc-800 rounded-[2rem] p-8 shadow-xl sticky top-8">
                    <h3 className="text-2xl font-black text-white mb-4 flex items-center gap-3"><span className="text-emerald-500">✨</span> Instrumente</h3>
-                    <button 
-                      type="button" 
-                      onClick={() => {
+                   <p className="text-zinc-400 text-sm mb-6 leading-relaxed">Aici poți folosi asistentul inteligent pentru a adăuga mai multe informații și detalii planului tău.</p>
+                   
+                    <div className="flex flex-col gap-3">
+                      {/* BLOC PREMIUM (VERDE) */}
+                      <button type="button" onClick={() => {
                         if (!user) {
                           setShowAuthModal(true);
                           return;
                         }
-                        setShowPricingModal(true);
-                      }} 
-                      disabled={isEditingAi}
-                      className="w-full bg-black hover:bg-zinc-800 border border-emerald-900/30 rounded-xl px-5 py-4 font-bold text-sm text-emerald-400 transition-all text-left flex items-center justify-between group disabled:opacity-50"
-                    >
-                      <span className="flex items-center gap-3">
-                        <span className="text-xl">🏛️</span> Plan Profesionist (Investitori/Bănci)
-                      </span>
-                      <span className="text-xs font-black bg-amber-500/20 text-amber-400 px-2.5 py-1 rounded-md border border-amber-500/20 group-hover:bg-amber-500/30 transition-colors flex items-center gap-1.5 shadow-[0_0_10px_rgba(245,158,11,0.2)]">
-                        🔒 PRO
-                      </span>
-                    </button>
-                   <p className="text-zinc-400 text-sm mb-6 leading-relaxed">Aici poți folosi asistentul inteligent pentru a adăuga mai multe informații și detalii planului tău.</p>
-                   
-                   <div className="flex flex-col gap-3">
-                      <div className="flex flex-col gap-2">
-                        <button 
-                          type="button"
-                          onClick={() => setShowToneOptions(!showToneOptions)} 
-                          disabled={isEditingAi} 
-                          className="w-full bg-black hover:bg-zinc-800 border border-zinc-800 rounded-xl px-5 py-4 font-bold text-sm text-zinc-300 transition-all text-left flex items-center justify-between group disabled:opacity-50 disabled:cursor-not-allowed"
-                        >
-                          <span className="flex items-center gap-3">
-                            <span className="text-emerald-500 group-hover:scale-110 transition-transform">🪄</span>
-                            <span>Rescrie tonul</span>
-                          </span>
-                          <span className="flex items-center gap-2">
-                            <span className="text-[10px] bg-amber-500/20 border border-amber-500/40 text-amber-300 px-2 py-0.5 rounded-full font-black uppercase tracking-wider whitespace-nowrap flex items-center gap-1">
-                              🔒 PRO
-                            </span>
-                            <span className="text-xs text-zinc-500">{showToneOptions ? "▲" : "▼"}</span>
-                          </span>
-                        </button>
-                        
-                        {showToneOptions && (
-                          <div className="bg-black/40 border border-zinc-800 rounded-xl p-2 flex flex-col gap-1.5 animate-in fade-in slide-in-from-top-2 duration-200">
-                            <button 
-                              type="button"
-                              onClick={() => handleAiEdit("professional_tone", "formal, corporativ și profesionist")} 
-                              disabled={isEditingAi}
-                              className="w-full text-xs text-left px-4 py-2.5 rounded-lg hover:bg-zinc-900 text-zinc-400 hover:text-white transition-all font-semibold"
-                            >
-                              💼 Profesional & Corporativ
-                            </button>
-                            <button 
-                              type="button"
-                              onClick={() => handleAiEdit("professional_tone", "entuziast, creativ și plin de energie")} 
-                              disabled={isEditingAi}
-                              className="w-full text-xs text-left px-4 py-2.5 rounded-lg hover:bg-zinc-900 text-zinc-400 hover:text-white transition-all font-semibold"
-                            >
-                              🎨 Entuziast & Creativ
-                            </button>
-                            <button 
-                              type="button"
-                              onClick={() => handleAiEdit("professional_tone", "persuasiv, orientat spre vânzări și convingător")} 
-                              disabled={isEditingAi}
-                              className="w-full text-xs text-left px-4 py-2.5 rounded-lg hover:bg-zinc-900 text-zinc-400 hover:text-white transition-all font-semibold"
-                            >
-                              📈 Persuasiv & Vânzări
-                            </button>
-                            <button 
-                              type="button"
-                              onClick={() => handleAiEdit("professional_tone", "prietenos, simplu și ușor de înțeles")} 
-                              disabled={isEditingAi}
-                              className="w-full text-xs text-left px-4 py-2.5 rounded-lg hover:bg-zinc-900 text-zinc-400 hover:text-white transition-all font-semibold"
-                            >
-                              🤝 Prietenos & Casual
-                            </button>
-                          </div>
-                        )}
-                      </div>
-
-                      <button 
-                        type="button" 
-                        onClick={() => {
-                          if (!user) {
-                            setShowAuthModal(true);
-                            return;
-                          }
+                        const isAlreadyAdded = result?.sectiuni_aditionale?.findIndex((sec: any) => sec.titlu.includes("Plan Profesionist") || sec.titlu.includes("Investitori"));
+                        if (isAlreadyAdded !== undefined && isAlreadyAdded >= 0) {
+                          alert("Acest capitol a fost deja adăugat! Te redirecționăm către el.");
+                          document.getElementById(`custom-section-${isAlreadyAdded}`)?.scrollIntoView({ behavior: "smooth", block: "center" });
+                          return;
+                        }
+                        if (!isStudioPaid) {
                           setShowPricingModal(true);
-                        }} 
-                        disabled={isEditingAi} 
-                        className="w-full text-left flex items-center justify-between rounded-xl px-5 py-4 font-bold text-sm transition-all group disabled:opacity-50 disabled:cursor-not-allowed bg-zinc-900/60 hover:bg-zinc-800/80 border border-amber-500/30 text-amber-300"
-                      >
+                          return;
+                        }
+                        setActiveAiPrompt(activeAiPrompt?.action === "investor_ready" ? null : {action: "investor_ready", title: "Plan Profesionist", isConfirm: true, desc: "Se va genera:\n1. Rezumat Executiv\n2. Matrice Diferențiere\n3. Strategie 'Go-To-Market'\n4. Analiză Risc\n5. Scenarii Financiare"});
+                      }} disabled={isEditingAi} className="w-full bg-zinc-900/80 hover:bg-zinc-800 border border-emerald-500/30 rounded-xl px-5 py-4 font-bold text-sm text-emerald-100 transition-all text-left flex items-center justify-between group disabled:opacity-50 disabled:cursor-not-allowed shadow-[0_0_15px_rgba(16,185,129,0.1)]">
                         <span className="flex items-center gap-3">
-                          <span className="text-amber-500 group-hover:scale-110 transition-transform">🇪🇺</span>
-                          <span>
-                            {isEditingAi ? "Se procesează..." : "Optimizat pentru Fonduri Europene"}
+                          <span className="text-emerald-400 group-hover:scale-110 transition-transform text-lg">🏦</span> 
+                          <span>{isEditingAi ? "Se procesează..." : "Plan Profesionist (Investitori/Bănci)"}</span>
+                        </span>
+                        {!isStudioPaid && (
+                          <span className="text-[10px] bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 px-2 py-0.5 rounded-full font-black uppercase tracking-wider whitespace-nowrap flex items-center gap-1">
+                            🔒 PRO
                           </span>
-                        </span>
-                        <span className="text-[10px] bg-amber-500/20 border border-amber-500/40 text-amber-300 px-2 py-0.5 rounded-full font-black uppercase tracking-wider whitespace-nowrap flex items-center gap-1">
-                          🔒 PRO
-                        </span>
+                        )}
                       </button>
 
                       <button 
@@ -1095,13 +1350,110 @@ export default function Home() {
                             setShowAuthModal(true);
                             return;
                           }
-                          setShowPricingModal(true);
+                          const isAlreadyAdded = result?.sectiuni_aditionale?.findIndex((sec: any) => sec.titlu.includes("Fonduri") || sec.titlu.includes("Europene"));
+                          if (isAlreadyAdded !== undefined && isAlreadyAdded >= 0) {
+                            alert("Acest capitol a fost deja adăugat! Te redirecționăm către el.");
+                            document.getElementById(`custom-section-${isAlreadyAdded}`)?.scrollIntoView({ behavior: "smooth", block: "center" });
+                            return;
+                          }
+                          if (!isStudioPaid) {
+                            setShowPricingModal(true);
+                            return;
+                          }
+                          if (activeAiPrompt?.action === "eu_funds_optimization") {
+                            setActiveAiPrompt(null);
+                          } else {
+                            setActiveAiPrompt({action: "eu_funds_optimization", title: "Optimizare Fonduri Europene", isConfirm: true, desc: "Se va adapta planul pentru fonduri europene:\n1. Concepte cheie: digitalizare, sustenabilitate.\n2. Redenumirea achizițiilor pentru a fi eligibile.\n\nEști gata?"});
+                          }
                         }} 
                         disabled={isEditingAi} 
-                        className="w-full text-left flex items-center justify-between rounded-xl px-5 py-4 font-bold text-sm transition-all group disabled:opacity-50 disabled:cursor-not-allowed bg-zinc-900/60 hover:bg-zinc-800/80 border border-amber-500/30 text-amber-300"
+                        className="w-full bg-zinc-900/80 hover:bg-zinc-800 border border-emerald-500/30 rounded-xl px-5 py-4 font-bold text-sm text-emerald-100 transition-all text-left flex items-center justify-between group disabled:opacity-50 disabled:cursor-not-allowed shadow-[0_0_15px_rgba(16,185,129,0.1)]"
                       >
                         <span className="flex items-center gap-3">
-                          <span className="text-emerald-500 group-hover:scale-110 transition-transform">📉</span>
+                          <span className="text-emerald-400 group-hover:scale-110 transition-transform">🇪🇺</span>
+                          <span>
+                            {isEditingAi ? "Se procesează..." : "Optimizat pentru Fonduri Europene"}
+                          </span>
+                        </span>
+                        {!isStudioPaid && (
+                          <span className="text-[10px] bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 px-2 py-0.5 rounded-full font-black uppercase tracking-wider whitespace-nowrap flex items-center gap-1">
+                            🔒 PRO
+                          </span>
+                        )}
+                      </button>
+
+                      <div className="h-px w-full bg-zinc-800 my-2"></div>
+
+                      {/* BLOC SECUNDAR (AURIU - LIBER PE DEMO) */}
+                      <button 
+                        type="button"
+                        onClick={() => {
+                          if (!user) { setShowAuthModal(true); return; }
+                          setShowToneOptions(!showToneOptions);
+                        }} 
+                        disabled={isEditingAi} 
+                        className="w-full bg-black hover:bg-zinc-800 border border-amber-500/20 rounded-xl px-5 py-4 font-bold text-sm text-amber-100 transition-all text-left flex items-center justify-between group disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        <span className="flex items-center gap-3">
+                          <span className="text-amber-500 group-hover:scale-110 transition-transform">🪄</span>
+                          <span>Rescrie tonul</span>
+                        </span>
+                        <span className="flex items-center gap-2">
+                          <span className="text-[10px] bg-amber-500/20 border border-amber-500/40 text-amber-300 px-2 py-0.5 rounded-full font-black uppercase tracking-wider whitespace-nowrap">
+                            🔒 PRO
+                          </span>
+                          <span className="text-zinc-500 text-xs">▼</span>
+                        </span>
+                      </button>
+                      
+                      {showToneOptions && (
+                        <div className="flex flex-col gap-1 p-2 bg-zinc-950/50 rounded-xl border border-zinc-800/50 mt-1 animate-in slide-in-from-top-2">
+                          <button 
+                            type="button"
+                            onClick={() => handleAiEdit("professional_tone", "foarte formal, academic și riguros")} 
+                            disabled={isEditingAi}
+                            className="w-full text-xs text-left px-4 py-2.5 rounded-lg hover:bg-zinc-900 text-zinc-400 hover:text-white transition-all font-semibold"
+                          >
+                            Formal & Academic
+                          </button>
+                          <button 
+                            type="button"
+                            onClick={() => handleAiEdit("professional_tone", "entuziast, creativ și plin de energie")} 
+                            disabled={isEditingAi}
+                            className="w-full text-xs text-left px-4 py-2.5 rounded-lg hover:bg-zinc-900 text-zinc-400 hover:text-white transition-all font-semibold"
+                          >
+                            Creativ & Entuziast
+                          </button>
+                          <button 
+                            type="button"
+                            onClick={() => handleAiEdit("professional_tone", "persuasiv, orientat spre vânzări și convingător")} 
+                            disabled={isEditingAi}
+                            className="w-full text-xs text-left px-4 py-2.5 rounded-lg hover:bg-zinc-900 text-zinc-400 hover:text-white transition-all font-semibold"
+                          >
+                            Comercial & Persuasiv
+                          </button>
+                          <button 
+                            type="button"
+                            onClick={() => handleAiEdit("professional_tone", "prietenos, simplu și ușor de înțeles")} 
+                            disabled={isEditingAi}
+                            className="w-full text-xs text-left px-4 py-2.5 rounded-lg hover:bg-zinc-900 text-zinc-400 hover:text-white transition-all font-semibold"
+                          >
+                            Simplu & Prietenos
+                          </button>
+                        </div>
+                      )}
+
+                      <button 
+                        type="button" 
+                        onClick={() => {
+                          if (!user) { setShowAuthModal(true); return; }
+                          setActiveAiPrompt(activeAiPrompt?.action === "optimize_budget" ? null : {action: "optimize_budget", title: "Optimizează Bugetul", placeholder: "ex: 10, 20, 30", desc: "Cu ce procent dorești să reduci costurile bugetate?"});
+                        }} 
+                        disabled={isEditingAi} 
+                        className="w-full bg-black hover:bg-zinc-800 border border-amber-500/20 rounded-xl px-5 py-4 font-bold text-sm text-amber-100 transition-all text-left flex items-center justify-between group disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        <span className="flex items-center gap-3">
+                          <span className="text-amber-500 group-hover:scale-110 transition-transform">📉</span>
                           <span>
                             {isEditingAi ? "Se procesează..." : (
                               <>
@@ -1110,7 +1462,7 @@ export default function Home() {
                             )}
                           </span>
                         </span>
-                        <span className="text-[10px] bg-amber-500/20 border border-amber-500/40 text-amber-300 px-2 py-0.5 rounded-full font-black uppercase tracking-wider whitespace-nowrap flex items-center gap-1">
+                        <span className="text-[10px] bg-amber-500/20 border border-amber-500/40 text-amber-300 px-2 py-0.5 rounded-full font-black uppercase tracking-wider whitespace-nowrap">
                           🔒 PRO
                         </span>
                       </button>
@@ -1118,27 +1470,25 @@ export default function Home() {
                       <button 
                         type="button" 
                         onClick={() => {
-                          if (!user) {
-                            setShowAuthModal(true);
-                            return;
-                          }
-                          setShowPricingModal(true);
+                          if (!user) { setShowAuthModal(true); return; }
+                          setActiveAiPrompt(activeAiPrompt?.action === "add_sections" ? null : {action: "add_sections", title: "Adaugă Secțiuni Noi", placeholder: "ex: Analiză de risc, Strategie de HR...", desc: "Ce secțiuni vrei să mai adaugi în plan?"});
                         }} 
                         disabled={isEditingAi} 
-                        className="w-full text-left flex items-center justify-between rounded-xl px-5 py-4 font-bold text-sm transition-all group disabled:opacity-50 disabled:cursor-not-allowed bg-zinc-900/60 hover:bg-zinc-800/80 border border-amber-500/30 text-amber-300"
+                        className="w-full bg-black hover:bg-zinc-800 border border-amber-500/20 rounded-xl px-5 py-4 font-bold text-sm text-amber-100 transition-all text-left flex items-center justify-between group disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         <span className="flex items-center gap-3">
                           <span className="text-emerald-500 group-hover:scale-110 transition-transform">💡</span> 
                           <span>{isEditingAi ? "Se procesează..." : "Adaugă secțiuni noi"}</span>
                         </span>
-                        <span className="text-[10px] bg-amber-500/20 border border-amber-500/40 text-amber-300 px-2 py-0.5 rounded-full font-black uppercase tracking-wider whitespace-nowrap flex items-center gap-1">
+                        <span className="text-[10px] bg-amber-500/20 border border-amber-500/40 text-amber-300 px-2 py-0.5 rounded-full font-black uppercase tracking-wider whitespace-nowrap">
                           🔒 PRO
                         </span>
                       </button>
                     </div>
 
+
                     {activeAiPrompt && (
-                      <div className="mt-4 p-4 bg-zinc-950 border border-zinc-800 rounded-xl animate-in fade-in slide-in-from-top-2 duration-200">
+                      <div id="ai-prompt-box" className="mt-4 p-4 bg-zinc-950 border border-zinc-800 rounded-xl animate-in fade-in slide-in-from-top-2 duration-200">
                         <h4 className="text-sm font-bold text-zinc-200 mb-2">{activeAiPrompt.title}</h4>
                         <p className="text-xs text-zinc-400 mb-3 whitespace-pre-line">{activeAiPrompt.desc}</p>
                         
@@ -1189,71 +1539,10 @@ export default function Home() {
                 <strong>Sfat:</strong> Aici editezi textul documentului. Pentru a adăuga <strong className="text-white">imagini</strong>, logo sau a schimba aranjarea în pagină, apasă <em>Confirmă și Salvează</em>, apoi descarcă documentele.
               </p>
             </div>
-
-            {/* AdSense Banner Sidebar */}
-            <div className="mt-6 w-full min-h-[250px] rounded-2xl overflow-hidden bg-zinc-900/30 border border-zinc-800/50 flex flex-col items-center justify-center relative">
-              <span className="text-zinc-600 text-xs font-bold uppercase tracking-widest absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-0">Spațiu Reclamă</span>
-              <div className="relative z-10 w-full h-full">
-                <AdBanner dataAdSlot="AUTO_AD_SLOT" />
-              </div>
-            </div>
-      {showWelcomeModal && (
-        <div className="fixed inset-0 bg-black/90 backdrop-blur-md z-[200] flex items-center justify-center p-4">
-          <div className="bg-zinc-900 border border-zinc-800 rounded-3xl p-8 max-w-xl w-full flex flex-col shadow-2xl">
-            <div className="flex justify-between items-start mb-6">
-              <span className="text-4xl">👋</span>
-              <button onClick={() => setShowWelcomeModal(false)} className="text-zinc-500 hover:text-white transition-colors">
-                ✕
-              </button>
-            </div>
-            
-            <h3 className="text-3xl font-black text-white mb-3">Bine ai revenit!</h3>
-            <p className="text-zinc-400 mb-8 text-lg">Ai descărcat cu succes sumarul planului tău. Acesta este momentul în care magia prinde contur, iar planul tău devine o afacere reală.</p>
-            
-            <div className="space-y-4 mb-8">
-              <div className="bg-emerald-950/30 border border-emerald-900/50 p-5 rounded-2xl flex gap-4 items-start">
-                <span className="text-2xl">✏️</span>
-                <div>
-                  <h4 className="text-white font-bold mb-1">Editează Documentul</h4>
-                  <p className="text-sm text-zinc-400">Transformă textul cu asistentul AI, optimizează-l pentru fonduri UE și ajustează cifrele financiare.</p>
-                </div>
-              </div>
-              <div className="bg-emerald-950/30 border border-emerald-900/50 p-5 rounded-2xl flex gap-4 items-start">
-                <span className="text-2xl">📄</span>
-                <div>
-                  <h4 className="text-white font-bold mb-1">Descărcări Premium</h4>
-                  <p className="text-sm text-zinc-400">Deblochează accesul nelimitat la PDF Extins, Document Word și Prezentare PowerPoint (.pptx).</p>
-                </div>
-              </div>
-            </div>
-            
-            <div className="flex flex-col gap-3">
-              <button 
-                onClick={() => {
-                  setShowWelcomeModal(false);
-                  window.scrollTo({top: 0, behavior: 'smooth'});
-                }} 
-                className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-4 rounded-xl transition-all shadow-[0_0_20px_rgba(16,185,129,0.3)] text-lg"
-              >
-                Editează Planul Acum
-              </button>
-              <button 
-                onClick={() => {
-                  setShowWelcomeModal(false);
-                  setShowPricingModal(true);
-                }} 
-                className="w-full bg-zinc-800 hover:bg-zinc-700 text-white font-bold py-4 rounded-xl transition-all text-sm border border-zinc-700"
-              >
-                Vezi Pachete și Conturi
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 
-  if (isAuthLoading) {
+  if (isAuthLoading || isCheckingShared) {
     return (
       <div className="min-h-screen bg-[#09090b] flex items-center justify-center">
         <div className="w-12 h-12 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin"></div>
@@ -1261,11 +1550,9 @@ export default function Home() {
     );
   }
 
-
-
   return (
     <main 
-      className="min-h-screen bg-[#09090b] text-white p-8 flex flex-col items-center font-sans print:hidden relative overflow-x-hidden select-none"
+      className="min-h-screen bg-[#09090b] text-white px-8 pt-2 pb-8 flex flex-col items-center font-sans print:hidden relative overflow-x-hidden select-none"
       onContextMenu={(e) => e.preventDefault()}
     >
       <div className="hidden print:block w-full h-full bg-white text-black text-center p-20 text-3xl font-bold">
@@ -1286,7 +1573,7 @@ export default function Home() {
           <div className="flex flex-col items-center justify-center flex-1 px-4">
             <div className="w-16 h-16 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin mb-6"></div>
             <p className="text-2xl font-bold text-white tracking-widest uppercase text-center transition-all duration-300">
-              IdeeaTa prinde viață...
+              Ideea Ta prinde viață...
             </p>
             <p className="text-emerald-400 font-medium mt-3 text-center transition-all duration-500 max-w-lg">
               {loadingMessages[messageIndex]}
@@ -1315,21 +1602,39 @@ export default function Home() {
       )}
 
       {isEditingAi && (
-        <div className="fixed inset-0 bg-[#09090b]/90 backdrop-blur-sm z-[100] flex items-center justify-center">
+        <div className="fixed inset-0 bg-[#09090b]/90 backdrop-blur-sm z-[100] flex items-center justify-between px-6">
+          {/* Left Ad */}
+          <div className="hidden lg:flex flex-col items-center justify-center w-[180px] xl:w-[220px] h-[400px] overflow-hidden shrink-0">
+            <AdBanner dataAdSlot="3098389905" dataAdFormat="vertical" dataFullWidthResponsive="false" />
+          </div>
+
+          {/* Center loading content */}
           <div className="flex flex-col items-center justify-center flex-1 px-4">
             <div className="w-16 h-16 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin mb-6"></div>
-            <p className="text-2xl font-bold text-white tracking-widest uppercase text-center">
-              AI-ul rescrie documentul...
+            <p className="text-2xl font-bold text-white tracking-widest uppercase text-center transition-all duration-300">
+              {aiLoadingMessageIndex === 0 && "Se rescrie documentul..."}
+              {aiLoadingMessageIndex === 1 && "Se procesează secțiunile..."}
+              {aiLoadingMessageIndex === 2 && "Se calculează datele..."}
+              {aiLoadingMessageIndex === 3 && "Se finalizează..."}
             </p>
-            <p className="text-emerald-400 font-medium mt-3 text-center">
-              Acest proces durează 15-20 de secunde, deoarece rescriem integral secțiunile planului tău de afaceri.
+            <p className="text-emerald-400 font-medium mt-3 text-center transition-all duration-500 max-w-lg">
+              {aiLoadingMessageIndex === 0 && "Acest proces durează 15-20 de secunde. Analizăm structura actuală a documentului..."}
+              {aiLoadingMessageIndex === 1 && "Generăm secțiunile și rescriem paragrafele pentru o calitate maximă..."}
+              {aiLoadingMessageIndex === 2 && "Aplicăm calculele financiare și rafinăm tonul profesional..."}
+              {aiLoadingMessageIndex === 3 && "Ultimele retușuri. Pregătim noul tău plan de afaceri..."}
             </p>
+          </div>
+
+          {/* Right Ad */}
+          <div className="hidden lg:flex flex-col items-center justify-center w-[180px] xl:w-[220px] h-[400px] overflow-hidden shrink-0">
+            <AdBanner dataAdSlot="8674150210" dataAdFormat="vertical" dataFullWidthResponsive="false" />
           </div>
         </div>
       )}
 
       <div className={`${isDownloading === 'pptx' ? 'hidden' : 'flex'} flex-col items-center w-full max-w-[1600px] px-4 md:px-12 relative z-10`}>
-          <div className="w-full flex justify-between items-start sm:items-center py-4 border-b border-zinc-800/80 mb-6 print:hidden">
+        {user && (
+          <div className="w-full flex justify-between items-start sm:items-center py-2 border-b border-zinc-800/80 mb-3 print:hidden">
             <div className="flex flex-col gap-2">
               <span className="text-zinc-500 text-xs font-semibold">Proiectul tău de afaceri inteligent</span>
               <a 
@@ -1343,17 +1648,45 @@ export default function Home() {
               </a>
             </div>
             <div className="flex items-center gap-4 text-xs font-medium">
-              <span className="bg-zinc-800 border border-zinc-700 text-zinc-300 px-2 py-0.5 rounded-full font-bold">
-                MOD DEMO
-              </span>
-              <a 
-                href="/"
-                className="text-emerald-400 hover:text-emerald-300 transition-colors font-bold underline cursor-pointer"
+              <span className="text-zinc-400">{user.email}</span>
+              {isAdmin ? (
+                <span className="bg-amber-500/20 border border-amber-500/40 text-amber-300 px-2 py-0.5 rounded-full font-black uppercase tracking-wider">
+                  ADMIN ★
+                </span>
+              ) : subscriptionActive ? (
+                <span className="bg-emerald-500/20 border border-emerald-500/40 text-emerald-400 px-2 py-0.5 rounded-full font-black uppercase tracking-wider">
+                  PRO
+                </span>
+              ) : euFundsUnlocked ? (
+                <span className="bg-amber-500/20 border border-amber-500/40 text-amber-300 px-2 py-0.5 rounded-full font-black uppercase tracking-wider">
+                  STUDIO &amp; FONDURI
+                </span>
+              ) : isPlanPaid ? (
+                <span className="bg-blue-500/20 border border-blue-500/40 text-blue-400 px-2 py-0.5 rounded-full font-black uppercase tracking-wider">
+                  STANDARD DEBLOCAT
+                </span>
+              ) : (
+                <span className="bg-zinc-800 border border-zinc-700 text-zinc-300 px-2 py-0.5 rounded-full font-bold">
+                  PREVIZUALIZARE
+                </span>
+              )}
+              {!subscriptionActive && (
+                <button 
+                  onClick={() => { if (!user) { setShowAuthModal(true); } else { setShowPricingModal(true); } }}
+                  className="text-emerald-400 hover:text-emerald-300 transition-colors font-bold underline cursor-pointer"
+                >
+                  Vezi Planuri
+                </button>
+              )}
+              <button 
+                onClick={() => signOut(auth)}
+                className="text-zinc-500 hover:text-white transition-colors cursor-pointer"
               >
-                Creează cont / Log In
-              </a>
+                Ieși din cont
+              </button>
             </div>
           </div>
+        )}
 
         <h1 className="text-4xl md:text-6xl lg:text-[5rem] font-black mt-4 lg:mt-12 mb-6 lg:mb-8 not-italic tracking-tighter cursor-pointer bg-gradient-to-r from-zinc-400 via-emerald-400 to-zinc-400 bg-clip-text text-transparent animate-shimmer print:hidden self-start lg:self-center" onClick={resetApp}>
           IdeeaTa.ai
@@ -1528,8 +1861,8 @@ export default function Home() {
                     onChange={(e) => setSkill(e.target.value)}
                     onKeyDown={handleKeyDown}
                     disabled={loading}
-                    placeholder={animatedPlaceholder || "Descrie ideea ta aici... (ex: Platformă de cursuri online de programare cu asistent AI pentru copii de 10-14 ani)"}
-                    className="relative w-full h-32 p-6 rounded-2xl bg-[#09090b] border border-zinc-700 outline-none focus:border-emerald-500 transition-all text-xl shadow-inner resize-none placeholder:text-zinc-600 font-sans font-medium text-white leading-relaxed"
+                    placeholder={"Descrie ideea ta de afaceri în detaliu... (ex: Vreau să deschid o cafenea de specialitate cu produse vegane în centrul orașului...)"}
+                    className="relative w-full h-32 p-6 rounded-2xl bg-[#09090b] border border-zinc-700 outline-none focus:border-emerald-500 transition-all text-lg shadow-inner resize-none placeholder:text-zinc-600 font-medium text-zinc-400"
                   />
                 </div>
                 
@@ -1541,11 +1874,11 @@ export default function Home() {
                         usedIdeasRef.current = [];
                       }
                       let nextIndex = Math.floor(Math.random() * randomIdeas.length);
-                      while (usedIdeasRef.current.includes(nextIndex) || randomIdeas[nextIndex] === skill) {
+                      while (usedIdeasRef.current.includes(nextIndex) || randomIdeas[nextIndex].long === skill) {
                         nextIndex = Math.floor(Math.random() * randomIdeas.length);
                       }
                       usedIdeasRef.current.push(nextIndex);
-                      setSkill(randomIdeas[nextIndex]);
+                      setSkill(randomIdeas[nextIndex].long);
                       setShowExamples(false);
                       setTimeout(() => inputRef.current?.focus(), 50);
                     }}
@@ -1582,12 +1915,12 @@ export default function Home() {
                     key={idx}
                     type="button"
                     onClick={() => {
-                      setSkill(ex);
+                      setSkill(ex.long);
                       setTimeout(() => inputRef.current?.focus(), 50);
                     }}
-                    className="bg-zinc-900/80 border border-zinc-700/80 text-zinc-300 font-medium text-xs sm:text-sm px-2 py-3 rounded-xl transition-all duration-300 hover:bg-emerald-900/60 hover:text-emerald-400 hover:border-emerald-500 hover:scale-[1.02] text-center w-full shadow-sm leading-snug"
+                    className="group relative flex items-center justify-center bg-zinc-900/40 backdrop-blur-sm border border-zinc-800 text-zinc-300 font-medium text-xs sm:text-sm px-3 py-4 rounded-xl transition-all duration-300 hover:bg-emerald-950/40 hover:text-emerald-300 hover:border-emerald-500/50 hover:shadow-[0_0_20px_rgba(16,185,129,0.1)] hover:-translate-y-0.5 text-center w-full leading-snug"
                   >
-                    {ex}
+                    {ex.short}
                   </button>
                 ))}
               </div>
@@ -1686,7 +2019,7 @@ export default function Home() {
                   </div>
                   <h4 className="text-2xl font-bold text-white mb-3">Plan Profesionist</h4>
                   <p className="text-zinc-400 text-base md:text-lg leading-relaxed">
-                    Atrage investitori și bănci cu un format extins ce include metrici CAC/LTV, plan de risc și scenarii financiare multiple.
+                    Rescrie complet planul pentru a atrage investitori și bănci. Include limbaj corporativ, metrici financiare (CAC/LTV) și strategii de mitigare a riscului.
                   </p>
                 </div>
               </div>
@@ -1865,7 +2198,7 @@ export default function Home() {
                       </div>
                       <div className="flex justify-between items-center pb-3 border-b border-zinc-800">
                         <span className="text-zinc-400">Amenajare locație & Design</span>
-                        <span className="font-mono text-zinc-200">85.000 lei</span>
+                        <span className="font-mono text-zinc-850">85.000 lei</span>
                       </div>
                       <div className="flex justify-between items-center pb-3 border-b border-zinc-800">
                         <span className="text-zinc-400">Stoc inițial marfă & Consumabile</span>
@@ -2061,26 +2394,32 @@ export default function Home() {
             <div className="flex flex-col gap-3">
               <h1 className="text-3xl font-black text-emerald-400 flex items-center gap-3">
                 <span>✏️</span> Studio Editare
-                {!isPaid && <span className="ml-3 text-sm font-bold text-amber-400 bg-amber-400/10 border border-amber-400/30 px-3 py-1 rounded-full">🔒 Demo – Read Only</span>}
               </h1>
             </div>
             <div className="flex gap-4 shrink-0">
               <button onClick={cancelEditing} className="px-6 py-2 bg-zinc-800 hover:bg-zinc-700 text-white rounded-xl font-bold transition-all shadow-xl">
                  ❌ Anulează
               </button>
-              <button
-                onClick={isPaid ? saveEditing : saveEditing}
-                className="px-6 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl font-bold transition-all shadow-xl border border-emerald-500"
-              >
-                {isPaid ? '✅ Confirmă și Salvează' : '✅ Confirmă și Vezi Planul'}
+              <button onClick={saveEditing} className="px-6 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl font-bold transition-all shadow-xl border border-emerald-500">
+                 ✅ Confirmă și Salvează
               </button>
             </div>
           </div>
 
           <div className="flex flex-col lg:flex-row gap-8 items-start w-full">
-            <div className="w-full lg:w-3/5 xl:w-2/3 relative">
-               <EditForm result={result} updateField={updateField} removeField={removeField} readOnly={!user || !isPaid} />
-              {/* Overlay-ul agresiv care bloca editarea cu popup de plată a fost scos */}
+            <div 
+              className="w-full lg:w-3/5 xl:w-2/3"
+              onCopy={(e) => {
+                e.preventDefault();
+                alert("Copierea textului este dezactivată în varianta Demo. Apasă pe 🎁 DESCARCĂ SUMAR GRATUIT pentru a obține planul.");
+              }}
+            >
+              <EditForm 
+                result={result} 
+                updateField={updateField} 
+                removeField={removeField} 
+                readOnly={false} 
+              />
             </div>
             {renderSidebar()}
           </div>
@@ -2118,34 +2457,115 @@ export default function Home() {
             </div>
 
             <div className="w-full md:w-auto flex flex-col md:flex-row gap-4 items-center justify-between">
-              <div className="flex gap-2 p-1 bg-black rounded-xl border border-zinc-700 h-10 w-full md:w-32 flex-none group">
+              <div className="flex gap-2 p-1 bg-black rounded-xl border border-zinc-700 h-10 w-full md:w-32 flex-none">
                 <button onClick={() => setCurrency("LEI")} className={`w-1/2 flex items-center justify-center rounded-lg text-xs font-bold transition-all ${currency === "LEI" ? "bg-emerald-600 text-white" : "text-zinc-500 hover:text-white"}`}>LEI</button>
                 <button onClick={() => setCurrency("EUR")} className={`w-1/2 flex items-center justify-center rounded-lg text-xs font-bold transition-all ${currency === "EUR" ? "bg-blue-600 text-white" : "text-zinc-500 hover:text-white"}`}>EUR</button>
               </div>
               
-              {/* Download Buttons Container (Demo) */}
+              {/* Download Buttons Container (Pachet Standard) */}
               <div className="relative group w-full md:w-auto flex-none">
-                <div 
-                  className="flex items-center gap-1.5 bg-zinc-900 border border-zinc-700/60 p-1 rounded-xl h-10 w-full md:w-auto overflow-x-auto md:overflow-visible"
-                >
+              <div 
+                className="flex items-center gap-1.5 bg-zinc-900 border border-zinc-700/60 p-1 rounded-xl h-10 w-full md:w-auto overflow-x-auto md:overflow-visible"
+              >
+                {!isEditing ? (
+                  <button 
+                    onClick={() => downloadAction('pdf-summary')} 
+                    disabled={isDownloading !== null}
+                    className="flex-none bg-emerald-600 hover:bg-emerald-500 text-white text-[10px] sm:text-[12px] h-full px-5 py-2.5 rounded-lg font-black uppercase tracking-wider transition-all flex items-center justify-center whitespace-nowrap gap-2 cursor-pointer shadow-[0_0_15px_rgba(16,185,129,0.3)]"
+                  >
+                    {isDownloading === 'pdf-summary' ? "Se descarcă..." : "🎁 DESCARCĂ SUMAR GRATUIT"}
+                  </button>
+                ) : (
+                  <>
                     <button 
-                      onClick={() => setShowAdModal(true)} 
+                      onClick={() => setShowStudioExportModal(true)} 
                       disabled={isDownloading !== null}
-                      className="flex-none bg-emerald-600 hover:bg-emerald-500 text-white text-[10px] sm:text-[11px] h-full px-4 rounded-lg font-black uppercase tracking-wider transition-all flex items-center justify-center whitespace-nowrap gap-2 cursor-pointer shadow-[0_0_15px_rgba(16,185,129,0.3)]"
+                      className="flex-none hover:bg-zinc-800 text-[10px] sm:text-[11px] h-full px-3 py-2.5 rounded-lg font-black uppercase tracking-wider transition-all flex items-center justify-center whitespace-nowrap gap-1 cursor-pointer text-zinc-300 hover:text-white"
                     >
-                      {isDownloading === 'pdf-summary' ? "⏳..." : "🎁 Descarcă Sumar Gratuit"}
+                      {isDownloading === 'pdf' ? "⏳..." : "⬇ Prezentare"}
                     </button>
-                    <div className="w-px h-4 bg-zinc-800 flex-none mx-1" />
-                    <a 
-                      href="/"
-                      className="flex-none text-[10px] sm:text-[11px] font-black uppercase tracking-wider text-zinc-300 hover:text-white cursor-pointer px-4 h-full rounded-lg flex items-center justify-center hover:bg-zinc-800 transition-all gap-2"
+                    <div className="w-px h-4 bg-zinc-800 flex-none" />
+                    <button 
+                      onClick={() => setShowStudioExportModal(true)} 
+                      disabled={isDownloading !== null}
+                      className="flex-none hover:bg-zinc-800 text-[10px] sm:text-[11px] h-full px-3 py-2.5 rounded-lg font-black uppercase tracking-wider transition-all flex items-center justify-center whitespace-nowrap gap-1 cursor-pointer text-zinc-300 hover:text-white"
                     >
-                      🔒 Descarcă Complet
-                    </a>
+                      {isDownloading === 'pptx' ? "⏳..." : "⬇ Broșură"}
+                    </button>
+                    <div className="w-px h-4 bg-zinc-800 flex-none" />
+                    <button 
+                      onClick={() => setShowStudioExportModal(true)} 
+                      disabled={isDownloading !== null}
+                      className="flex-none hover:bg-zinc-800 text-[10px] sm:text-[11px] h-full px-3 py-2.5 rounded-lg font-black uppercase tracking-wider transition-all flex items-center justify-center whitespace-nowrap gap-1 cursor-pointer text-zinc-300 hover:text-white"
+                    >
+                      {isDownloading === 'word' ? "⏳..." : "⬇ Document"}
+                    </button>
+                  </>
+                )}
+
+                {!isPlanPaid && (
+                  <>
+                    <div className="w-px h-4 bg-zinc-800 flex-none" />
+                    <button 
+                      type="button"
+                      onClick={() => setShowPricingModal(true)}
+                      className="flex-none text-xs text-amber-500 hover:text-amber-400 cursor-pointer px-3 h-full rounded-lg flex items-center justify-center hover:bg-zinc-800/50 hover:scale-110 transition-all"
+                      title="Deblochează Descărcările Complete (Pachet Standard)"
+                    >
+                      🔒
+                    </button>
+                  </>
+                )}
+              </div>
+              {/* Tooltip Pachet Standard */}
+              <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-3 w-60 pointer-events-none opacity-0 group-hover:opacity-100 transition-all duration-250 scale-95 group-hover:scale-100 z-50">
+                <div className="relative rounded-xl p-px" style={{background: 'linear-gradient(135deg, #10b981 0%, #059669 50%, #065f46 100%)'}}>
+                  <div className="rounded-xl bg-zinc-950 px-4 py-3" style={{boxShadow: '0 0 24px 2px rgba(16,185,129,0.13)'}}>
+                    <div className="flex items-center gap-2 mb-2">
+                      <span className="text-emerald-400 text-sm">⬇</span>
+                      <span className="text-emerald-300 text-[11px] font-black uppercase tracking-widest">Pachet Standard</span>
+                    </div>
+                    <div className="flex flex-col gap-1">
+                      <div className="flex items-center gap-1.5 text-zinc-400 text-[10px]"><span className="text-emerald-500">▸</span> Prezentare PDF</div>
+                      <div className="flex items-center gap-1.5 text-zinc-400 text-[10px]"><span className="text-emerald-500">▸</span> Broșură PPTX</div>
+                      <div className="flex items-center gap-1.5 text-zinc-400 text-[10px]"><span className="text-emerald-500">▸</span> Document Word</div>
+                    </div>
+                  </div>
                 </div>
+                <div className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-3 h-3" style={{background: 'linear-gradient(135deg, transparent 50%, #059669 50%)', clipPath: 'polygon(0 0, 100% 100%, 0 100%)', transform: 'translateX(-50%) rotate(45deg)'}} />
               </div>
             </div>
+            </div>
           </div>
+
+          {Object.keys(versions).length > 1 && !isEditing && (
+            <div className="flex flex-wrap gap-2 mb-6 border-b border-zinc-800 pb-2 w-full max-w-5xl justify-center sm:justify-start">
+              {versions.original && (
+                <button 
+                  onClick={() => { setActiveVersionId('original'); setResultState(versions.original); }} 
+                  className={`px-5 py-2.5 rounded-t-xl transition-all duration-300 font-bold text-sm tracking-wide flex items-center gap-2 ${activeVersionId === 'original' ? 'bg-[#09090b] border-t border-l border-r border-emerald-500/50 text-emerald-400 shadow-[0_-10px_20px_-10px_rgba(16,185,129,0.15)] relative z-10 translate-y-[1px]' : 'bg-zinc-900/50 border-t border-l border-r border-zinc-800 text-zinc-500 hover:text-zinc-300 hover:bg-zinc-900'}`}
+                >
+                  📝 Varianta Originală
+                </button>
+              )}
+              {versions.eu_funds && (
+                <button 
+                  onClick={() => { setActiveVersionId('eu_funds'); setResultState(versions.eu_funds); }} 
+                  className={`px-5 py-2.5 rounded-t-xl transition-all duration-300 font-bold text-sm tracking-wide flex items-center gap-2 ${activeVersionId === 'eu_funds' ? 'bg-[#09090b] border-t border-l border-r border-emerald-500/50 text-emerald-400 shadow-[0_-10px_20px_-10px_rgba(16,185,129,0.15)] relative z-10 translate-y-[1px]' : 'bg-zinc-900/50 border-t border-l border-r border-zinc-800 text-zinc-500 hover:text-zinc-300 hover:bg-zinc-900'}`}
+                >
+                  🇪🇺 Optimizat Fonduri UE
+                </button>
+              )}
+              {versions.investor && (
+                <button 
+                  onClick={() => { setActiveVersionId('investor'); setResultState(versions.investor); }} 
+                  className={`px-5 py-2.5 rounded-t-xl transition-all duration-300 font-bold text-sm tracking-wide flex items-center gap-2 ${activeVersionId === 'investor' ? 'bg-[#09090b] border-t border-l border-r border-emerald-500/50 text-emerald-400 shadow-[0_-10px_20px_-10px_rgba(16,185,129,0.15)] relative z-10 translate-y-[1px]' : 'bg-zinc-900/50 border-t border-l border-r border-zinc-800 text-zinc-500 hover:text-zinc-300 hover:bg-zinc-900'}`}
+                >
+                  🏦 Plan Investitori
+                </button>
+              )}
+            </div>
+          )}
 
           {!isEditing && (
             <div 
@@ -2223,22 +2643,22 @@ export default function Home() {
                   </div>
                 </div>
                 <div>
-                  <p className="whitespace-pre-line text-justify leading-relaxed"><strong className="text-white print:text-black block mb-1">Obiective (1 an):</strong>{formatNumberedText(result.viziune_strategie?.obiective_scurt)}</p>
-                  <p className="mt-4 whitespace-pre-line text-justify leading-relaxed"><strong className="text-white print:text-black block mb-1">Obiective (3-5 ani):</strong>{formatNumberedText(result.viziune_strategie?.obiective_mediu)}</p>
+                  <p className="whitespace-pre-line"><strong className="text-white print:text-black block mb-1">Obiective (1 an):</strong>{formatNumberedText(result.viziune_strategie?.obiective_scurt)}</p>
+                  <p className="mt-4 whitespace-pre-line"><strong className="text-white print:text-black block mb-1">Obiective (3-5 ani):</strong>{formatNumberedText(result.viziune_strategie?.obiective_mediu)}</p>
                 </div>
               </div>
-              <div className="mt-6 pt-6 border-t border-zinc-800/50 text-zinc-300 print:border-gray-200 print:text-gray-800 text-justify leading-relaxed">
-                  <p className="whitespace-pre-line text-justify leading-relaxed"><strong className="text-white print:text-black">Misiune și Valori:</strong> {formatNumberedText(result.viziune_strategie?.misiune_valori)}</p>
+              <div className="mt-6 pt-6 border-t border-zinc-800/50 text-zinc-300 print:border-gray-200 print:text-gray-800 text-left leading-relaxed">
+                  <p className="whitespace-pre-line"><strong className="text-white print:text-black">Misiune și Valori:</strong> {formatNumberedText(result.viziune_strategie?.misiune_valori)}</p>
               </div>
             </div>
 
             {/* Analiza Pietei */}
             <div id="section-market" className="pdf-section mb-10 bg-zinc-900/50 p-10 rounded-3xl border-l-4 border-emerald-500 shadow-inner print:shadow-none print:bg-transparent print:border-l-4 print:border-emerald-700 print:text-black">
               <h3 className="text-emerald-400 text-sm font-black uppercase mb-6 tracking-[0.2em]">III. Analiza Pieței și Promovarea</h3>
-              <div className="space-y-6 text-zinc-300 print:text-gray-800 text-justify leading-relaxed">
-                <div className="text-left"><strong className="text-white print:text-black block mb-1">Clienții Țintă:</strong> <span className="italic whitespace-pre-line">{formatNumberedText(result.analiza_pietei?.clienti_tinta)}</span></div>
-                <div className="text-left"><strong className="text-white print:text-black block mb-1">Concurența:</strong> <span className="italic whitespace-pre-line">{formatNumberedText(result.analiza_pietei?.concurenta)}</span></div>
-                <div className="text-left"><strong className="text-white print:text-black block mb-1">Strategia de Marketing:</strong> <span className="italic whitespace-pre-line">{formatNumberedText(result.analiza_pietei?.strategie_marketing)}</span></div>
+              <div className="space-y-6 text-zinc-300 print:text-gray-800 text-left leading-relaxed">
+                <div><strong className="text-white print:text-black block mb-1">Clienții Țintă:</strong> <span className="italic whitespace-pre-line">{formatNumberedText(result.analiza_pietei?.clienti_tinta)}</span></div>
+                <div><strong className="text-white print:text-black block mb-1">Concurența:</strong> <span className="italic whitespace-pre-line">{formatNumberedText(result.analiza_pietei?.concurenta)}</span></div>
+                <div><strong className="text-white print:text-black block mb-1">Strategia de Marketing:</strong> <span className="italic whitespace-pre-line">{formatNumberedText(result.analiza_pietei?.strategie_marketing)}</span></div>
               </div>
             </div>
             
@@ -2261,7 +2681,7 @@ export default function Home() {
                         className="bg-emerald-950/10 p-5 rounded-2xl border border-emerald-900/30 border-l-4 border-l-emerald-500 shadow-[inset_0_0_20px_rgba(52,211,153,0.05)] transition-all duration-300 hover:bg-[#960018] hover:border-[#ff4d6d] hover:border-l-[#ff4d6d] hover:-translate-y-1 hover:shadow-[0_0_20px_rgba(255,77,109,0.4)] group cursor-default print:border-gray-200 print:border-l-4 print:border-l-emerald-700 print:bg-transparent print:text-black print:break-inside-avoid print:p-3 print:shadow-none"
                       >
                         <span className="text-zinc-100 font-black text-xl block mb-2 group-hover:text-white transition-colors print:text-black uppercase tracking-wider print:text-lg">✦ {item.titlu || item}</span>
-                        <p className="text-zinc-400 text-lg italic leading-relaxed text-justify group-hover:text-white/90 transition-colors print:text-gray-700 print:text-base whitespace-pre-line">{formatNumberedText(item.explicatie_tehnica)}</p>
+                        <p className="text-zinc-400 text-lg italic leading-relaxed text-left group-hover:text-white/90 transition-colors print:text-gray-700 print:text-base whitespace-pre-line">{formatNumberedText(item.explicatie_tehnica)}</p>
                       </div>
                     ))}
                   </div>
@@ -2272,19 +2692,19 @@ export default function Home() {
             {/* Operational */}
             <div id="section-operational" className="pdf-section mb-10 bg-zinc-900/50 p-10 rounded-3xl border-l-4 border-emerald-500 shadow-inner print:shadow-none print:bg-transparent print:border-l-4 print:border-emerald-700 print:text-black">
               <h3 className="text-emerald-400 text-sm font-black uppercase mb-6 tracking-[0.2em]">V. Planul Operațional și de Management</h3>
-              <ol className="space-y-6 text-zinc-300 print:text-gray-800 list-decimal pl-6 text-justify leading-relaxed">
-                <li className="pl-2 text-left"><strong className="text-white print:text-black block mb-1">Descriere Flux Tehnologic:</strong> <span className="italic whitespace-pre-line">{formatNumberedText(result.plan_operational?.descriere_flux)}</span></li>
-                <li className="pl-2 text-left"><strong className="text-white print:text-black block mb-1">Resurse Umane:</strong> <span className="italic whitespace-pre-line">{formatNumberedText(result.plan_operational?.resurse_umane)}</span></li>
-                <li className="pl-2 text-left"><strong className="text-white print:text-black block mb-1">Locație și Dotări:</strong> <span className="italic whitespace-pre-line">{formatNumberedText(result.plan_operational?.locatie_dotari)}</span></li>
+              <ol className="space-y-6 text-zinc-300 print:text-gray-800 list-decimal pl-6 text-left leading-relaxed">
+                <li className="pl-2"><strong className="text-white print:text-black block mb-1">Descriere Flux Tehnologic:</strong> <span className="italic whitespace-pre-line">{formatNumberedText(result.plan_operational?.descriere_flux)}</span></li>
+                <li className="pl-2"><strong className="text-white print:text-black block mb-1">Resurse Umane:</strong> <span className="italic whitespace-pre-line">{formatNumberedText(result.plan_operational?.resurse_umane)}</span></li>
+                <li className="pl-2"><strong className="text-white print:text-black block mb-1">Locație și Dotări:</strong> <span className="italic whitespace-pre-line">{formatNumberedText(result.plan_operational?.locatie_dotari)}</span></li>
               </ol>
             </div>
 
             {/* Additional AI Sections */}
             <div id="section-custom">
               {result.sectiuni_aditionale?.map((sec: any, idx: number) => (
-                <div key={`custom-${idx}`} className="pdf-section mb-10 bg-zinc-900/50 p-10 rounded-3xl border-l-4 border-emerald-500 shadow-inner print:shadow-none print:bg-transparent print:border-l-4 print:border-emerald-700 print:text-black">
+                <div id={`custom-section-${idx}`} key={`custom-${idx}`} className="pdf-section mb-10 bg-zinc-900/50 p-10 rounded-3xl border-l-4 border-emerald-500 shadow-inner print:shadow-none print:bg-transparent print:border-l-4 print:border-emerald-700 print:text-black">
                   <h3 className="text-emerald-400 text-sm font-black uppercase mb-6 tracking-[0.2em]">{sec.titlu}</h3>
-                  <p className="text-zinc-300 italic text-justify leading-relaxed print:text-gray-800 whitespace-pre-line">
+                  <p className="text-zinc-300 italic text-left leading-relaxed print:text-gray-800 whitespace-pre-line">
                     {formatNumberedText(sec.continut)}
                   </p>
                 </div>
@@ -2295,23 +2715,14 @@ export default function Home() {
                <h3 className="pdf-section text-emerald-400 text-sm font-black uppercase mb-6 tracking-[0.2em] text-center drop-shadow-md print:text-emerald-800 print:drop-shadow-none">
                  VI. Planul Financiar
                </h3>
-                <div className="pdf-section text-zinc-300 italic text-justify leading-relaxed max-w-4xl mx-auto mb-10 print:text-gray-700 whitespace-pre-line">
+               
+               <div className="pdf-section text-zinc-300 italic text-left leading-relaxed max-w-4xl mx-auto mb-10 print:text-gray-700 whitespace-pre-line">
                  {formatNumberedText(result.plan_financiar?.strategie_financiara)}
                </div>
 
-               <div className="mb-16">
+               <div className="mb-16" id="docx-chart-container">
                  <h4 className="text-zinc-500 font-bold uppercase tracking-wider mb-6 text-sm">Distribuția costurilor</h4>
                  <BudgetPieChart budget={result.plan_financiar?.buget_investitii} currency={currency} />
-               </div>
-
-               {/* Hidden chart dedicated for DOCX Export (Light Mode + Static) */}
-               <div className="fixed left-[-9999px] top-0 pointer-events-none z-[-1] w-[1000px] h-[450px] bg-white flex flex-col items-center justify-center" id="docx-export-chart">
-                 <BudgetPieChart budget={result.plan_financiar?.buget_investitii} currency={currency} isPdf={true} />
-               </div>
-
-               {/* Hidden chart dedicated for PPTX Export (Dark Mode + Static) */}
-               <div className="fixed left-[-9999px] top-0 pointer-events-none z-[-1] w-[1000px] h-[450px] bg-[#09090b] flex flex-col items-center justify-center" id="pptx-export-chart">
-                 <BudgetPieChart budget={result.plan_financiar?.buget_investitii} currency={currency} isPptx={true} />
                </div>
 
                <div className="grid grid-cols-1 gap-6 print:gap-3">
@@ -2351,37 +2762,41 @@ export default function Home() {
 
             {/* Slide 2: Viziune */}
             <div className="presentation-slide w-[1280px] h-[720px] bg-[#09090b] text-white flex flex-col justify-center p-24 border-[12px] border-zinc-900 box-border relative">
-              <div className="flex items-center gap-6 mb-8">
+              <div className="flex items-center gap-6 mb-12">
                 <div className="w-16 h-2 bg-emerald-500"></div>
                 <h2 className="text-5xl font-black font-sans uppercase tracking-widest text-emerald-400">Viziune și Strategie</h2>
               </div>
-              <div className="grid grid-cols-2 gap-12 font-sans leading-relaxed text-zinc-200">
-                <div>
-                  <h3 className="text-2xl font-bold text-emerald-500 mb-3">Obiective (1 an)</h3>
-                  <p className="text-xl overflow-hidden" style={{ maxHeight: '180px' }}>{result.viziune_strategie?.obiective_scurt}</p>
-                  <h3 className="text-2xl font-bold text-emerald-500 mb-3 mt-6">Obiective (3-5 ani)</h3>
-                  <p className="text-xl overflow-hidden" style={{ maxHeight: '180px' }}>{result.viziune_strategie?.obiective_mediu}</p>
+              <div className="grid grid-cols-2 gap-12 font-sans leading-normal text-zinc-200">
+                <div className="flex flex-col gap-4">
+                  <div className="overflow-hidden">
+                    <h3 className="text-xl font-bold text-emerald-700 mb-2">Obiective (1 an)</h3>
+                    <p className="text-base leading-relaxed text-left">{truncateText(result.viziune_strategie?.obiective_scurt, 280)}</p>
+                  </div>
+                  <div className="overflow-hidden">
+                    <h3 className="text-xl font-bold text-emerald-700 mb-2">Obiective (3-5 ani)</h3>
+                    <p className="text-base leading-relaxed text-left">{truncateText(result.viziune_strategie?.obiective_mediu, 280)}</p>
+                  </div>
                 </div>
-                <div>
-                  <h3 className="text-2xl font-bold text-emerald-500 mb-3">Misiune și Valori</h3>
-                  <p className="text-xl text-left overflow-hidden" style={{ maxHeight: '420px' }}>{result.viziune_strategie?.misiune_valori}</p>
+                <div className="overflow-hidden">
+                  <h3 className="text-xl font-bold text-emerald-700 mb-2">Misiune și Valori</h3>
+                  <p className="text-base leading-relaxed text-left">{truncateText(result.viziune_strategie?.misiune_valori, 500)}</p>
                 </div>
               </div>
             </div>
 
             {/* Slide 2b: Analiza Pietei */}
             <div className="presentation-slide w-[1280px] h-[720px] bg-[#09090b] text-white flex flex-col justify-center p-24 border-[12px] border-zinc-900 box-border relative">
-              <div className="flex items-center gap-6 mb-6">
+              <div className="flex items-center gap-6 mb-8">
                 <div className="w-16 h-2 bg-emerald-500"></div>
                 <h2 className="text-5xl font-black font-sans uppercase tracking-widest text-emerald-400">Analiza Pieței</h2>
               </div>
-              <div className="flex flex-col gap-4 font-sans leading-relaxed text-zinc-200 text-left">
-                  <div><h3 className="text-2xl font-bold text-emerald-500 mb-1">Clienții Țintă</h3>
-                  <p className="text-xl overflow-hidden" style={{ maxHeight: '120px' }}>{result.analiza_pietei?.clienti_tinta}</p></div>
-                  <div><h3 className="text-2xl font-bold text-emerald-500 mb-1">Concurența</h3>
-                  <p className="text-xl overflow-hidden" style={{ maxHeight: '120px' }}>{result.analiza_pietei?.concurenta}</p></div>
-                  <div><h3 className="text-2xl font-bold text-emerald-500 mb-1">Strategia de Marketing</h3>
-                  <p className="text-xl overflow-hidden" style={{ maxHeight: '120px' }}>{result.analiza_pietei?.strategie_marketing}</p></div>
+              <div className="flex flex-col gap-6 font-serif leading-normal text-zinc-300 text-left flex-1 overflow-hidden justify-start">
+                  <div className="overflow-hidden"><h3 className="text-3xl font-bold text-emerald-500 mb-2">Clienții Țintă</h3>
+                  <p className="text-2xl">{truncateText(result.analiza_pietei?.clienti_tinta, 250)}</p></div>
+                  <div className="overflow-hidden"><h3 className="text-3xl font-bold text-emerald-500 mb-2">Concurența</h3>
+                  <p className="text-2xl">{truncateText(result.analiza_pietei?.concurenta, 250)}</p></div>
+                  <div className="overflow-hidden"><h3 className="text-3xl font-bold text-emerald-500 mb-2">Strategia de Marketing</h3>
+                  <p className="text-2xl">{truncateText(result.analiza_pietei?.strategie_marketing, 250)}</p></div>
               </div>
             </div>
 
@@ -2391,9 +2806,9 @@ export default function Home() {
                 <div className="w-16 h-2 bg-emerald-500"></div>
                 <h2 className="text-5xl font-black font-sans uppercase tracking-widest text-emerald-400">Analiză Strategica SWOT</h2>
               </div>
-              <div className="bg-zinc-900/50 p-8 border-l-8 border-emerald-500 flex flex-col gap-6 rounded-3xl flex-1 overflow-hidden">
+              <div className="bg-zinc-900/50 p-8 border-l-8 border-emerald-500 flex flex-col gap-6 rounded-3xl flex-1">
                 <h3 className="text-4xl font-black text-white uppercase tracking-widest pb-4 border-b-2 border-zinc-800 shrink-0">Puncte Tari (Strengths)</h3>
-                <div className="grid grid-cols-2 gap-x-12 gap-y-6 overflow-hidden content-start flex-1">
+                <div className="grid grid-cols-2 gap-x-12 gap-y-6 flex-1">
                   {result.analiza_swot?.puncte_tari?.slice(0, 8).map((item: any, idx: number) => (
                     <div key={idx} className="flex flex-col gap-2">
                       <h4 className="text-2xl font-bold text-emerald-400 leading-snug">✦ {item.titlu || item}</h4>
@@ -2410,9 +2825,9 @@ export default function Home() {
                 <div className="w-16 h-2 bg-[#ff4d6d]"></div>
                 <h2 className="text-5xl font-black font-sans uppercase tracking-widest text-[#ff4d6d]">Analiză Strategica SWOT</h2>
               </div>
-              <div className="bg-zinc-900/50 p-8 border-l-8 border-[#ff4d6d] flex flex-col gap-6 rounded-3xl flex-1 overflow-hidden">
+              <div className="bg-zinc-900/50 p-8 border-l-8 border-[#ff4d6d] flex flex-col gap-6 rounded-3xl flex-1">
                 <h3 className="text-4xl font-black text-white uppercase tracking-widest pb-4 border-b-2 border-zinc-800 shrink-0">Slăbiciuni (Weaknesses)</h3>
-                <div className="grid grid-cols-2 gap-x-12 gap-y-6 overflow-hidden content-start flex-1">
+                <div className="grid grid-cols-2 gap-x-12 gap-y-6 flex-1">
                   {result.analiza_swot?.puncte_slabe?.slice(0, 8).map((item: any, idx: number) => (
                     <div key={idx} className="flex flex-col gap-2">
                       <h4 className="text-2xl font-bold text-[#ff4d6d] leading-snug">✦ {item.titlu || item}</h4>
@@ -2429,13 +2844,13 @@ export default function Home() {
                 <div className="w-16 h-2 bg-blue-500"></div>
                 <h2 className="text-5xl font-black font-sans uppercase tracking-widest text-blue-400">Analiză Strategica SWOT</h2>
               </div>
-              <div className="bg-zinc-900/50 p-8 border-l-8 border-blue-500 flex flex-col gap-6 rounded-3xl flex-1 overflow-hidden">
+              <div className="bg-zinc-900/50 p-8 border-l-8 border-blue-500 flex flex-col gap-6 rounded-3xl flex-1">
                 <h3 className="text-4xl font-black text-white uppercase tracking-widest pb-4 border-b-2 border-zinc-800 shrink-0">Oportunități (Opportunities)</h3>
-                <div className="grid grid-cols-2 gap-x-12 gap-y-6 overflow-hidden content-start flex-1">
+                <div className="grid grid-cols-2 gap-x-12 gap-y-6 flex-1">
                   {result.analiza_swot?.oportunitati?.slice(0, 8).map((item: any, idx: number) => (
                     <div key={idx} className="flex flex-col gap-2">
                       <h4 className="text-2xl font-bold text-blue-400 leading-snug">✦ {item.titlu || item}</h4>
-                      <p className="text-lg text-zinc-300 leading-relaxed max-w-lg">{item.explicatie_tehnica}</p>
+                      <p className="text-lg text-zinc-300 leading-relaxed max-w-lg text-left">{item.explicatie_tehnica}</p>
                     </div>
                   ))}
                 </div>
@@ -2448,13 +2863,13 @@ export default function Home() {
                 <div className="w-16 h-2 bg-orange-500"></div>
                 <h2 className="text-5xl font-black font-sans uppercase tracking-widest text-orange-400">Analiză Strategica SWOT</h2>
               </div>
-              <div className="bg-zinc-900/50 p-8 border-l-8 border-orange-500 flex flex-col gap-6 rounded-3xl flex-1 overflow-hidden">
+              <div className="bg-zinc-900/50 p-8 border-l-8 border-orange-500 flex flex-col gap-6 rounded-3xl flex-1">
                 <h3 className="text-4xl font-black text-white uppercase tracking-widest pb-4 border-b-2 border-zinc-800 shrink-0">Amenințări (Threats)</h3>
-                <div className="grid grid-cols-2 gap-x-12 gap-y-6 overflow-hidden content-start flex-1">
+                <div className="grid grid-cols-2 gap-x-12 gap-y-6 flex-1">
                   {result.analiza_swot?.amenintari?.slice(0, 8).map((item: any, idx: number) => (
                     <div key={idx} className="flex flex-col gap-2">
                       <h4 className="text-2xl font-bold text-orange-400 leading-snug">✦ {item.titlu || item}</h4>
-                      <p className="text-lg text-zinc-300 leading-relaxed max-w-lg">{item.explicatie_tehnica}</p>
+                      <p className="text-lg text-zinc-300 leading-relaxed max-w-lg text-left">{item.explicatie_tehnica}</p>
                     </div>
                   ))}
                 </div>
@@ -2467,19 +2882,19 @@ export default function Home() {
                 <div className="w-16 h-2 bg-emerald-500"></div>
                 <h2 className="text-5xl font-black font-sans uppercase tracking-widest text-emerald-400">Planul Operațional</h2>
               </div>
-              <div className="bg-zinc-900/50 p-8 border-l-8 border-emerald-500 flex flex-col gap-6 rounded-3xl flex-1 overflow-hidden">
-                <div className="flex flex-col gap-6 overflow-hidden content-start flex-1 pl-4 text-left">
+              <div className="bg-zinc-900/50 p-8 border-l-8 border-emerald-500 flex flex-col gap-6 rounded-3xl flex-1">
+                <div className="flex flex-col gap-6 flex-1 pl-4 text-left">
                     <div className="flex flex-col gap-2">
                       <h4 className="text-2xl font-bold text-emerald-400 leading-snug">1. Descriere Flux (Sustenabilitate / Verde)</h4>
-                      <p className="text-lg text-zinc-300 leading-relaxed line-clamp-3">{result.plan_operational?.descriere_flux}</p>
+                      <p className="text-lg text-zinc-300 leading-relaxed">{result.plan_operational?.descriere_flux}</p>
                     </div>
                     <div className="flex flex-col gap-2">
                       <h4 className="text-2xl font-bold text-emerald-400 leading-snug">2. Resurse Umane</h4>
-                      <p className="text-lg text-zinc-300 leading-relaxed line-clamp-3">{result.plan_operational?.resurse_umane}</p>
+                      <p className="text-lg text-zinc-300 leading-relaxed">{result.plan_operational?.resurse_umane}</p>
                     </div>
                     <div className="flex flex-col gap-2">
                       <h4 className="text-2xl font-bold text-emerald-400 leading-snug">3. Locație și Dotări</h4>
-                      <p className="text-lg text-zinc-300 leading-relaxed line-clamp-3">{result.plan_operational?.locatie_dotari}</p>
+                      <p className="text-lg text-zinc-300 leading-relaxed">{result.plan_operational?.locatie_dotari}</p>
                     </div>
                 </div>
               </div>
@@ -2491,14 +2906,14 @@ export default function Home() {
                 <div className="w-16 h-2 bg-emerald-500"></div>
                 <h2 className="text-5xl font-black font-sans uppercase tracking-widest text-emerald-400">Buget Investiții</h2>
               </div>
-              <div className="grid grid-cols-2 gap-x-12 gap-y-8 font-sans items-start content-start overflow-hidden">
-                {result.plan_financiar?.buget_investitii?.slice(0, 8).map((b: any, i: number) => (
-                  <div key={i} className="flex flex-col gap-3 bg-zinc-900/50 p-6 border-l-4 border-emerald-500 rounded-2xl h-[140px]">
+              <div className="grid grid-cols-2 gap-x-12 gap-y-8 font-sans items-start content-start">
+                {[...(result.plan_financiar?.buget_investitii || [])].sort((a: any, b: any) => parseInt(b.cost?.toString().replace(/[^0-9]/g, '') || '0') - parseInt(a.cost?.toString().replace(/[^0-9]/g, '') || '0')).slice(0, 8).map((b: any, i: number) => (
+                  <div key={i} className="flex flex-col gap-3 bg-zinc-900/50 p-6 border-l-4 border-emerald-500 rounded-2xl">
                     <div className="flex justify-between items-start gap-4">
-                      <h4 className="text-2xl font-bold text-zinc-100 flex-1 leading-tight uppercase font-sans tracking-wide line-clamp-1">{b.item}</h4>
+                      <h4 className="text-2xl font-bold text-zinc-100 flex-1 leading-tight uppercase font-sans tracking-wide">{b.item}</h4>
                       <span className="text-2xl font-black text-emerald-400 whitespace-nowrap bg-black px-4 py-1.5 rounded-xl border border-zinc-800">{formatPrice(b.cost)}</span>
                     </div>
-                    <p className="text-xl text-zinc-400 leading-snug italic line-clamp-2">{b.explicatie}</p>
+                    <p className="text-xl text-zinc-400 leading-snug italic">{b.explicatie}</p>
                   </div>
                 ))}
               </div>
@@ -2521,9 +2936,40 @@ export default function Home() {
                   <BudgetPieChart budget={result.plan_financiar?.buget_investitii} currency={currency} />
               </div>
             </div>
+
+            {/* Custom Sections Slides (Dark Mode) */}
+            {result.sectiuni_aditionale?.flatMap((sec: any, secIdx: number) => {
+              if (!sec || !sec.continut) return [];
+              const slides = splitTextIntoSlides(sec.continut, 1800);
+              return slides.map((slideContent, slideIdx) => (
+                <div key={`pdf-custom-dark-${secIdx}-${slideIdx}`} className="presentation-slide w-[1280px] h-[720px] bg-[#09090b] flex flex-col p-24 border-[12px] border-zinc-900 box-border relative overflow-hidden">
+                  <div className="flex items-center gap-6 mb-8 shrink-0">
+                    <div className="w-16 h-2 bg-emerald-500"></div>
+                    <h2 className="text-3xl font-black font-sans uppercase tracking-widest text-emerald-400 line-clamp-1">
+                      {sec.titlu || 'Secțiune Adițională'} {slides.length > 1 ? `(Partea ${slideIdx + 1})` : ''}
+                    </h2>
+                  </div>
+                  <div className="flex-1 w-full bg-zinc-900/50 p-8 rounded-3xl border border-zinc-800 overflow-hidden">
+                    <p className="text-zinc-300 text-base italic leading-relaxed whitespace-pre-line">
+                      {formatNumberedText(slideContent)}
+                    </p>
+                  </div>
+                </div>
+              ));
+            })}
           </div>
         </div>
       )}
+
+      {/* Hidden chart dedicated for PPTX Export (Dark Mode + Static) */}
+      <div className="fixed left-[-9999px] top-0 pointer-events-none z-[-1] w-[1000px] h-[450px] bg-[#09090b] flex flex-col items-center justify-center" id="pptx-export-chart">
+        <BudgetPieChart budget={result?.plan_financiar?.buget_investitii} currency={currency} isPptx={true} />
+      </div>
+
+      {/* Hidden chart dedicated for DOCX Export (White Mode + Static) */}
+      <div className="fixed left-[-9999px] top-0 pointer-events-none z-[-1] w-[800px] h-[400px] bg-white flex flex-col items-center justify-center" id="docx-export-chart-hidden">
+        <BudgetPieChart budget={result?.plan_financiar?.buget_investitii} currency={currency} isPdf={true} />
+      </div>
 
       {/* PREZENTARE PDF - ALB CU VERDE, MULTIPLE SLIDES */}
       {result && (
@@ -2533,47 +2979,68 @@ export default function Home() {
             <div className="pdf-presentation-slide w-[1280px] h-[720px] bg-emerald-950 text-white flex flex-col justify-center items-center p-20 relative border-[12px] border-emerald-900 box-border">
               <div className="absolute inset-0 opacity-10 bg-[radial-gradient(circle_at_center,_white_0%,_transparent_100%)]"></div>
               <h1 className="text-8xl font-black text-center mb-10 text-emerald-100 z-10 font-sans tracking-tight leading-tight">{result.nume}</h1>
-              <h2 className="text-4xl text-center italic text-emerald-300 z-10 w-3/4 leading-relaxed font-serif">„{result.slogan}”</h2>
+              <h2 className="text-lg text-center italic text-emerald-300 z-10 w-3/4 leading-relaxed font-serif">„{result.slogan}”</h2>
               <div className="absolute bottom-8 right-8 text-emerald-700/50 font-bold uppercase tracking-widest text-sm">IdeeaTa.ai</div>
             </div>
 
-            {/* Slide 2: Viziune */}
-            <div className="pdf-presentation-slide w-[1280px] h-[720px] bg-white text-emerald-950 flex flex-col justify-center px-24 py-16 border-[12px] border-emerald-900 box-border relative">
-              <div className="flex items-center gap-6 mb-6 shrink-0">
+            {/* Slide 2a: Obiective */}
+            <div className="pdf-presentation-slide w-[1280px] h-[720px] bg-white text-emerald-950 flex flex-col justify-start pt-20 px-24 pb-16 border-[12px] border-emerald-900 box-border relative">
+              <div className="flex items-center gap-6 mb-12">
                 <div className="w-16 h-2 bg-emerald-600"></div>
-                <h2 className="text-5xl font-black font-sans uppercase tracking-widest text-emerald-800">Viziune și Strategie</h2>
+                <h2 className="text-lg font-black font-sans uppercase tracking-widest text-emerald-800">Obiective Strategice</h2>
               </div>
-              <div className="grid grid-cols-2 gap-8 font-serif leading-relaxed text-gray-800 flex-1 overflow-hidden content-start">
-                <div className="flex flex-col gap-4">
-                  <div className="overflow-hidden">
-                    <h3 className="text-xl font-bold text-emerald-700 mb-2">Obiective (1 an)</h3>
-                    <p className="text-base leading-relaxed text-left">{truncateText(result.viziune_strategie?.obiective_scurt, 280)}</p>
-                  </div>
-                  <div className="overflow-hidden">
-                    <h3 className="text-xl font-bold text-emerald-700 mb-2">Obiective (3-5 ani)</h3>
-                    <p className="text-base leading-relaxed text-left">{truncateText(result.viziune_strategie?.obiective_mediu, 280)}</p>
-                  </div>
+              <div className="flex flex-col gap-8 font-serif leading-normal text-gray-800 text-left">
+                <div className="overflow-hidden">
+                  <h3 className="text-lg font-bold text-emerald-700 mb-3">Obiective (1 an)</h3>
+                  <p className="text-lg text-gray-700 leading-relaxed">{truncateText(result.viziune_strategie?.obiective_scurt, 800)}</p>
                 </div>
                 <div className="overflow-hidden">
-                  <h3 className="text-xl font-bold text-emerald-700 mb-2">Misiune și Valori</h3>
-                  <p className="text-base leading-relaxed text-left">{truncateText(result.viziune_strategie?.misiune_valori, 500)}</p>
+                  <h3 className="text-lg font-bold text-emerald-700 mb-3">Obiective (3-5 ani)</h3>
+                  <p className="text-lg text-gray-700 leading-relaxed">{truncateText(result.viziune_strategie?.obiective_mediu, 800)}</p>
                 </div>
               </div>
             </div>
 
-            {/* Slide 2b: Analiza Pietei */}
-            <div className="pdf-presentation-slide w-[1280px] h-[720px] bg-white text-emerald-950 flex flex-col justify-center px-24 py-16 border-[12px] border-emerald-900 box-border relative">
-              <div className="flex items-center gap-6 mb-6 shrink-0">
+            {/* Slide 2b: Misiune si Valori */}
+            <div className="pdf-presentation-slide w-[1280px] h-[720px] bg-white text-emerald-950 flex flex-col justify-start pt-20 px-24 pb-16 border-[12px] border-emerald-900 box-border relative">
+              <div className="flex items-center gap-6 mb-12">
                 <div className="w-16 h-2 bg-emerald-600"></div>
-                <h2 className="text-5xl font-black font-sans uppercase tracking-widest text-emerald-800">Analiza Pieței</h2>
+                <h2 className="text-lg font-black font-sans uppercase tracking-widest text-emerald-800">Misiune și Valori</h2>
               </div>
-              <div className="flex flex-col gap-4 font-serif leading-relaxed text-gray-800 text-left flex-1 overflow-hidden justify-start">
-                  <div className="overflow-hidden"><h3 className="text-xl font-bold text-emerald-700 mb-1">Clienții Țintă</h3>
-                  <p className="text-base">{truncateText(result.analiza_pietei?.clienti_tinta, 280)}</p></div>
-                  <div className="overflow-hidden"><h3 className="text-xl font-bold text-emerald-700 mb-1">Concurența</h3>
-                  <p className="text-base">{truncateText(result.analiza_pietei?.concurenta, 280)}</p></div>
-                  <div className="overflow-hidden"><h3 className="text-xl font-bold text-emerald-700 mb-1">Strategia de Marketing</h3>
-                  <p className="text-base">{truncateText(result.analiza_pietei?.strategie_marketing, 280)}</p></div>
+              <div className="flex flex-col font-serif leading-normal text-gray-800 text-left">
+                <p className="text-lg text-gray-700 leading-relaxed">{truncateText(result.viziune_strategie?.misiune_valori, 1500)}</p>
+              </div>
+            </div>
+
+            {/* Slide 2c: Analiza Pietei (Clienti si Concurenta) */}
+            <div className="pdf-presentation-slide w-[1280px] h-[720px] bg-white text-emerald-950 flex flex-col justify-start pt-20 px-24 pb-16 border-[12px] border-emerald-900 box-border relative">
+              <div className="flex items-center gap-6 mb-8">
+                <div className="w-16 h-2 bg-emerald-600"></div>
+                <h2 className="text-lg font-black font-sans uppercase tracking-widest text-emerald-800">Piața și Concurența</h2>
+              </div>
+              <div className="flex flex-col gap-10 font-serif leading-normal text-gray-800 text-left">
+                  <div className="overflow-hidden">
+                    <h3 className="text-lg font-bold text-emerald-700 mb-3">Clienții Țintă</h3>
+                    <p className="text-lg text-gray-700 leading-relaxed">{truncateText(result.analiza_pietei?.clienti_tinta, 700)}</p>
+                  </div>
+                  <div className="overflow-hidden">
+                    <h3 className="text-lg font-bold text-emerald-700 mb-3">Concurența</h3>
+                    <p className="text-lg text-gray-700 leading-relaxed">{truncateText(result.analiza_pietei?.concurenta, 700)}</p>
+                  </div>
+              </div>
+            </div>
+
+            {/* Slide 2d: Strategia de Marketing */}
+            <div className="pdf-presentation-slide w-[1280px] h-[720px] bg-white text-emerald-950 flex flex-col justify-start pt-20 px-24 pb-16 border-[12px] border-emerald-900 box-border relative">
+              <div className="flex items-center gap-6 mb-8">
+                <div className="w-16 h-2 bg-emerald-600"></div>
+                <h2 className="text-lg font-black font-sans uppercase tracking-widest text-emerald-800">Promovare</h2>
+              </div>
+              <div className="flex flex-col gap-10 font-serif leading-normal text-gray-800 text-left">
+                  <div className="overflow-hidden">
+                    <h3 className="text-lg font-bold text-emerald-700 mb-3">Strategia de Marketing</h3>
+                    <p className="text-lg text-gray-700 leading-relaxed">{truncateText(result.analiza_pietei?.strategie_marketing, 1200)}</p>
+                  </div>
               </div>
             </div>
 
@@ -2581,14 +3048,14 @@ export default function Home() {
             <div className="pdf-presentation-slide w-[1280px] h-[720px] bg-white flex flex-col px-24 py-16 border-[12px] border-emerald-900 box-border relative">
               <div className="flex items-center gap-6 mb-8 shrink-0">
                 <div className="w-16 h-2 bg-emerald-500"></div>
-                <h2 className="text-5xl font-black font-sans uppercase tracking-widest text-emerald-900">Analiză Strategica SWOT</h2>
+                <h2 className="text-lg font-black font-sans uppercase tracking-widest text-emerald-900">Analiză Strategica SWOT</h2>
               </div>
               <div className="bg-emerald-50/50 p-8 border-l-8 border-emerald-500 flex flex-col gap-6 flex-1 rounded-2xl overflow-hidden">
-                <h3 className="text-4xl font-black text-emerald-800 uppercase tracking-widest pb-4 border-b-2 border-emerald-200 shrink-0">Puncte Tari</h3>
+                <h3 className="text-lg font-black text-emerald-800 uppercase tracking-widest pb-4 border-b-2 border-emerald-200 shrink-0">Puncte Tari</h3>
                 <div className="grid grid-cols-2 gap-x-12 gap-y-6 overflow-hidden content-start flex-1">
                   {result.analiza_swot?.puncte_tari?.slice(0, 8).map((item: any, idx: number) => (
                     <div key={idx} className="flex flex-col gap-2">
-                      <h4 className="text-2xl font-bold text-emerald-700 leading-snug">✦ {item.titlu || item}</h4>
+                      <h4 className="text-lg font-bold text-emerald-700 leading-snug">✦ {item.titlu || item}</h4>
                       <p className="text-lg text-gray-600 leading-relaxed max-w-lg text-left">{item.explicatie_tehnica}</p>
                     </div>
                   ))}
@@ -2600,14 +3067,14 @@ export default function Home() {
             <div className="pdf-presentation-slide w-[1280px] h-[720px] bg-white flex flex-col px-24 py-16 border-[12px] border-emerald-900 box-border relative">
               <div className="flex items-center gap-6 mb-8 shrink-0">
                 <div className="w-16 h-2 bg-[#ff4d6d]"></div>
-                <h2 className="text-5xl font-black font-sans uppercase tracking-widest text-[#ff4d6d]">Analiză Strategica SWOT</h2>
+                <h2 className="text-lg font-black font-sans uppercase tracking-widest text-[#ff4d6d]">Analiză Strategica SWOT</h2>
               </div>
               <div className="bg-rose-50/50 p-8 border-l-8 border-[#ff4d6d] flex flex-col gap-6 flex-1 rounded-2xl overflow-hidden">
-                <h3 className="text-4xl font-black text-rose-900 uppercase tracking-widest pb-4 border-b-2 border-rose-200 shrink-0">Slăbiciuni</h3>
+                <h3 className="text-lg font-black text-rose-900 uppercase tracking-widest pb-4 border-b-2 border-rose-200 shrink-0">Slăbiciuni</h3>
                 <div className="grid grid-cols-2 gap-x-12 gap-y-6 overflow-hidden content-start flex-1">
                   {result.analiza_swot?.puncte_slabe?.slice(0, 8).map((item: any, idx: number) => (
                     <div key={idx} className="flex flex-col gap-2">
-                      <h4 className="text-2xl font-bold text-[#ff4d6d] leading-snug">✦ {item.titlu || item}</h4>
+                      <h4 className="text-lg font-bold text-[#ff4d6d] leading-snug">✦ {item.titlu || item}</h4>
                       <p className="text-lg text-gray-600 leading-relaxed max-w-lg text-left">{item.explicatie_tehnica}</p>
                     </div>
                   ))}
@@ -2619,14 +3086,14 @@ export default function Home() {
             <div className="pdf-presentation-slide w-[1280px] h-[720px] bg-white flex flex-col px-24 py-16 border-[12px] border-emerald-900 box-border relative">
               <div className="flex items-center gap-6 mb-8 shrink-0">
                 <div className="w-16 h-2 bg-blue-500"></div>
-                <h2 className="text-5xl font-black font-sans uppercase tracking-widest text-blue-600">Analiză Strategica SWOT</h2>
+                <h2 className="text-lg font-black font-sans uppercase tracking-widest text-blue-600">Analiză Strategica SWOT</h2>
               </div>
               <div className="bg-blue-50/50 p-8 border-l-8 border-blue-500 flex flex-col gap-6 flex-1 rounded-2xl overflow-hidden">
-                <h3 className="text-4xl font-black text-blue-900 uppercase tracking-widest pb-4 border-b-2 border-blue-200 shrink-0">Oportunități</h3>
+                <h3 className="text-lg font-black text-blue-900 uppercase tracking-widest pb-4 border-b-2 border-blue-200 shrink-0">Oportunități</h3>
                 <div className="grid grid-cols-2 gap-x-12 gap-y-6 overflow-hidden content-start flex-1">
                   {result.analiza_swot?.oportunitati?.slice(0, 8).map((item: any, idx: number) => (
                     <div key={idx} className="flex flex-col gap-2">
-                      <h4 className="text-2xl font-bold text-blue-600 leading-snug">✦ {item.titlu || item}</h4>
+                      <h4 className="text-lg font-bold text-blue-600 leading-snug">✦ {item.titlu || item}</h4>
                       <p className="text-lg text-gray-600 leading-relaxed max-w-lg text-left">{item.explicatie_tehnica}</p>
                     </div>
                   ))}
@@ -2638,14 +3105,14 @@ export default function Home() {
             <div className="pdf-presentation-slide w-[1280px] h-[720px] bg-white flex flex-col px-24 py-16 border-[12px] border-emerald-900 box-border relative">
               <div className="flex items-center gap-6 mb-8 shrink-0">
                 <div className="w-16 h-2 bg-orange-500"></div>
-                <h2 className="text-5xl font-black font-sans uppercase tracking-widest text-orange-600">Analiză Strategica SWOT</h2>
+                <h2 className="text-lg font-black font-sans uppercase tracking-widest text-orange-600">Analiză Strategica SWOT</h2>
               </div>
               <div className="bg-orange-50/50 p-8 border-l-8 border-orange-500 flex flex-col gap-6 flex-1 rounded-2xl overflow-hidden">
-                <h3 className="text-4xl font-black text-orange-900 uppercase tracking-widest pb-4 border-b-2 border-orange-200 shrink-0">Amenințări</h3>
+                <h3 className="text-lg font-black text-orange-900 uppercase tracking-widest pb-4 border-b-2 border-orange-200 shrink-0">Amenințări</h3>
                 <div className="grid grid-cols-2 gap-x-12 gap-y-6 overflow-hidden content-start flex-1">
                   {result.analiza_swot?.amenintari?.slice(0, 8).map((item: any, idx: number) => (
                     <div key={idx} className="flex flex-col gap-2">
-                      <h4 className="text-2xl font-bold text-orange-600 leading-snug">✦ {item.titlu || item}</h4>
+                      <h4 className="text-lg font-bold text-orange-600 leading-snug">✦ {item.titlu || item}</h4>
                       <p className="text-lg text-gray-600 leading-relaxed max-w-lg text-left">{item.explicatie_tehnica}</p>
                     </div>
                   ))}
@@ -2653,151 +3120,157 @@ export default function Home() {
               </div>
             </div>
 
-            {/* Slide Key Features PDF */}
+            {/* Slide Key Features PDF - Descriere Flux */}
             <div className="pdf-presentation-slide w-[1280px] h-[720px] bg-white flex flex-col px-24 py-16 border-[12px] border-emerald-900 box-border relative">
               <div className="flex items-center gap-6 mb-8 shrink-0">
                 <div className="w-16 h-2 bg-emerald-600"></div>
-                <h2 className="text-5xl font-black font-sans uppercase tracking-widest text-emerald-800">Planul Operațional</h2>
+                <h2 className="text-lg font-black font-sans uppercase tracking-widest text-emerald-800">Planul Operațional</h2>
               </div>
               <div className="bg-emerald-50/50 p-8 border-l-8 border-emerald-500 flex flex-col gap-6 flex-1 rounded-2xl overflow-hidden">
                 <div className="flex flex-col gap-6 overflow-hidden content-start flex-1 pl-4 text-left">
-                    <div className="flex flex-col gap-2">
-                       <h4 className="text-2xl font-bold text-emerald-700 leading-snug">1. Descriere Flux (Sustenabilitate / Verde)</h4>
-                       <p className="text-lg text-gray-600 leading-relaxed line-clamp-3">{result.plan_operational?.descriere_flux}</p>
-                    </div>
-                    <div className="flex flex-col gap-2">
-                       <h4 className="text-2xl font-bold text-emerald-700 leading-snug">2. Resurse Umane</h4>
-                       <p className="text-lg text-gray-600 leading-relaxed line-clamp-3">{result.plan_operational?.resurse_umane}</p>
-                    </div>
-                    <div className="flex flex-col gap-2">
-                       <h4 className="text-2xl font-bold text-emerald-700 leading-snug">3. Locație și Dotări</h4>
-                       <p className="text-lg text-gray-600 leading-relaxed line-clamp-3">{result.plan_operational?.locatie_dotari}</p>
+                    <div className="flex flex-col gap-4">
+                       <h4 className="text-lg font-bold text-emerald-700 leading-snug">1. Descriere Flux (Sustenabilitate / Verde)</h4>
+                       <p className="text-lg text-gray-700 leading-relaxed">{truncateText(result.plan_operational?.descriere_flux, 1200)}</p>
                     </div>
                 </div>
               </div>
             </div>
 
-            {/* Slide 7: Buget */}
-            <div className="pdf-presentation-slide w-[1280px] h-[720px] bg-white flex flex-col p-24 border-[12px] border-emerald-900 box-border relative">
-              <div className="flex items-center gap-6 mb-12">
+            {/* Slide Key Features PDF - Resurse Umane */}
+            <div className="pdf-presentation-slide w-[1280px] h-[720px] bg-white flex flex-col px-24 py-16 border-[12px] border-emerald-900 box-border relative">
+              <div className="flex items-center gap-6 mb-8 shrink-0">
                 <div className="w-16 h-2 bg-emerald-600"></div>
-                <h2 className="text-5xl font-black font-sans uppercase tracking-widest text-emerald-800">Buget Investiții</h2>
+                <h2 className="text-lg font-black font-sans uppercase tracking-widest text-emerald-800">Planul Operațional</h2>
               </div>
-              <div className="grid grid-cols-2 gap-x-12 gap-y-8 font-sans items-start content-start overflow-hidden">
-                {result.plan_financiar?.buget_investitii?.slice(0, 8).map((b: any, i: number) => (
-                  <div key={i} className="flex flex-col gap-3 bg-emerald-50/50 p-6 border-l-4 border-emerald-500 rounded-xl h-[140px]">
-                    <div className="flex justify-between items-start gap-4">
-                      <h4 className="text-2xl font-bold text-emerald-900 flex-1 leading-tight uppercase tracking-wide line-clamp-1">{b.item}</h4>
-                      <span className="text-2xl font-black text-emerald-700 whitespace-nowrap bg-emerald-100 px-4 py-1.5 rounded-lg border border-emerald-200">{formatPrice(b.cost)}</span>
+              <div className="bg-emerald-50/50 p-8 border-l-8 border-emerald-500 flex flex-col gap-6 flex-1 rounded-2xl overflow-hidden">
+                <div className="flex flex-col gap-6 overflow-hidden content-start flex-1 pl-4 text-left">
+                    <div className="flex flex-col gap-4">
+                       <h4 className="text-lg font-bold text-emerald-700 leading-snug">2. Resurse Umane</h4>
+                       <p className="text-lg text-gray-700 leading-relaxed">{truncateText(result.plan_operational?.resurse_umane, 1200)}</p>
                     </div>
-                    <p className="text-xl text-gray-600 leading-snug italic line-clamp-2">{b.explicatie}</p>
-                  </div>
-                ))}
-              </div>
-              
-              <div className="absolute bottom-12 right-24">
-                 <div className="bg-emerald-900 text-white px-12 py-6 flex items-center rounded-2xl shadow-xl">
-                   <span className="text-3xl font-bold uppercase tracking-wider mr-6 text-emerald-200">Total Estimat:</span>
-                   <span className="text-5xl font-black">{formatPrice(result.plan_financiar?.buget_investitii?.reduce((sum: number, b: any) => sum + parseInt(b.cost?.toString().replace(/[^0-9]/g, '') || '0'), 0).toString())}</span>
-                 </div>
+                </div>
               </div>
             </div>
+
+            {/* Slide Key Features PDF - Locatie */}
+            <div className="pdf-presentation-slide w-[1280px] h-[720px] bg-white flex flex-col px-24 py-16 border-[12px] border-emerald-900 box-border relative">
+              <div className="flex items-center gap-6 mb-8 shrink-0">
+                <div className="w-16 h-2 bg-emerald-600"></div>
+                <h2 className="text-lg font-black font-sans uppercase tracking-widest text-emerald-800">Planul Operațional</h2>
+              </div>
+              <div className="bg-emerald-50/50 p-8 border-l-8 border-emerald-500 flex flex-col gap-6 flex-1 rounded-2xl overflow-hidden">
+                <div className="flex flex-col gap-6 overflow-hidden content-start flex-1 pl-4 text-left">
+                    <div className="flex flex-col gap-4">
+                       <h4 className="text-lg font-bold text-emerald-700 leading-snug">3. Locație și Dotări</h4>
+                       <p className="text-lg text-gray-700 leading-relaxed">{truncateText(result.plan_operational?.locatie_dotari, 1200)}</p>
+                    </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Slide 7: Buget - Chunking */}
+            {Array.from({ length: Math.ceil((result.plan_financiar?.buget_investitii?.length || 1) / 4) }).map((_, slideIdx) => (
+              <div key={`pdf-budget-${slideIdx}`} className="pdf-presentation-slide w-[1280px] h-[720px] bg-white flex flex-col p-24 border-[12px] border-emerald-900 box-border relative">
+                <div className="flex items-center gap-6 mb-12">
+                  <div className="w-16 h-2 bg-emerald-600"></div>
+                  <h2 className="text-lg font-black font-sans uppercase tracking-widest text-emerald-800">Buget Investiții {slideIdx > 0 ? `(Partea ${slideIdx + 1})` : ''}</h2>
+                </div>
+                <div className="grid grid-cols-2 gap-x-12 gap-y-8 font-sans items-start content-start overflow-hidden">
+                  {result.plan_financiar?.buget_investitii?.slice(slideIdx * 4, slideIdx * 4 + 4).map((b: any, i: number) => (
+                    <div key={i} className="flex flex-col gap-3 bg-emerald-50/50 p-6 border-l-4 border-emerald-500 rounded-xl min-h-[120px]">
+                      <div className="flex justify-between items-start gap-4">
+                        <h4 className="text-lg font-bold text-emerald-900 flex-1 leading-tight uppercase tracking-wide line-clamp-1">{b.item}</h4>
+                        <span className="text-lg font-black text-emerald-700 whitespace-nowrap bg-emerald-100 px-4 py-1.5 rounded-lg border border-emerald-200">{formatPrice(b.cost)}</span>
+                      </div>
+                      <p className="text-lg text-gray-600 leading-snug italic line-clamp-2">{b.explicatie}</p>
+                    </div>
+                  ))}
+                </div>
+                
+                {slideIdx === Math.ceil((result.plan_financiar?.buget_investitii?.length || 1) / 4) - 1 && (
+                  <div className="absolute bottom-12 right-24">
+                     <div className="bg-emerald-900 text-white px-12 py-6 flex items-center rounded-2xl shadow-xl">
+                       <span className="text-lg font-bold uppercase tracking-wider mr-6 text-emerald-200">Total Estimat:</span>
+                       <span className="text-lg font-black">{formatPrice(result.plan_financiar?.buget_investitii?.reduce((sum: number, b: any) => sum + parseInt(b.cost?.toString().replace(/[^0-9]/g, '') || '0'), 0).toString())}</span>
+                     </div>
+                  </div>
+                )}
+              </div>
+            ))}
 
             {/* Slide 8: Buget Chart */}
             <div className="pdf-presentation-slide w-[1280px] h-[720px] bg-white flex flex-col px-24 py-16 border-[12px] border-emerald-900 box-border relative">
               <div className="flex items-center gap-6 mb-8 shrink-0">
                 <div className="w-16 h-2 bg-emerald-600"></div>
-                <h2 className="text-5xl font-black font-sans uppercase tracking-widest text-emerald-800">Distribuția Costurilor</h2>
+                <h2 className="text-lg font-black font-sans uppercase tracking-widest text-emerald-800">Distribuția Costurilor</h2>
               </div>
               <div className="flex-1 w-full bg-emerald-50/50 p-8 rounded-2xl border border-emerald-100">
-                  <BudgetPieChart budget={result.plan_financiar?.buget_investitii} currency={currency} />
+                  <BudgetPieChart budget={result.plan_financiar?.buget_investitii} currency={currency} isPdf={true} />
               </div>
             </div>
+
+            {/* Custom Sections Slides (White Mode) */}
+            {result.sectiuni_aditionale?.flatMap((sec: any, secIdx: number) => {
+              if (!sec || !sec.continut) return [];
+              const slides = splitTextIntoSlides(sec.continut, 1800);
+              return slides.map((slideContent, slideIdx) => (
+                <div key={`pdf-custom-white-${secIdx}-${slideIdx}`} className="pdf-presentation-slide w-[1280px] h-[720px] bg-white flex flex-col px-24 py-16 border-[12px] border-emerald-900 box-border relative overflow-hidden">
+                  <div className="flex items-center gap-6 mb-8 shrink-0">
+                    <div className="w-16 h-2 bg-emerald-600"></div>
+                    <h2 className="text-lg font-black font-sans uppercase tracking-widest text-emerald-800 line-clamp-1">
+                      {sec.titlu || 'Secțiune Adițională'} {slides.length > 1 ? `(Partea ${slideIdx + 1})` : ''}
+                    </h2>
+                  </div>
+                  <div className="flex-1 w-full bg-emerald-50/50 p-8 rounded-2xl border border-emerald-100 overflow-hidden">
+                    <p className="text-zinc-700 text-base italic leading-relaxed whitespace-pre-line">
+                      {formatNumberedText(slideContent)}
+                    </p>
+                  </div>
+                </div>
+              ));
+            })}
 
             {/* CTA Slide (For PDF Summary) */}
-            <div className="pdf-cta-slide w-[1280px] h-[720px] bg-emerald-950 flex flex-col justify-center items-center p-16 border-[12px] border-emerald-900 box-border relative text-center">
-              <h2 className="text-6xl font-black text-white mb-16 px-12 leading-tight">
-                Vrei să dezvolți această idee sau să te inspirăm cu o altă idee?
-              </h2>
-              
-              <div className="flex items-center gap-6 bg-emerald-500 text-white px-12 py-8 rounded-full text-5xl font-black shadow-[0_0_60px_rgba(16,185,129,0.5)]">
-                <span>Întoarce-te pe IdeeaTa.ai!</span>
-                <span className="text-6xl">🚀</span>
+            <div className="pdf-cta-slide w-[1280px] h-[720px] bg-emerald-950 flex flex-col justify-center items-center p-24 border-[12px] border-emerald-900 box-border relative text-center">
+              <h2 className="text-6xl font-black text-white mb-8">Acesta a fost doar un scurt rezumat.</h2>
+              <p className="text-lg text-emerald-200 mb-12 max-w-4xl leading-relaxed">
+                Pentru a obține <strong>Analiza SWOT detaliată, Bugetul de investiții, Strategia de Piață completă și Planul Operațional</strong>, creează-ți un cont gratuit!
+              </p>
+              <div className="bg-emerald-500 text-white px-12 py-6 rounded-2xl text-lg font-bold shadow-2xl">
+                Vizitează IdeeaTa.ai
               </div>
             </div>
 
           </div>
         </div>
       )}
-      {showAdModal && (
-        <div className="fixed inset-0 bg-black/90 backdrop-blur-md z-[200] flex items-center justify-center p-4">
-          <div className="bg-zinc-900 border border-zinc-800 rounded-3xl p-8 max-w-xl w-full flex flex-col items-center text-center shadow-2xl">
-            <span className="text-4xl mb-4">📺</span>
-            <h3 className="text-2xl font-black text-white mb-2">Pauză Publicitară</h3>
-            <p className="text-zinc-400 mb-8">Pentru a descărca gratuit sumarul planului tău, urmărește acest scurt mesaj sponsorizat.</p>
-            
-            {/* AdSense Banner */}
-            <div className="w-full h-64 bg-zinc-900/50 rounded-xl flex items-center justify-center mb-8 overflow-hidden">
-              <AdBanner dataAdSlot="AUTO_AD_SLOT" />
+
+      {/* Studio Export Modal */}
+      {showStudioExportModal && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-zinc-950 border border-emerald-500/30 w-full max-w-md rounded-2xl p-8 shadow-[0_0_40px_rgba(16,185,129,0.15)] flex flex-col items-center text-center">
+            <div className="w-16 h-16 bg-emerald-500/20 rounded-full flex items-center justify-center mb-6 border border-emerald-500/50 shadow-[0_0_15px_rgba(16,185,129,0.3)]">
+              <span className="text-3xl">✨</span>
             </div>
-
-            <div className="flex flex-col sm:flex-row gap-4 w-full">
-              <button 
-                onClick={() => setShowAdModal(false)}
-                className="flex-1 px-6 py-3 rounded-xl font-bold text-zinc-400 bg-zinc-800 hover:bg-zinc-700 transition-colors"
-              >
-                Anulează
-              </button>
-              <button 
-                onClick={() => {
-                  setShowAdModal(false);
-                  downloadAction('pdf-summary');
-                }}
-                className="flex-1 px-6 py-3 rounded-xl font-bold text-white bg-emerald-600 hover:bg-emerald-500 transition-colors shadow-[0_0_20px_rgba(16,185,129,0.3)]"
-              >
-                Descarcă Sumarul
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-
-
-      {/* Limit Reached Modal */}
-      {showLimitModal.show && (
-        <div className="fixed inset-0 bg-black/90 backdrop-blur-md z-[200] flex items-center justify-center p-4">
-          <div className="bg-zinc-900 border border-zinc-800 rounded-3xl p-8 max-w-md w-full flex flex-col shadow-2xl items-center text-center">
-            <div className="w-20 h-20 bg-emerald-950/50 rounded-full flex items-center justify-center mb-6">
-              <span className="text-4xl">⚠️</span>
-            </div>
-            
-            <h3 className="text-2xl font-black text-white mb-3">Limita a fost atinsă</h3>
-            <p className="text-zinc-400 mb-8">{showLimitModal.message}</p>
-            
+            <h2 className="text-2xl font-black text-white mb-4">Planul tău arată grozav!</h2>
+            <p className="text-zinc-400 mb-8 leading-relaxed">
+              Creează-ți un cont gratuit pentru a-l descărca complet în format PDF, DOCX sau PPTX și pentru a-ți salva toate modificările!
+            </p>
             <div className="flex flex-col gap-3 w-full">
               <button 
                 onClick={() => {
-                  window.location.href = "/";
-                }} 
-                className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3.5 rounded-xl transition-all shadow-[0_0_20px_rgba(16,185,129,0.3)]"
+                  setShowStudioExportModal(false);
+                  window.location.href = '/?login=true';
+                }}
+                className="w-full py-3.5 bg-emerald-500 hover:bg-emerald-400 text-white rounded-xl font-bold transition-all shadow-[0_0_20px_rgba(16,185,129,0.3)]"
               >
-                Creează Cont Gratuit / Intră în cont
+                Creează cont gratuit
               </button>
               <button 
-                onClick={() => {
-                  setShowLimitModal({show: false, message: ""});
-                  setShowPricingModal(true);
-                }} 
-                className="w-full bg-zinc-800 hover:bg-zinc-700 text-white font-bold py-3.5 rounded-xl transition-all text-sm border border-zinc-700"
+                onClick={() => setShowStudioExportModal(false)}
+                className="w-full py-3.5 bg-transparent hover:bg-zinc-900 text-zinc-400 rounded-xl font-bold transition-all"
               >
-                Vezi Planuri PRO
-              </button>
-              <button 
-                onClick={() => setShowLimitModal({show: false, message: ""})} 
-                className="w-full bg-zinc-800 hover:bg-zinc-700 text-white font-bold py-3.5 rounded-xl transition-all text-sm border border-zinc-700"
-              >
-                Închide
+                Înapoi la editare
               </button>
             </div>
           </div>
@@ -2839,13 +3312,12 @@ export default function Home() {
             
             <h3 className="text-2xl font-black text-white mb-3 relative z-10">Creează-ți un cont gratuit</h3>
             <p className="text-zinc-400 mb-6 text-sm leading-relaxed relative z-10 font-sans">
-              Creează-ți un cont gratuit pentru a folosi instrumentele noastre AI avansate și a personaliza planul tău de afaceri.
+              Creează-ți un cont gratuit pentru a folosi instrumentele noastre avansate și a personaliza planul tău de afaceri.
             </p>
             
             <button 
               type="button"
               onClick={() => {
-                setShowAuthModal(false);
                 window.location.href = '/?login=true';
               }}
               className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 px-4 rounded-xl transition-all shadow-lg shadow-emerald-900/30 flex items-center justify-center gap-2"

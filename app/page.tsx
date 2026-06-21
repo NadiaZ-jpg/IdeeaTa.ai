@@ -1,12 +1,13 @@
 "use client";
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import { auth } from '@/lib/firebase';
 import { onAuthStateChanged } from 'firebase/auth';
 
 export default function LandingPage() {
   const router = useRouter();
+  const pathname = usePathname();
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -18,8 +19,18 @@ export default function LandingPage() {
     return () => unsubscribe();
   }, []);
 
+  useEffect(() => {
+    // Asigură că la refresh pagina începe mereu de sus
+    if (typeof window !== "undefined") {
+      window.scrollTo({ top: 0, behavior: 'instant' });
+    }
+  }, [pathname]);
+
   return (
-    <div className="min-h-screen bg-[#09090b] text-zinc-100 font-sans selection:bg-emerald-500/30 overflow-hidden">
+    <div 
+      className="min-h-screen bg-[#09090b] text-zinc-100 font-sans select-none overflow-hidden"
+      onContextMenu={(e) => e.preventDefault()}
+    >
       {/* Background Effects */}
       <div className="fixed top-[-10%] left-[-10%] w-[500px] h-[500px] rounded-full bg-emerald-500/10 blur-[120px] pointer-events-none z-0"></div>
       <div className="fixed bottom-[-10%] right-[-10%] w-[600px] h-[600px] rounded-full bg-amber-500/10 blur-[150px] pointer-events-none z-0"></div>
@@ -51,7 +62,7 @@ export default function LandingPage() {
             )
           )}
           <Link 
-            href="/demo" 
+            href="/demo?start=nou" 
             className="text-sm font-bold bg-white text-black px-5 py-2.5 rounded-full hover:bg-zinc-200 transition-all hover:scale-105 shadow-[0_0_20px_rgba(255,255,255,0.1)]"
           >
             Testează Gratuit
@@ -66,21 +77,26 @@ export default function LandingPage() {
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
             <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
           </span>
-          Cel mai avansat AI pentru antreprenori
-        </div>
+            Cel mai avansat asistent pentru antreprenori
+          </div>
         
         <h1 className="text-5xl md:text-7xl font-black tracking-tighter mb-8 leading-[1.1] max-w-4xl">
           De la o simplă idee la un <br className="hidden md:block"/>
           <span className="text-transparent bg-gradient-to-r from-emerald-400 via-teal-300 to-emerald-500 bg-clip-text">Plan de Afaceri</span> complet.
         </h1>
         
-        <p className="text-lg md:text-xl text-zinc-400 mb-12 max-w-2xl leading-relaxed">
-          Generează instantaneu documentația completă pentru a obține finanțare, credite bancare sau fonduri europene. Structurat la milimetru, fără bătăi de cap.
-        </p>
+        <div className="mb-10 max-w-3xl mx-auto">
+          <p className="text-lg md:text-xl text-zinc-400 leading-relaxed mb-4">
+            Generează instantaneu documentația completă pentru a obține finanțare, credite bancare sau fonduri europene.
+          </p>
+          <p className="text-lg md:text-xl text-zinc-400 leading-relaxed">
+            Structurat la milimetru, fără bătăi de cap.
+          </p>
+        </div>
 
         <div className="flex flex-col sm:flex-row gap-4 items-center">
           <Link 
-            href="/demo"
+            href="/demo?start=nou"
             className="group relative px-8 py-4 bg-emerald-500 hover:bg-emerald-400 text-black font-black text-lg rounded-full transition-all hover:scale-105 shadow-[0_0_40px_rgba(16,185,129,0.3)] overflow-hidden"
           >
             <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out"></div>
@@ -130,7 +146,7 @@ export default function LandingPage() {
             <div className="bg-zinc-800/20 border border-zinc-800 p-8 rounded-3xl hover:bg-zinc-800/40 transition-colors group">
               <div className="w-12 h-12 bg-emerald-500/10 rounded-2xl flex items-center justify-center text-emerald-400 text-2xl mb-6 group-hover:scale-110 transition-transform">🚀</div>
               <h3 className="text-xl font-bold text-white mb-3">Viteză Uimitoare</h3>
-              <p className="text-zinc-400 leading-relaxed">Nu mai pierde săptămâni întregi scriind documente. Inteligența artificială face toată treaba grea în mai puțin de un minut.</p>
+              <p className="text-zinc-400 leading-relaxed">Scapă de săptămânile pierdute redactând documente. Platforma face toată treaba grea automat, în mai puțin de un minut.</p>
             </div>
             
             <div className="bg-zinc-800/20 border border-zinc-800 p-8 rounded-3xl hover:bg-zinc-800/40 transition-colors group">
@@ -152,7 +168,7 @@ export default function LandingPage() {
       <footer className="relative z-10 py-24 px-6 text-center border-t border-zinc-800/50">
         <h2 className="text-3xl font-bold text-white mb-6">Pregătit să îți transformi visul în realitate?</h2>
         <Link 
-            href="/demo"
+            href="/demo?start=nou"
             className="inline-block px-8 py-4 bg-white text-black font-bold rounded-full hover:bg-zinc-200 transition-transform hover:scale-105 shadow-xl"
           >
             Începe Gratuit Acum

@@ -13,3 +13,5 @@ REGULA #9: (FREEZE TOTAL /DEMO) Întregul modul /demo (app/demo/page.tsx) a fost
 REGULA #10: (FREEZE TOTAL /STUDIO) Întregul dosar app/studio (Aplicația Principală) este "Seiful" proiectului. Acolo se află logica complexă de generare AI, editare, baze de date (Firebase), credite și descărcări. Este STRICT INTERZISĂ orice modificare de cod (ștergere, rescriere, alterare) în acest dosar sau în fișierele lui, cu excepția cazului în care utilizatorul dă permisiunea explicită de deblocare ("override freeze studio").
 
 REGULA #11: (FREEZE TOTAL /LOGIN) Fișierul app/login/page.tsx este „Poarta de acces” a aplicației. Funcționalitatea sa de autentificare și redirecționare este critică și finalizată. Este interzisă modificarea logicii de acolo fără aprobare clară ("override freeze login").
+
+REGULA #12: (FREEZE TOTAL LANDING PAGE) Fișierul app/page.tsx (Landing Page-ul public) a fost șlefuit și declarat PERFECT pe partea de design, copiere și structură. Este INTERZISĂ orice modificare a acestui fișier (texte, rescriere layout, alterare clase CSS, logică de scroll) cu excepția cazului în care utilizatorul dă permisiunea explicită de deblocare ("override freeze landing").

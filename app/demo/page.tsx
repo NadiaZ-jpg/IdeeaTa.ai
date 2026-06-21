@@ -579,6 +579,13 @@ export default function Home() {
   useEffect(() => {
     if (typeof window !== "undefined") {
       const urlParams = new URLSearchParams(window.location.search);
+      const isStartNou = urlParams.get("start") === "nou";
+      if (isStartNou) {
+        localStorage.removeItem("current_versions");
+        localStorage.removeItem("current_generated_plan");
+        localStorage.removeItem("resultState");
+        window.history.replaceState({}, document.title, window.location.pathname);
+      }
       const sharedId = urlParams.get("sharedId");
       
       if (sharedId) {
@@ -1055,7 +1062,7 @@ export default function Home() {
 
     if (mode !== 'pdf-summary' && !isAdmin && !isPlanPaid && !subscriptionActive && !euFundsUnlocked && !bypassPaymentCheck) {
       if (!user) {
-        window.location.href = '/?login=true';
+        window.location.href = '/login';
         return;
       }
       if (credits > 0) {
@@ -3271,7 +3278,7 @@ export default function Home() {
               <button 
                 onClick={() => {
                   setShowStudioExportModal(false);
-                  window.location.href = '/?login=true';
+                  window.location.href = '/login';
                 }}
                 className="w-full py-3.5 bg-emerald-500 hover:bg-emerald-400 text-white rounded-xl font-bold transition-all shadow-[0_0_20px_rgba(16,185,129,0.3)]"
               >
@@ -3329,7 +3336,7 @@ export default function Home() {
             <button 
               type="button"
               onClick={() => {
-                window.location.href = '/?login=true';
+                window.location.href = '/login';
               }}
               className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 px-4 rounded-xl transition-all shadow-lg shadow-emerald-900/30 flex items-center justify-center gap-2"
             >

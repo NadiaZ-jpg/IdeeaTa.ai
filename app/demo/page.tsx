@@ -605,18 +605,22 @@ export default function Home() {
           setVersionsState(v);
           setActiveVersionId(a);
           setResultState(v[a]);
-          if (typeof window !== "undefined" && window.location.search.includes('edit=true')) {
-            setBackupResult(JSON.parse(JSON.stringify(v[a])));
-            setIsEditing(true);
+          // PLASA DE SIGURANȚĂ: Auto-resume Edit Mode
+          setBackupResult(JSON.parse(JSON.stringify(v[a])));
+          setIsEditing(true);
+          if (typeof window !== "undefined" && !window.location.search.includes('edit=true')) {
+            window.history.replaceState({ isEditing: true }, '', window.location.pathname + '?edit=true');
           }
         } else {
           const saved = localStorage.getItem("current_generated_plan");
           if (saved) {
             const parsedPlan = formatObjectNumbers(JSON.parse(saved));
             setResult(parsedPlan);
-            if (typeof window !== "undefined" && window.location.search.includes('edit=true')) {
-              setBackupResult(JSON.parse(JSON.stringify(parsedPlan)));
-              setIsEditing(true);
+            // PLASA DE SIGURANȚĂ: Auto-resume Edit Mode
+            setBackupResult(JSON.parse(JSON.stringify(parsedPlan)));
+            setIsEditing(true);
+            if (typeof window !== "undefined" && !window.location.search.includes('edit=true')) {
+              window.history.replaceState({ isEditing: true }, '', window.location.pathname + '?edit=true');
             }
           }
         }
@@ -643,7 +647,14 @@ export default function Home() {
 
       // Gestioneaza Idea vs Start (Daca nu suntem in login, edit sau idea, inseamna ca suntem pe prima pagina)
       if (!isIdea && !isEdit && !isLogin) {
-        setResult(null); // Ne intoarcem la pagina de start
+        // PLASA DE SIGURANȚĂ: Nu mai ștergem result-ul! Îl lăsăm în memorie pentru auto-resume.
+        // setResult(null); 
+        
+        // Dacă aveam ceva în state, încercăm să auto-reluăm
+        if (resultState || localStorage.getItem("current_versions") || localStorage.getItem("current_generated_plan")) {
+          setIsEditing(true);
+          window.history.replaceState({ isEditing: true }, '', window.location.pathname + '?edit=true');
+        }
       } else if (isIdea && !isEdit) {
         // Suntem pe pagina cu ideea, trebuie sa ne asiguram ca result exista (restauram din localStorage daca e cazul)
         setResultState((prevResult: any) => {

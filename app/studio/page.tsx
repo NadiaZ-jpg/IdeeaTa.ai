@@ -3,7 +3,7 @@ import { useState, useRef, useEffect } from "react";
 import { jsPDF } from "jspdf";
 import { toPng } from "html-to-image";
 import pptxgen from "pptxgenjs";
-import { EditForm } from "./EditForm";
+import { EditForm } from "../EditForm";
 import dynamic from 'next/dynamic';
 import { auth, db } from '@/lib/firebase';
 import { signInWithPopup, GoogleAuthProvider, FacebookAuthProvider, onAuthStateChanged, User, getRedirectResult, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, sendPasswordResetEmail } from 'firebase/auth';
@@ -12,7 +12,7 @@ import { PricingModal } from '@/components/PricingModal';
 import { AdBanner } from '@/components/AdBanner';
 import { generateDocxBlob } from '@/lib/generateDocx';
 
-const BudgetPieChart = dynamic(() => import('./BudgetChart').then(mod => mod.BudgetPieChart), { ssr: false });
+const BudgetPieChart = dynamic(() => import('../BudgetChart').then(mod => mod.BudgetPieChart), { ssr: false });
 
 const formatNumberedText = (text: string | undefined) => {
   if (typeof text !== 'string') return text;

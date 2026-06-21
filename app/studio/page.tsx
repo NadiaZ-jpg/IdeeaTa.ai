@@ -3,7 +3,7 @@ import { useState, useRef, useEffect } from "react";
 import { jsPDF } from "jspdf";
 import { toPng } from "html-to-image";
 import pptxgen from "pptxgenjs";
-import { EditForm } from "../EditForm";
+import { EditForm } from "./EditForm";
 import dynamic from 'next/dynamic';
 import { auth, db } from '@/lib/firebase';
 import { signInWithPopup, GoogleAuthProvider, FacebookAuthProvider, onAuthStateChanged, User, getRedirectResult, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, sendPasswordResetEmail } from 'firebase/auth';
@@ -12,7 +12,7 @@ import { PricingModal } from '@/components/PricingModal';
 import { AdBanner } from '@/components/AdBanner';
 import { generateDocxBlob } from '@/lib/generateDocx';
 
-const BudgetPieChart = dynamic(() => import('../BudgetChart').then(mod => mod.BudgetPieChart), { ssr: false });
+const BudgetPieChart = dynamic(() => import('./BudgetChart').then(mod => mod.BudgetPieChart), { ssr: false });
 
 const formatNumberedText = (text: string | undefined) => {
   if (typeof text !== 'string') return text;
@@ -186,13 +186,6 @@ export default function Home() {
   const [aiLoadingMessageIndex, setAiLoadingMessageIndex] = useState(0);
 
   useEffect(() => {
-    // Asigura ca la refresh pagina incepe intotdeauna de sus, nu de unde a ramas scrollul
-    if (typeof window !== "undefined") {
-      window.scrollTo({ top: 0, behavior: 'instant' });
-    }
-  }, []);
-
-  useEffect(() => {
     if (activeAiPrompt) {
       setTimeout(() => {
         document.getElementById('ai-prompt-box')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -318,18 +311,16 @@ export default function Home() {
   };
 
   const [showAuthModal, setShowAuthModal] = useState(false);
-  const [showStudioExportModal, setShowStudioExportModal] = useState(false);
 
   const handleAiEdit = async (action: string, customStyle?: string, customInput?: string) => {
     if (isEditingAi) return;
 
-    const isActionFree = action === "professional_tone" || action === "optimize_budget" || action === "add_sections";
-
-    if (!isActionFree && !user) {
+    if (!user) {
       setShowAuthModal(true);
       return;
     }
 
+    const isActionFree = action === "professional_tone" || action === "optimize_budget" || action === "add_sections";
     if (!isActionFree && !isAdmin && !isPlanPaid && !subscriptionActive && !euFundsUnlocked) {
       setShowPricingModal(true);
       return;
@@ -489,7 +480,10 @@ export default function Home() {
       if (currentUser) {
         window.scrollTo({ top: 0 });
       } else {
-        // Regula de Aur: Nu ștergem planul pentru utilizatorii de pe demo
+        setResult(null);
+        if (typeof window !== "undefined") {
+          localStorage.removeItem("current_generated_plan");
+        }
       }
     });
     return () => unsubscribe();
@@ -605,22 +599,18 @@ export default function Home() {
           setVersionsState(v);
           setActiveVersionId(a);
           setResultState(v[a]);
-          // PLASA DE SIGURANȚĂ: Auto-resume Edit Mode
-          setBackupResult(JSON.parse(JSON.stringify(v[a])));
-          setIsEditing(true);
-          if (typeof window !== "undefined" && !window.location.search.includes('edit=true')) {
-            window.history.replaceState({ isEditing: true }, '', window.location.pathname + '?edit=true');
+          if (typeof window !== "undefined" && window.location.search.includes('edit=true')) {
+            setBackupResult(JSON.parse(JSON.stringify(v[a])));
+            setIsEditing(true);
           }
         } else {
           const saved = localStorage.getItem("current_generated_plan");
           if (saved) {
             const parsedPlan = formatObjectNumbers(JSON.parse(saved));
             setResult(parsedPlan);
-            // PLASA DE SIGURANȚĂ: Auto-resume Edit Mode
-            setBackupResult(JSON.parse(JSON.stringify(parsedPlan)));
-            setIsEditing(true);
-            if (typeof window !== "undefined" && !window.location.search.includes('edit=true')) {
-              window.history.replaceState({ isEditing: true }, '', window.location.pathname + '?edit=true');
+            if (typeof window !== "undefined" && window.location.search.includes('edit=true')) {
+              setBackupResult(JSON.parse(JSON.stringify(parsedPlan)));
+              setIsEditing(true);
             }
           }
         }
@@ -647,14 +637,7 @@ export default function Home() {
 
       // Gestioneaza Idea vs Start (Daca nu suntem in login, edit sau idea, inseamna ca suntem pe prima pagina)
       if (!isIdea && !isEdit && !isLogin) {
-        // PLASA DE SIGURANȚĂ: Nu mai ștergem result-ul! Îl lăsăm în memorie pentru auto-resume.
-        // setResult(null); 
-        
-        // Dacă aveam ceva în state, încercăm să auto-reluăm
-        if (resultState || localStorage.getItem("current_versions") || localStorage.getItem("current_generated_plan")) {
-          setIsEditing(true);
-          window.history.replaceState({ isEditing: true }, '', window.location.pathname + '?edit=true');
-        }
+        setResult(null); // Ne intoarcem la pagina de start
       } else if (isIdea && !isEdit) {
         // Suntem pe pagina cu ideea, trebuie sa ne asiguram ca result exista (restauram din localStorage daca e cazul)
         setResultState((prevResult: any) => {
@@ -724,17 +707,17 @@ export default function Home() {
     };
   }, [isContentCopyProtected]);
 
-  // Prevenire inchidere accidentala a paginii, exceptand cand descarcam un fisier
+  // Prevenire inchidere accidentala a paginii
   useEffect(() => {
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
-      if (result && !isSharedView && !isDownloading) {
+      if (result && !isSharedView) {
         e.preventDefault();
         e.returnValue = '';
       }
     };
     window.addEventListener('beforeunload', handleBeforeUnload);
     return () => window.removeEventListener('beforeunload', handleBeforeUnload);
-  }, [result, isSharedView, isDownloading]);
+  }, [result, isSharedView]);
 
   const handleGoogleLogin = () => {
     const provider = new GoogleAuthProvider();
@@ -812,89 +795,30 @@ export default function Home() {
   const pdfPrintRef = useRef<any>(null);
 
   const ALL_EXAMPLES = [
-    { short: "Brutărie Tradițională", long: "O brutărie și patiserie tradițională, axată pe pâine cu maia și rețete locale autentice." },
-    { short: "Spălătorie Auto", long: "O spălătorie auto self-service modernă, cu jet de înaltă presiune și spumă activă biodegradabilă." },
-    { short: "Salon Înfrumusețare", long: "Un salon de înfrumusețare și frizerie complet, care oferă servicii premium de styling și tratamente." },
-    { short: "Restaurant Tradițional", long: "Un restaurant cu specific tradițional românesc, cu un meniu bazat exclusiv pe ingrediente de la producători locali." },
-    { short: "Firmă de Curățenie", long: "O firmă de curățenie profesională B2B și B2C, folosind exclusiv detergenți ecologici și echipamente silențioase." },
-    { short: "Magazin Mixt", long: "Un magazin mixt de cartier cu funcționare non-stop, optimizat pentru cumpărături rapide." },
-    { short: "Atelier Auto", long: "Un atelier auto și vulcanizare care oferă servicii rapide, diagnoză computerizată și asistență rutieră." },
-    { short: "Firmă de Construcții", long: "O firmă de construcții și amenajări interioare, specializată în renovări la cheie și finisaje premium." },
-    { short: "Cabinet Stomatologic", long: "Un cabinet stomatologic modern echipat cu tehnologie 3D și specializat în implantologie." },
-    { short: "Contabilitate", long: "O firmă de contabilitate complet digitalizată, dedicată startup-urilor și IMM-urilor." },
-    { short: "Farmacie de Cartier", long: "O farmacie de cartier care oferă consultanță personalizată și preparate magistrale." },
-    { short: "Veterinar Non-Stop", long: "Un cabinet veterinar cu program non-stop, dotat cu ecograf, raze X și laborator propriu." },
-    { short: "Servicii de Mutări", long: "O firmă de servicii de mutări și relocare ce oferă inclusiv servicii de ambalare și demontare." },
-    { short: "Agenție Imobiliară", long: "O agenție imobiliară de nișă, axată exclusiv pe apartamente premium și ansambluri rezidențiale noi." },
-    { short: "Fermă Agricolă", long: "O fermă agricolă mixtă, concentrată pe culturi organice și distribuție direct către consumator." },
+    // Idei Clasice
+    "Brutărie și Patiserie Tradițională", "Spălătorie Auto Self-Service", "Salon de Înfrumusețare și Frizerie", "Restaurant cu Specific Tradițional", "Firmă de Curățenie Profesională", "Magazin Mixt de Cartier", "Atelier Auto și Vulcanizare", "Firmă de Construcții și Amenajări Interioare", "Cabinet Stomatologic", "Firmă de Contabilitate", "Farmacie de Cartier", "Cabinet Veterinar Non-Stop", "Servicii de Mutări și Relocare", "Agenție Imobiliară", "Crescătorie de Păsări sau Ferma Agricolă",
     
-    { short: "Matcha Bar & Cafenea", long: "Un matcha bar și cafenea de specialitate cu un design minimalist, oferind băuturi pe bază de ceai premium." },
-    { short: "Studio de Pilates", long: "Un studio de pilates și yoga boutique cu clase restrânse și antrenamente personalizate." },
-    { short: "Parfumuri Personalizate", long: "Un atelier de parfumuri personalizate unde clienții își creează propriile esențe unice." },
-    { short: "Boutique Vintage", long: "Un boutique cu haine vintage selecționate și recondiționate, promovând moda sustenabilă." },
-    { short: "Design Românesc", long: "Un concept store dedicat exclusiv designerilor români, de la haine la obiecte de decor." },
-    { short: "Florărie Minimalistă", long: "O florărie minimalistă care oferă abonamente lunare de flori proaspete pentru birouri și acasă." },
-    { short: "Cofetărie French", long: "O cofetărie artizanală de inspirație franceză, specializată în eclere și macarons." },
-    { short: "Design Interior", long: "Un studio de design interior și arhitectură axat pe spații rezidențiale ecologice și soluții smart-home." },
-    { short: "Cosmetică Organică", long: "Un salon de cosmetică organică ce folosește exclusiv produse naturale, cruelty-free." },
-    { short: "Galerie & Cafenea", long: "O galerie de artă contemporană combinată cu o cafenea de specialitate, un spațiu creativ." },
-    { short: "Vinuri & Brânzeturi", long: "Un magazin specializat în vinuri rare și brânzeturi fine, cu zonă de degustare." },
-    { short: "Planificare Nunți", long: "O agenție de planificare a nunților de lux, axată pe evenimente tematice unice." },
-    { short: "Ceramică Artizanală", long: "Un atelier de ceramică unde se produc obiecte unicat și se organizează workshop-uri." },
+    // Idei Șic & Premium
+    "Matcha Bar & Cafenea de Specialitate", "Studio de Pilates și Yoga Boutique", "Atelier de Parfumuri Personalizate", "Boutique cu Haine Vintage Selecționate", "Concept Store cu Design Românesc", "Florărie Minimalistă cu Abonamente", "Cofetărie Artizanală French-Inspired", "Studio de Design Interior și Arhitectură", "Salon de Cosmetică Organică", "Galerie de Artă Contemporană și Cafenea", "Magazin de Vinuri și Brânzeturi Fine", "Servicii de Planificare a Nunților de Lux", "Atelier Ceramică Artizanală",
     
-    { short: "Arenă E-Sports", long: "Un studio și arenă de e-sports dotată cu PC-uri high-end și echipamente profesionale." },
-    { short: "Cafenea Board Games", long: "O cafenea dedicată pasionaților de board games și jocuri retro, cu bibliotecă de jocuri." },
-    { short: "Agenție TikTok", long: "O agenție de influencer marketing specializată în campanii virale pe TikTok." },
-    { short: "Sneakers Resale", long: "Un magazin de resale și autentificare pentru sneakers rari și ediții limitate." },
-    { short: "Aplicație de Dating", long: "O aplicație de dating inovatoare bazată pe interese comune și hobby-uri specifice." },
-    { short: "E-learning Financiar", long: "O platformă de e-learning dedicată educației financiare și investițiilor pentru tineri." },
-    { short: "Streetwear Sustenabil", long: "Un brand de haine streetwear produs exclusiv din materiale reciclate și sustenabile." },
-    { short: "Creare Conținut UGC", long: "O agenție care oferă servicii de creare conținut video autentic generat de utilizatori (UGC)." },
-    { short: "Coworking Nomazi", long: "Un hub de coworking conceput special pentru nevoile nomazilor digitali și freelancerilor." },
-    { short: "Platformă Freelancing", long: "O platformă de freelancing strict pentru specialiști locali verificați manual." },
-    { short: "Jocuri Video Indie", long: "Un studio independent de dezvoltare jocuri video axat pe povești interactive." },
-    { short: "Arhitectură Minimalistă", long: "Un birou de arhitectură minimalistă, concentrat pe case pasive și eficiente energetic." },
+    // Idei pentru Tineri (Gen Z / Millennials)
+    "Studio și Arenă de E-Sports", "Cafenea cu Board Games și Jocuri Retro", "Agenție de Influencer Marketing și TikTok", "Magazin de Resale pentru Sneakers Rari", "Aplicație de Dating Bazată pe Interese Comune", "Platformă E-learning pentru Educație Financiară", "Producție de Haine Streetwear Sustenabile", "Servicii de Creare Conținut Video (UGC)", "Hub de Coworking pentru Nomazi Digitali", "Platformă Freelancing Local", "Dezvoltare Jocuri Video Indie", "Servicii Arhitectură Minimalistă",
     
-    { short: "Hotel de Plante", long: "Un serviciu de îngrijire și 'hotel' pentru plante de apartament pe durata vacanțelor." },
-    { short: "Catering pe Baza ADN", long: "Un serviciu premium de catering cu meniu ultra-personalizat pe baza analizei ADN." },
-    { short: "Ambalaje din Miceliu", long: "O fabrică de producție de ambalaje 100% biodegradabile din miceliu (ciuperci)." },
-    { short: "AI Limbajul Semnelor", long: "O aplicație software bazată pe AI pentru traducerea în timp real a limbajului semnelor." },
-    { short: "Matchmaking Co-fondatori", long: "O platformă inteligentă de matchmaking pentru a găsi partenerul ideal de afaceri." },
-    { short: "Fermă Hidroponică", long: "O fermă hidroponică urbană de microplante, furnizând direct către restaurante de top." },
-    { short: "Design Peisagistic", long: "Servicii de design peisagistic specializate strict pentru balcoane și terase urbane." },
-    { short: "Conversie Mașini Clasice", long: "Un atelier dedicat conversiei mașinilor clasice pe benzină în vehicule 100% electrice." },
-    { short: "Mobilier AR", long: "O aplicație de realitate augmentată care permite probarea mobilierului direct în casă." },
-    { short: "Reciclare Baterii", long: "O stație avansată de recuperare și reciclare a bateriilor de la mașinile electrice." },
-    { short: "Telemedicină Veterinară", long: "O platformă de telemedicină și triaj virtual pentru urgențele animalelor de companie." },
+    // Idei Originale și Inovatoare
+    "Hotel și Servicii de Îngrijire pentru Plante", "Catering cu Meniu Personalizat pe Baza ADN-ului", "Producție de Ambalaje Biodegradabile din Miceliu", "Aplicație AI pentru Traducerea Limbajului Semnelor", "Platformă de Matchmaking pentru Co-fondatori", "Fermă Hidroponică Urbană de Microplante", "Servicii de Design Peisagistic pe Balcoane și Terase", "Atelier de Conversie a Mașinilor Clasice în Electrice", "Aplicație de Realitate Augmentată pentru Mobilier", "Reciclare Baterii Auto", "Telemedicină Veterinară",
     
-    { short: "Securitate Cibernetică", long: "O firmă de consultanță în securitate cibernetică specializată în audituri și teste de penetrare." },
-    { short: "Analiză de Risc", long: "O companie care oferă servicii de analiză de risc instituțional pentru corporații." },
-    { short: "Soluții AI", long: "O agenție de dezvoltare software axată pe implementarea soluțiilor de Inteligență Artificială." },
-    { short: "Fonduri Europene", long: "O firmă de consultanță specializată în redactarea de proiecte pentru obținerea de fonduri europene." },
-    { short: "Marketing Digital", long: "O agenție de marketing digital integrat, de la SEO și Google Ads până la Social Media." },
-    { short: "Cursuri Online", long: "O platformă agregator de cursuri online cu certificare recunoscută." },
-    { short: "Magazin Produse Bio", long: "Un magazin online dedicat exclusiv produselor alimentare certificate bio și ecologice." },
-    { short: "Aplicație de Fitness", long: "O aplicație mobilă de fitness cu antrenor virtual bazat pe AI." },
-    { short: "Consultanță Nutriție", long: "Un cabinet online de consultanță în nutriție cu planuri de mese personalizate." },
-    { short: "Livrare Vegană", long: "Un serviciu de livrare de mâncare 100% vegană bazată pe rețete gourmet." },
-    { short: "Biciclete Electrice", long: "Un sistem de închiriere de biciclete și trotinete electrice pentru turism urban." },
-    { short: "SEO B2B", long: "O agenție specializată în optimizare SEO tehnică pentru companiile B2B." },
-    { short: "Aplicații Mobile", long: "Un studio de dezvoltare nativă de aplicații mobile pentru iOS și Android." },
-    { short: "Juridică Online", long: "O platformă care oferă servicii de asistență și consultanță juridică online rapidă." }
+    // Idei Tech & Servicii
+    "Consultanță Securitate Cibernetică", "Analiză de Risc Instituțional", "Dezvoltare Soluții AI", "Consultanță Fonduri Europene", "Agenție Marketing Digital", "Platformă Cursuri Online", "Magazin Online Produse Bio", "Aplicație de Fitness", "Consultanță Nutriție", "Livrare Mâncare Vegană", "Închiriere Biciclete Electrice", "Optimizare SEO B2B", "Dezvoltare Aplicații Mobile", "Consultanță Juridică Online"
   ];
 
-  const [examplesList, setExamplesList] = useState<any[]>(ALL_EXAMPLES.slice(0, 18));
+  const [examplesList, setExamplesList] = useState<string[]>(ALL_EXAMPLES.slice(0, 18));
 
   useEffect(() => {
-    // Schimbare automată o dată la 14 zile
-    const twoWeeksMs = 14 * 24 * 60 * 60 * 1000;
+    // Schimbare automată o dată la 7 zile
+    const oneWeekMs = 7 * 24 * 60 * 60 * 1000;
     const epoch = 1700000000000; 
-    const startIndex = (Math.floor((Date.now() - epoch) / twoWeeksMs) * 18) % ALL_EXAMPLES.length;
-    const currentExamples = [];
-    for (let i = 0; i < 18; i++) {
-      currentExamples.push(ALL_EXAMPLES[(startIndex + i) % ALL_EXAMPLES.length]);
-    }
-    setExamplesList(currentExamples);
+    const chunkIndex = Math.floor((Date.now() - epoch) / oneWeekMs) % Math.ceil(ALL_EXAMPLES.length / 18);
+    setExamplesList(ALL_EXAMPLES.slice(chunkIndex * 18, (chunkIndex + 1) * 18));
   }, []);
 
   const randomIdeas = ALL_EXAMPLES;
@@ -927,14 +851,6 @@ export default function Home() {
     let shouldStopLoading = true;
 
     if (retryCount === 0) {
-      if (typeof window !== "undefined") {
-        const count = parseInt(localStorage.getItem("demoGenerateCount") || "0", 10);
-        if (count >= 3) {
-          setShowAuthModal(true);
-          return;
-        }
-        localStorage.setItem("demoGenerateCount", (count + 1).toString());
-      }
       setLoading(true);
       setMessageIndex(0);
       setResult(null);
@@ -1039,13 +955,19 @@ export default function Home() {
   };
 
   const resetApp = () => {
+    if (!user) {
+      if (typeof window !== "undefined") {
+        localStorage.removeItem("current_generated_plan");
+      }
+      window.location.href = '/start';
+      return;
+    }
     setResult(null);
     setCurrency("LEI");
     setIsPaid(false);
     setIsSharedView(false);
     if (typeof window !== "undefined") {
       localStorage.removeItem("current_generated_plan");
-      window.history.pushState({}, '', window.location.pathname);
     }
     window.scrollTo({ top: 0, behavior: "instant" });
   };
@@ -1055,7 +977,8 @@ export default function Home() {
 
     if (mode !== 'pdf-summary' && !isAdmin && !isPlanPaid && !subscriptionActive && !euFundsUnlocked && !bypassPaymentCheck) {
       if (!user) {
-        window.location.href = '/?login=true';
+        window.history.pushState({ login: true }, '', window.location.pathname + '?login=true');
+        setIsSharedView(false);
         return;
       }
       if (credits > 0) {
@@ -1095,7 +1018,7 @@ export default function Home() {
           const data = await res.json();
           if (data.id) generatedShareId = data.id;
         } catch (err) {
-          // Ignoram complet eroarea ca sa nu o prinda Next.js
+          console.error("Eroare generare share link:", err);
         }
       }
 
@@ -1248,10 +1171,10 @@ export default function Home() {
           format: [1280, 720]
         });
 
-        let pdfUrl = 'https://ideeata.ai/login';
+        let pdfUrl = 'https://ideea-ta-ai.vercel.app/';
         const currentShareId = result?.id || generatedShareId;
         if (currentShareId) {
-          pdfUrl = `https://ideeata.ai/shared/${currentShareId}`;
+          pdfUrl = `https://ideea-ta-ai.vercel.app/shared/${currentShareId}`;
         }
 
         for (let i = 0; i < slidesArray.length; i++) {
@@ -1260,22 +1183,9 @@ export default function Home() {
           if (i > 0) pdf.addPage([1280, 720], "landscape");
           pdf.addImage(dataUrl, 'PNG', 0, 0, 1280, 720);
           
-          // Adăugăm un link invizibil fix deasupra butonului verde
+          // Dacă este ultimul slide (CTA), adăugăm un link invizibil peste toată pagina
           if (i === slidesArray.length - 1 && mode === 'pdf-summary') {
-            const btn = slideElement.querySelector('.bg-emerald-500');
-            if (btn) {
-              const rect = btn.getBoundingClientRect();
-              const slideRect = slideElement.getBoundingClientRect();
-              const scaleX = 1280 / slideRect.width;
-              const scaleY = 720 / slideRect.height;
-              const x = (rect.left - slideRect.left) * scaleX;
-              const y = (rect.top - slideRect.top) * scaleY;
-              const w = rect.width * scaleX;
-              const h = rect.height * scaleY;
-              pdf.link(x, y, w, h, { url: pdfUrl });
-            } else {
-              pdf.link(1280/2 - 150, 420, 300, 80, { url: pdfUrl });
-            }
+            pdf.link(1280/2 - 200, 720 - 180, 400, 100, { url: pdfUrl });
           }
 
           // Stamp footer on every page
@@ -1324,8 +1234,165 @@ export default function Home() {
                    <h3 className="text-2xl font-black text-white mb-4 flex items-center gap-3"><span className="text-emerald-500">✨</span> Instrumente</h3>
                    <p className="text-zinc-400 text-sm mb-6 leading-relaxed">Aici poți folosi asistentul inteligent pentru a adăuga mai multe informații și detalii planului tău.</p>
                    
-                    <div className="flex flex-col gap-3">
-                      {/* BLOC PREMIUM (VERDE) */}
+                   <div className="flex flex-col gap-3">
+                      <div className="flex flex-col gap-2">
+                        <button 
+                          type="button"
+                          onClick={() => {
+                            if (!user) {
+                              setShowAuthModal(true);
+                              return;
+                            }
+                            setShowToneOptions(!showToneOptions);
+                          }} 
+                          disabled={isEditingAi} 
+                          className="w-full bg-black hover:bg-zinc-800 border border-zinc-800 rounded-xl px-5 py-4 font-bold text-sm text-zinc-300 transition-all text-left flex items-center justify-between group disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          <span className="flex items-center gap-3">
+                            <span className="text-emerald-500 group-hover:scale-110 transition-transform">🪄</span>
+                            <span>Rescrie tonul</span>
+                          </span>
+                          <span className="flex items-center gap-2">
+                            {!user && (
+                              <span className="text-[10px] bg-amber-500/20 border border-amber-500/40 text-amber-300 px-2 py-0.5 rounded-full font-black uppercase tracking-wider whitespace-nowrap flex items-center gap-1">
+                                🔒 PRO
+                              </span>
+                            )}
+                            <span className="text-xs text-zinc-500">{showToneOptions ? "▲" : "▼"}</span>
+                          </span>
+                        </button>
+                        
+                        {showToneOptions && (
+                          <div className="bg-black/40 border border-zinc-800 rounded-xl p-2 flex flex-col gap-1.5 animate-in fade-in slide-in-from-top-2 duration-200">
+                            <button 
+                              type="button"
+                              onClick={() => handleAiEdit("professional_tone", "formal, corporativ și profesionist")} 
+                              disabled={isEditingAi}
+                              className="w-full text-xs text-left px-4 py-2.5 rounded-lg hover:bg-zinc-900 text-zinc-400 hover:text-white transition-all font-semibold"
+                            >
+                              💼 Profesional & Corporativ
+                            </button>
+                            <button 
+                              type="button"
+                              onClick={() => handleAiEdit("professional_tone", "entuziast, creativ și plin de energie")} 
+                              disabled={isEditingAi}
+                              className="w-full text-xs text-left px-4 py-2.5 rounded-lg hover:bg-zinc-900 text-zinc-400 hover:text-white transition-all font-semibold"
+                            >
+                              🎨 Entuziast & Creativ
+                            </button>
+                            <button 
+                              type="button"
+                              onClick={() => handleAiEdit("professional_tone", "persuasiv, orientat spre vânzări și convingător")} 
+                              disabled={isEditingAi}
+                              className="w-full text-xs text-left px-4 py-2.5 rounded-lg hover:bg-zinc-900 text-zinc-400 hover:text-white transition-all font-semibold"
+                            >
+                              📈 Persuasiv & Vânzări
+                            </button>
+                            <button 
+                              type="button"
+                              onClick={() => handleAiEdit("professional_tone", "prietenos, simplu și ușor de înțeles")} 
+                              disabled={isEditingAi}
+                              className="w-full text-xs text-left px-4 py-2.5 rounded-lg hover:bg-zinc-900 text-zinc-400 hover:text-white transition-all font-semibold"
+                            >
+                              🤝 Prietenos & Casual
+                            </button>
+                          </div>
+                        )}
+                      </div>
+
+                      <button 
+                        type="button" 
+                        onClick={() => {
+                          if (!user) {
+                            setShowAuthModal(true);
+                            return;
+                          }
+                          if (!isStudioPaid) {
+                            setShowPricingModal(true);
+                          } else {
+                            setActiveAiPrompt(activeAiPrompt?.action === "eu_funds_optimization" ? null : {action: "eu_funds_optimization", title: "Optimizare Fonduri Europene", isConfirm: true, desc: "Se va adapta planul pentru fonduri europene:\n1. Concepte cheie: digitalizare, sustenabilitate.\n2. Redenumirea achizițiilor pentru a fi eligibile.\n\nEști gata?"});
+                          }
+                        }} 
+                        disabled={isEditingAi} 
+                        className={`w-full text-left flex items-center justify-between rounded-xl px-5 py-4 font-bold text-sm transition-all group disabled:opacity-50 disabled:cursor-not-allowed ${
+                          !isStudioPaid 
+                            ? "bg-zinc-900/60 hover:bg-zinc-800/80 border border-amber-500/30 text-amber-300" 
+                            : "bg-black hover:bg-zinc-800 border border-zinc-800 text-zinc-300"
+                        }`}
+                      >
+                        <span className="flex items-center gap-3">
+                          <span className="text-amber-500 group-hover:scale-110 transition-transform">🇪🇺</span>
+                          <span>
+                            {isEditingAi ? "Se procesează..." : "Optimizat pentru Fonduri Europene"}
+                          </span>
+                        </span>
+                        {!isStudioPaid && (
+                          <span className="text-[10px] bg-amber-500/20 border border-amber-500/40 text-amber-300 px-2 py-0.5 rounded-full font-black uppercase tracking-wider whitespace-nowrap flex items-center gap-1">
+                            🔒 PRO
+                          </span>
+                        )}
+                      </button>
+
+                      <button 
+                        type="button" 
+                        onClick={() => {
+                          if (!user) {
+                            setShowAuthModal(true);
+                            return;
+                          }
+                          setActiveAiPrompt(activeAiPrompt?.action === "optimize_budget" ? null : {action: "optimize_budget", title: "Optimizează Bugetul", placeholder: "ex: 10, 20, 30", desc: "Cu ce procent dorești să reduci costurile bugetate?"});
+                        }} 
+                        disabled={isEditingAi} 
+                        className={`w-full text-left flex items-center justify-between rounded-xl px-5 py-4 font-bold text-sm transition-all group disabled:opacity-50 disabled:cursor-not-allowed ${
+                          !user 
+                            ? "bg-zinc-900/60 hover:bg-zinc-800/80 border border-amber-500/30 text-amber-300" 
+                            : "bg-black hover:bg-zinc-800 border border-zinc-800 text-zinc-300"
+                        }`}
+                      >
+                        <span className="flex items-center gap-3">
+                          <span className="text-emerald-500 group-hover:scale-110 transition-transform">📉</span>
+                          <span>
+                            {isEditingAi ? "Se procesează..." : (
+                              <>
+                                Optimizează Bugetul <span className="whitespace-nowrap">(Personalizat)</span>
+                              </>
+                            )}
+                          </span>
+                        </span>
+                        {!user && (
+                          <span className="text-[10px] bg-amber-500/20 border border-amber-500/40 text-amber-300 px-2 py-0.5 rounded-full font-black uppercase tracking-wider whitespace-nowrap flex items-center gap-1">
+                            🔒 PRO
+                          </span>
+                        )}
+                      </button>
+
+                      <button 
+                        type="button" 
+                        onClick={() => {
+                          if (!user) {
+                            setShowAuthModal(true);
+                            return;
+                          }
+                          setActiveAiPrompt(activeAiPrompt?.action === "add_sections" ? null : {action: "add_sections", title: "Adaugă Secțiuni Noi", placeholder: "ex: Plan de Marketing, Analiza Riscurilor, Concurență", desc: "Ce informații suplimentare dorești să adaugi?"});
+                        }} 
+                        disabled={isEditingAi} 
+                        className={`w-full text-left flex items-center justify-between rounded-xl px-5 py-4 font-bold text-sm transition-all group disabled:opacity-50 disabled:cursor-not-allowed ${
+                          !user 
+                            ? "bg-zinc-900/60 hover:bg-zinc-800/80 border border-amber-500/30 text-amber-300" 
+                            : "bg-black hover:bg-zinc-800 border border-zinc-800 text-zinc-300"
+                        }`}
+                      >
+                        <span className="flex items-center gap-3">
+                          <span className="text-emerald-500 group-hover:scale-110 transition-transform">💡</span> 
+                          <span>{isEditingAi ? "Se procesează..." : "Adaugă secțiuni noi"}</span>
+                        </span>
+                        {!user && (
+                          <span className="text-[10px] bg-amber-500/20 border border-amber-500/40 text-amber-300 px-2 py-0.5 rounded-full font-black uppercase tracking-wider whitespace-nowrap flex items-center gap-1">
+                            🔒 PRO
+                          </span>
+                        )}
+                      </button>
+
                       <button type="button" onClick={() => {
                         if (!user) {
                           setShowAuthModal(true);
@@ -1348,155 +1415,12 @@ export default function Home() {
                           <span>{isEditingAi ? "Se procesează..." : "Plan Profesionist (Investitori/Bănci)"}</span>
                         </span>
                         {!isStudioPaid && (
-                          <span className="text-[10px] bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 px-2 py-0.5 rounded-full font-black uppercase tracking-wider whitespace-nowrap flex items-center gap-1">
+                          <span className="text-xs font-black bg-amber-500/20 text-amber-400 px-2.5 py-1 rounded-md border border-amber-500/20 group-hover:bg-amber-500/30 transition-colors flex items-center gap-1.5 shadow-[0_0_10px_rgba(245,158,11,0.2)]">
                             🔒 PRO
                           </span>
                         )}
-                      </button>
-
-                      <button 
-                        type="button" 
-                        onClick={() => {
-                          if (!user) {
-                            setShowAuthModal(true);
-                            return;
-                          }
-                          const isAlreadyAdded = result?.sectiuni_aditionale?.findIndex((sec: any) => sec.titlu.includes("Fonduri") || sec.titlu.includes("Europene"));
-                          if (isAlreadyAdded !== undefined && isAlreadyAdded >= 0) {
-                            alert("Acest capitol a fost deja adăugat! Te redirecționăm către el.");
-                            document.getElementById(`custom-section-${isAlreadyAdded}`)?.scrollIntoView({ behavior: "smooth", block: "center" });
-                            return;
-                          }
-                          if (!isStudioPaid) {
-                            setShowPricingModal(true);
-                            return;
-                          }
-                          if (activeAiPrompt?.action === "eu_funds_optimization") {
-                            setActiveAiPrompt(null);
-                          } else {
-                            setActiveAiPrompt({action: "eu_funds_optimization", title: "Optimizare Fonduri Europene", isConfirm: true, desc: "Se va adapta planul pentru fonduri europene:\n1. Concepte cheie: digitalizare, sustenabilitate.\n2. Redenumirea achizițiilor pentru a fi eligibile.\n\nEști gata?"});
-                          }
-                        }} 
-                        disabled={isEditingAi} 
-                        className="w-full bg-zinc-900/80 hover:bg-zinc-800 border border-emerald-500/30 rounded-xl px-5 py-4 font-bold text-sm text-emerald-100 transition-all text-left flex items-center justify-between group disabled:opacity-50 disabled:cursor-not-allowed shadow-[0_0_15px_rgba(16,185,129,0.1)]"
-                      >
-                        <span className="flex items-center gap-3">
-                          <span className="text-emerald-400 group-hover:scale-110 transition-transform">🇪🇺</span>
-                          <span>
-                            {isEditingAi ? "Se procesează..." : "Optimizat pentru Fonduri Europene"}
-                          </span>
-                        </span>
-                        {!isStudioPaid && (
-                          <span className="text-[10px] bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 px-2 py-0.5 rounded-full font-black uppercase tracking-wider whitespace-nowrap flex items-center gap-1">
-                            🔒 PRO
-                          </span>
-                        )}
-                      </button>
-
-                      <div className="h-px w-full bg-zinc-800 my-2"></div>
-
-                      {/* BLOC SECUNDAR (AURIU - LIBER PE DEMO) */}
-                      <button 
-                        type="button"
-                        onClick={() => {
-                          if (!user) { setShowAuthModal(true); return; }
-                          setShowToneOptions(!showToneOptions);
-                        }} 
-                        disabled={isEditingAi} 
-                        className="w-full bg-black hover:bg-zinc-800 border border-amber-500/20 rounded-xl px-5 py-4 font-bold text-sm text-amber-100 transition-all text-left flex items-center justify-between group disabled:opacity-50 disabled:cursor-not-allowed"
-                      >
-                        <span className="flex items-center gap-3">
-                          <span className="text-amber-500 group-hover:scale-110 transition-transform">🪄</span>
-                          <span>Rescrie tonul</span>
-                        </span>
-                        <span className="flex items-center gap-2">
-                          <span className="text-[10px] bg-amber-500/20 border border-amber-500/40 text-amber-300 px-2 py-0.5 rounded-full font-black uppercase tracking-wider whitespace-nowrap">
-                            🔒 PRO
-                          </span>
-                          <span className="text-zinc-500 text-xs">▼</span>
-                        </span>
-                      </button>
-                      
-                      {showToneOptions && (
-                        <div className="flex flex-col gap-1 p-2 bg-zinc-950/50 rounded-xl border border-zinc-800/50 mt-1 animate-in slide-in-from-top-2">
-                          <button 
-                            type="button"
-                            onClick={() => handleAiEdit("professional_tone", "foarte formal, academic și riguros")} 
-                            disabled={isEditingAi}
-                            className="w-full text-xs text-left px-4 py-2.5 rounded-lg hover:bg-zinc-900 text-zinc-400 hover:text-white transition-all font-semibold"
-                          >
-                            Formal & Academic
-                          </button>
-                          <button 
-                            type="button"
-                            onClick={() => handleAiEdit("professional_tone", "entuziast, creativ și plin de energie")} 
-                            disabled={isEditingAi}
-                            className="w-full text-xs text-left px-4 py-2.5 rounded-lg hover:bg-zinc-900 text-zinc-400 hover:text-white transition-all font-semibold"
-                          >
-                            Creativ & Entuziast
-                          </button>
-                          <button 
-                            type="button"
-                            onClick={() => handleAiEdit("professional_tone", "persuasiv, orientat spre vânzări și convingător")} 
-                            disabled={isEditingAi}
-                            className="w-full text-xs text-left px-4 py-2.5 rounded-lg hover:bg-zinc-900 text-zinc-400 hover:text-white transition-all font-semibold"
-                          >
-                            Comercial & Persuasiv
-                          </button>
-                          <button 
-                            type="button"
-                            onClick={() => handleAiEdit("professional_tone", "prietenos, simplu și ușor de înțeles")} 
-                            disabled={isEditingAi}
-                            className="w-full text-xs text-left px-4 py-2.5 rounded-lg hover:bg-zinc-900 text-zinc-400 hover:text-white transition-all font-semibold"
-                          >
-                            Simplu & Prietenos
-                          </button>
-                        </div>
-                      )}
-
-                      <button 
-                        type="button" 
-                        onClick={() => {
-                          if (!user) { setShowAuthModal(true); return; }
-                          setActiveAiPrompt(activeAiPrompt?.action === "optimize_budget" ? null : {action: "optimize_budget", title: "Optimizează Bugetul", placeholder: "ex: 10, 20, 30", desc: "Cu ce procent dorești să reduci costurile bugetate?"});
-                        }} 
-                        disabled={isEditingAi} 
-                        className="w-full bg-black hover:bg-zinc-800 border border-amber-500/20 rounded-xl px-5 py-4 font-bold text-sm text-amber-100 transition-all text-left flex items-center justify-between group disabled:opacity-50 disabled:cursor-not-allowed"
-                      >
-                        <span className="flex items-center gap-3">
-                          <span className="text-amber-500 group-hover:scale-110 transition-transform">📉</span>
-                          <span>
-                            {isEditingAi ? "Se procesează..." : (
-                              <>
-                                Optimizează Bugetul <span className="whitespace-nowrap">(Personalizat)</span>
-                              </>
-                            )}
-                          </span>
-                        </span>
-                        <span className="text-[10px] bg-amber-500/20 border border-amber-500/40 text-amber-300 px-2 py-0.5 rounded-full font-black uppercase tracking-wider whitespace-nowrap">
-                          🔒 PRO
-                        </span>
-                      </button>
-
-                      <button 
-                        type="button" 
-                        onClick={() => {
-                          if (!user) { setShowAuthModal(true); return; }
-                          setActiveAiPrompt(activeAiPrompt?.action === "add_sections" ? null : {action: "add_sections", title: "Adaugă Secțiuni Noi", placeholder: "ex: Analiză de risc, Strategie de HR...", desc: "Ce secțiuni vrei să mai adaugi în plan?"});
-                        }} 
-                        disabled={isEditingAi} 
-                        className="w-full bg-black hover:bg-zinc-800 border border-amber-500/20 rounded-xl px-5 py-4 font-bold text-sm text-amber-100 transition-all text-left flex items-center justify-between group disabled:opacity-50 disabled:cursor-not-allowed"
-                      >
-                        <span className="flex items-center gap-3">
-                          <span className="text-emerald-500 group-hover:scale-110 transition-transform">💡</span> 
-                          <span>{isEditingAi ? "Se procesează..." : "Adaugă secțiuni noi"}</span>
-                        </span>
-                        <span className="text-[10px] bg-amber-500/20 border border-amber-500/40 text-amber-300 px-2 py-0.5 rounded-full font-black uppercase tracking-wider whitespace-nowrap">
-                          🔒 PRO
-                        </span>
                       </button>
                     </div>
-
 
                     {activeAiPrompt && (
                       <div id="ai-prompt-box" className="mt-4 p-4 bg-zinc-950 border border-zinc-800 rounded-xl animate-in fade-in slide-in-from-top-2 duration-200">
@@ -1557,6 +1481,212 @@ export default function Home() {
     return (
       <div className="min-h-screen bg-[#09090b] flex items-center justify-center">
         <div className="w-12 h-12 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin"></div>
+      </div>
+    );
+  }
+
+  if (!user && !isSharedView && !result) {
+    return (
+      <div className="min-h-screen bg-[#09090b] flex flex-col items-center p-4 font-sans relative overflow-y-auto overflow-x-hidden">
+        {/* Background glow orbs */}
+        <div className="absolute top-[10%] left-[-15%] w-[600px] h-[600px] rounded-full bg-emerald-500/5 blur-[120px] pointer-events-none animate-pulse duration-[8000ms] z-0"></div>
+        <div className="absolute top-[35%] right-[-15%] w-[650px] h-[650px] rounded-full bg-amber-500/5 blur-[150px] pointer-events-none animate-pulse duration-[12000ms] z-0"></div>
+        
+        <div className="w-full max-w-md p-8 md:p-12 bg-zinc-900/80 backdrop-blur-md rounded-3xl border border-zinc-800 shadow-2xl relative z-10 flex flex-col items-center my-12 shrink-0">
+          <h1 className="text-4xl font-black text-transparent bg-gradient-to-r from-zinc-400 via-emerald-400 to-zinc-400 bg-clip-text text-center mb-4 tracking-tighter">IdeeaTa.ai</h1>
+          <p className="text-zinc-400 text-center mb-10 font-medium">Platforma necesită autentificare pentru a continua.</p>
+          
+          <form onSubmit={handleEmailAuth} className="w-full mb-6 space-y-4">
+            <div>
+              <input 
+                id="email"
+                name="email"
+                type="email" 
+                placeholder="Adresa de email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                autoComplete="username"
+                className="w-full bg-zinc-800/50 border border-zinc-700/50 rounded-xl px-4 py-3 text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 transition-all"
+              />
+            </div>
+            {!isForgotMode && (
+              <div>
+                <input 
+                  id="password"
+                  name="password"
+                  type="password" 
+                  placeholder="Parola"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  autoComplete={isLoginMode ? "current-password" : "new-password"}
+                  className="w-full bg-zinc-800/50 border border-zinc-700/50 rounded-xl px-4 py-3 text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 transition-all"
+                />
+              </div>
+            )}
+            <button 
+              type={isForgotMode ? "button" : "submit"}
+              onClick={isForgotMode ? handleForgotPassword : undefined}
+              disabled={isEmailLoading}
+              className="w-full py-4 px-6 bg-emerald-500 hover:bg-emerald-600 text-white font-bold rounded-xl transition-all shadow-lg disabled:opacity-50"
+            >
+              {isEmailLoading 
+                ? "Se procesează..." 
+                : isForgotMode 
+                  ? "Trimite link de resetare" 
+                  : (isLoginMode ? "Intră în cont" : "Creează cont nou")}
+            </button>
+
+            {resetEmailSent && (
+              <div className="w-full p-4 bg-emerald-500/10 border border-emerald-500/20 rounded-xl">
+                <p className="text-emerald-400 text-sm font-medium text-center">
+                  ✅ Link-ul de resetare a fost trimis! Verifică-ți emailul.
+                </p>
+              </div>
+            )}
+
+            <div className="flex justify-between items-center mt-2 text-sm">
+              {isLoginMode && !isForgotMode && (
+                <button 
+                  type="button" 
+                  onClick={() => { setIsForgotMode(true); setAuthError(null); setResetEmailSent(false); }}
+                  className="text-zinc-500 hover:text-zinc-300 transition-colors"
+                >
+                  Ai uitat parola?
+                </button>
+              )}
+              {isForgotMode && (
+                <button 
+                  type="button" 
+                  onClick={() => { setIsForgotMode(false); setAuthError(null); setResetEmailSent(false); }}
+                  className="text-zinc-500 hover:text-zinc-300 transition-colors"
+                >
+                  ← Înapoi la login
+                </button>
+              )}
+              {!isForgotMode && (
+                <button 
+                  type="button" 
+                  onClick={() => {
+                    setIsLoginMode(!isLoginMode);
+                    setEmail("");
+                    setPassword("");
+                    setAuthError(null);
+                  }}
+                  className="text-emerald-400 font-medium hover:text-emerald-300 transition-colors ml-auto"
+                >
+                  {isLoginMode ? "Nu ai cont? Creează unul nou" : "Ai deja cont? Intră aici"}
+                </button>
+              )}
+            </div>
+          </form>
+          
+          {authError && (
+            <div className="mt-6 w-full p-4 bg-red-500/10 border border-red-500/20 rounded-xl">
+              <p className="text-red-400 text-sm font-medium text-center break-words">{authError}</p>
+            </div>
+          )}
+
+          {/* QR Code Button */}
+          <button
+            onClick={() => setShowQrModal(true)}
+            className="w-full mt-2 py-3 px-5 flex items-center justify-center gap-3 bg-zinc-800 hover:bg-zinc-700 text-white font-semibold rounded-xl transition-all shadow-md text-sm border border-zinc-700"
+          >
+            <svg viewBox="0 0 24 24" className="w-5 h-5" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+              <path d="M3 3h7v7H3V3zm2 2v3h3V5H5zm9-2h7v7h-7V3zm2 2v3h3V5h-3zM3 14h7v7H3v-7zm2 2v3h3v-3H5zm11 0h2v2h-2v-2zm2 2h2v2h-2v-2zm-2 2h2v2h-2v-2zm-4-4h2v2h-2v-2zm2 2h2v2h-2v-2zm2-2h2v2h-2v-2z"/>
+            </svg>
+            Deschide pe telefon (QR)
+          </button>
+
+          {/* Back to Document Button */}
+          {result && !user && !isSharedView && (
+            <button
+              onClick={() => setIsSharedView(true)}
+              className="mt-6 text-zinc-400 hover:text-white transition-colors text-sm flex items-center gap-2 font-medium"
+            >
+              <span>&larr;</span> Înapoi la vizualizarea documentului
+            </button>
+          )}
+
+          {/* QR Code Modal */}
+          {showQrModal && (
+            <div
+              className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+              onClick={() => setShowQrModal(false)}
+            >
+              <div
+                className="bg-zinc-900 border border-zinc-700 rounded-2xl p-8 flex flex-col items-center gap-5 max-w-sm w-full shadow-2xl"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <h3 className="text-white font-bold text-lg">Deschide pe telefon</h3>
+                <p className="text-zinc-400 text-sm text-center">Scanează codul QR cu camera telefonului tău pentru a accesa platforma direct pe mobil.</p>
+                <div className="bg-white p-4 rounded-xl">
+                  <img
+                    src={`https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=https://ideea-ta-ai.vercel.app&bgcolor=ffffff&color=000000`}
+                    alt="QR Code IdeeaTa.ai"
+                    width={180}
+                    height={180}
+                  />
+                </div>
+                <p className="text-emerald-400 text-xs font-semibold tracking-wide">ideea-ta-ai.vercel.app</p>
+                <button
+                  onClick={() => setShowQrModal(false)}
+                  className="text-zinc-500 hover:text-white text-sm transition-colors"
+                >
+                  Închide
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Landing/Descriptive Page Section for AdSense Compliance */}
+        <div className="w-full max-w-4xl mt-12 mb-20 px-8 py-16 bg-zinc-900/40 border border-zinc-800/80 rounded-3xl relative z-10 flex flex-col gap-10 text-zinc-300 backdrop-blur-sm">
+          <div className="text-center">
+            <h2 className="text-3xl font-black text-white mb-4">Generare Inteligentă de Planuri de Afaceri</h2>
+            <p className="text-zinc-400 text-lg max-w-2xl mx-auto">
+              IdeeaTa.ai oferă antreprenorilor români o suită completă de instrumente pentru scrierea, structurarea și editarea planurilor de afaceri, adaptate pentru finanțări, credite bancare sau fonduri europene.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mt-6">
+            <div className="bg-zinc-950/60 p-6 rounded-2xl border border-zinc-800/50">
+              <h3 className="text-xl font-bold text-emerald-400 mb-3">📊 Analiză SWOT & Financiară</h3>
+              <p className="text-sm text-zinc-400 leading-relaxed">
+                Obține instant matricea SWOT completă pentru piața din România. Include bugete de investiții detaliate, estimări financiare pe 12 luni, calcularea costurilor operaționale și previzionarea marjei de profit.
+              </p>
+            </div>
+            
+            <div className="bg-zinc-950/60 p-6 rounded-2xl border border-zinc-800/50">
+              <h3 className="text-xl font-bold text-emerald-400 mb-3">🇪🇺 Optimizare pentru Fonduri Europene</h3>
+              <p className="text-sm text-zinc-400 leading-relaxed">
+                Asistentul nostru analizează criteriile de eligibilitate CAEN și digitalizare pentru a adapta planul de afaceri cerințelor ghidurilor de finanțare nerambursabilă (sustenabilitate, economie circulară și transformare digitală).
+              </p>
+            </div>
+
+            <div className="bg-zinc-950/60 p-6 rounded-2xl border border-zinc-800/50">
+              <h3 className="text-xl font-bold text-emerald-400 mb-3">🏛️ Structură Standard de Proiect</h3>
+              <p className="text-sm text-zinc-400 leading-relaxed">
+                Generăm secțiuni complete de la Slogan, viziune, misiune, definirea problemelor, soluții propuse, analiza competiției, strategii comerciale go-to-market până la planul detaliat de resurse umane.
+              </p>
+            </div>
+
+            <div className="bg-zinc-950/60 p-6 rounded-2xl border border-zinc-800/50">
+              <h3 className="text-xl font-bold text-emerald-400 mb-3">✏️ Studio de Editare Avansat</h3>
+              <p className="text-sm text-zinc-400 leading-relaxed">
+                Modifică planurile de afaceri manual sau asistat direct în browser. Folosește scrierea asistată pentru extinderea, restructurarea profesională sau adaptarea tonului în câteva secunde.
+              </p>
+            </div>
+          </div>
+
+          <div className="border-t border-zinc-800/80 pt-8 mt-4 text-center">
+            <h4 className="text-lg font-bold text-white mb-2">Peste 50 de domenii de activitate</h4>
+            <p className="text-sm text-zinc-500 max-w-xl mx-auto">
+              De la HoReCa, IT & software development, clinici medicale, agricultură ecologică până la servicii de consultanță cibernecă, transformăm ideile în business-uri de succes.
+            </p>
+          </div>
+        </div>
       </div>
     );
   }
@@ -1683,7 +1813,7 @@ export default function Home() {
               )}
               {!subscriptionActive && (
                 <button 
-                  onClick={() => { if (!user) { setShowAuthModal(true); } else { setShowPricingModal(true); } }}
+                  onClick={() => setShowPricingModal(true)}
                   className="text-emerald-400 hover:text-emerald-300 transition-colors font-bold underline cursor-pointer"
                 >
                   Vezi Planuri
@@ -1872,8 +2002,8 @@ export default function Home() {
                     onChange={(e) => setSkill(e.target.value)}
                     onKeyDown={handleKeyDown}
                     disabled={loading}
-                    placeholder={"Descrie ideea ta de afaceri în detaliu... (ex: Vreau să deschid o cafenea de specialitate cu produse vegane în centrul orașului...)"}
-                    className="relative w-full h-32 p-6 rounded-2xl bg-[#09090b] border border-zinc-700 outline-none focus:border-emerald-500 transition-all text-lg shadow-inner resize-none placeholder:text-zinc-600 font-medium text-zinc-400"
+                    placeholder={animatedPlaceholder || "Crează un plan pentru... (ex: Consultanță securitate)"}
+                    className="relative w-full h-32 p-6 rounded-2xl bg-[#09090b] border border-zinc-700 outline-none focus:border-emerald-500 transition-all text-xl shadow-inner resize-none placeholder:text-zinc-600 font-medium text-white"
                   />
                 </div>
                 
@@ -1885,11 +2015,11 @@ export default function Home() {
                         usedIdeasRef.current = [];
                       }
                       let nextIndex = Math.floor(Math.random() * randomIdeas.length);
-                      while (usedIdeasRef.current.includes(nextIndex) || randomIdeas[nextIndex].long === skill) {
+                      while (usedIdeasRef.current.includes(nextIndex) || randomIdeas[nextIndex] === skill) {
                         nextIndex = Math.floor(Math.random() * randomIdeas.length);
                       }
                       usedIdeasRef.current.push(nextIndex);
-                      setSkill(randomIdeas[nextIndex].long);
+                      setSkill(randomIdeas[nextIndex]);
                       setShowExamples(false);
                       setTimeout(() => inputRef.current?.focus(), 50);
                     }}
@@ -1926,12 +2056,12 @@ export default function Home() {
                     key={idx}
                     type="button"
                     onClick={() => {
-                      setSkill(ex.long);
+                      setSkill(ex);
                       setTimeout(() => inputRef.current?.focus(), 50);
                     }}
-                    className="group relative flex items-center justify-center bg-zinc-900/40 backdrop-blur-sm border border-zinc-800 text-zinc-300 font-medium text-xs sm:text-sm px-3 py-4 rounded-xl transition-all duration-300 hover:bg-emerald-950/40 hover:text-emerald-300 hover:border-emerald-500/50 hover:shadow-[0_0_20px_rgba(16,185,129,0.1)] hover:-translate-y-0.5 text-center w-full leading-snug"
+                    className="bg-zinc-900/80 border border-zinc-700/80 text-zinc-300 font-medium text-xs sm:text-sm px-2 py-3 rounded-xl transition-all duration-300 hover:bg-emerald-900/60 hover:text-emerald-400 hover:border-emerald-500 hover:scale-[1.02] text-center w-full shadow-sm leading-snug"
                   >
-                    {ex.short}
+                    {ex}
                   </button>
                 ))}
               </div>
@@ -2418,18 +2548,12 @@ export default function Home() {
           </div>
 
           <div className="flex flex-col lg:flex-row gap-8 items-start w-full">
-            <div 
-              className="w-full lg:w-3/5 xl:w-2/3"
-              onCopy={(e) => {
-                e.preventDefault();
-                alert("Copierea textului este dezactivată în varianta Demo. Apasă pe 🎁 DESCARCĂ SUMAR GRATUIT pentru a obține planul.");
-              }}
-            >
+            <div className="w-full lg:w-3/5 xl:w-2/3">
               <EditForm 
                 result={result} 
                 updateField={updateField} 
                 removeField={removeField} 
-                readOnly={false} 
+                readOnly={!user} 
               />
             </div>
             {renderSidebar()}
@@ -2478,41 +2602,29 @@ export default function Home() {
               <div 
                 className="flex items-center gap-1.5 bg-zinc-900 border border-zinc-700/60 p-1 rounded-xl h-10 w-full md:w-auto overflow-x-auto md:overflow-visible"
               >
-                {!isEditing ? (
-                  <button 
-                    onClick={() => downloadAction('pdf-summary')} 
-                    disabled={isDownloading !== null}
-                    className="flex-none bg-emerald-600 hover:bg-emerald-500 text-white text-[10px] sm:text-[12px] h-full px-5 py-2.5 rounded-lg font-black uppercase tracking-wider transition-all flex items-center justify-center whitespace-nowrap gap-2 cursor-pointer shadow-[0_0_15px_rgba(16,185,129,0.3)]"
-                  >
-                    {isDownloading === 'pdf-summary' ? "Se descarcă..." : "🎁 DESCARCĂ SUMAR GRATUIT"}
-                  </button>
-                ) : (
-                  <>
-                    <button 
-                      onClick={() => setShowStudioExportModal(true)} 
-                      disabled={isDownloading !== null}
-                      className="flex-none hover:bg-zinc-800 text-[10px] sm:text-[11px] h-full px-3 py-2.5 rounded-lg font-black uppercase tracking-wider transition-all flex items-center justify-center whitespace-nowrap gap-1 cursor-pointer text-zinc-300 hover:text-white"
-                    >
-                      {isDownloading === 'pdf' ? "⏳..." : "⬇ Prezentare"}
-                    </button>
-                    <div className="w-px h-4 bg-zinc-800 flex-none" />
-                    <button 
-                      onClick={() => setShowStudioExportModal(true)} 
-                      disabled={isDownloading !== null}
-                      className="flex-none hover:bg-zinc-800 text-[10px] sm:text-[11px] h-full px-3 py-2.5 rounded-lg font-black uppercase tracking-wider transition-all flex items-center justify-center whitespace-nowrap gap-1 cursor-pointer text-zinc-300 hover:text-white"
-                    >
-                      {isDownloading === 'pptx' ? "⏳..." : "⬇ Broșură"}
-                    </button>
-                    <div className="w-px h-4 bg-zinc-800 flex-none" />
-                    <button 
-                      onClick={() => setShowStudioExportModal(true)} 
-                      disabled={isDownloading !== null}
-                      className="flex-none hover:bg-zinc-800 text-[10px] sm:text-[11px] h-full px-3 py-2.5 rounded-lg font-black uppercase tracking-wider transition-all flex items-center justify-center whitespace-nowrap gap-1 cursor-pointer text-zinc-300 hover:text-white"
-                    >
-                      {isDownloading === 'word' ? "⏳..." : "⬇ Document"}
-                    </button>
-                  </>
-                )}
+                <button 
+                  onClick={() => downloadAction('pdf')} 
+                  disabled={isDownloading !== null}
+                  className="flex-none hover:bg-zinc-800 text-[10px] sm:text-[11px] h-full px-3 rounded-lg font-black uppercase tracking-wider transition-all flex items-center justify-center whitespace-nowrap gap-1 cursor-pointer text-zinc-300 hover:text-white"
+                >
+                  {isDownloading === 'pdf' ? "⏳..." : "⬇ Prezentare"}
+                </button>
+                <div className="w-px h-4 bg-zinc-800 flex-none" />
+                <button 
+                  onClick={() => downloadAction('pptx')} 
+                  disabled={isDownloading !== null}
+                  className="flex-none hover:bg-zinc-800 text-[10px] sm:text-[11px] h-full px-3 rounded-lg font-black uppercase tracking-wider transition-all flex items-center justify-center whitespace-nowrap gap-1 cursor-pointer text-zinc-300 hover:text-white"
+                >
+                  {isDownloading === 'pptx' ? "⏳..." : "⬇ Broșură"}
+                </button>
+                <div className="w-px h-4 bg-zinc-800 flex-none" />
+                <button 
+                  onClick={() => downloadAction('word')} 
+                  disabled={isDownloading !== null}
+                  className="flex-none hover:bg-zinc-800 text-[10px] sm:text-[11px] h-full px-3 rounded-lg font-black uppercase tracking-wider transition-all flex items-center justify-center whitespace-nowrap gap-1 cursor-pointer text-zinc-300 hover:text-white"
+                >
+                  {isDownloading === 'word' ? "⏳..." : "⬇ Document"}
+                </button>
 
                 {!isPlanPaid && (
                   <>
@@ -3245,7 +3357,7 @@ export default function Home() {
             <div className="pdf-cta-slide w-[1280px] h-[720px] bg-emerald-950 flex flex-col justify-center items-center p-24 border-[12px] border-emerald-900 box-border relative text-center">
               <h2 className="text-6xl font-black text-white mb-8">Acesta a fost doar un scurt rezumat.</h2>
               <p className="text-lg text-emerald-200 mb-12 max-w-4xl leading-relaxed">
-                Pentru a obține <strong>Analiza SWOT detaliată, Bugetul de investiții, Strategia de Piață completă și Planul Operațional</strong>, creează-ți un cont gratuit!
+                Pentru a obține <strong>Analiza SWOT detaliată, Bugetul de investiții, Strategia de Piață completă și Planul Operațional</strong>, deblochează pachetul complet!
               </p>
               <div className="bg-emerald-500 text-white px-12 py-6 rounded-2xl text-lg font-bold shadow-2xl">
                 Vizitează IdeeaTa.ai
@@ -3255,39 +3367,6 @@ export default function Home() {
           </div>
         </div>
       )}
-
-      {/* Studio Export Modal */}
-      {showStudioExportModal && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="bg-zinc-950 border border-emerald-500/30 w-full max-w-md rounded-2xl p-8 shadow-[0_0_40px_rgba(16,185,129,0.15)] flex flex-col items-center text-center">
-            <div className="w-16 h-16 bg-emerald-500/20 rounded-full flex items-center justify-center mb-6 border border-emerald-500/50 shadow-[0_0_15px_rgba(16,185,129,0.3)]">
-              <span className="text-3xl">✨</span>
-            </div>
-            <h2 className="text-2xl font-black text-white mb-4">Planul tău arată grozav!</h2>
-            <p className="text-zinc-400 mb-8 leading-relaxed">
-              Creează-ți un cont gratuit pentru a-l descărca complet în format PDF, DOCX sau PPTX și pentru a-ți salva toate modificările!
-            </p>
-            <div className="flex flex-col gap-3 w-full">
-              <button 
-                onClick={() => {
-                  setShowStudioExportModal(false);
-                  window.location.href = '/?login=true';
-                }}
-                className="w-full py-3.5 bg-emerald-500 hover:bg-emerald-400 text-white rounded-xl font-bold transition-all shadow-[0_0_20px_rgba(16,185,129,0.3)]"
-              >
-                Creează cont gratuit
-              </button>
-              <button 
-                onClick={() => setShowStudioExportModal(false)}
-                className="w-full py-3.5 bg-transparent hover:bg-zinc-900 text-zinc-400 rounded-xl font-bold transition-all"
-              >
-                Înapoi la editare
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
       <PricingModal
         isOpen={showPricingModal}
         onClose={() => {
@@ -3329,7 +3408,9 @@ export default function Home() {
             <button 
               type="button"
               onClick={() => {
-                window.location.href = '/?login=true';
+                setShowAuthModal(false);
+                window.history.pushState({ login: true }, '', window.location.pathname + '?login=true');
+                setIsSharedView(false);
               }}
               className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 px-4 rounded-xl transition-all shadow-lg shadow-emerald-900/30 flex items-center justify-center gap-2"
             >

@@ -936,7 +936,7 @@ export default function Home() {
     if (retryCount === 0) {
       if (typeof window !== "undefined") {
         const count = parseInt(localStorage.getItem("demoGenerateCount") || "0", 10);
-        if (count >= 3) {
+        if (count >= 3 && !isAdmin) {
           setShowAuthModal(true);
           return;
         }

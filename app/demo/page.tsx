@@ -2485,7 +2485,7 @@ export default function Home() {
               <div 
                 className="flex items-center gap-1.5 bg-zinc-900 border border-zinc-700/60 p-1 rounded-xl h-10 w-full md:w-auto overflow-x-auto md:overflow-visible"
               >
-                {!isEditing ? (
+                {!isEditing && !isPlanPaid ? (
                   <button 
                     onClick={() => downloadAction('pdf-summary')} 
                     disabled={isDownloading !== null}

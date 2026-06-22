@@ -47,7 +47,7 @@ export default function LandingPage() {
           {!isLoading && (
             isLoggedIn ? (
               <Link 
-                href="/studio" 
+                href="/demo?start=nou" 
                 className="text-sm font-semibold text-zinc-300 hover:text-white px-4 py-2 transition-colors"
               >
                 Intră în Studio &rarr;

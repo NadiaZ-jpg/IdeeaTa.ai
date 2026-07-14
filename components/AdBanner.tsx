@@ -24,7 +24,7 @@ export function AdBanner({
         (window.adsbygoogle = window.adsbygoogle || []).push({});
       }
     } catch (err) {
-      console.error('AdSense error', err);
+      console.warn('AdSense error:', err);
     }
   }, []);
 

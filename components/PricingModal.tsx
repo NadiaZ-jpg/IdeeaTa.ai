@@ -3,7 +3,7 @@ import { useState } from "react";
 interface PricingModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSuccess?: () => void;
+  onSuccess?: (tier?: string) => void;
   onRequireLogin?: () => void;
   userId: string;
   userEmail: string | null;
@@ -37,8 +37,6 @@ export function PricingModal({ isOpen, onClose, onSuccess, onRequireLogin, userI
         checkoutUrl = "https://ideeta.lemonsqueezy.com/checkout/buy/dbd62a14-ca39-47ea-8d4f-cd1ef1f3270e";
       } else if (tier === "eu-funds") {
         checkoutUrl = "https://ideeta.lemonsqueezy.com/checkout/buy/561d5420-b48c-446e-830e-c5a25ed30b13";
-      } else if (tier === "pro") {
-        checkoutUrl = "https://ideeta.lemonsqueezy.com/checkout/buy/a3059ce5-f0e8-45d2-8dc2-ce9f9ff02100";
       }
 
       if (checkoutUrl) {
@@ -62,7 +60,6 @@ export function PricingModal({ isOpen, onClose, onSuccess, onRequireLogin, userI
   const getPriceDisplay = (tier: string) => {
     if (tier === "standard") return "39 RON";
     if (tier === "eu-funds") return "99 RON";
-    if (tier === "pro") return "99 RON";
     return "";
   };
 
@@ -93,8 +90,14 @@ export function PricingModal({ isOpen, onClose, onSuccess, onRequireLogin, userI
               onKeyDown={(e) => {
                 if (e.key === 'Enter') {
                   const val = e.currentTarget.value.trim().toUpperCase();
-                  if (val === 'ADMIN_NADIA') {
-                    if (onSuccess) onSuccess();
+                  if (val === 'TEST_STANDARD') {
+                    if (onSuccess) onSuccess("standard");
+                    onClose();
+                  } else if (val === 'TEST_FONDURI') {
+                    if (onSuccess) onSuccess("eu-funds");
+                    onClose();
+                  } else if (val === 'ADMIN_NADIA') {
+                    if (onSuccess) onSuccess("full-access");
                     onClose();
                   }
                 }
@@ -120,7 +123,7 @@ export function PricingModal({ isOpen, onClose, onSuccess, onRequireLogin, userI
         )}
 
         {/* Pricing Cards Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 relative z-10">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-10 max-w-4xl mx-auto relative z-10 w-full">
           
           {/* Tier 1: Standard (3 Documents) */}
           <div className="bg-zinc-950/50 border border-zinc-800 rounded-3xl p-6 flex flex-col justify-between hover:border-zinc-700 transition-all group relative">
@@ -136,7 +139,7 @@ export function PricingModal({ isOpen, onClose, onSuccess, onRequireLogin, userI
               <ul className="space-y-3 mb-8 text-sm text-zinc-400">
                 <li className="flex items-start gap-2.5">
                   <span className="text-emerald-500 font-bold">✓</span>
-                  <span>Descărcare plan curent de afaceri</span>
+                  <span>Descărcare plan de afaceri</span>
                 </li>
                 <li className="flex items-start gap-2.5">
                   <span className="text-emerald-500 font-bold">✓</span>
@@ -144,11 +147,15 @@ export function PricingModal({ isOpen, onClose, onSuccess, onRequireLogin, userI
                 </li>
                 <li className="flex items-start gap-2.5">
                   <span className="text-emerald-500 font-bold">✓</span>
-                  <span>Calitate maximă pentru printare</span>
+                  <span>Fără watermark sau reclame</span>
                 </li>
                 <li className="flex items-start gap-2.5">
                   <span className="text-emerald-500 font-bold">✓</span>
-                  <span>Fără watermark sau reclame</span>
+                  <span className="text-zinc-200 font-medium">Editare text liberă în browser</span>
+                </li>
+                <li className="flex items-start gap-2.5">
+                  <span className="text-emerald-500 font-bold">✓</span>
+                  <span>Asistent Ton limitat la 2 variante</span>
                 </li>
               </ul>
             </div>
@@ -169,12 +176,12 @@ export function PricingModal({ isOpen, onClose, onSuccess, onRequireLogin, userI
           {/* Tier 2: Studio + EU Funds */}
           <div className="bg-zinc-950/70 border border-amber-500/30 rounded-3xl p-6 flex flex-col justify-between hover:border-amber-500/50 transition-all group relative shadow-[0_0_30px_rgba(245,158,11,0.05)]">
             <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-amber-500 text-black px-4 py-1 rounded-full text-[10px] font-black uppercase tracking-widest whitespace-nowrap">
-              Studio &amp; Fonduri
+              Instrumente PRO
             </div>
             
             <div>
               <div className="flex justify-between items-start mb-4 mt-2">
-                <span className="text-sm font-bold text-amber-300">Pachet Editare + Fonduri</span>
+                <span className="text-sm font-bold text-amber-300">Pachet Editare + Instrumente Profesionale</span>
                 <span className="text-xs bg-amber-500/20 text-amber-300 px-2.5 py-1 rounded-full font-bold uppercase tracking-wider">Unic</span>
               </div>
               <div className="flex items-baseline gap-1 mb-6">
@@ -184,19 +191,19 @@ export function PricingModal({ isOpen, onClose, onSuccess, onRequireLogin, userI
               <ul className="space-y-3 mb-8 text-sm text-zinc-400">
                 <li className="flex items-start gap-2.5">
                   <span className="text-amber-500 font-bold">✓</span>
-                  <span className="text-zinc-200 font-medium">Deblochează <strong>Studio Editare</strong> în browser</span>
+                  <span>Tot ce include Pachetul Standard</span>
                 </li>
                 <li className="flex items-start gap-2.5">
                   <span className="text-amber-500 font-bold">✓</span>
-                  <span>Modifici, editezi și copiezi textul liber</span>
+                  <span className="text-zinc-200 font-medium">Toate cele <strong>4 variante de Ton AI</strong></span>
                 </li>
                 <li className="flex items-start gap-2.5">
                   <span className="text-amber-500 font-bold">✓</span>
-                  <span>Deblochează <strong>Modul Fonduri Europene</strong></span>
+                  <span className="text-zinc-200 font-medium">Deblochează <strong>Plan Profesionist</strong> (Investitori/Bănci)</span>
                 </li>
                 <li className="flex items-start gap-2.5">
                   <span className="text-amber-500 font-bold">✓</span>
-                  <span>Include descărcarea tuturor variantelor</span>
+                  <span>Deblochează <strong>Optimizare Fonduri Europene</strong></span>
                 </li>
               </ul>
             </div>
@@ -210,55 +217,6 @@ export function PricingModal({ isOpen, onClose, onSuccess, onRequireLogin, userI
                 <div className="w-5 h-5 border-2 border-black border-t-transparent rounded-full animate-spin"></div>
               ) : (
                 "Alege Studio & Fonduri"
-              )}
-            </button>
-          </div>
-
-          {/* Tier 3: Pro Subscription */}
-          <div className="bg-zinc-950/50 border border-emerald-500/30 rounded-3xl p-6 flex flex-col justify-between hover:border-emerald-500/50 transition-all group relative shadow-[0_0_30px_rgba(16,185,129,0.05)]">
-            <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-emerald-500 text-white px-4 py-1 rounded-full text-[10px] font-black uppercase tracking-widest whitespace-nowrap">
-              Full Acces
-            </div>
-
-            <div>
-              <div className="flex justify-between items-start mb-4 mt-2">
-                <span className="text-sm font-bold text-emerald-400">Abonament Pro</span>
-                <span className="text-xs bg-emerald-500/20 text-emerald-400 px-2.5 py-1 rounded-full font-bold uppercase tracking-wider">Lunar</span>
-              </div>
-              <div className="flex items-baseline gap-1 mb-6">
-                <span className="text-3xl font-black text-white">{getPriceDisplay("pro")}</span>
-                <span className="text-zinc-500 text-xs font-semibold">/ lună</span>
-              </div>
-              
-              <ul className="space-y-3 mb-8 text-sm text-zinc-400">
-                <li className="flex items-start gap-2.5">
-                  <span className="text-emerald-500 font-bold">✓</span>
-                  <span className="text-zinc-200 font-medium">Generări și descărcări <strong>nelimitate</strong></span>
-                </li>
-                <li className="flex items-start gap-2.5">
-                  <span className="text-emerald-500 font-bold">✓</span>
-                  <span>Acces complet la <strong>Studio Editare</strong></span>
-                </li>
-                <li className="flex items-start gap-2.5">
-                  <span className="text-emerald-500 font-bold">✓</span>
-                  <span>Acces complet la <strong>Modul Fonduri EU</strong></span>
-                </li>
-                <li className="flex items-start gap-2.5">
-                  <span className="text-emerald-500 font-bold">✓</span>
-                  <span>Suport tehnic prioritar inclus</span>
-                </li>
-              </ul>
-            </div>
-
-            <button
-              onClick={() => handleCheckout("pro")}
-              disabled={loadingTier !== null}
-              className="w-full py-3 bg-emerald-500 hover:bg-emerald-600 text-white font-bold rounded-xl transition-all cursor-pointer flex items-center justify-center gap-2 disabled:opacity-50"
-            >
-              {loadingTier === "pro" ? (
-                <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-              ) : (
-                "Abonare Pro"
               )}
             </button>
           </div>

@@ -1,6 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import { auth } from '@/lib/firebase';
+import { migrateLocalPlansToFirebase } from '@/lib/migrationManager';
 import { signInWithPopup, GoogleAuthProvider, FacebookAuthProvider, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, sendPasswordResetEmail } from 'firebase/auth';
 import { useRouter, useSearchParams } from 'next/navigation';
 
@@ -17,10 +18,11 @@ export default function LoginPage() {
   const router = useRouter();
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       if (currentUser) {
-        // Redirectioneaza catre studio daca utilizatorul este deja logat
-        router.push('/studio');
+        // Redirectioneaza catre dashboard daca utilizatorul este deja logat
+        await migrateLocalPlansToFirebase(currentUser);
+        router.push('/dashboard');
       } else {
         setIsAuthLoading(false);
       }

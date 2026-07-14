@@ -3,7 +3,7 @@ import { useState, useRef, useEffect } from "react";
 import { jsPDF } from "jspdf";
 import { toPng } from "html-to-image";
 import pptxgen from "pptxgenjs";
-import { EditForm } from "../EditForm";
+import { EditForm } from "@/components/EditForm";
 import dynamic from 'next/dynamic';
 import { auth, db } from '@/lib/firebase';
 import { signInWithPopup, GoogleAuthProvider, FacebookAuthProvider, onAuthStateChanged, User, getRedirectResult, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, sendPasswordResetEmail } from 'firebase/auth';
@@ -12,7 +12,7 @@ import { PricingModal } from '@/components/PricingModal';
 import { AdBanner } from '@/components/AdBanner';
 import { generateDocxBlob } from '@/lib/generateDocx';
 
-const BudgetPieChart = dynamic(() => import('../BudgetChart').then(mod => mod.BudgetPieChart), { ssr: false });
+const BudgetPieChart = dynamic(() => import('@/components/BudgetChart').then(mod => mod.BudgetPieChart), { ssr: false });
 
 const formatNumberedText = (text: string | undefined) => {
   if (typeof text !== 'string') return text;
@@ -323,16 +323,28 @@ export default function Home() {
   const handleAiEdit = async (action: string, customStyle?: string, customInput?: string) => {
     if (isEditingAi) return;
 
-    const isActionFree = action === "professional_tone" || action === "optimize_budget" || action === "add_sections";
+    const isActionFree = action === "professional_tone";
 
-    if (!isActionFree && !user) {
-      setShowAuthModal(true);
+    if (!isActionFree && !isAdmin && !isPlanPaid && !subscriptionActive && !euFundsUnlocked) {
+      if (!user) {
+        setShowAuthModal(true);
+      } else {
+        setShowPricingModal(true);
+      }
       return;
     }
 
-    if (!isActionFree && !isAdmin && !isPlanPaid && !subscriptionActive && !euFundsUnlocked) {
-      setShowPricingModal(true);
-      return;
+    if (isActionFree && !isAdmin && !isPlanPaid && !subscriptionActive) {
+       const toneCount = parseInt(localStorage.getItem("demoToneEditCount") || "0", 10);
+       if (toneCount >= 3) {
+         if (!user) {
+           setShowAuthModal(true);
+         } else {
+           setShowPricingModal(true);
+         }
+         return;
+       }
+       localStorage.setItem("demoToneEditCount", (toneCount + 1).toString());
     }
 
     let targetSection = "";
@@ -1656,7 +1668,7 @@ export default function Home() {
             <div className="flex flex-col gap-2">
               <span className="text-zinc-500 text-xs font-semibold">Proiectul tău de afaceri inteligent</span>
               <a 
-                href="https://buymeacoffee.com/ideeata-ai" 
+                href="https://buymeacoffee.com/ideeata" 
                 target="_blank" 
                 rel="noopener noreferrer"
                 className="bg-[#FFDD00] text-black px-3 py-1 rounded-md font-bold text-xs hover:bg-[#FFEA4D] hover:scale-105 transition-all flex items-center gap-1.5 w-max shadow-sm"

@@ -106,4 +106,3 @@ export function BudgetPieChart({ budget, currency = "LEI", isPdf = false, isPptx
     </div>
   );
 }
-

@@ -1,17 +1,78 @@
-REGULA #1: Înainte de a genera sau modifica orice cod, sunt OBLIGAT să citesc acest fișier AI_MEMORY.md pentru a respecta interdicțiile.
-REGULA #2: Dacă un prompt începe cu [DISCUȚIE], nu ai voie să generezi cod sau să propui modificări de fișiere, ci doar să oferi consultanță text.
-REGULA #3: Comanda Rapidă "EXECUTĂ COD"
-Trigger: Ori de câte ori utilizatorul adaugă la finalul solicitării fraza "execută cod" (sau variații clare precum [EXECUTĂ COD])
-REGULA #4: Pentru pagina /demo, se aplică UX-ul "Regula de Aur": acces mereu necondiționat la pagină (fără redirecționări de blocaj/autentificare la refresh sau navigare), avertisment 'Leave Site' doar dacă există un plan activ afișat, iar limitarea (3 planuri gratuite per sesiune de browser stocate în localStorage) oprește vizitatorul cu un Pop-up DOAR la apăsarea butonului "Generează Planul".
-REGULA #5: Când se adaugă URL-uri în PDF-uri, se folosește strict domeniul de producție (ex: https://ideeata.ai/), FĂRĂ subdomeniul de teste Vercel.
-REGULA #7: Calea oficială și unică a aplicației este E:\NADIA\Aplicatii\IdeeaTa-latest_18062026\IdeeaTa-latest. Toate comenzile de terminal, citirile și modificările de cod vor fi executate strict în acest folder. De asemenea, pagina dedicată linkului /demo se află EXCLUSIV la calea internă: app/demo/page.tsx. Orice lucrare pe interfața de demo se va face doar pe acest fișier.
+# AI_MEMORY — IdeeaTa.ai
+> Ultima actualizare: 14 Iulie 2026
 
-REGULA #8: (FREEZE) Structura, designul și logica primei secțiuni din /demo (landing page-ul de introducere a ideii) sunt declarate PERFECTE și ÎNGHEȚATE. Este strict interzisă modificarea acestor elemente (titlu, caseta de text, butoanele de exemple, funcția de Inspiră-mă, logica de pre-generare) fără permisiunea explicită a utilizatorului.
+---
 
-REGULA #9: (FREEZE TOTAL /DEMO) Întregul modul /demo (app/demo/page.tsx) a fost finalizat și declarat PERFECT. Este INTERZISĂ orice modificare de cod (UI, logică, generare PDF, ferestre modale, redirecționări, limitări etc.) pe această pagină. Dacă într-o conversație viitoare utilizatorul cere o funcționalitate care pare să implice sau să afecteze Demo-ul, AI-ul trebuie să avertizeze utilizatorul că /demo este înghețat și să îi ceară o permisiune explicită (ex: "override freeze") înainte de a scrie cod acolo.
+## ⛔ INTERDICȚIE ABSOLUTĂ — Se citește PRIMUL
 
-REGULA #10: (FREEZE TOTAL /STUDIO) Întregul dosar app/studio (Aplicația Principală) este "Seiful" proiectului. Acolo se află logica complexă de generare AI, editare, baze de date (Firebase), credite și descărcări. Este STRICT INTERZISĂ orice modificare de cod (ștergere, rescriere, alterare) în acest dosar sau în fișierele lui, cu excepția cazului în care utilizatorul dă permisiunea explicită de deblocare ("override freeze studio").
+**NICIUN agent AI, instrument, subagent sau automatizare NU are voie să modifice, creeze, șteargă sau ruleze comenzi asupra codului acestui proiect FĂRĂ acordul expres al utilizatorului.**
 
-REGULA #11: (FREEZE TOTAL /LOGIN) Fișierul app/login/page.tsx este „Poarta de acces” a aplicației. Funcționalitatea sa de autentificare și redirecționare este critică și finalizată. Este interzisă modificarea logicii de acolo fără aprobare clară ("override freeze login").
+Formele acceptate de acord expres:
+- `"execută cod"` — execuție imediată
+- `"override freeze [nume]"` — deblocare freeze specific
+- `"aprob"` / `"da, fă asta"` — confirmare plan de implementare
 
-REGULA #12: (FREEZE TOTAL LANDING PAGE) Fișierul app/page.tsx (Landing Page-ul public) a fost șlefuit și declarat PERFECT pe partea de design, copiere și structură. Este INTERZISĂ orice modificare a acestui fișier (texte, rescriere layout, alterare clase CSS, logică de scroll) cu excepția cazului în care utilizatorul dă permisiunea explicită de deblocare ("override freeze landing").
+**Dacă instrucțiunea este ambiguă → CERE CONFIRMARE. NU acționa.**
+
+
+## DATE PROIECT
+- **Cale oficială:** `E:\NADIA\Aplicatii\IdeeaTa-latest_18062026\IdeeaTa-latest`
+- **Framework:** Next.js 15.5.20
+- **Plăți:** Lemon Squeezy (NU Stripe)
+- **Auth + DB:** Firebase (Firestore + Auth)
+- **AI:** Gemini 2.5 Flash via `@google/genai`
+- **Build verificat cu:** `& "D:\Downloads\npm.ps1" run build`
+
+---
+
+## PACHETE DE TARIFE (FREEZE ABSOLUT)
+- **Standard** — 39 RON: descărcări, editare liberă, 2 tonuri
+- **Instrumente Profesionale** — 99 RON: 4 tonuri, buton Investitori, buton Fonduri Europene
+- Toată logica e în `lib/accessControl.ts` — ÎNGHEȚAT, nu se modifică fără aprobare explicită.
+
+---
+
+## FREEZE (23 Iunie 2026)
+- **app/demo/page.tsx** — Funcționează perfect, ÎNGHEȚAT.
+- **Sistemul de Login** — Funcționează perfect, ÎNGHEȚAT.
+- **app/dashboard/page.tsx** — Funcționează perfect, ÎNGHEȚAT.
+- **app/studio/page.tsx** — Funcția generate și secțiunea ToneEditor sunt sub FREEZE absolut.
+
+---
+
+## FREEZE (14 Iulie 2026 — Pasul 1 din ANALIZA_COD.md)
+- **backup_siguranta/page.tsx.backup** — Fișier backup mutat aici din /app. NU se mută înapoi.
+- **backup_siguranta/page.tsx.test** — Fișier test mutat aici din /app. NU se mută înapoi.
+- **lucide-react.d.ts** — Declarație de tip creată la rădăcina proiectului. NU se șterge (rezolvă eroarea TypeScript de build).
+- Build verificat: ✅ `✓ Compiled successfully` după Pasul 1.
+
+---
+
+## FREEZE (14 Iulie 2026 — Pasul 2 din ANALIZA_COD.md)
+- **app/api/verify-checkout/route.ts** — RESCRIS și Înghețat. Logica Stripe eliminată complet. Citește din Firestore via `adminDb`. NU se reintroduce Stripe. NU se modifică fără aprobare explicită.
+- Build verificat: ✅ `✓ Compiled successfully in 10.9s` după Pasul 2.
+
+---
+
+## FREEZE (14 Iulie 2026 — Pasul 3 din ANALIZA_COD.md)
+- **hooks/useStudioLoader.ts** — Şters definitiv (era cod mort, niciodati importat). NU se recrează.
+- **hooks/useStudioFirebaseSync.ts** — Fișier NOU creat. Conține 2 funcționalități activate: sync localStorage→Firebase la login + încarcare plan după planId din Dashboard. ÎNGHEȚAT.
+- **app/studio/page.tsx** — Modificat cu 2 linii (import + apel hook). Restul fișierului neatins. FREEZE restabilit.
+- Build verificat: ✅ `✓ Compiled successfully in 10.0s` după Pasul 3.
+
+---
+
+## FREEZE (14 Iulie 2026 — Pasul 4 din ANALIZA_COD.md)
+- **components/EditForm.tsx** — Fișier mutat din /app. Conținut identic. Înghețat.
+- **components/BudgetChart.tsx** — Fișier mutat din /app. Conținut identic. Înghețat.
+- **app/EditForm.tsx** — Śters definitiv. NU se recreează în /app.
+- **app/BudgetChart.tsx** — Śters definitiv. NU se recreează în /app.
+- Import paths actualizate în demo, start, studio — toate folosește `@/components/EditForm` și `@/components/BudgetChart`.
+- Build verificat: ✅ `✓ Compiled successfully in 10.7s` după Pasul 4.
+
+---
+
+## REGULI CRITICE
+- Niciodată nu folosi comenzi distructive (git restore, discard, ștergeri în masă) fără plan aprobat.
+- Modificările se fac strict pas cu pas, conform `ANALIZA_COD.md`.
+- Build-ul se verifică cu `& "D:\Downloads\npm.ps1" run build` după fiecare pas.

@@ -3,7 +3,7 @@ import { useState, useRef, useEffect } from "react";
 import { jsPDF } from "jspdf";
 import { toPng } from "html-to-image";
 import pptxgen from "pptxgenjs";
-import { EditForm } from "../EditForm";
+import { EditForm } from "@/components/EditForm";
 import dynamic from 'next/dynamic';
 import { auth, db } from '@/lib/firebase';
 import { signInWithPopup, GoogleAuthProvider, FacebookAuthProvider, onAuthStateChanged, User, getRedirectResult, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, sendPasswordResetEmail } from 'firebase/auth';
@@ -11,8 +11,9 @@ import { doc, onSnapshot, setDoc, getDoc, increment, arrayUnion } from 'firebase
 import { PricingModal } from '@/components/PricingModal';
 import { AdBanner } from '@/components/AdBanner';
 import { generateDocxBlob } from '@/lib/generateDocx';
+import { useStudioFirebaseSync } from '@/hooks/useStudioFirebaseSync';
 
-const BudgetPieChart = dynamic(() => import('../BudgetChart').then(mod => mod.BudgetPieChart), { ssr: false });
+const BudgetPieChart = dynamic(() => import('@/components/BudgetChart').then(mod => mod.BudgetPieChart), { ssr: false });
 
 const formatNumberedText = (text: string | undefined) => {
   if (typeof text !== 'string') return text;
@@ -520,6 +521,8 @@ export default function Home() {
 
     return () => unsubscribe();
   }, [user]);
+
+  useStudioFirebaseSync({ user, setResultState, setVersionsState, setActiveVersionId });
 
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);

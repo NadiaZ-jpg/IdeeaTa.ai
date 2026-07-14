@@ -76,3 +76,22 @@ Formele acceptate de acord expres:
 - Niciodată nu folosi comenzi distructive (git restore, discard, ștergeri în masă) fără plan aprobat.
 - Modificările se fac strict pas cu pas, conform `ANALIZA_COD.md`.
 - Build-ul se verifică cu `& "D:\Downloads\npm.ps1" run build` după fiecare pas.
+
+---
+
+## FREEZE (14 Iulie 2026 — Master Plan Sesiunile 1+2)
+- **app/studio/page.tsx** — Modificări aplicate și înghețate:
+  - LIMITATOR GENERARE: 1 generare gratuită per cont (studioGenerateCount în localStorage). Admin + plătiți bypass.
+  - LIMITATOR TON: 3 editări gratuite professional_tone (studioToneCount în localStorage). Admin + plătiți bypass.
+  - BLOCARE INSTRUMENTE: `optimize_budget` și `add_sections` blocate pentru gratuit logat → PricingModal. Badges PRO afișate corect.
+  - RESETARE CONTORI: onSuccess PricingModal resetează studioGenerateCount=0 și studioToneCount=0.
+  - isPaid FIRESTORE: câmpul `isPaid: isPlanPaid` salvat în Firestore la generare (pentru Dashboard etichete PRO).
+- **app/demo/page.tsx** — Cod mort tier "pro" (Pro Nelimitat) eliminat definitiv. NU se reintroduce.
+- Build verificat: ✅ `✓ Compiled successfully in 13.2s` — 23/23 pagini.
+- Checkpoint git: `master-plan-sesiunea1+2-limitatoare-blocare-isPaid-curatenie-pro`
+
+---
+
+## RĂMÂNE DE FĂCUT (Pasul 6B Master Plan)
+- **PricingModal.tsx** — Actualizare copy features (eliminare "Asistent Ton limitat la 2 variante" din Standard). Necesită aprobare separată.
+

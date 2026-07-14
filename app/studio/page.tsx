@@ -321,10 +321,10 @@ export default function Home() {
       return;
     }
 
-    // LIMITATOR TON — 3 editări gratuite pentru utilizatori gratuiți (override freeze studio - Master Plan)
+    // LIMITATOR TON — 2 editări gratuite pentru utilizatori gratuiți (override freeze studio - Master Plan)
     if (action === 'professional_tone' && user && !isPlanPaid && !isAdmin) {
       const toneCount = parseInt(localStorage.getItem('studioToneCount') || '0', 10);
-      if (toneCount >= 3) {
+      if (toneCount >= 2) {
         setShowPricingModal(true);
         return;
       }

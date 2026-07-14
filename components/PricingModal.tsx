@@ -155,7 +155,7 @@ export function PricingModal({ isOpen, onClose, onSuccess, onRequireLogin, userI
                 </li>
                 <li className="flex items-start gap-2.5">
                   <span className="text-emerald-500 font-bold">✓</span>
-                  <span>Asistent Ton limitat la 2 variante</span>
+                  <span>Ton AI nelimitat (toate variantele)</span>
                 </li>
               </ul>
             </div>

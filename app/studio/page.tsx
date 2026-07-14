@@ -321,7 +321,17 @@ export default function Home() {
       return;
     }
 
-    const isActionFree = action === "professional_tone" || action === "optimize_budget" || action === "add_sections";
+    // LIMITATOR TON — 3 editări gratuite pentru utilizatori gratuiți (override freeze studio - Master Plan)
+    if (action === 'professional_tone' && user && !isPlanPaid && !isAdmin) {
+      const toneCount = parseInt(localStorage.getItem('studioToneCount') || '0', 10);
+      if (toneCount >= 3) {
+        setShowPricingModal(true);
+        return;
+      }
+      localStorage.setItem('studioToneCount', (toneCount + 1).toString());
+    }
+
+    const isActionFree = action === "professional_tone";
     if (!isActionFree && !isAdmin && !isPlanPaid && !subscriptionActive && !euFundsUnlocked) {
       setShowPricingModal(true);
       return;
@@ -854,6 +864,15 @@ export default function Home() {
     let shouldStopLoading = true;
 
     if (retryCount === 0) {
+      // LIMITATOR STUDIO — 1 generare gratuită per cont (override freeze studio - Master Plan)
+      if (user && !isPlanPaid && !isAdmin) {
+        const studioCount = parseInt(localStorage.getItem('studioGenerateCount') || '0', 10);
+        if (studioCount >= 1) {
+          setShowPricingModal(true);
+          return;
+        }
+        localStorage.setItem('studioGenerateCount', (studioCount + 1).toString());
+      }
       setLoading(true);
       setMessageIndex(0);
       setResult(null);
@@ -913,6 +932,7 @@ export default function Home() {
               await setDoc(planRef, {
                 ...finalResult,
                 createdAt: new Date().toISOString(),
+                isPaid: isPlanPaid,
               });
               console.log("Plan salvat cu succes în Firestore:", planId);
             } catch (fsError) {
@@ -1343,11 +1363,16 @@ export default function Home() {
                             setShowAuthModal(true);
                             return;
                           }
+                          // BLOCARE STRICTĂ — gratuit logat nu poate folosi Optimizează Bugetul (override freeze studio - Master Plan)
+                          if (!isPlanPaid && !isAdmin) {
+                            setShowPricingModal(true);
+                            return;
+                          }
                           setActiveAiPrompt(activeAiPrompt?.action === "optimize_budget" ? null : {action: "optimize_budget", title: "Optimizează Bugetul", placeholder: "ex: 10, 20, 30", desc: "Cu ce procent dorești să reduci costurile bugetate?"});
                         }} 
                         disabled={isEditingAi} 
                         className={`w-full text-left flex items-center justify-between rounded-xl px-5 py-4 font-bold text-sm transition-all group disabled:opacity-50 disabled:cursor-not-allowed ${
-                          !user 
+                          (!user || !isPlanPaid) 
                             ? "bg-zinc-900/60 hover:bg-zinc-800/80 border border-amber-500/30 text-amber-300" 
                             : "bg-black hover:bg-zinc-800 border border-zinc-800 text-zinc-300"
                         }`}
@@ -1362,7 +1387,7 @@ export default function Home() {
                             )}
                           </span>
                         </span>
-                        {!user && (
+                        {(!user || !isPlanPaid) && !isAdmin && (
                           <span className="text-[10px] bg-amber-500/20 border border-amber-500/40 text-amber-300 px-2 py-0.5 rounded-full font-black uppercase tracking-wider whitespace-nowrap flex items-center gap-1">
                             🔒 PRO
                           </span>
@@ -1376,11 +1401,16 @@ export default function Home() {
                             setShowAuthModal(true);
                             return;
                           }
+                          // BLOCARE STRICTĂ — gratuit logat nu poate folosi Adaugă Secțiuni (override freeze studio - Master Plan)
+                          if (!isPlanPaid && !isAdmin) {
+                            setShowPricingModal(true);
+                            return;
+                          }
                           setActiveAiPrompt(activeAiPrompt?.action === "add_sections" ? null : {action: "add_sections", title: "Adaugă Secțiuni Noi", placeholder: "ex: Plan de Marketing, Analiza Riscurilor, Concurență", desc: "Ce informații suplimentare dorești să adaugi?"});
                         }} 
                         disabled={isEditingAi} 
                         className={`w-full text-left flex items-center justify-between rounded-xl px-5 py-4 font-bold text-sm transition-all group disabled:opacity-50 disabled:cursor-not-allowed ${
-                          !user 
+                          (!user || !isPlanPaid) 
                             ? "bg-zinc-900/60 hover:bg-zinc-800/80 border border-amber-500/30 text-amber-300" 
                             : "bg-black hover:bg-zinc-800 border border-zinc-800 text-zinc-300"
                         }`}
@@ -1389,7 +1419,7 @@ export default function Home() {
                           <span className="text-emerald-500 group-hover:scale-110 transition-transform">💡</span> 
                           <span>{isEditingAi ? "Se procesează..." : "Adaugă secțiuni noi"}</span>
                         </span>
-                        {!user && (
+                        {(!user || !isPlanPaid) && !isAdmin && (
                           <span className="text-[10px] bg-amber-500/20 border border-amber-500/40 text-amber-300 px-2 py-0.5 rounded-full font-black uppercase tracking-wider whitespace-nowrap flex items-center gap-1">
                             🔒 PRO
                           </span>
@@ -3376,7 +3406,14 @@ export default function Home() {
           setShowPricingModal(false);
           setPendingDownloadMode(null);
         }}
-        onSuccess={() => setPromoCodeUnlocked(true)}
+        onSuccess={() => {
+          setPromoCodeUnlocked(true);
+          // Resetare contori limitatoare după plată (override freeze studio - Master Plan)
+          if (typeof window !== 'undefined') {
+            localStorage.setItem('studioGenerateCount', '0');
+            localStorage.setItem('studioToneCount', '0');
+          }
+        }}
         onRequireLogin={() => {
           setShowPricingModal(false);
           setShowAuthModal(true);

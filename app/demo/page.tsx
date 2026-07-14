@@ -569,12 +569,6 @@ export default function Home() {
                   processedSessions: arrayUnion(sessionId)
                 }, { merge: true });
                 alert("Plată confirmată! Modulul de Fonduri Europene a fost deblocat.");
-              } else if (tier === "pro") {
-                await setDoc(userRef, {
-                  subscriptionActive: true,
-                  processedSessions: arrayUnion(sessionId)
-                }, { merge: true });
-                alert("Plată confirmată! Abonamentul tău Pro Nelimitat a fost activat.");
               }
             }
             window.history.replaceState({}, document.title, window.location.pathname);

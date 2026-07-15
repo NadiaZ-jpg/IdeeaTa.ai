@@ -22,7 +22,7 @@ export default function DashboardPage() {
 
   const handleGenerateNew = (e: React.MouseEvent) => {
     e.preventDefault();
-    if (false && user && !user?.emailVerified) { // TEMPORAR OPRIT
+    if (user && !user?.emailVerified && user.providerData[0]?.providerId === 'password') {
       setShowVerificationModal(true);
     } else {
       // Curatam memoria locala ca sa fim siguri ca form-ul de Studio e curat

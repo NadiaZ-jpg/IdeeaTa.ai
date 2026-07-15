@@ -90,13 +90,13 @@ export function PricingModal({ isOpen, onClose, onSuccess, onRequireLogin, userI
               onKeyDown={(e) => {
                 if (e.key === 'Enter') {
                   const val = e.currentTarget.value.trim().toUpperCase();
-                  if (val === 'TEST_STANDARD') {
+                  if (val && val === (process.env.NEXT_PUBLIC_PROMO_STANDARD || '').toUpperCase()) {
                     if (onSuccess) onSuccess("standard");
                     onClose();
-                  } else if (val === 'TEST_FONDURI') {
+                  } else if (val && val === (process.env.NEXT_PUBLIC_PROMO_FONDURI || '').toUpperCase()) {
                     if (onSuccess) onSuccess("eu-funds");
                     onClose();
-                  } else if (val === 'ADMIN_NADIA') {
+                  } else if (val && val === (process.env.NEXT_PUBLIC_PROMO_ADMIN || '').toUpperCase()) {
                     if (onSuccess) onSuccess("full-access");
                     onClose();
                   }

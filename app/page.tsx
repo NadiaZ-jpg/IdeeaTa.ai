@@ -109,6 +109,19 @@ export default function LandingPage() {
           </p>
         </div>
 
+        {/* COPY-3: Free tier comunicat */}
+        <div className="flex flex-wrap justify-center gap-x-8 gap-y-2 mt-8 text-sm text-zinc-500 font-medium">
+          <span className="flex items-center gap-1.5">
+            <span className="text-emerald-400 font-bold">✓</span> Fără card de credit
+          </span>
+          <span className="flex items-center gap-1.5">
+            <span className="text-emerald-400 font-bold">✓</span> 3 planuri gratuite în Demo
+          </span>
+          <span className="flex items-center gap-1.5">
+            <span className="text-emerald-400 font-bold">✓</span> 1 plan complet gratuit în Studio
+          </span>
+        </div>
+
         {/* Mockup Preview */}
         <div className="mt-24 relative w-full max-w-5xl">
           <div className="absolute inset-0 bg-gradient-to-t from-[#09090b] via-transparent to-transparent z-10"></div>
@@ -119,9 +132,9 @@ export default function LandingPage() {
               <div className="w-3 h-3 rounded-full bg-green-500/80"></div>
             </div>
             <img 
-              src="https://images.unsplash.com/photo-1460925895917-afdab827c52f?ixlib=rb-4.0.3&auto=format&fit=crop&w=2015&q=80" 
-              alt="Dashboard Preview" 
-              className="rounded-lg w-full object-cover opacity-50 contrast-125 saturate-50"
+              src="/mockup-preview.png" 
+              alt="IdeeaTa.ai — Plan de Afaceri Dashboard" 
+              className="rounded-lg w-full object-cover opacity-90"
             />
             {/* Overlay UI elements to look like our app */}
             <div className="absolute inset-0 flex items-center justify-center z-20 pointer-events-none">

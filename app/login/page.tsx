@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react";
 import { auth } from '@/lib/firebase';
 import { migrateLocalPlansToFirebase } from '@/lib/migrationManager';
-import { signInWithPopup, GoogleAuthProvider, FacebookAuthProvider, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, sendPasswordResetEmail } from 'firebase/auth';
+import { signInWithPopup, GoogleAuthProvider, FacebookAuthProvider, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, sendPasswordResetEmail, sendEmailVerification } from 'firebase/auth';
 import { useRouter, useSearchParams } from 'next/navigation';
 
 export default function LoginPage() {
@@ -60,7 +60,9 @@ export default function LoginPage() {
       if (isLoginMode) {
         await signInWithEmailAndPassword(auth, email, password);
       } else {
-        await createUserWithEmailAndPassword(auth, email, password);
+        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+        await sendEmailVerification(userCredential.user);
+        // onAuthStateChanged va redirectiona automat la /dashboard
       }
       // Daca are succes, onAuthStateChanged va redirectiona automat
     } catch (error: any) {

@@ -92,6 +92,19 @@ Formele acceptate de acord expres:
 
 ---
 
-## RĂMÂNE DE FĂCUT (Pasul 6B Master Plan)
-- **PricingModal.tsx** — Actualizare copy features (eliminare "Asistent Ton limitat la 2 variante" din Standard). Necesită aprobare separată.
+## FREEZE (15 Iulie 2026 — Sesiunea 3)
+- **app/studio/page.tsx** — FEAT-2: guard `!user` adăugat în `generate()` → nelogat vede auth modal imediat. ÎNGHEȚAT.
+- **app/dashboard/page.tsx** — FEAT-3: badge avertizare amber „Planul gratuit folosit" vizibil când `studioGenerateCount >= 1`. ÎNGHEȚAT.
+- **components/PricingModal.tsx** — COPY-1: 2 iteme noi în lista eu-funds (Buget AI + Adaugă Secțiuni). ÎNGHEȚAT.
+- **next.config.ts** — PROD-3: `experimental.turbo` → `turbopack` (warning eliminat). ÎNGHEȚAT.
+- **FIX-1 + FIX-2** (Sesiunea 2.5): PricingModal copy ton + landing href /studio. ÎNGHEȚATE.
+- Build verificat: ✅ `✓ Compiled successfully in 82s` — 23/23 pagini.
+- Checkpoint git: `feat: studio auth guard + dashboard badge + PricingModal features + turbopack fix (Sesiunea 3)`
 
+---
+
+## RĂMÂNE DE FĂCUT
+- **COPY-2** — Landing mockup (imagine Unsplash → screenshot real sau AI) — decizie așteptată de la user.
+- **COPY-3** — Landing Features Grid să comunice free tier (3 Demo / 1 Studio). Low priority.
+- **PROD-1** — Email Verification (dezactivat intenționat, NU activăm fără plan migrare useri).
+- **PROD-2** — Coduri promo plaintext → env variables (risc zero, viitor).

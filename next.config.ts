@@ -24,10 +24,8 @@ const nextConfig: NextConfig = {
   output: 'standalone',
   transpilePackages: ['motion'],
 
-  experimental: {
-    turbo: {
-      root: "./",
-    },
+  turbopack: {
+    root: "./",
   },
 
   async rewrites() {

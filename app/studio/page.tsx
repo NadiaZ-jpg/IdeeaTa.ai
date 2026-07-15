@@ -864,6 +864,12 @@ export default function Home() {
     let shouldStopLoading = true;
 
     if (retryCount === 0) {
+      // GUARD: Nelogat → auth modal imediat
+      if (!user) {
+        setShowAuthModal(true);
+        return;
+      }
+
       // LIMITATOR STUDIO — 1 generare gratuită per cont (override freeze studio - Master Plan)
       if (user && !isPlanPaid && !isAdmin) {
         const studioCount = parseInt(localStorage.getItem('studioGenerateCount') || '0', 10);

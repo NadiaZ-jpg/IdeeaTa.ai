@@ -205,6 +205,14 @@ export function PricingModal({ isOpen, onClose, onSuccess, onRequireLogin, userI
                   <span className="text-amber-500 font-bold">✓</span>
                   <span>Deblochează <strong>Optimizare Fonduri Europene</strong></span>
                 </li>
+                <li className="flex items-start gap-2.5">
+                  <span className="text-amber-500 font-bold">✓</span>
+                  <span>Optimizare Buget AI (recalculare automată)</span>
+                </li>
+                <li className="flex items-start gap-2.5">
+                  <span className="text-amber-500 font-bold">✓</span>
+                  <span>Adaugă Secțiuni Noi (extinde planul oricând)</span>
+                </li>
               </ul>
             </div>
 

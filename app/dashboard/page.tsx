@@ -15,6 +15,10 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
   const [showVerificationModal, setShowVerificationModal] = useState(false);
   const [verificationSent, setVerificationSent] = useState(false);
+  // FEAT-3: Avertizare vizuală dacă utilizatorul gratuit a consumat generarea
+  const studioLimitUsed = typeof window !== 'undefined'
+    ? parseInt(localStorage.getItem('studioGenerateCount') || '0', 10) >= 1
+    : false;
 
   const handleGenerateNew = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -107,10 +111,17 @@ export default function DashboardPage() {
             <p className="text-zinc-400 text-lg">Gestionează și editează planurile tale de afaceri</p>
           </div>
           
-          <button onClick={handleGenerateNew} className="bg-emerald-600 hover:bg-emerald-500 text-white px-6 py-3.5 rounded-xl font-bold uppercase tracking-wider transition-all flex items-center gap-2 shadow-[0_0_20px_rgba(16,185,129,0.2)] hover:shadow-[0_0_30px_rgba(16,185,129,0.4)] hover:-translate-y-1">
-            <Plus className="w-5 h-5" />
-            Generează Plan Nou
-          </button>
+          <div className="flex flex-col items-end gap-1.5">
+            <button onClick={handleGenerateNew} className="bg-emerald-600 hover:bg-emerald-500 text-white px-6 py-3.5 rounded-xl font-bold uppercase tracking-wider transition-all flex items-center gap-2 shadow-[0_0_20px_rgba(16,185,129,0.2)] hover:shadow-[0_0_30px_rgba(16,185,129,0.4)] hover:-translate-y-1">
+              <Plus className="w-5 h-5" />
+              Generează Plan Nou
+            </button>
+            {studioLimitUsed && (
+              <span className="text-[11px] text-amber-400 font-semibold flex items-center gap-1">
+                ⚡ Planul gratuit folosit — upgrade necesar pentru plan nou
+              </span>
+            )}
+          </div>
         </header>
 
         {/* Plans Grid */}

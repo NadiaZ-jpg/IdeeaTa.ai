@@ -1272,6 +1272,12 @@ export default function Home() {
                               setShowAuthModal(true);
                               return;
                             }
+                            const toneCount = typeof window !== "undefined" ? parseInt(localStorage.getItem("studioToneCount") || "0", 10) : 0;
+                            const isToneLocked = !isAdmin && !isPlanPaid && toneCount >= 2;
+                            if (isToneLocked) {
+                              setShowPricingModal(true);
+                              return;
+                            }
                             setShowToneOptions(!showToneOptions);
                           }} 
                           disabled={isEditingAi} 
@@ -1282,12 +1288,13 @@ export default function Home() {
                             <span>Rescrie tonul</span>
                           </span>
                           <span className="flex items-center gap-2">
-                            {!user && (
+                            {(!user || (!isAdmin && !isPlanPaid && (typeof window !== "undefined" ? parseInt(localStorage.getItem("studioToneCount") || "0", 10) >= 2 : false))) ? (
                               <span className="text-[10px] bg-amber-500/20 border border-amber-500/40 text-amber-300 px-2 py-0.5 rounded-full font-black uppercase tracking-wider whitespace-nowrap flex items-center gap-1">
                                 🔒 PRO
                               </span>
+                            ) : (
+                              <span className="text-xs text-zinc-500">{showToneOptions ? "▲" : "▼"}</span>
                             )}
-                            <span className="text-xs text-zinc-500">{showToneOptions ? "▲" : "▼"}</span>
                           </span>
                         </button>
                         

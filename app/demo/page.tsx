@@ -11,6 +11,7 @@ import { doc, onSnapshot, setDoc, getDoc, increment, arrayUnion } from 'firebase
 import { PricingModal } from '@/components/PricingModal';
 import { AdBanner } from '@/components/AdBanner';
 import { generateDocxBlob } from '@/lib/generateDocx';
+import { ConversionBanners } from '@/components/ConversionBanners';
 
 const BudgetPieChart = dynamic(() => import('@/components/BudgetChart').then(mod => mod.BudgetPieChart), { ssr: false });
 
@@ -1657,6 +1658,13 @@ export default function Home() {
       )}
 
       <div className={`${isDownloading === 'pptx' ? 'hidden' : 'flex'} flex-col items-center w-full max-w-[1600px] px-4 md:px-12 relative z-10`}>
+        <ConversionBanners 
+          isSharedView={isSharedView}
+          user={user}
+          result={result}
+          onResetApp={resetApp}
+          onAuthClick={() => setShowAuthModal(true)}
+        />
         {user && (
           <div className="w-full flex justify-between items-start sm:items-center py-2 border-b border-zinc-800/80 mb-3 print:hidden">
             <div className="flex flex-col gap-2">

@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { auth, db } from '@/lib/firebase';
-import { onAuthStateChanged, User, sendEmailVerification } from 'firebase/auth';
+import { onAuthStateChanged, User, sendEmailVerification, signOut } from 'firebase/auth';
 import { collection, query, orderBy, getDocs } from 'firebase/firestore';
 import { Plus, FileText, Calendar, ArrowRight, Loader2, Sparkles, Mail, AlertTriangle } from 'lucide-react';
 
@@ -99,7 +99,19 @@ export default function DashboardPage() {
           IdeeaTa<span className="text-emerald-400">.ai</span>
         </Link>
         <div className="flex items-center gap-4">
-          {/* Buton Studio Nou sters pentru UI mai curat */}
+          {user && (
+            <div className="flex items-center gap-4">
+              <span className="text-sm text-zinc-400 hidden sm:inline-block font-semibold">
+                {user.email}
+              </span>
+              <button 
+                onClick={() => signOut(auth)}
+                className="text-sm font-bold text-zinc-500 hover:text-white transition-colors cursor-pointer"
+              >
+                Ieși din cont
+              </button>
+            </div>
+          )}
         </div>
       </div>
 

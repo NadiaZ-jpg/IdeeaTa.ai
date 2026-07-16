@@ -145,12 +145,19 @@ Formele acceptate de acord expres:
 
 ---
 
+## FREEZE (16 Iulie 2026 — Remediere warning Turbopack root)
+- **next.config.ts** — Schimbat `turbopack.root` din `./` (cale relativă) în `process.cwd()` (cale absolută). Aceasta elimină definitiv avertismentul *„turbopack.root should be absolute”* la pornirea serverului de dezvoltare sau a build-ului. ÎNGHEȚAT.
+- Build verificat: ✅ `✓ Compiled successfully in 103s` (22/22 pagini statice, 0 warning-uri).
+
+---
+
 ## RĂMÂNE DE FĂCUT
 - **DEPLOY** — `git push origin main` → actualizează live app cu toate optimizările recente. Decizie utilizator.
 - **Vercel ENV** — Adaugă `NEXT_PUBLIC_PROMO_STANDARD/FONDURI/ADMIN` în Vercel Dashboard (tu manual). Done.
 - **Email Firebase template** — Emailul de verificare e în engleză. Personalizare în română în Firebase Console → Authentication → Templates. Done.
 - **Studio guard email** — `app/studio/page.tsx` are același `if (false && ...)` dezactivat. Activăm și acolo? Decizie utilizator.
 - **Bannere Conversie** — Opțiunea 2 & 3. Done.
+
 
 
 

@@ -87,6 +87,7 @@ Orice agent care primește o instrucțiune ambiguă trebuie să CEARĂ CONFIRMAR
 | `lib/accessControl.ts` | REGULA #17 — 2 pachete fixe |
 | `components/PricingModal.tsx` | REGULA #17 — Structura pachete |
 | `components/ConversionBanners.tsx` | Bannere de conversie premium (previzualizare planuri partajate & salvare plan nelogat) |
+| `next.config.ts` | Eliminat warning-ul de Turbopack root prin folosirea calea absolută `process.cwd()` |
 
 ### Fișiere ȘTERSE definitiv (nu se recreează) / ARHIVATE:
 - `app/EditForm.tsx`
@@ -97,9 +98,10 @@ Orice agent care primește o instrucțiune ambiguă trebuie să CEARĂ CONFIRMAR
 - `backup_siguranta/page.tsx.test`
 
 ### Build verificat la finalul sesiunii:
-- ✅ `✓ Compiled successfully in 40s`
+- ✅ `✓ Compiled successfully in 103s` (fără warning-uri de compilare)
 - ✅ `✓ Generating static pages (22/22)`
 - ✅ Zero erori TypeScript
+
 
 
 

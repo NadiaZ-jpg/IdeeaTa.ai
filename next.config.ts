@@ -25,7 +25,7 @@ const nextConfig: NextConfig = {
   transpilePackages: ['motion'],
 
   turbopack: {
-    root: "./",
+    root: process.cwd(),
   },
 
   async rewrites() {

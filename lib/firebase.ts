@@ -1,6 +1,6 @@
 import { initializeApp, getApps, getApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
-import { getFirestore } from 'firebase/firestore/lite';
+import { getFirestore } from 'firebase/firestore';
 
 // Use the current browser hostname as authDomain so Firebase Auth popup
 // opens under the same domain as the app (bypasses third-party cookie blockers).

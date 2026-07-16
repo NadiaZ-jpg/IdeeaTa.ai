@@ -42,6 +42,13 @@ REGULA #19: (ANTI-DISTRUGERE) Niciodată nu folosi comenzi distructive fără pl
 - app/shared/[id]/page.tsx — ÎNGHEȚAT. Redirecționarea modificată la `/demo?sharedId=${id}` pentru a asigura randarea corectă a planurilor partajate.
 - Build verificat: ✅ `✓ Compiled successfully` (34.7s) după remediere.
 
+## FREEZE — Pasul 2 (16 Iulie 2026)
+- app/contact/page.tsx, app/cookies/page.tsx, app/despre-noi/page.tsx, app/privacy/page.tsx, app/termeni/page.tsx — Referințe spre `/start` schimbate la `/demo` pentru un parcurs fluid. ÎNGHEȚATE.
+- app/studio/page.tsx — Schimbată redirecționarea `window.location.href` de la `/start` la `/demo` în resetApp. ÎNGHEȚAT.
+- backup_siguranta/start/page.tsx — Folderul `/app/start` arhivat complet aici. Cod mort eliminat. NU se reintroduce în `/app`.
+- Build verificat: ✅ `✓ Compiled successfully in 30.6s` (22/22 pagini statice).
+- Checkpoint Git realizat: `Checkpoint-16-Iulie-2026-09-34-Pasul-2-Complet`
+
 ---
 
 ## REGULA #20: (INTERDICȚIE ABSOLUTĂ — Toți Agenții AI)
@@ -70,6 +77,8 @@ Orice agent care primește o instrucțiune ambiguă trebuie să CEARĂ CONFIRMAR
 | `app/login/page.tsx` | REGULA #10 |
 | `app/page.tsx` | REGULA #11 — Landing Page |
 | `app/shared/[id]/page.tsx` | Pasul 1 — Redirecționare corectă la `/demo` pentru planuri partajate |
+| `app/contact/page.tsx`, `app/cookies/page.tsx`, `app/despre-noi/page.tsx`, `app/privacy/page.tsx`, `app/termeni/page.tsx` | Pasul 2 — Înlocuit referințe `/start` cu `/demo` |
+| `lib/firebase.ts` | Aliniere import Firestore la nivel client-side (remediere eroare runtime /studio) |
 | `app/api/verify-checkout/route.ts` | Pasul 2 — Lemon Squeezy, fără Stripe |
 | `hooks/useStudioFirebaseSync.ts` | Pasul 3 — Sync Firebase |
 | `components/EditForm.tsx` | Pasul 4 — Mutat din /app |
@@ -78,15 +87,18 @@ Orice agent care primește o instrucțiune ambiguă trebuie să CEARĂ CONFIRMAR
 | `lib/accessControl.ts` | REGULA #17 — 2 pachete fixe |
 | `components/PricingModal.tsx` | REGULA #17 — Structura pachete |
 
-### Fișiere ȘTERSE definitiv (nu se recreează):
+### Fișiere ȘTERSE definitiv (nu se recreează) / ARHIVATE:
 - `app/EditForm.tsx`
 - `app/BudgetChart.tsx`
 - `hooks/useStudioLoader.ts`
+- `app/start/` (mutat în `backup_siguranta/start/`)
 - `backup_siguranta/page.tsx.backup`
 - `backup_siguranta/page.tsx.test`
 
 ### Build verificat la finalul sesiunii:
-- ✅ `✓ Compiled successfully in 34.7s`
-- ✅ `✓ Generating static pages (23/23)`
+- ✅ `✓ Compiled successfully in 2.1min` (după curățare cache `.next`)
+- ✅ `✓ Generating static pages (22/22)`
 - ✅ Zero erori TypeScript
+
+
 

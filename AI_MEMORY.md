@@ -122,11 +122,28 @@ Formele acceptate de acord expres:
 
 ---
 
+## FREEZE (16 Iulie 2026 — Pasul 2: Remediere referințe /start & Arhivare)
+- **app/contact/page.tsx**, **app/cookies/page.tsx**, **app/despre-noi/page.tsx**, **app/privacy/page.tsx**, **app/termeni/page.tsx** — Referințe spre `/start` schimbate la `/demo` pentru un parcurs fluid. ÎNGHEȚATE.
+- **app/studio/page.tsx** — Schimbată redirecționarea `window.location.href` de la `/start` la `/demo` în resetApp. ÎNGHEȚAT.
+- **backup_siguranta/start/page.tsx** — Folderul `/app/start` arhivat complet aici. Cod mort eliminat. NU se reintroduce în `/app`.
+- Build verificat: ✅ `✓ Compiled successfully in 30.6s` (22/22 pagini statice).
+- Checkpoint Git realizat: `Checkpoint-16-Iulie-2026-09-34-Pasul-2-Complet`
+
+---
+
+## FREEZE (16 Iulie 2026 — Remediat eroare Firestore Runtime)
+- **lib/firebase.ts** — Schimbat importul `getFirestore` din `firebase/firestore/lite` în `firebase/firestore`. Acest lucru rezolvă eroarea de runtime din `/studio` prin alinierea tipurilor Firestore în întreaga aplicație client-side. ÎNGHEȚAT.
+- Build verificat: ✅ `✓ Compiled successfully in 2.1min` (22/22 pagini statice după golirea cache-ului `.next`).
+
+---
+
 ## RĂMÂNE DE FĂCUT
-- **DEPLOY** — `git push origin main` → actualizează live app cu sesiunile 2.5+3+4+4b + Pasul 1. Decizie utilizator.
-- **Vercel ENV** — Adaugă `NEXT_PUBLIC_PROMO_STANDARD/FONDURI/ADMIN` în Vercel Dashboard (tu manual).
-- **Email Firebase template** — Emailul de verificare e în engleză. Personalizare în română în Firebase Console → Authentication → Templates. Opțional.
+- **DEPLOY** — `git push origin main` → actualizează live app cu sesiunile 2.5+3+4+4b + Pasul 1 + Pasul 2 + Firestore fix. Decizie utilizator.
+- **Vercel ENV** — Adaugă `NEXT_PUBLIC_PROMO_STANDARD/FONDURI/ADMIN` în Vercel Dashboard (tu manual). Done.
+- **Email Firebase template** — Emailul de verificare e în engleză. Personalizare în română în Firebase Console → Authentication → Templates. Done.
 - **Studio guard email** — `app/studio/page.tsx` are același `if (false && ...)` dezactivat. Activăm și acolo? Decizie utilizator.
 - **Banner /shared/[id]** — Pagina de plan partajat nu are CTA „Generează propriul plan". Oportunitate de conversie.
 - **Banner /demo post-generare** — Utilizator nelogat nu e invitat să salveze planul. Oportunitate de conversie.
+
+
 

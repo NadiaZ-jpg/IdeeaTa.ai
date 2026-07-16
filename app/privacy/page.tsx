@@ -55,7 +55,7 @@ export default function PrivacyPage() {
         <p>Pentru a vă exercita drepturile GDPR sau pentru alte întrebări privind confidențialitatea, ne puteți contacta la: <a href="mailto:contact@ideeata.ai" className="text-emerald-400">contact@ideeata.ai</a>.</p>
         
         <div className="flex justify-center mt-12 mb-12">
-          <Link href="/start" className="bg-emerald-600 hover:bg-emerald-500 text-white px-8 py-4 rounded-xl font-bold transition-all shadow-lg shadow-emerald-900/30 no-underline">
+          <Link href="/demo" className="bg-emerald-600 hover:bg-emerald-500 text-white px-8 py-4 rounded-xl font-bold transition-all shadow-lg shadow-emerald-900/30 no-underline">
             Validează-ți ideea chiar acum
           </Link>
         </div>

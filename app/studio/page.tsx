@@ -988,7 +988,7 @@ export default function Home() {
       if (typeof window !== "undefined") {
         localStorage.removeItem("current_generated_plan");
       }
-      window.location.href = '/start';
+      window.location.href = '/demo';
       return;
     }
     setResult(null);

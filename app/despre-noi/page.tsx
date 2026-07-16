@@ -28,7 +28,7 @@ export default function DespreNoiPage() {
         <p>Vrem să devenim partenerul digital nr. 1 pentru start-up-urile din România și, curând, din Europa. Credem că nicio idee bună nu ar trebui să se piardă doar pentru că fondatorul nu știe să scrie un plan de afaceri.</p>
         
         <div className="flex justify-center mt-12">
-          <Link href="/start" className="bg-emerald-600 hover:bg-emerald-500 text-white px-8 py-4 rounded-xl font-bold transition-all shadow-lg shadow-emerald-900/30 no-underline">
+          <Link href="/demo" className="bg-emerald-600 hover:bg-emerald-500 text-white px-8 py-4 rounded-xl font-bold transition-all shadow-lg shadow-emerald-900/30 no-underline">
             Validează-ți ideea chiar acum
           </Link>
         </div>

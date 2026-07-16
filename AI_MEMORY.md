@@ -1,5 +1,5 @@
 # AI_MEMORY — IdeeaTa.ai
-> Ultima actualizare: 14 Iulie 2026
+> Ultima actualizare: 15 Iulie 2026
 
 ---
 
@@ -103,8 +103,30 @@ Formele acceptate de acord expres:
 
 ---
 
+## FREEZE (15 Iulie 2026 — Sesiunea 4)
+- **app/page.tsx** — COPY-2: mockup AI v2 (fidel aplicației reale). COPY-3: bandă free tier sub CTA. ÎNGHEȚAT.
+- **app/login/page.tsx** — PROD-1A: sendEmailVerification la signup. Butoane Google + Facebook restaurate. QR Code → /demo?start=nou. ÎNGHEȚAT.
+- **app/dashboard/page.tsx** — PROD-1B: guard email verification activat (doar providerData=password). ÎNGHEȚAT.
+- **components/PricingModal.tsx** — PROD-2: promo codes → process.env.NEXT_PUBLIC_PROMO_*. ÎNGHEȚAT.
+- **public/mockup-preview.png** — Imagine AI mockup dashboard (v2, fidelă). NU se înlocuiește fără aprobare.
+- **package.json** — qrcode.react instalat. NU se dezinstalează.
+- Build verificat: ✅ `✓ Compiled successfully in 39.4s` — 23/23 pagini.
+- Checkpoint git local: `CHECKPOINT-15-Iulie-2026` + branch GitHub: `backup-15-iulie-2026`
+- Commit Sesiunea 4b: `9a2eb74`
+
+---
+
+## FREEZE (16 Iulie 2026 — Pasul 1: Remediere /shared/[id])
+- **app/shared/[id]/page.tsx** — Modificată redirecționarea de la `/?sharedId=${id}` la `/demo?sharedId=${id}` pentru a asigura încărcarea corectă a planului partajat în demo workspace. ÎNGHEȚAT.
+- Build verificat: ✅ `✓ Compiled successfully in 34.7s` after Pasul 1.
+
+---
+
 ## RĂMÂNE DE FĂCUT
-- **COPY-2** — Landing mockup (imagine Unsplash → screenshot real sau AI) — decizie așteptată de la user.
-- **COPY-3** — Landing Features Grid să comunice free tier (3 Demo / 1 Studio). Low priority.
-- **PROD-1** — Email Verification (dezactivat intenționat, NU activăm fără plan migrare useri).
-- **PROD-2** — Coduri promo plaintext → env variables (risc zero, viitor).
+- **DEPLOY** — `git push origin main` → actualizează live app cu sesiunile 2.5+3+4+4b + Pasul 1. Decizie utilizator.
+- **Vercel ENV** — Adaugă `NEXT_PUBLIC_PROMO_STANDARD/FONDURI/ADMIN` în Vercel Dashboard (tu manual).
+- **Email Firebase template** — Emailul de verificare e în engleză. Personalizare în română în Firebase Console → Authentication → Templates. Opțional.
+- **Studio guard email** — `app/studio/page.tsx` are același `if (false && ...)` dezactivat. Activăm și acolo? Decizie utilizator.
+- **Banner /shared/[id]** — Pagina de plan partajat nu are CTA „Generează propriul plan". Oportunitate de conversie.
+- **Banner /demo post-generare** — Utilizator nelogat nu e invitat să salveze planul. Oportunitate de conversie.
+

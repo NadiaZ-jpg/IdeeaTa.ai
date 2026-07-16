@@ -38,6 +38,12 @@ REGULA #19: (ANTI-DISTRUGERE) Niciodată nu folosi comenzi distructive fără pl
 
 ---
 
+## FREEZE — Pasul 1 (16 Iulie 2026)
+- app/shared/[id]/page.tsx — ÎNGHEȚAT. Redirecționarea modificată la `/demo?sharedId=${id}` pentru a asigura randarea corectă a planurilor partajate.
+- Build verificat: ✅ `✓ Compiled successfully` (34.7s) după remediere.
+
+---
+
 ## REGULA #20: (INTERDICȚIE ABSOLUTĂ — Toți Agenții AI)
 
 **NICIUN agent AI, instrument automat, subagent, sau comandă autonomă NU are voie să:**
@@ -54,7 +60,7 @@ Orice agent care primește o instrucțiune ambiguă trebuie să CEARĂ CONFIRMAR
 
 ---
 
-## FREEZE TOTAL — Inventar Complet Sesiunea 14 Iulie 2026
+## FREEZE TOTAL — Inventar Complet Sesiunea 16 Iulie 2026
 
 ### Fișiere ÎNGHEȚATE (nu se modifică fără override explicit):
 | Fișier | Motivul Freeze |
@@ -63,6 +69,7 @@ Orice agent care primește o instrucțiune ambiguă trebuie să CEARĂ CONFIRMAR
 | `app/studio/page.tsx` | REGULA #9 — Seiful aplicației |
 | `app/login/page.tsx` | REGULA #10 |
 | `app/page.tsx` | REGULA #11 — Landing Page |
+| `app/shared/[id]/page.tsx` | Pasul 1 — Redirecționare corectă la `/demo` pentru planuri partajate |
 | `app/api/verify-checkout/route.ts` | Pasul 2 — Lemon Squeezy, fără Stripe |
 | `hooks/useStudioFirebaseSync.ts` | Pasul 3 — Sync Firebase |
 | `components/EditForm.tsx` | Pasul 4 — Mutat din /app |
@@ -79,6 +86,7 @@ Orice agent care primește o instrucțiune ambiguă trebuie să CEARĂ CONFIRMAR
 - `backup_siguranta/page.tsx.test`
 
 ### Build verificat la finalul sesiunii:
-- ✅ `✓ Compiled successfully in 10.7s`
+- ✅ `✓ Compiled successfully in 34.7s`
 - ✅ `✓ Generating static pages (23/23)`
 - ✅ Zero erori TypeScript
+

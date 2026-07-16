@@ -137,13 +137,21 @@ Formele acceptate de acord expres:
 
 ---
 
+## FREEZE (16 Iulie 2026 — Implementat Bannere Conversie Opțiunea 2 & 3)
+- **components/ConversionBanners.tsx** — Componentă React separată creată de la zero, conținând ambele bannere premium cu gradient dinamic, umbre, micro-animații și responsiveness.
+- **app/demo/page.tsx** — Importat și randat `<ConversionBanners ... />` la începutul containerului principal, minimizând riscurile de layout.
+- Build verificat: ✅ `✓ Compiled successfully in 40s` (22/22 pagini statice).
+- Checkpoint Git realizat: `Checkpoint-16-Iulie-2026-11-07-Bannere-Conversie`
+
+---
+
 ## RĂMÂNE DE FĂCUT
-- **DEPLOY** — `git push origin main` → actualizează live app cu sesiunile 2.5+3+4+4b + Pasul 1 + Pasul 2 + Firestore fix. Decizie utilizator.
+- **DEPLOY** — `git push origin main` → actualizează live app cu toate optimizările recente. Decizie utilizator.
 - **Vercel ENV** — Adaugă `NEXT_PUBLIC_PROMO_STANDARD/FONDURI/ADMIN` în Vercel Dashboard (tu manual). Done.
 - **Email Firebase template** — Emailul de verificare e în engleză. Personalizare în română în Firebase Console → Authentication → Templates. Done.
 - **Studio guard email** — `app/studio/page.tsx` are același `if (false && ...)` dezactivat. Activăm și acolo? Decizie utilizator.
-- **Banner /shared/[id]** — Pagina de plan partajat nu are CTA „Generează propriul plan". Oportunitate de conversie.
-- **Banner /demo post-generare** — Utilizator nelogat nu e invitat să salveze planul. Oportunitate de conversie.
+- **Bannere Conversie** — Opțiunea 2 & 3. Done.
+
 
 
 

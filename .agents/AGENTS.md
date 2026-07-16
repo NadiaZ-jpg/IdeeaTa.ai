@@ -86,6 +86,7 @@ Orice agent care primește o instrucțiune ambiguă trebuie să CEARĂ CONFIRMAR
 | `components/StudioDataLoader.tsx` | REGULA #16 — Sertarul intangibil |
 | `lib/accessControl.ts` | REGULA #17 — 2 pachete fixe |
 | `components/PricingModal.tsx` | REGULA #17 — Structura pachete |
+| `components/ConversionBanners.tsx` | Bannere de conversie premium (previzualizare planuri partajate & salvare plan nelogat) |
 
 ### Fișiere ȘTERSE definitiv (nu se recreează) / ARHIVATE:
 - `app/EditForm.tsx`
@@ -96,9 +97,10 @@ Orice agent care primește o instrucțiune ambiguă trebuie să CEARĂ CONFIRMAR
 - `backup_siguranta/page.tsx.test`
 
 ### Build verificat la finalul sesiunii:
-- ✅ `✓ Compiled successfully in 2.1min` (după curățare cache `.next`)
+- ✅ `✓ Compiled successfully in 40s`
 - ✅ `✓ Generating static pages (22/22)`
 - ✅ Zero erori TypeScript
+
 
 
 

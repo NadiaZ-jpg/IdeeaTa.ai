@@ -9,24 +9,23 @@ export const migrateLocalPlansToFirebase = async (user: User) => {
   if (!user) return;
   
   try {
-    const savedPlansStr = localStorage.getItem('current_versions');
     let localPlans: any[] = [];
     
-    // Check 'current_versions' which is an array of plans
-    if (savedPlansStr) {
-      const parsed = JSON.parse(savedPlansStr);
-      if (Array.isArray(parsed)) {
-        localPlans = [...parsed];
-      }
-    }
-    
-    // Check 'current_generated_plan' which is a single plan, just in case
+    // Check 'current_generated_plan' which contains the active plan
     const singlePlanStr = localStorage.getItem('current_generated_plan');
     if (singlePlanStr) {
-      const singlePlan = JSON.parse(singlePlanStr);
-      // Check if it's already in the array
-      if (singlePlan && singlePlan.id && !localPlans.some(p => p.id === singlePlan.id)) {
-        localPlans.push(singlePlan);
+      try {
+        const singlePlan = JSON.parse(singlePlanStr);
+        if (singlePlan && typeof singlePlan === 'object') {
+          // If the plan has no ID, generate a unique ID
+          if (!singlePlan.id) {
+            const safeName = singlePlan.nume?.replace(/[^a-zA-Z0-9]/g, '_') || 'Plan';
+            singlePlan.id = `${safeName}_${Date.now()}`;
+          }
+          localPlans.push(singlePlan);
+        }
+      } catch (e) {
+        console.error("Eroare la parsarea current_generated_plan:", e);
       }
     }
 
@@ -43,13 +42,12 @@ export const migrateLocalPlansToFirebase = async (user: User) => {
           ...plan,
           isPaid: false,
           isGeneratedFromDemo: true,
+          createdAt: plan.createdAt || new Date().toISOString(),
           migratedAt: new Date().toISOString()
         });
         console.log(`Plan ${plan.id} migrated to Firebase successfully.`);
       }
     }
-    
-    // We don't delete from localStorage, we let them be there as backup.
   } catch (error) {
     console.error("Eroare la migrarea planurilor din localStorage:", error);
   }

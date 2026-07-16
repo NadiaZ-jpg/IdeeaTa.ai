@@ -6,8 +6,8 @@ import { getFirestore } from 'firebase/firestore';
 // opens under the same domain as the app (bypasses third-party cookie blockers).
 // Falls back to the env var on localhost / SSR.
 const getAuthDomain = (): string => {
-  if (typeof window !== "undefined" && window.location.hostname !== "localhost") {
-    return window.location.hostname;
+  if (typeof window !== "undefined") {
+    return window.location.host;
   }
   return process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN as string;
 };

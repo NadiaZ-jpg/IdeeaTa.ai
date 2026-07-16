@@ -24,6 +24,9 @@ export function ToneEditor({
 }: ToneEditorProps) {
   const [showToneOptions, setShowToneOptions] = useState(false);
 
+  const toneCount = typeof window !== "undefined" ? parseInt(localStorage.getItem("freeToneEdits") || "0", 10) : 0;
+  const isToneLocked = !user || (!isAdmin && !isStudioPaid && toneCount >= 3);
+
   const onToneSelect = (instructions: string) => {
     // Închidem meniul indiferent de situație
     setShowToneOptions(false);
@@ -56,6 +59,7 @@ export function ToneEditor({
         type="button"
         onClick={() => {
           if (!user) { setShowAuthModal(true); return; }
+          if (isToneLocked) { setShowPricingModal(true); return; }
           setShowToneOptions(!showToneOptions);
         }} 
         disabled={isEditingAi} 
@@ -66,10 +70,13 @@ export function ToneEditor({
           <span>Rescrie tonul</span>
         </span>
         <span className="flex items-center gap-2">
-          <span className="text-[10px] bg-amber-500/20 border border-amber-500/40 text-amber-300 px-2 py-0.5 rounded-full font-black uppercase tracking-wider whitespace-nowrap">
-            🔒 PRO
-          </span>
-          <span className="text-zinc-500 text-xs">▼</span>
+          {isToneLocked ? (
+            <span className="text-[10px] bg-amber-500/20 border border-amber-500/40 text-amber-300 px-2 py-0.5 rounded-full font-black uppercase tracking-wider whitespace-nowrap">
+              🔒 PRO
+            </span>
+          ) : (
+            <span className="text-zinc-500 text-xs">{showToneOptions ? "▲" : "▼"}</span>
+          )}
         </span>
       </button>
       

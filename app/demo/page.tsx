@@ -12,6 +12,7 @@ import { PricingModal } from '@/components/PricingModal';
 import { AdBanner } from '@/components/AdBanner';
 import { generateDocxBlob } from '@/lib/generateDocx';
 import { ConversionBanners } from '@/components/ConversionBanners';
+import { migrateLocalPlansToFirebase } from '@/lib/migrationManager';
 
 const BudgetPieChart = dynamic(() => import('@/components/BudgetChart').then(mod => mod.BudgetPieChart), { ssr: false });
 
@@ -496,11 +497,12 @@ export default function Home() {
   const [isForgotMode, setIsForgotMode] = useState(false);
   const [resetEmailSent, setResetEmailSent] = useState(false);
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       setUser(currentUser);
       setIsAuthLoading(false);
       if (currentUser) {
         window.scrollTo({ top: 0 });
+        await migrateLocalPlansToFirebase(currentUser);
       } else {
         // Regula de Aur: Nu ștergem planul pentru utilizatorii de pe demo
       }
@@ -711,8 +713,13 @@ export default function Home() {
   }, [user]);
 
   // Salveaza planul in localStorage cand se schimba rezultatul
+  const isInitialMount = useRef(true);
   useEffect(() => {
     if (typeof window !== "undefined") {
+      if (isInitialMount.current) {
+        isInitialMount.current = false;
+        return;
+      }
       if (result) {
         localStorage.setItem("current_generated_plan", JSON.stringify(result));
       } else {

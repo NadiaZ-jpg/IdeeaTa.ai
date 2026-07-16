@@ -693,8 +693,13 @@ export default function Home() {
   }, [user]);
 
   // Salveaza planul in localStorage cand se schimba rezultatul
+  const isInitialMount = useRef(true);
   useEffect(() => {
     if (typeof window !== "undefined") {
+      if (isInitialMount.current) {
+        isInitialMount.current = false;
+        return;
+      }
       if (result) {
         localStorage.setItem("current_generated_plan", JSON.stringify(result));
       } else {

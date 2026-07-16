@@ -151,6 +151,15 @@ Formele acceptate de acord expres:
 
 ---
 
+## FREEZE (16 Iulie 2026 — Rezolvare Migrare, Race Condition și Logout Dashboard)
+- **app/demo/page.tsx** — Corectat race condition la mount cu `isInitialMount = useRef(true)` (împiedică ștergerea planului din localStorage). Importat și apelat asincron `migrateLocalPlansToFirebase(currentUser)` în `onAuthStateChanged`. ÎNGHEȚAT.
+- **app/studio/page.tsx** — Corectat race condition la mount cu `isInitialMount = useRef(true)`. ÎNGHEȚAT.
+- **app/dashboard/page.tsx** — Adăugat buton de delogare („Ieși din cont”) și afișarea email-ului utilizatorului conectat în Header. ÎNGHEȚAT.
+- Build verificat: ✅ `✓ Compiled successfully` (22/22 pagini statice, 0 erori).
+- Checkpoint Git realizat: `Checkpoint-16-Iulie-2026-12-50-Fix-LocalStorage-Dashboard-Logout`
+
+---
+
 ## RĂMÂNE DE FĂCUT
 - **DEPLOY** — `git push origin main` → actualizează live app cu toate optimizările recente. Decizie utilizator.
 - **Vercel ENV** — Adaugă `NEXT_PUBLIC_PROMO_STANDARD/FONDURI/ADMIN` în Vercel Dashboard (tu manual). Done.

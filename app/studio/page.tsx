@@ -6,12 +6,13 @@ import pptxgen from "pptxgenjs";
 import { EditForm } from "@/components/EditForm";
 import dynamic from 'next/dynamic';
 import { auth, db } from '@/lib/firebase';
-import { signInWithPopup, GoogleAuthProvider, FacebookAuthProvider, onAuthStateChanged, User, getRedirectResult, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, sendPasswordResetEmail } from 'firebase/auth';
+import { signInWithPopup, GoogleAuthProvider, FacebookAuthProvider, onAuthStateChanged, User, getRedirectResult, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, sendPasswordResetEmail, sendEmailVerification } from 'firebase/auth';
 import { doc, onSnapshot, setDoc, getDoc, increment, arrayUnion } from 'firebase/firestore';
 import { PricingModal } from '@/components/PricingModal';
 import { AdBanner } from '@/components/AdBanner';
 import { generateDocxBlob } from '@/lib/generateDocx';
 import { useStudioFirebaseSync } from '@/hooks/useStudioFirebaseSync';
+import { Mail } from 'lucide-react';
 
 const BudgetPieChart = dynamic(() => import('@/components/BudgetChart').then(mod => mod.BudgetPieChart), { ssr: false });
 
@@ -312,6 +313,8 @@ export default function Home() {
   };
 
   const [showAuthModal, setShowAuthModal] = useState(false);
+  const [showVerificationModal, setShowVerificationModal] = useState(false);
+  const [verificationSent, setVerificationSent] = useState(false);
 
   const handleAiEdit = async (action: string, customStyle?: string, customInput?: string) => {
     if (isEditingAi) return;
@@ -490,6 +493,9 @@ export default function Home() {
       setIsAuthLoading(false);
       if (currentUser) {
         window.scrollTo({ top: 0 });
+        if (!currentUser.emailVerified && currentUser.providerData[0]?.providerId === 'password') {
+          setShowVerificationModal(true);
+        }
       } else {
         setResult(null);
         if (typeof window !== "undefined") {
@@ -533,6 +539,17 @@ export default function Home() {
   }, [user]);
 
   useStudioFirebaseSync({ user, setResultState, setVersionsState, setActiveVersionId });
+
+  const handleResendVerification = async () => {
+    if (user) {
+      try {
+        await sendEmailVerification(user);
+        setVerificationSent(true);
+      } catch (error) {
+        console.error("Eroare trimitere email:", error);
+      }
+    }
+  };
 
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
@@ -3483,6 +3500,56 @@ export default function Home() {
             >
               Mai târziu
             </button>
+          </div>
+        </div>
+      )}
+      {showVerificationModal && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-md z-[210] flex items-center justify-center p-4 animate-in fade-in duration-300">
+          <div className="bg-[#09090b] border border-zinc-800 rounded-3xl w-full max-w-md shadow-2xl p-8 relative overflow-hidden flex flex-col gap-6 text-center animate-in zoom-in-95 duration-300">
+            <div className="absolute top-0 left-0 w-full h-1 bg-amber-500"></div>
+            
+            <div className="w-16 h-16 bg-amber-500/10 text-amber-500 rounded-full flex items-center justify-center mx-auto mt-2">
+              <Mail className="w-8 h-8" />
+            </div>
+
+            <div>
+              <h2 className="text-2xl font-black text-white mb-2">Confirmă adresa de email</h2>
+              <p className="text-zinc-400">
+                Pentru a genera un plan gratuit și a primi cele 3 Editări Premium, te rugăm să îți confirmi adresa de email dând click pe link-ul primit în Inbox.
+              </p>
+            </div>
+
+            <div className="flex flex-col gap-3 mt-4">
+              <button 
+                type="button"
+                onClick={() => {
+                  window.location.reload(); // Reincarca pentru a verifica starea noua
+                }}
+                className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3.5 rounded-xl transition-all"
+              >
+                Am confirmat, continuă
+              </button>
+              
+              <button 
+                type="button"
+                onClick={handleResendVerification}
+                disabled={verificationSent}
+                className="w-full bg-zinc-800 hover:bg-zinc-700 text-white font-bold py-3.5 rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {verificationSent ? "Email trimis!" : "Trimite emailul din nou"}
+              </button>
+              
+              <button 
+                type="button"
+                onClick={() => {
+                  setShowVerificationModal(false);
+                  window.location.href = "/dashboard";
+                }}
+                className="w-full text-zinc-500 hover:text-white font-medium py-2 transition-all mt-2"
+              >
+                Închide
+              </button>
+            </div>
           </div>
         </div>
       )}

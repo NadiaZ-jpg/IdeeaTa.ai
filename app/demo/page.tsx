@@ -722,6 +722,23 @@ export default function Home() {
       }
       if (result) {
         localStorage.setItem("current_generated_plan", JSON.stringify(result));
+        try {
+          const listStr = localStorage.getItem("demo_plans_list");
+          let list = listStr ? JSON.parse(listStr) : [];
+          if (!Array.isArray(list)) list = [];
+          const planToSave = { ...result };
+          if (!planToSave.id) {
+            const safeName = planToSave.nume?.replace(/[^a-zA-Z0-9]/g, '_') || 'Plan';
+            planToSave.id = `${safeName}_${Date.now()}`;
+          }
+          const exists = list.some((p: any) => p.nume === planToSave.nume || p.id === planToSave.id);
+          if (!exists) {
+            list.push(planToSave);
+            localStorage.setItem("demo_plans_list", JSON.stringify(list));
+          }
+        } catch (e) {
+          console.error("Eroare la adăugarea planului în demo_plans_list:", e);
+        }
       } else {
         localStorage.removeItem("current_generated_plan");
       }

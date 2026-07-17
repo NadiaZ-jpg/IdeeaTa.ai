@@ -59,12 +59,75 @@ const formatObjectNumbers = (obj: any): any => {
 };
 
 const ALL_EXAMPLES = [
-  { text: "O cafenea de specialitate cu prăjitorie proprie", niche: "Cafenele / Restaurante" },
-  { text: "O platformă online de programări pentru saloane de înfrumusețare", niche: "Servicii locale" },
-  { text: "O agenție de marketing specializată în TikTok și Reels pentru branduri locale", niche: "Servicii B2B" },
-  { text: "Un magazin online de bijuterii handmade din rășină", niche: "E-commerce" },
-  { text: "O aplicație mobilă pentru monitorizarea hidratării și nutriției plantelor", niche: "Tech / Software" },
-  { text: "O clinică veterinară mobilă cu servicii stomatologice", niche: "Medicină / Sănătate" }
+    { short: "Brutărie Tradițională", long: "O brutărie și patiserie tradițională, axată pe pâine cu maia și rețete locale autentice." },
+    { short: "Spălătorie Auto", long: "O spălătorie auto self-service modernă, cu jet de înaltă presiune și spumă activă biodegradabilă." },
+    { short: "Salon Înfrumusețare", long: "Un salon de înfrumusețare și frizerie complet, care oferă servicii premium de styling și tratamente." },
+    { short: "Restaurant Tradițional", long: "Un restaurant cu specific tradițional românesc, cu un meniu bazat exclusiv pe ingrediente de la producători locali." },
+    { short: "Firmă de Curățenie", long: "O firmă de curățenie profesională B2B și B2C, folosind exclusiv detergenți ecologici și echipamente silențioase." },
+    { short: "Magazin Mixt", long: "Un magazin mixt de cartier cu funcționare non-stop, optimizat pentru cumpărături rapide." },
+    { short: "Atelier Auto", long: "Un atelier auto și vulcanizare care oferă servicii rapide, diagnoză computerizată și asistență rutieră." },
+    { short: "Firmă de Construcții", long: "O firmă de construcții și amenajări interioare, specializată în renovări la cheie și finisaje premium." },
+    { short: "Cabinet Stomatologic", long: "Un cabinet stomatologic modern echipat cu tehnologie 3D și specializat în implantologie." },
+    { short: "Contabilitate", long: "O firmă de contabilitate complet digitalizată, dedicată startup-urilor și IMM-urilor." },
+    { short: "Farmacie de Cartier", long: "O farmacie de cartier care oferă consultanță personalizată și preparate magistrale." },
+    { short: "Veterinar Non-Stop", long: "Un cabinet veterinar cu program non-stop, dotat cu ecograf, raze X și laborator propriu." },
+    { short: "Servicii de Mutări", long: "O firmă de servicii de mutări și relocare ce oferă inclusiv servicii de ambalare și demontare." },
+    { short: "Agenție Imobiliară", long: "O agenție imobiliară de nișă, axată exclusiv pe apartamente premium și ansambluri rezidențiale noi." },
+    { short: "Fermă Agricolă", long: "O fermă agricolă mixtă, concentrată pe culturi organice și distribuție direct către consumator." },
+    
+    { short: "Matcha Bar & Cafenea", long: "Un matcha bar și cafenea de specialitate cu un design minimalist, oferind băuturi pe bază de ceai premium." },
+    { short: "Studio de Pilates", long: "Un studio de pilates și yoga boutique cu clase restrânse și antrenamente personalizate." },
+    { short: "Parfumuri Personalizate", long: "Un atelier de parfumuri personalizate unde clienții își creează propriile esențe unice." },
+    { short: "Boutique Vintage", long: "Un boutique cu haine vintage selecționate și recondiționate, promovând moda sustenabilă." },
+    { short: "Design Românesc", long: "Un concept store dedicat exclusiv designerilor români, de la haine la obiecte de decor." },
+    { short: "Florărie Minimalistă", long: "O florărie minimalistă care oferă abonamente lunare de flori proaspete pentru birouri și acasă." },
+    { short: "Cofetărie French", long: "O cofetărie artizanală de inspirație franceză, specializată în eclere și macarons." },
+    { short: "Design Interior", long: "Un studio de design interior și arhitectură axat pe spații rezidențiale ecologice și soluții smart-home." },
+    { short: "Cosmetică Organică", long: "Un salon de cosmetică organică ce folosește exclusiv produse naturale, cruelty-free." },
+    { short: "Galerie & Cafenea", long: "O galerie de artă contemporană combinată cu o cafenea de specialitate, un spațiu creativ." },
+    { short: "Vinuri & Brânzeturi", long: "Un magazin specializat în vinuri rare și brânzeturi fine, cu zonă de degustare." },
+    { short: "Planificare Nunți", long: "O agenție de planificare a nuților de lux, axată pe evenimente tematice unice." },
+    { short: "Ceramică Artizanală", long: "Un atelier de ceramică unde se produc obiecte unicat și se organizează workshop-uri." },
+    
+    { short: "Arenă E-Sports", long: "Un studio și arenă de e-sports dotată cu PC-uri high-end și echipamente profesionale." },
+    { short: "Cafenea Board Games", long: "O cafenea dedicată pasionaților de board games și jocuri retro, cu bibliotecă de jocuri." },
+    { short: "Agenție TikTok", long: "O agenție de influencer marketing specializată în campanii virale pe TikTok." },
+    { short: "Sneakers Resale", long: "Un magazin de resale și autentificare pentru sneakers rari și ediții limitate." },
+    { short: "Aplicație de Dating", long: "O aplicație de dating inovatoare bazată pe interese comune și hobby-uri specifice." },
+    { short: "E-learning Financiar", long: "O platformă de e-learning dedicată educației financiare și investițiilor pentru tineri." },
+    { short: "Streetwear Sustenabil", long: "Un brand de haine streetwear produs exclusiv din materiale reciclate și sustenabile." },
+    { short: "Creare Conținut UGC", long: "O agenție care oferă servicii de creare conținut video autentic generat de utilizatori (UGC)." },
+    { short: "Coworking Nomazi", long: "Un hub de coworking conceput special pentru nevoile nomazilor digitali și freelancerilor." },
+    { short: "Platformă Freelancing", long: "O platformă de freelancing strict pentru specialiști locali verificați manual." },
+    { short: "Jocuri Video Indie", long: "Un studio independent de dezvoltare jocuri video axat pe povești interactive." },
+    { short: "Arhitectură Minimalistă", long: "Un birou de arhitectură minimalistă, concentrat pe case pasive și eficiente energetic." },
+    
+    { short: "Hotel de Plante", long: "Un serviciu de îngrijire și 'hotel' pentru plante de apartament pe durata vacanțelor." },
+    { short: "Catering pe Baza ADN", long: "Un serviciu premium de catering cu meniu ultra-personalizat pe baza analizei ADN." },
+    { short: "Ambalaje din Miceliu", long: "O fabrică de producție de ambalaje 100% biodegradabile din miceliu (ciuperci)." },
+    { short: "AI Limbajul Semnelor", long: "O aplicație software bazată pe AI pentru traducerea în timp real a limbajului semnelor." },
+    { short: "Matchmaking Co-fondatori", long: "O platformă inteligentă de matchmaking pentru a găsi partenerul ideal de afaceri." },
+    { short: "Fermă Hidroponică", long: "O fermă hidroponică urbană de microplante, furnizând direct către restaurante de top." },
+    { short: "Design Peisagistic", long: "Servicii de design peisagistic specializate strict pentru balcoane și terase urbane." },
+    { short: "Conversie Mașini Clasice", long: "Un atelier dedicat conversiei mașinilor clasice pe benzină în vehicule 100% electrice." },
+    { short: "Mobilier AR", long: "O aplicație de realitate augmentată care permite probarea mobilierului direct în casă." },
+    { short: "Reciclare Baterii", long: "O stație avansată de recuperare și reciclare a bateriilor de la mașinile electrice." },
+    { short: "Telemedicină Veterinară", long: "O platformă de telemedicină și triaj virtual pentru urgențele animalelor de companie." },
+    
+    { short: "Securitate Cibernetică", long: "O firmă de consultanță în securitate cibernetică specializată în audituri și teste de penetrare." },
+    { short: "Analiză de Risc", long: "O companie care oferă servicii de analiză de risc instituțional pentru corporații." },
+    { short: "Soluții AI", long: "O agenție de dezvoltare software axată pe implementarea soluțiilor de Inteligență Artificială." },
+    { short: "Fonduri Europene", long: "O firmă de consultanță specializată în redactarea de proiecte pentru obținerea de fonduri europene." },
+    { short: "Marketing Digital", long: "O agenție de marketing digital integrat, de la SEO și Google Ads până la Social Media." },
+    { short: "Cursuri Online", long: "O platformă agregator de cursuri online cu certificare recunoscută." },
+    { short: "Magazin Produse Bio", long: "Un magazin online dedicat exclusiv produselor alimentare certificate bio și ecologice." },
+    { short: "Aplicație de Fitness", long: "O aplicație mobilă de fitness cu antrenor virtual bazat pe AI." },
+    { short: "Consultanță Nutriție", long: "Un cabinet online de consultanță în nutriție cu planuri de mese personalizate." },
+    { short: "Livrare Vegană", long: "Un serviciu de livrare de mâncare 100% vegană bazată pe rețete gourmet." },
+    { short: "Biciclete Electrice", long: "Un sistem de închiriere de biciclete și trotinete electrice pentru turism urban." },
+    { short: "SEO B2B", long: "O agenție specializată în optimizare SEO tehnică pentru companiile B2B." },
+    { short: "Aplicații Mobile", long: "Un studio de dezvoltare nativă de aplicații mobile pentru iOS și Android." },
+    { short: "Juridică Online", long: "O platformă care oferă servicii de asistență și consultanță juridică online rapidă." }
 ];
 
 export default function DemoMobile() {
@@ -89,6 +152,20 @@ export default function DemoMobile() {
   const [activeAiPrompt, setActiveAiPrompt] = useState<{action: string, title: string, placeholder?: string} | null>(null);
   const [aiPromptInput, setAiPromptInput] = useState("");
   const [showShareSuccess, setShowShareSuccess] = useState(false);
+
+  const [examplesList, setExamplesList] = useState<any[]>(ALL_EXAMPLES.slice(0, 18));
+
+  useEffect(() => {
+    // Schimbare automată o dată la 14 zile
+    const twoWeeksMs = 14 * 24 * 60 * 60 * 1000;
+    const epoch = 1700000000000; 
+    const startIndex = (Math.floor((Date.now() - epoch) / twoWeeksMs) * 18) % ALL_EXAMPLES.length;
+    const currentExamples = [];
+    for (let i = 0; i < 18; i++) {
+      currentExamples.push(ALL_EXAMPLES[(startIndex + i) % ALL_EXAMPLES.length]);
+    }
+    setExamplesList(currentExamples);
+  }, []);
 
   // Progressive loading messages
   const [loadingMessageIndex, setLoadingMessageIndex] = useState(0);
@@ -359,17 +436,17 @@ export default function DemoMobile() {
             <div className="space-y-3">
               <h4 className="text-xs font-bold text-zinc-400 px-1">Idei de inspirație (atinge pentru generare)</h4>
               <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-none snap-x px-1">
-                {ALL_EXAMPLES.map((ex, idx) => (
+                {examplesList.map((ex, idx) => (
                   <button
                     key={idx}
                     onClick={() => {
-                      setSkill(ex.text);
-                      handleGenerate(ex.text);
+                      setSkill(ex.long);
+                      handleGenerate(ex.long);
                     }}
                     className="flex-shrink-0 bg-zinc-900/60 border border-zinc-800 hover:border-emerald-500/30 rounded-xl p-4 w-[240px] text-left snap-start transition-all"
                   >
-                    <span className="text-[10px] text-emerald-400 font-bold uppercase tracking-wider block mb-1">{ex.niche}</span>
-                    <p className="text-xs font-semibold text-zinc-200 line-clamp-2">{ex.text}</p>
+                    <span className="text-[10px] text-emerald-400 font-bold uppercase tracking-wider block mb-1">{ex.short}</span>
+                    <p className="text-xs font-semibold text-zinc-200 line-clamp-2">{ex.long}</p>
                   </button>
                 ))}
               </div>

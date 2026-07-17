@@ -178,6 +178,7 @@ Formele acceptate de acord expres:
 - **components/DemoMobile.tsx** / **components/StudioMobile.tsx** — Schelete premium pentru interfața mobil. ÎNGHEȚATE.
 - **app/demo/page.tsx** / **app/studio/page.tsx** — Rescrise ca simple dispatchere (dispecerate client-side) bazate pe `useDeviceDetect`. ÎNGHEȚATE.
 - **app/dashboard/page.tsx** — Apelat `migrateLocalPlansToFirebase(currentUser)` înainte de a face query la planurile utilizatorului pentru a elimina definitiv race condition-ul la prima logare/înregistrare. ÎNGHEȚAT.
+- **tsconfig.json** — Eliminat `"baseUrl": "."` pentru a rezolva conflictul de sintaxă cu `"moduleResolution": "bundler"` raportat în VS Code. ÎNGHEȚAT.
 
 ---
 

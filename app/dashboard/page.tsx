@@ -7,6 +7,7 @@ import { auth, db } from '@/lib/firebase';
 import { onAuthStateChanged, User, sendEmailVerification, signOut } from 'firebase/auth';
 import { collection, query, orderBy, getDocs, doc, deleteDoc } from 'firebase/firestore';
 import { Plus, FileText, Calendar, ArrowRight, Loader2, Sparkles, Mail, AlertTriangle, Trash2 } from 'lucide-react';
+import { migrateLocalPlansToFirebase } from '@/lib/migrationManager';
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -73,6 +74,9 @@ export default function DashboardPage() {
       setUser(currentUser);
       
       try {
+        // Asigurăm migrarea planurilor locale înainte de a le prelua din Firestore (elimină race condition-ul)
+        await migrateLocalPlansToFirebase(currentUser);
+
         const plansRef = collection(db, "users", currentUser.uid, "plans");
         const q = query(plansRef, orderBy("createdAt", "desc"));
         const snapshot = await getDocs(q);

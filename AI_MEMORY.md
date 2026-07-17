@@ -171,7 +171,18 @@ Formele acceptate de acord expres:
 
 ---
 
+## FREEZE (17 Iulie 2026 — Izolare Mobil/Tabletă & Rezolvare Race Condition Dashboard)
+- **hooks/useDeviceDetect.ts** — Hook client-side pentru detecția ecranelor sub 1024px (Mobile/Tablet). ÎNGHEȚAT.
+- **components/DemoDesktop.tsx** — Izolat componenta desktop a generatorului Demo. ÎNGHEȚAT.
+- **components/StudioDesktop.tsx** — Izolat componenta desktop a paginii Studio. ÎNGHEȚAT.
+- **components/DemoMobile.tsx** / **components/StudioMobile.tsx** — Schelete premium pentru interfața mobil. ÎNGHEȚATE.
+- **app/demo/page.tsx** / **app/studio/page.tsx** — Rescrise ca simple dispatchere (dispecerate client-side) bazate pe `useDeviceDetect`. ÎNGHEȚATE.
+- **app/dashboard/page.tsx** — Apelat `migrateLocalPlansToFirebase(currentUser)` înainte de a face query la planurile utilizatorului pentru a elimina definitiv race condition-ul la prima logare/înregistrare. ÎNGHEȚAT.
+
+---
+
 ## RĂMÂNE DE FĂCUT
+- **IMPLEMENTARE MOBIL PREMIUM** — Dezvoltarea completă a componentelor `DemoMobile.tsx` și `StudioMobile.tsx` în Phase 2.
 - **DEPLOY** — `git push origin main` → actualizează live app cu toate optimizările recente. Decizie utilizator.
 - **Vercel ENV** — Adaugă `NEXT_PUBLIC_PROMO_STANDARD/FONDURI/ADMIN` în Vercel Dashboard (tu manual). Done.
 - **Email Firebase template** — Emailul de verificare e în engleză. Personalizare în română în Firebase Console → Authentication → Templates. Done.

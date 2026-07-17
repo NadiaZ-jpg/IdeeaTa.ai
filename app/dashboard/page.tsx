@@ -5,8 +5,8 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { auth, db } from '@/lib/firebase';
 import { onAuthStateChanged, User, sendEmailVerification, signOut } from 'firebase/auth';
-import { collection, query, orderBy, getDocs } from 'firebase/firestore';
-import { Plus, FileText, Calendar, ArrowRight, Loader2, Sparkles, Mail, AlertTriangle } from 'lucide-react';
+import { collection, query, orderBy, getDocs, doc, deleteDoc } from 'firebase/firestore';
+import { Plus, FileText, Calendar, ArrowRight, Loader2, Sparkles, Mail, AlertTriangle, Trash2 } from 'lucide-react';
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -45,6 +45,22 @@ export default function DashboardPage() {
       } catch (error) {
         console.error("Eroare trimitere email:", error);
       }
+    }
+  };
+
+  const handleDeletePlan = async (e: React.MouseEvent, planId: string) => {
+    e.stopPropagation(); // Previne navigarea la studio
+    if (!user) return;
+    
+    const confirmDelete = window.confirm("Ești sigur că dorești să ștergi definitiv acest plan de afaceri? Această acțiune nu poate fi anulată.");
+    if (!confirmDelete) return;
+    
+    try {
+      await deleteDoc(doc(db, "users", user.uid, "plans", planId));
+      setPlans(plans.filter(p => p.id !== planId));
+    } catch (err) {
+      console.error("Eroare la ștergerea planului:", err);
+      alert("A apărut o eroare la ștergerea planului. Te rugăm să încerci din nou.");
     }
   };
 
@@ -189,7 +205,17 @@ export default function DashboardPage() {
 
                 <div className="mt-auto pt-4 border-t border-zinc-800/80 flex justify-between items-center text-emerald-400 font-bold text-sm">
                   <span>Deschide în Studio</span>
-                  <ArrowRight className="w-4 h-4 transform group-hover:translate-x-1 transition-transform" />
+                  <div className="flex items-center gap-3">
+                    <button
+                      type="button"
+                      onClick={(e) => handleDeletePlan(e, plan.id)}
+                      className="p-1.5 text-zinc-500 hover:text-red-400 hover:bg-zinc-800/50 rounded-lg transition-all"
+                      title="Șterge planul"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                    <ArrowRight className="w-4 h-4 transform group-hover:translate-x-1 transition-transform" />
+                  </div>
                 </div>
               </div>
             ))}

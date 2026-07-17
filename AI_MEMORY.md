@@ -160,12 +160,22 @@ Formele acceptate de acord expres:
 
 ---
 
+## FREEZE (17 Iulie 2026 — Finalizare Raport: Migrare, Guard Email Studio, OG Image, Ștergere Dashboard)
+- **app/demo/page.tsx** — Sincronizat asincron cu Firebase la autentificare direct pe pagină, adăugat suport pentru listă de planuri multiple (`demo_plans_list`). ÎNGHEȚAT.
+- **app/studio/page.tsx** — Activat email verification guard (pop-up cu trimitere email și redirect la închidere către `/dashboard`). ÎNGHEȚAT.
+- **app/dashboard/page.tsx** — Adăugat buton discret de ștergere planuri direct din Dashboard (`Trash2`) cu confirmare nativă (`confirm()`). ÎNGHEȚAT.
+- **lib/migrationManager.ts** — Rescris pentru a sprijini migrarea completă a listei de planuri locale `demo_plans_list`. ÎNGHEȚAT.
+- **public/og-image.jpg** — Adăugată imaginea OpenGraph (Opțiunea 1) în folderul public pentru rețelele sociale. ÎNGHEȚAT.
+- Build verificat: ✅ `✓ Compiled successfully` (22/22 pagini, 0 warning-uri/erori).
+- Checkpoint Git realizat: `Checkpoint-17-Iulie-2026-Finalizare-Raport`
+
+---
+
 ## RĂMÂNE DE FĂCUT
 - **DEPLOY** — `git push origin main` → actualizează live app cu toate optimizările recente. Decizie utilizator.
 - **Vercel ENV** — Adaugă `NEXT_PUBLIC_PROMO_STANDARD/FONDURI/ADMIN` în Vercel Dashboard (tu manual). Done.
 - **Email Firebase template** — Emailul de verificare e în engleză. Personalizare în română în Firebase Console → Authentication → Templates. Done.
-- **Studio guard email** — `app/studio/page.tsx` are același `if (false && ...)` dezactivat. Activăm și acolo? Decizie utilizator.
-- **Bannere Conversie** — Opțiunea 2 & 3. Done.
+
 
 
 

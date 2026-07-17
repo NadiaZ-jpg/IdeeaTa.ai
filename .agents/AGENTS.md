@@ -67,27 +67,34 @@ Orice agent care primește o instrucțiune ambiguă trebuie să CEARĂ CONFIRMAR
 
 ---
 
-## FREEZE TOTAL — Inventar Complet Sesiunea 16 Iulie 2026
+## FREEZE TOTAL — Inventar Complet Sesiunea 17 Iulie 2026
 
 ### Fișiere ÎNGHEȚATE (nu se modifică fără override explicit):
 | Fișier | Motivul Freeze |
 |---|---|
-| `app/demo/page.tsx` | REGULA #8 — Funnel Try-Before-You-Buy perfect |
-| `app/studio/page.tsx` | REGULA #9 — Seiful aplicației |
-| `app/login/page.tsx` | REGULA #10 |
-| `app/page.tsx` | REGULA #11 — Landing Page |
-| `app/shared/[id]/page.tsx` | Pasul 1 — Redirecționare corectă la `/demo` pentru planuri partajate |
-| `app/contact/page.tsx`, `app/cookies/page.tsx`, `app/despre-noi/page.tsx`, `app/privacy/page.tsx`, `app/termeni/page.tsx` | Pasul 2 — Înlocuit referințe `/start` cu `/demo` |
-| `lib/firebase.ts` | Aliniere import Firestore la nivel client-side (remediere eroare runtime /studio) |
-| `app/api/verify-checkout/route.ts` | Pasul 2 — Lemon Squeezy, fără Stripe |
-| `hooks/useStudioFirebaseSync.ts` | Pasul 3 — Sync Firebase |
-| `components/EditForm.tsx` | Pasul 4 — Mutat din /app |
-| `components/BudgetChart.tsx` | Pasul 4 — Mutat din /app |
-| `components/StudioDataLoader.tsx` | REGULA #16 — Sertarul intangibil |
-| `lib/accessControl.ts` | REGULA #17 — 2 pachete fixe |
-| `components/PricingModal.tsx` | REGULA #17 — Structura pachete |
-| `components/ConversionBanners.tsx` | Bannere de conversie premium (previzualizare planuri partajate & salvare plan nelogat) |
-| `next.config.ts` | Eliminat warning-ul de Turbopack root prin folosirea calea absolută `process.cwd()` |
+| `app/demo/page.tsx` | Dispecerat client-side pentru mobil/desktop |
+| `app/studio/page.tsx` | Dispecerat client-side pentru mobil/desktop |
+| `app/login/page.tsx` | Guard-uri autentificare și butoane Google/Facebook active |
+| `app/page.tsx` | Landing Page |
+| `app/dashboard/page.tsx` | Afișare planuri, delogare, ștergere directă și migrare asincronă la mount |
+| `app/shared/[id]/page.tsx` | Redirecționare la `/demo` pentru planuri partajate |
+| `app/contact/page.tsx`, `app/cookies/page.tsx`, `app/despre-noi/page.tsx`, `app/privacy/page.tsx`, `app/termeni/page.tsx` | Înlocuit referințe `/start` cu `/demo` |
+| `lib/firebase.ts` | Aliniere import Firestore și `authDomain: window.location.host` pentru login social |
+| `lib/migrationManager.ts` | Migrare automată a planurilor multiple din `demo_plans_list` la login |
+| `app/api/verify-checkout/route.ts` | Lemon Squeezy integration, fără Stripe |
+| `hooks/useStudioFirebaseSync.ts` | Sync Firestore pentru planurile din Dashboard |
+| `hooks/useDeviceDetect.ts` | Hook client-side pentru detecția ecranelor sub 1024px (Mobile/Tablet) |
+| `components/DemoDesktop.tsx` | Logica completă și designul desktop al generatorului Demo |
+| `components/StudioDesktop.tsx` | Logica completă și designul desktop al paginii Studio |
+| `components/DemoMobile.tsx` | Interfața de mobil pentru Demo (schelet / de implementat în Phase 2) |
+| `components/StudioMobile.tsx` | Interfața de mobil pentru Studio (schelet / de implementat în Phase 2) |
+| `components/EditForm.tsx` | Editare secțiuni plan, mutat din /app |
+| `components/BudgetChart.tsx` | Grafic buget investiții, mutat din /app |
+| `components/StudioDataLoader.tsx` | Sertarul intangibil de fetch |
+| `lib/accessControl.ts` | Logica pachetelor de prețuri (Standard vs Profesionale) |
+| `components/PricingModal.tsx` | Structura pachete și coduri promoționale |
+| `components/ConversionBanners.tsx` | Bannere de conversie premium în demo |
+| `next.config.ts` | Configurare rewrites auth și turbopack root absolut |
 
 ### Fișiere ȘTERSE definitiv (nu se recreează) / ARHIVATE:
 - `app/EditForm.tsx`
@@ -97,10 +104,30 @@ Orice agent care primește o instrucțiune ambiguă trebuie să CEARĂ CONFIRMAR
 - `backup_siguranta/page.tsx.backup`
 - `backup_siguranta/page.tsx.test`
 
-### Build verificat la finalul sesiunii:
-- ✅ `✓ Compiled successfully in 103s` (fără warning-uri de compilare)
+---
+
+## ISTORIC CHECKPOINT-URI RECENTE
+
+### Checkpoint-16-Iulie-2026-12-50-Fix-LocalStorage-Dashboard-Logout
+- Corectat race condition la mount în demo și studio (cu `isInitialMount = useRef(true)`).
+- Adăugat buton de logout în Dashboard și afișat email în Header.
+- Integrat asincron `migrateLocalPlansToFirebase(currentUser)` în `onAuthStateChanged` pe demo.
+
+### Checkpoint-17-Iulie-2026-Finalizare-Raport
+- Adăugat suport pentru listă de planuri multiple (`demo_plans_list`) în `migrationManager.ts` și demo.
+- Activat email verification guard pe pagina Studio cu redirect la închidere către `/dashboard`.
+- Adăugat buton discret de ștergere planuri direct din Dashboard (`Trash2`).
+- Adăugată imagine OpenGraph `public/og-image.jpg`.
+
+### Checkpoint-17-Iulie-2026-Izolare-Mobil-Si-Race-Condition
+- Izolat codul desktop masiv din `/demo` și `/studio` în componente separate.
+- Adăugate dispecerate client-side și hook-ul custom `useDeviceDetect`.
+- Aşteptat finalizarea asincronă a migrării în Dashboard înainte de a efectua query-ul pe colecția de planuri din Firestore (rezolvare definitivă race condition).
+
+### Build verificat la final:
+- ✅ `✓ Compiled successfully`
 - ✅ `✓ Generating static pages (22/22)`
-- ✅ Zero erori TypeScript
+- ✅ Zero erori TypeScript sau warning-uri de compilare.
 
 
 

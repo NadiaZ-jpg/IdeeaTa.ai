@@ -16,7 +16,7 @@ Formele acceptate de acord expres:
 
 
 ## DATE PROIECT
-- **Cale oficială:** `E:\NADIA\Aplicatii\IdeeaTa-latest_18062026\IdeeaTa-latest`
+- **Cale oficială:** `D:\APLICATII\IdeeaTa-latest_17072026\IdeeaTa-latest`
 - **Framework:** Next.js 15.5.20
 - **Plăți:** Lemon Squeezy (NU Stripe)
 - **Auth + DB:** Firebase (Firestore + Auth)
@@ -179,6 +179,13 @@ Formele acceptate de acord expres:
 - **app/demo/page.tsx** / **app/studio/page.tsx** — Rescrise ca simple dispatchere (dispecerate client-side) bazate pe `useDeviceDetect`. ÎNGHEȚATE.
 - **app/dashboard/page.tsx** — Apelat `migrateLocalPlansToFirebase(currentUser)` înainte de a face query la planurile utilizatorului pentru a elimina definitiv race condition-ul la prima logare/înregistrare. ÎNGHEȚAT.
 - **tsconfig.json** — Eliminat `"baseUrl": "."` pentru a rezolva conflictul de sintaxă cu `"moduleResolution": "bundler"` raportat în VS Code. ÎNGHEȚAT.
+
+---
+
+## FREEZE (17 Iulie 2026 — Sincronizare, Cale Nouă și Checkpoint)
+- **Cale oficială**: Actualizat calea oficială la `D:\APLICATII\IdeeaTa-latest_17072026\IdeeaTa-latest` în `AI_MEMORY.md`.
+- **Sincronizare**: Workspace-ul activ `e:\NADIA\Aplicatii\IdeeaTa-latest` sincronizat 100% cu noul cod de mobil/tabletă și istoricul Git de 27 de commit-uri.
+- **Checkpoint Git**: `Checkpoint-17-Iulie-2026-Sincronizare-Si-Cale-Noua`.
 
 ---
 

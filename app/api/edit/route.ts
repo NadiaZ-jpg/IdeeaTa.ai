@@ -43,65 +43,132 @@ function extractRelevantSection(result: any, action: string) {
 
 export async function POST(req: NextRequest) {
   try {
-    const { result, action, customStyle, targetSection } = await req.json();
+    const { result, action, customStyle, targetSection, locale } = await req.json();
+    const isEn = locale === "en";
 
     let instruction = "";
-    if (action === "professional_tone") {
-      instruction = `Rescrie conținutul textual pentru a avea un ton ${customStyle || 'formal, corporativ și profesionist'}, păstrând structura exactă. Nu modifica cifrele.`;
-    } else if (action === "optimize_budget") {
-      instruction = `Redu costurile din 'plan_financiar.buget_investitii' cu aproximativ ${targetSection}% și ajustează explicațiile arătând cum s-a făcut economia. Păstrează restul neatins.`;
-    } else if (action === "add_sections") {
-      instruction = `Generează SECȚIUNI NOI de text pentru planul de afaceri, referitoare strict la subiectele cerute: "${targetSection || 'orice consideri necesar'}". 
-      IMPORTANT:
-      - Dacă cerința utilizatorului reprezintă o comandă de ștergere sau modificare a unor lucruri existente (ex: "elimină", "șterge", "modifică capitolul X"), returnează o secțiune cu titlul "⚠️ Sfat de Editare" și explică în "continut" că acest instrument AI este doar pentru a *adăuga* secțiuni noi, iar pentru ștergeri/modificări trebuie să folosească butonul 🗑️ din Studio Editare sau să editeze manual textul.
-      - Nu folosi formatare de tip Tabel Markdown (cu bare verticale |). Structurează informația sub formă de listă numerotată (1., 2., 3. etc) deoarece interfața afișează doar text simplu.
-      - NU RETURNĂ planul curent!
-      - Returnează EXCLUSIV un JSON care conține doar o singură cheie numită "sectiuni_aditionale".
-      - Această cheie trebuie să fie un ARRAY de obiecte. Fiecare obiect conține "titlu" și "continut".
-      - Dacă utilizatorul cere mai multe lucruri distincte (ex: "plan marketing și analiza riscurilor"), creează CÂTE UN OBIECT SEPARAT pentru fiecare subiect în acest array.
-      - Conținutul trebuie să fie foarte detaliat, profesional, și formatat cu \\n pentru paragrafe.
-      
-      Format exact obligatoriu (exemplu cu 2 secțiuni):
-      {
-        "sectiuni_aditionale": [
-          {
-            "titlu": "Planul de Marketing",
-            "continut": "Textul detaliat pentru marketing..."
-          },
-          {
-            "titlu": "Analiza Riscurilor",
-            "continut": "Textul detaliat pentru riscuri..."
-          }
-        ]
-      }`;
-    } else if (action === "eu_funds_optimization") {
-      instruction = `RESCRIE ÎNTREAGA STRUCTURĂ a acestui plan de afaceri pentru a fi "OPTIMIZAT PENTRU FONDURI EUROPENE".
-Trebuie să traduci ideea în limbajul birocratic și strategic al Uniunii Europene, bifând criteriile stricte:
-1. Alinierea strategică perfectă (Relevanța): Demonstrează cum proiectul contribuie la digitalizare, tranziție verde și reducerea amprentei de carbon.
-2. Matricea logică și Indicatorii de performanță (KPIs): Adaugă obiective clare (Output, Outcome, Impact) în vizune și strategie.
-3. Bugetarea corectă: Menționează principiul raportului calitate-preț, cash-flow-ul și eligibilitatea cheltuielilor în strategia financiară.
-4. Criterii transversale: Integrează nativ Egalitatea de șanse, non-discriminarea și principiul DNSH (Dezvoltare durabilă / A nu aduce prejudicii semnificative mediului).
-5. Sustenabilitatea post-proiect: Demonstrează clar cum investiția va continua să funcționeze 3-5 ani de la finalizare.
-IMPORTANT: Păstrează structura JSON originală, dar rescrie și îmbogățește masiv conținutul capitolelor existente! Nu modifica cifrele brute.`;
-    } else if (action === "investor_ready") {
-      instruction = `RESCRIE ÎNTREAGA STRUCTURĂ a acestui plan de afaceri pentru a atrage investitori și bănci ("PLAN PROFESIONIST").
-Transformă limbajul pentru a pune accent masiv pe viabilitate comercială, managementul riscului și profitabilitate:
-1. Dinamică financiară impecabilă: Introdu proiecții de Cash-Flow, IRR, NPV, ROI și DSCR în strategia financiară.
-2. Analiza de senzitivitate și Scenarii de risc: Simulează eșecul controlat (ce se întâmplă dacă costurile cresc sau vânzările scad).
-3. Validarea pieței (Market Traction): Detaliază piața (TAM, SAM, SOM), Unit Economics (CAC vs LTV 1:3) și Barierele la intrare (Moat).
-4. Finanțare și Strategie de Exit: Explică 'skin in the game', destinația clară a capitalului (runway) și Strategia de Exit (IPO, achiziție).
-5. Echipa de Management: Subliniază competențele complementare și track record-ul.
-IMPORTANT: Păstrează structura JSON originală (viziune_strategie, analiza_pietei, plan_operational, analiza_swot, plan_financiar), dar rescrie și îmbogățește masiv conținutul capitolelor existente! Nu modifica cifrele brute ale bugetului investiției, ci adaugă explicațiile financiare teoretice în 'strategie_financiara'.`;
-    } else if (action === "shorten_for_export") {
-      instruction = "Scurtează și sintetizează drastic textul (analiza pieței, planul operațional, SWOT, strategia financiară). Menține esența dar folosește fraze scurte. Redu volumul la jumătate pentru slide-uri.";
+    if (isEn) {
+      if (action === "professional_tone") {
+        instruction = `Rewrite the textual content to have a ${customStyle || 'formal, corporate and professional'} tone, keeping the exact structure. Do not change any numbers.`;
+      } else if (action === "optimize_budget") {
+        instruction = `Reduce costs in 'plan_financiar.buget_investitii' by approximately ${targetSection}% and adjust explanations showing how the savings were achieved. Keep everything else untouched.`;
+      } else if (action === "add_sections") {
+        instruction = `Generate NEW text sections for the business plan, referring strictly to the requested topics: "${targetSection || 'anything you deem necessary'}". 
+        IMPORTANT:
+        - If the user request is a delete or modify command (e.g. "remove", "delete", "modify chapter X"), return a section titled "⚠️ Editing Tip" and explain in "continut" that this AI tool is only for adding new sections, and for deletions/modifications they should use the trash icon 🗑️ in the Studio or manually edit the text.
+        - Do not use Markdown Table formatting (no vertical bars |). Structure the info as a numbered list (1., 2., 3., etc.) since the UI only displays plain text.
+        - DO NOT return the current plan!
+        - Return EXCLUSIVELY a JSON containing only a single key called "sectiuni_aditionale".
+        - This key must be an ARRAY of objects. Each object contains "titlu" and "continut".
+        - If the user asks for multiple distinct things, create SEPARATE OBJECTS for each topic in this array.
+        - Content must be highly detailed and formatted with \\n for paragraphs.
+        
+        Exact mandatory format (example with 2 sections):
+        {
+          "sectiuni_aditionale": [
+            {
+              "titlu": "Marketing Plan",
+              "continut": "Detailed marketing plan..."
+            },
+            {
+              "titlu": "Risk Analysis",
+              "continut": "Detailed risk analysis..."
+            }
+          ]
+        }`;
+      } else if (action === "eu_funds_optimization") {
+        instruction = `REWRITE THE ENTIRE STRUCTURE of this business plan to be "OPTIMIZED FOR GREEN & DIGITAL FUNDING PROGRAMS".
+You must align the project with strict EU/international funding criteria:
+1. Strategic alignment (Relevance): Detail how the project contributes to digitalization, green transition, and reducing the carbon footprint.
+2. Logical framework and KPIs: Add clear output/outcome/impact indicators in the vision and strategy.
+3. Proper budgeting: Mention cost-efficiency, cash-flow stability, and eligibility of expenses in the financial strategy.
+4. Horizontal criteria: Integrate gender equality, non-discrimination, and DNSH (Do No Significant Harm to the environment).
+5. Sustainability: Show how the project remains viable 3-5 years after completion.
+IMPORTANT: Keep the original JSON structure, but rewrite and enrich the content of existing sections! Do not change budget numbers.`;
+      } else if (action === "investor_ready") {
+        instruction = `REWRITE THE ENTIRE STRUCTURE of this business plan to attract investors and banks ("PROFESSIONAL PLAN").
+Transform the language to emphasize commercial viability, risk management, and profitability:
+1. Financial dynamics: Introduce Cash-Flow projections, IRR, NPV, ROI, and runway in the financial strategy.
+2. Sensitivity analysis and risk scenarios: Simulate controlled failures (e.g., if costs rise or sales drop).
+3. Market traction: Detail the market size (TAM, SAM, SOM), Unit Economics (CAC vs LTV 1:3), and entry barriers (Moat).
+4. Financing & Exit strategy: Explain the use of funds and exit strategies (IPO, acquisition).
+5. Management team: Highlight complementary skills and track record.
+IMPORTANT: Keep the original JSON structure, but rewrite and enrich the content of existing sections! Do not change budget numbers.`;
+      } else if (action === "shorten_for_export") {
+        instruction = "Shorten and synthesize the text drastically. Keep the essence but use short sentences. Reduce the volume by half for presentation slides.";
+      } else {
+        instruction = "Perform minor improvements for flow and correctness.";
+      }
     } else {
-      instruction = "Operează mici îmbunătățiri de corectură și fluență pe text.";
+      if (action === "professional_tone") {
+        instruction = `Rescrie conținutul textual pentru a avea un ton ${customStyle || 'formal, corporativ și profesionist'}, păstrând structura exactă. Nu modifica cifrele.`;
+      } else if (action === "optimize_budget") {
+        instruction = `Redu costurile din 'plan_financiar.buget_investitii' cu aproximativ ${targetSection}% și ajustează explicațiile arătând cum s-a făcut economia. Păstrează restul neatins.`;
+      } else if (action === "add_sections") {
+        instruction = `Generează SECȚIUNI NOI de text pentru planul de afaceri, referitoare strict la subiectele cerute: "${targetSection || 'orice consideri necesar'}". 
+        IMPORTANT:
+        - Dacă cerința utilizatorului reprezintă o comandă de ștergere sau modificare a unor lucruri existente (ex: "elimină", "șterge", "modifică capitolul X"), returnează o secțiune cu titlul "⚠️ Sfat de Editare" și explică în "continut" că acest instrument AI este doar pentru a *adăuga* secțiuni noi, iar pentru ștergeri/modificări trebuie să folosească butonul 🗑️ din Studio Editare sau să editeze manual textul.
+        - Nu folosi formatare de tip Tabel Markdown (cu bare verticale |). Structurează informația sub formă de listă numerotată (1., 2., 3. etc) deoarece interfața afișează doar text simplu.
+        - NU RETURNĂ planul curent!
+        - Returnează EXCLUSIV un JSON care conține doar o singură cheie numită "sectiuni_aditionale".
+        - Această cheie trebuie să fie un ARRAY de obiecte. Fiecare obiect conține "titlu" și "continut".
+        - Dacă utilizatorul cere mai multe lucruri distincte (ex: "plan marketing și analiza riscurilor"), creează CÂTE UN OBIECT SEPARAT pentru fiecare subiect în acest array.
+        - Conținutul trebuie să fie foarte detaliat, profesional, și formatat cu \\n pentru paragrafe.
+        
+        Format exact obligatoriu (exemplu cu 2 secțiuni):
+        {
+          "sectiuni_aditionale": [
+            {
+              "titlu": "Planul de Marketing",
+              "continut": "Textul detaliat pentru marketing..."
+            },
+            {
+              "titlu": "Analiza Riscurilor",
+              "continut": "Textul detaliat pentru riscuri..."
+            }
+          ]
+        }`;
+      } else if (action === "eu_funds_optimization") {
+        instruction = `RESCRIE ÎNTREAGA STRUCTURĂ a acestui plan de afaceri pentru a fi "OPTIMIZAT PENTRU FONDURI EUROPENE".
+  Trebuie să traduci ideea în limbajul birocratic și strategic al Uniunii Europene, bifând criteriile stricte:
+  1. Alinierea strategică perfectă (Relevanța): Demonstrează cum proiectul contribuie la digitalizare, tranziție verde și reducerea amprentei de carbon.
+  2. Matricea logică și Indicatorii de performanță (KPIs): Adaugă obiective clare (Output, Outcome, Impact) în vizune și strategie.
+  3. Bugetarea corectă: Menționează principiul raportului calitate-preț, cash-flow-ul și eligibilitatea cheltuielilor în strategia financiară.
+  4. Criterii transversale: Integrează nativ Egalitatea de șanse, non-discriminarea și principiul DNSH (Dezvoltare durabilă / A nu aduce prejudicii semnificative mediului).
+  5. Sustenabilitatea post-proiect: Demonstrează clar cum investiția va continua să funcționeze 3-5 ani de la finalizare.
+  IMPORTANT: Păstrează structura JSON originală, dar rescrie și îmbogățește masiv conținutul capitolelor existente! Nu modifica cifrele brute.`;
+      } else if (action === "investor_ready") {
+        instruction = `RESCRIE ÎNTREAGA STRUCTURĂ a acestui plan de afaceri pentru a atrage investitori și bănci ("PLAN PROFESIONIST").
+  Transformă limbajul pentru a pune accent masiv pe viabilitate comercială, managementul riscului și profitabilitate:
+  1. Dinamică financiară impecabilă: Introdu proiecții de Cash-Flow, IRR, NPV, ROI și DSCR în strategia financiară.
+  2. Analiza de senzitivitate și Scenarii de risc: Simulează eșecul controlat (ce se întâmplă dacă costurile cresc sau vânzările scad).
+  3. Validarea pieței (Market Traction): Detaliază piața (TAM, SAM, SOM), Unit Economics (CAC vs LTV 1:3) și Barierele la intrare (Moat).
+  4. Finanțare și Strategie de Exit: Explică 'skin in the game', destinația clară a capitalului (runway) și Strategia de Exit (IPO, achiziție).
+  5. Echipa de Management: Subliniază competențele complementare și track record-ul.
+  IMPORTANT: Păstrează structura JSON originală (viziune_strategie, analiza_pietei, plan_operational, analiza_swot, plan_financiar), dar rescrie și îmbogățește masiv conținutul capitolelor existente! Nu modifica cifrele brute ale bugetului investiției, ci adaugă explicațiile financiare teoretice în 'strategie_financiara'.`;
+      } else if (action === "shorten_for_export") {
+        instruction = "Scurtează și sintetizează drastic textul (analiza pieței, planul operațional, SWOT, strategia financiară). Menține esența dar folosește fraze scurte. Redu volumul la jumătate pentru slide-uri.";
+      } else {
+        instruction = "Operează mici îmbunătățiri de corectură și fluență pe text.";
+      }
     }
 
     // Use only the relevant section for most actions to reduce token usage
     const inputData = extractRelevantSection(result, action);
 
-    let prompt = `Ești un consultant de afaceri expert. 
+    let prompt = isEn ? `You are an expert business consultant. 
+Here is the background information of the current plan for context:
+${JSON.stringify(inputData)}
+
+YOUR TASK:
+${instruction}
+
+You must respond EXCLUSIVELY with a valid JSON.
+IMPORTANT FOR JSON: 
+- DO NOT use real unescaped newlines inside strings! For paragraphs, strictly use '\\n' (escaped).
+- You MUST escape double quotes inside text using backslash (\\"). It is safest to use single quotes (') inside text.
+- NO trailing commas.
+- DO NOT add markdown formatting, DO NOT add backticks (\`\`\`), DO NOT add additional text before or after the JSON.` : `Ești un consultant de afaceri expert. 
 Aici sunt informațiile de bază ale planului curent pentru context:
 ${JSON.stringify(inputData)}
 
@@ -113,7 +180,7 @@ IMPORTANT PENTRU JSON:
 - NU folosi rânduri noi reale (unescaped newlines) în interiorul string-urilor! Pentru paragrafe, folosește strict '\\n' (escapat).
 - ESCAPEAZĂ obligatoriu ghilimelele duble din interiorul textului folosind backslash (\\"). Cel mai sigur este să folosești doar ghilimele simple (') în interiorul textului.
 - FĂRĂ virgule la finalul ultimului element din obiect sau array (fără trailing commas).
-NU adăuga formatare markdown, NU adăuga backticks (\`\`\`), NU adăuga text adițional înainte sau după JSON.`;
+- NU adăuga formatare markdown, NU adăuga backticks (\`\`\`), NU adăuga text adițional înainte sau după JSON.`;
 
     const callGemini = async (sysPrompt: string) => {
       let retries = 3;
@@ -159,7 +226,20 @@ NU adăuga formatare markdown, NU adăuga backticks (\`\`\`), NU adăuga text ad
        const pSwot = { analiza_swot: result.analiza_swot };
        const pFinanciar = { plan_financiar: { strategie_financiara: result.plan_financiar?.strategie_financiara } };
 
-       const buildPrompt = (segment: any) => `Ești un consultant de afaceri expert. 
+       const buildPrompt = (segment: any) => isEn ? `You are an expert business consultant. 
+Act upon the following segment of the business plan.
+${instruction}
+
+Current plan segment:
+${JSON.stringify(segment)}
+
+You must respond EXCLUSIVELY with a valid JSON, respecting the original structure of the received segment.
+If you received a single field, return it in the same JSON format.
+IMPORTANT FOR JSON: 
+- DO NOT use real unescaped newlines inside strings! For paragraphs, strictly use '\\n' (escaped).
+- You MUST escape double quotes inside text using backslash (\\"). It is safest to use single quotes (') inside text.
+- NO trailing commas.
+- DO NOT add markdown formatting, DO NOT add backticks (\`\`\`), DO NOT add additional text before or after the JSON.` : `Ești un consultant de afaceri expert. 
 Acționează asupra următorului segment de plan de afaceri.
 ${instruction}
 
@@ -172,7 +252,7 @@ IMPORTANT PENTRU JSON:
 - NU folosi rânduri noi reale (unescaped newlines) în interiorul string-urilor! Pentru paragrafe, folosește strict '\\n' (escapat).
 - ESCAPEAZĂ obligatoriu ghilimelele duble din interiorul textului folosind backslash (\\"). Cel mai sigur este să folosești doar ghilimele simple (') în interiorul textului.
 - FĂRĂ virgule la finalul ultimului element din obiect sau array (fără trailing commas).
-NU adăuga formatare markdown, NU adăuga backticks (\`\`\`), NU adăuga text adițional înainte sau după JSON.`;
+- NU adăuga formatare markdown, NU adăuga backticks (\`\`\`), NU adăuga text adițional înainte sau după JSON.`;
 
        const [resViz, resPiata, resOp, resSwot, resFin] = await Promise.all([
           callGemini(buildPrompt(pViziune)),
@@ -201,7 +281,20 @@ NU adăuga formatare markdown, NU adăuga backticks (\`\`\`), NU adăuga text ad
        }
     } else {
        if (action !== "add_sections") {
-         prompt = `Ești un consultant de afaceri expert. 
+         prompt = isEn ? `You are an expert business consultant. 
+Act upon the following segment of the business plan.
+${instruction}
+
+Current plan segment:
+${JSON.stringify(inputData)}
+
+You must respond EXCLUSIVELY with a valid JSON, respecting the original structure of the received segment.
+If you received a single field, return it in the same JSON format.
+IMPORTANT FOR JSON: 
+- DO NOT use real unescaped newlines inside strings! For paragraphs, strictly use '\\n' (escaped).
+- You MUST escape double quotes inside text using backslash (\\"). It is safest to use single quotes (') inside text.
+- NO trailing commas.
+- DO NOT add markdown formatting, DO NOT add backticks (\`\`\`), DO NOT add additional text before or after the JSON.` : `Ești un consultant de afaceri expert. 
 Acționează asupra următorului segment de plan de afaceri.
 ${instruction}
 
@@ -214,7 +307,7 @@ IMPORTANT PENTRU JSON:
 - NU folosi rânduri noi reale (unescaped newlines) în interiorul string-urilor! Pentru paragrafe, folosește strict '\\n' (escapat).
 - ESCAPEAZĂ obligatoriu ghilimelele duble din interiorul textului folosind backslash (\\"). Cel mai sigur este să folosești doar ghilimele simple (') în interiorul textului.
 - FĂRĂ virgule la finalul ultimului element din obiect sau array (fără trailing commas).
-NU adăuga formatare markdown, NU adăuga backticks (\`\`\`), NU adăuga text adițional înainte sau după JSON.`;
+- NU adăuga formatare markdown, NU adăuga backticks (\`\`\`), NU adăuga text adițional înainte sau după JSON.`;
        }
        
        const res = await callGemini(prompt);

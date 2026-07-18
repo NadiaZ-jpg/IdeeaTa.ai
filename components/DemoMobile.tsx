@@ -13,6 +13,8 @@ import { ConversionBanners } from '@/components/ConversionBanners';
 import { migrateLocalPlansToFirebase } from '@/lib/migrationManager';
 import { ToneEditor } from '@/components/ToneEditor';
 import Link from 'next/link';
+import { getExamples } from '@/lib/examples';
+import { t } from '@/lib/translations';
 import dynamic from 'next/dynamic';
 
 const BudgetPieChart = dynamic(() => import('@/components/BudgetChart').then(mod => mod.BudgetPieChart), { ssr: false });
@@ -55,82 +57,9 @@ const formatObjectNumbers = (obj: any): any => {
     }
     return newObj;
   }
-  return obj;
-};
-
-const ALL_EXAMPLES = [
-    { short: "Brutărie Tradițională", long: "O brutărie și patiserie tradițională, axată pe pâine cu maia și rețete locale autentice." },
-    { short: "Spălătorie Auto", long: "O spălătorie auto self-service modernă, cu jet de înaltă presiune și spumă activă biodegradabilă." },
-    { short: "Salon Înfrumusețare", long: "Un salon de înfrumusețare și frizerie complet, care oferă servicii premium de styling și tratamente." },
-    { short: "Restaurant Tradițional", long: "Un restaurant cu specific tradițional românesc, cu un meniu bazat exclusiv pe ingrediente de la producători locali." },
-    { short: "Firmă de Curățenie", long: "O firmă de curățenie profesională B2B și B2C, folosind exclusiv detergenți ecologici și echipamente silențioase." },
-    { short: "Magazin Mixt", long: "Un magazin mixt de cartier cu funcționare non-stop, optimizat pentru cumpărături rapide." },
-    { short: "Atelier Auto", long: "Un atelier auto și vulcanizare care oferă servicii rapide, diagnoză computerizată și asistență rutieră." },
-    { short: "Firmă de Construcții", long: "O firmă de construcții și amenajări interioare, specializată în renovări la cheie și finisaje premium." },
-    { short: "Cabinet Stomatologic", long: "Un cabinet stomatologic modern echipat cu tehnologie 3D și specializat în implantologie." },
-    { short: "Contabilitate", long: "O firmă de contabilitate complet digitalizată, dedicată startup-urilor și IMM-urilor." },
-    { short: "Farmacie de Cartier", long: "O farmacie de cartier care oferă consultanță personalizată și preparate magistrale." },
-    { short: "Veterinar Non-Stop", long: "Un cabinet veterinar cu program non-stop, dotat cu ecograf, raze X și laborator propriu." },
-    { short: "Servicii de Mutări", long: "O firmă de servicii de mutări și relocare ce oferă inclusiv servicii de ambalare și demontare." },
-    { short: "Agenție Imobiliară", long: "O agenție imobiliară de nișă, axată exclusiv pe apartamente premium și ansambluri rezidențiale noi." },
-    { short: "Fermă Agricolă", long: "O fermă agricolă mixtă, concentrată pe culturi organice și distribuție direct către consumator." },
-    
-    { short: "Matcha Bar & Cafenea", long: "Un matcha bar și cafenea de specialitate cu un design minimalist, oferind băuturi pe bază de ceai premium." },
-    { short: "Studio de Pilates", long: "Un studio de pilates și yoga boutique cu clase restrânse și antrenamente personalizate." },
-    { short: "Parfumuri Personalizate", long: "Un atelier de parfumuri personalizate unde clienții își creează propriile esențe unice." },
-    { short: "Boutique Vintage", long: "Un boutique cu haine vintage selecționate și recondiționate, promovând moda sustenabilă." },
-    { short: "Design Românesc", long: "Un concept store dedicat exclusiv designerilor români, de la haine la obiecte de decor." },
-    { short: "Florărie Minimalistă", long: "O florărie minimalistă care oferă abonamente lunare de flori proaspete pentru birouri și acasă." },
-    { short: "Cofetărie French", long: "O cofetărie artizanală de inspirație franceză, specializată în eclere și macarons." },
-    { short: "Design Interior", long: "Un studio de design interior și arhitectură axat pe spații rezidențiale ecologice și soluții smart-home." },
-    { short: "Cosmetică Organică", long: "Un salon de cosmetică organică ce folosește exclusiv produse naturale, cruelty-free." },
-    { short: "Galerie & Cafenea", long: "O galerie de artă contemporană combinată cu o cafenea de specialitate, un spațiu creativ." },
-    { short: "Vinuri & Brânzeturi", long: "Un magazin specializat în vinuri rare și brânzeturi fine, cu zonă de degustare." },
-    { short: "Planificare Nunți", long: "O agenție de planificare a nuților de lux, axată pe evenimente tematice unice." },
-    { short: "Ceramică Artizanală", long: "Un atelier de ceramică unde se produc obiecte unicat și se organizează workshop-uri." },
-    
-    { short: "Arenă E-Sports", long: "Un studio și arenă de e-sports dotată cu PC-uri high-end și echipamente profesionale." },
-    { short: "Cafenea Board Games", long: "O cafenea dedicată pasionaților de board games și jocuri retro, cu bibliotecă de jocuri." },
-    { short: "Agenție TikTok", long: "O agenție de influencer marketing specializată în campanii virale pe TikTok." },
-    { short: "Sneakers Resale", long: "Un magazin de resale și autentificare pentru sneakers rari și ediții limitate." },
-    { short: "Aplicație de Dating", long: "O aplicație de dating inovatoare bazată pe interese comune și hobby-uri specifice." },
-    { short: "E-learning Financiar", long: "O platformă de e-learning dedicată educației financiare și investițiilor pentru tineri." },
-    { short: "Streetwear Sustenabil", long: "Un brand de haine streetwear produs exclusiv din materiale reciclate și sustenabile." },
-    { short: "Creare Conținut UGC", long: "O agenție care oferă servicii de creare conținut video autentic generat de utilizatori (UGC)." },
-    { short: "Coworking Nomazi", long: "Un hub de coworking conceput special pentru nevoile nomazilor digitali și freelancerilor." },
-    { short: "Platformă Freelancing", long: "O platformă de freelancing strict pentru specialiști locali verificați manual." },
-    { short: "Jocuri Video Indie", long: "Un studio independent de dezvoltare jocuri video axat pe povești interactive." },
-    { short: "Arhitectură Minimalistă", long: "Un birou de arhitectură minimalistă, concentrat pe case pasive și eficiente energetic." },
-    
-    { short: "Hotel de Plante", long: "Un serviciu de îngrijire și 'hotel' pentru plante de apartament pe durata vacanțelor." },
-    { short: "Catering pe Baza ADN", long: "Un serviciu premium de catering cu meniu ultra-personalizat pe baza analizei ADN." },
-    { short: "Ambalaje din Miceliu", long: "O fabrică de producție de ambalaje 100% biodegradabile din miceliu (ciuperci)." },
-    { short: "AI Limbajul Semnelor", long: "O aplicație software bazată pe AI pentru traducerea în timp real a limbajului semnelor." },
-    { short: "Matchmaking Co-fondatori", long: "O platformă inteligentă de matchmaking pentru a găsi partenerul ideal de afaceri." },
-    { short: "Fermă Hidroponică", long: "O fermă hidroponică urbană de microplante, furnizând direct către restaurante de top." },
-    { short: "Design Peisagistic", long: "Servicii de design peisagistic specializate strict pentru balcoane și terase urbane." },
-    { short: "Conversie Mașini Clasice", long: "Un atelier dedicat conversiei mașinilor clasice pe benzină în vehicule 100% electrice." },
-    { short: "Mobilier AR", long: "O aplicație de realitate augmentată care permite probarea mobilierului direct în casă." },
-    { short: "Reciclare Baterii", long: "O stație avansată de recuperare și reciclare a bateriilor de la mașinile electrice." },
-    { short: "Telemedicină Veterinară", long: "O platformă de telemedicină și triaj virtual pentru urgențele animalelor de companie." },
-    
-    { short: "Securitate Cibernetică", long: "O firmă de consultanță în securitate cibernetică specializată în audituri și teste de penetrare." },
-    { short: "Analiză de Risc", long: "O companie care oferă servicii de analiză de risc instituțional pentru corporații." },
-    { short: "Soluții AI", long: "O agenție de dezvoltare software axată pe implementarea soluțiilor de Inteligență Artificială." },
-    { short: "Fonduri Europene", long: "O firmă de consultanță specializată în redactarea de proiecte pentru obținerea de fonduri europene." },
-    { short: "Marketing Digital", long: "O agenție de marketing digital integrat, de la SEO și Google Ads până la Social Media." },
-    { short: "Cursuri Online", long: "O platformă agregator de cursuri online cu certificare recunoscută." },
-    { short: "Magazin Produse Bio", long: "Un magazin online dedicat exclusiv produselor alimentare certificate bio și ecologice." },
-    { short: "Aplicație de Fitness", long: "O aplicație mobilă de fitness cu antrenor virtual bazat pe AI." },
-    { short: "Consultanță Nutriție", long: "Un cabinet online de consultanță în nutriție cu planuri de mese personalizate." },
-    { short: "Livrare Vegană", long: "Un serviciu de livrare de mâncare 100% vegană bazată pe rețete gourmet." },
-    { short: "Biciclete Electrice", long: "Un sistem de închiriere de biciclete și trotinete electrice pentru turism urban." },
-    { short: "SEO B2B", long: "O agenție specializată în optimizare SEO tehnică pentru companiile B2B." },
-    { short: "Aplicații Mobile", long: "Un studio de dezvoltare nativă de aplicații mobile pentru iOS și Android." },
-    { short: "Juridică Online", long: "O platformă care oferă servicii de asistență și consultanță juridică online rapidă." }
-];
-
-export default function DemoMobile() {
+}
+export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" }) {
+  const ALL_EXAMPLES = getExamples(locale);
   const [skill, setSkill] = useState("");
   const [result, setResult] = useState<any>(null);
   const [activeTab, setActiveTab] = useState<"overview" | "budget" | "marketing" | "swot">("overview");
@@ -169,7 +98,14 @@ export default function DemoMobile() {
 
   // Progressive loading messages
   const [loadingMessageIndex, setLoadingMessageIndex] = useState(0);
-  const loadingMessages = [
+  const loadingMessages = locale === "en" ? [
+    "Generating innovative business ideas...",
+    "Analyzing competition and market opportunities...",
+    "Calculating investment budget and financial estimates...",
+    "Building promotion strategy and optimal channels...",
+    "Identifying strengths, weaknesses, opportunities, and threats...",
+    "Assembling the final document tailored just for you..."
+  ] : [
     "Generăm idei inovatoare de afaceri...",
     "Analizăm competiția și oportunitățile pieței...",
     "Calculăm bugetul de investiții și estimările financiare...",
@@ -235,7 +171,7 @@ export default function DemoMobile() {
       const res = await fetch("/api/generate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ skill: inputSkill }),
+        body: JSON.stringify({ skill: inputSkill, locale }),
       });
 
       if (!res.ok) throw new Error("Eroare la generare");
@@ -394,7 +330,7 @@ export default function DemoMobile() {
           <div className="flex-1 flex flex-col items-center justify-center py-20 text-center gap-6">
             <div className="w-16 h-16 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin"></div>
             <div className="space-y-2 max-w-xs">
-              <h3 className="font-bold text-lg text-emerald-400">Asistentul AI lucrează</h3>
+              <h3 className="font-bold text-lg text-emerald-400">{locale === "en" ? "AI Assistant is working" : "Asistentul AI lucrează"}</h3>
               <p className="text-sm text-zinc-400 animate-pulse">{loadingMessages[loadingMessageIndex]}</p>
             </div>
           </div>
@@ -404,20 +340,20 @@ export default function DemoMobile() {
           <div className="flex flex-col gap-6 animate-in fade-in slide-in-from-bottom-4 duration-300">
             <div className="text-center space-y-2 mt-4">
               <span className="text-[10px] bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 px-3 py-1 rounded-full font-bold uppercase tracking-wider">
-                Demo Gratuit
+                {locale === "en" ? "Free Demo" : "Demo Gratuit"}
               </span>
-              <h1 className="text-3xl font-black tracking-tight leading-none mt-2">Generează Planul</h1>
-              <p className="text-zinc-400 text-sm">Transformă orice idee într-un plan complet în 60 de secunde.</p>
+              <h1 className="text-3xl font-black tracking-tight leading-none mt-2">{t("generatePlanNow", locale)}</h1>
+              <p className="text-zinc-400 text-sm">{locale === "en" ? "Turn any idea into a complete plan in 60 seconds." : "Transformă orice idee într-un plan complet în 60 de secunde."}</p>
             </div>
 
             {/* Form Card */}
             <div className="bg-zinc-900/40 border border-zinc-800/80 rounded-2xl p-5 backdrop-blur-md space-y-4">
               <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-zinc-400">Descrie afacerea pe scurt</label>
+                <label className="text-xs font-semibold text-zinc-400">{locale === "en" ? "Describe your business briefly" : "Descrie afacerea pe scurt"}</label>
                 <textarea
                   value={skill}
                   onChange={(e) => setSkill(e.target.value)}
-                  placeholder="Ex: O cafenea cu prăjitorie proprie și spațiu de co-working..."
+                  placeholder={locale === "en" ? "E.g. A coffee shop with its own roastery and coworking space..." : "Ex: O cafenea cu prăjitorie proprie și spațiu de co-working..."}
                   className="w-full bg-zinc-950 border border-zinc-800 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500/30 rounded-xl px-4 py-3 text-sm text-white placeholder-zinc-500 h-28 outline-none resize-none transition-all"
                 />
               </div>
@@ -427,14 +363,14 @@ export default function DemoMobile() {
                 disabled={!skill.trim()}
                 className="w-full bg-gradient-to-r from-emerald-600 to-teal-500 hover:from-emerald-500 hover:to-teal-400 disabled:opacity-50 text-white font-bold py-4 rounded-xl text-sm transition-all shadow-lg shadow-emerald-950/20 active:scale-[0.98] flex items-center justify-center gap-2"
               >
-                <span>Generează Planul Gratuit</span>
+                <span>{locale === "en" ? "Generate Free Plan" : "Generează Planul Gratuit"}</span>
                 <span>🚀</span>
               </button>
             </div>
 
             {/* Examples Carousel */}
             <div className="space-y-3">
-              <h4 className="text-xs font-bold text-zinc-400 px-1">Idei de inspirație (atinge pentru generare)</h4>
+              <h4 className="text-xs font-bold text-zinc-400 px-1">{t("getInspiredBy", locale)}</h4>
               <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-none snap-x px-1">
                 {examplesList.map((ex, idx) => (
                   <button
@@ -460,15 +396,15 @@ export default function DemoMobile() {
             <div className="bg-zinc-900/60 border border-zinc-800 rounded-xl p-4 flex items-center justify-between gap-4 backdrop-blur-md">
               <div className="min-w-0">
                 <span className="text-[9px] bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 px-2 py-0.5 rounded-full font-bold uppercase tracking-wider block w-max mb-1">
-                  Plan Generat
+                  {locale === "en" ? "Plan Generated" : "Plan Generat"}
                 </span>
-                <h2 className="text-sm font-black text-white truncate">{result.nume || "Plan de Afaceri"}</h2>
+                <h2 className="text-sm font-black text-white truncate">{result.nume || (locale === "en" ? "Business Plan" : "Plan de Afaceri")}</h2>
               </div>
               <div className="flex gap-2 shrink-0">
                 <button
                   onClick={handleShare}
                   className="bg-zinc-800 hover:bg-zinc-700 text-white font-bold p-2.5 rounded-lg text-xs transition-all active:scale-95"
-                  title="Copiază link-ul"
+                  title={locale === "en" ? "Copy link" : "Copiază link-ul"}
                 >
                   🔗
                 </button>
@@ -476,7 +412,7 @@ export default function DemoMobile() {
                   onClick={() => handleDownload('pdf')}
                   className="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-3 py-2 rounded-lg text-xs transition-all active:scale-95 flex items-center gap-1.5"
                 >
-                  <span>Export</span>
+                  <span>{locale === "en" ? "Export" : "Export"}</span>
                   <span>📥</span>
                 </button>
               </div>
@@ -484,7 +420,7 @@ export default function DemoMobile() {
 
             {showShareSuccess && (
               <div className="bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs text-center py-2 rounded-lg animate-pulse font-bold">
-                Link copiat în clipboard!
+                {locale === "en" ? "Link copied to clipboard!" : "Link copiat în clipboard!"}
               </div>
             )}
 
@@ -494,25 +430,25 @@ export default function DemoMobile() {
                 onClick={() => setActiveTab("overview")}
                 className={`flex-1 text-center py-2.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap px-4 ${activeTab === "overview" ? "bg-zinc-800 text-white" : "text-zinc-400 hover:text-white"}`}
               >
-                📈 Prezentare
+                {locale === "en" ? "📈 Overview" : "📈 Prezentare"}
               </button>
               <button
                 onClick={() => setActiveTab("budget")}
                 className={`flex-1 text-center py-2.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap px-4 ${activeTab === "budget" ? "bg-zinc-800 text-white" : "text-zinc-400 hover:text-white"}`}
               >
-                💰 Finanțe
+                {locale === "en" ? "💰 Finance" : "💰 Finanțe"}
               </button>
               <button
                 onClick={() => setActiveTab("marketing")}
                 className={`flex-1 text-center py-2.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap px-4 ${activeTab === "marketing" ? "bg-zinc-800 text-white" : "text-zinc-400 hover:text-white"}`}
               >
-                📣 Promovare
+                {locale === "en" ? "📣 Marketing" : "📣 Promovare"}
               </button>
               <button
                 onClick={() => setActiveTab("swot")}
                 className={`flex-1 text-center py-2.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap px-4 ${activeTab === "swot" ? "bg-zinc-800 text-white" : "text-zinc-400 hover:text-white"}`}
               >
-                📋 SWOT
+                {locale === "en" ? "📋 SWOT" : "📋 SWOT"}
               </button>
             </div>
 
@@ -526,6 +462,7 @@ export default function DemoMobile() {
                 localStorage.removeItem("current_generated_plan");
               }} 
               onAuthClick={() => setShowAuthModal(true)} 
+              locale={locale}
             />
 
             {/* Tab content wrapper */}
@@ -534,17 +471,17 @@ export default function DemoMobile() {
               {activeTab === "overview" && (
                 <div className="space-y-5 animate-in fade-in duration-200">
                   <div className="space-y-1">
-                    <h3 className="text-emerald-400 font-bold text-sm">Descriere Afacere</h3>
+                    <h3 className="text-emerald-400 font-bold text-sm">{locale === "en" ? "Business Description" : "Descriere Afacere"}</h3>
                     <p className="text-zinc-300 text-xs leading-relaxed">{formatNumberedText(result.descriere)}</p>
                   </div>
                   <div className="h-px bg-zinc-800/60"></div>
                   <div className="space-y-1">
-                    <h3 className="text-emerald-400 font-bold text-sm">Oportunitatea Pieței</h3>
+                    <h3 className="text-emerald-400 font-bold text-sm">{locale === "en" ? "Market Opportunity" : "Oportunitatea Pieței"}</h3>
                     <p className="text-zinc-300 text-xs leading-relaxed">{formatNumberedText(result.oportunitate_piata)}</p>
                   </div>
                   <div className="h-px bg-zinc-800/60"></div>
                   <div className="space-y-1">
-                    <h3 className="text-emerald-400 font-bold text-sm">Publicul Țintă</h3>
+                    <h3 className="text-emerald-400 font-bold text-sm">{locale === "en" ? "Target Audience" : "Publicul Țintă"}</h3>
                     <p className="text-zinc-300 text-xs leading-relaxed">{formatNumberedText(result.public_tinta)}</p>
                   </div>
                 </div>
@@ -553,7 +490,7 @@ export default function DemoMobile() {
               {activeTab === "budget" && (
                 <div className="space-y-6 animate-in fade-in duration-200">
                   <div className="space-y-3">
-                    <h3 className="text-emerald-400 font-bold text-sm">Buget Inițial de Investiții</h3>
+                    <h3 className="text-emerald-400 font-bold text-sm">{locale === "en" ? "Initial Investment Budget" : "Buget Inițial de Investiții"}</h3>
                     <div className="space-y-2">
                       {result.plan_financiar?.buget_investitii?.map((item: any, idx: number) => (
                         <div key={idx} className="bg-zinc-950/40 border border-zinc-800/50 rounded-xl p-3 flex justify-between items-center text-xs">
@@ -566,7 +503,7 @@ export default function DemoMobile() {
 
                   {/* Budget Chart (Dynamic container) */}
                   <div className="bg-zinc-950/30 border border-zinc-800/60 rounded-xl p-4 flex flex-col items-center justify-center">
-                    <h4 className="text-[10px] font-bold text-zinc-400 mb-4 uppercase">Distribuția Fondurilor</h4>
+                    <h4 className="text-[10px] font-bold text-zinc-400 mb-4 uppercase">{locale === "en" ? "Funds Distribution" : "Distribuția Fondurilor"}</h4>
                     <div className="w-full max-w-[200px] aspect-square flex items-center justify-center">
                       <BudgetPieChart budget={result.plan_financiar?.buget_investitii || []} currency="LEI" />
                     </div>
@@ -577,7 +514,7 @@ export default function DemoMobile() {
               {activeTab === "marketing" && (
                 <div className="space-y-6 animate-in fade-in duration-200">
                   <div className="space-y-3">
-                    <h3 className="text-emerald-400 font-bold text-sm">Canale de Promovare</h3>
+                    <h3 className="text-emerald-400 font-bold text-sm">{locale === "en" ? "Promotion Channels" : "Canale de Promovare"}</h3>
                     <div className="space-y-3">
                       {result.strategie_marketing?.canale_promovare?.map((canal: any, idx: number) => (
                         <div key={idx} className="bg-zinc-950/30 border border-zinc-800/60 rounded-xl p-4 space-y-1">
@@ -591,8 +528,8 @@ export default function DemoMobile() {
                   {/* Tone Editor Bottom Element */}
                   <div className="bg-zinc-950/40 border border-zinc-800/60 rounded-xl p-4 space-y-3">
                     <div className="space-y-1">
-                      <h4 className="text-xs font-bold text-zinc-200">Personalizează Tonul Prezentării</h4>
-                      <p className="text-[10px] text-zinc-400">Rescrie automat planul de afaceri într-un stil formal, comercial sau prietenos.</p>
+                      <h4 className="text-xs font-bold text-zinc-200">{locale === "en" ? "Customize Presentation Tone" : "Personalizează Tonul Prezentării"}</h4>
+                      <p className="text-[10px] text-zinc-400">{locale === "en" ? "Automatically rewrite the business plan in a formal, commercial, or friendly style." : "Rescrie automat planul de afaceri într-un stil formal, comercial sau prietenos."}</p>
                     </div>
                     <ToneEditor
                       user={user}
@@ -609,22 +546,22 @@ export default function DemoMobile() {
 
               {activeTab === "swot" && (
                 <div className="space-y-5 animate-in fade-in duration-200">
-                  <h3 className="text-emerald-400 font-bold text-sm">Analiza SWOT</h3>
+                  <h3 className="text-emerald-400 font-bold text-sm">{locale === "en" ? "SWOT Analysis" : "Analiza SWOT"}</h3>
                   <div className="grid grid-cols-1 gap-3">
                     <div className="bg-emerald-950/10 border border-emerald-800/20 rounded-xl p-4">
-                      <span className="text-[10px] text-emerald-400 font-black tracking-wider uppercase block mb-1">💪 Puncte Forte (Strengths)</span>
+                      <span className="text-[10px] text-emerald-400 font-black tracking-wider uppercase block mb-1">{locale === "en" ? "💪 Strengths" : "💪 Puncte Forte (Strengths)"}</span>
                       <p className="text-zinc-300 text-xs leading-relaxed">{formatNumberedText(result.analiza_swot?.puncte_forte)}</p>
                     </div>
                     <div className="bg-rose-950/10 border border-rose-800/20 rounded-xl p-4">
-                      <span className="text-[10px] text-rose-400 font-black tracking-wider uppercase block mb-1">⚠️ Puncte Slabe (Weaknesses)</span>
+                      <span className="text-[10px] text-rose-400 font-black tracking-wider uppercase block mb-1">{locale === "en" ? "⚠️ Weaknesses" : "⚠️ Puncte Slabe (Weaknesses)"}</span>
                       <p className="text-zinc-300 text-xs leading-relaxed">{formatNumberedText(result.analiza_swot?.puncte_slabe)}</p>
                     </div>
                     <div className="bg-blue-950/10 border border-blue-800/20 rounded-xl p-4">
-                      <span className="text-[10px] text-blue-400 font-black tracking-wider uppercase block mb-1">🚀 Oportunități (Opportunities)</span>
+                      <span className="text-[10px] text-blue-400 font-black tracking-wider uppercase block mb-1">{locale === "en" ? "🚀 Opportunities" : "🚀 Oportunități (Opportunities)"}</span>
                       <p className="text-zinc-300 text-xs leading-relaxed">{formatNumberedText(result.analiza_swot?.oportunitati)}</p>
                     </div>
                     <div className="bg-amber-950/10 border border-amber-800/20 rounded-xl p-4">
-                      <span className="text-[10px] text-amber-400 font-black tracking-wider uppercase block mb-1">☠️ Amenințări (Threats)</span>
+                      <span className="text-[10px] text-amber-400 font-black tracking-wider uppercase block mb-1">{locale === "en" ? "☠️ Threats" : "☠️ Amenințări (Threats)"}</span>
                       <p className="text-zinc-300 text-xs leading-relaxed">{formatNumberedText(result.analiza_swot?.amenintari)}</p>
                     </div>
                   </div>
@@ -641,7 +578,7 @@ export default function DemoMobile() {
               }}
               className="w-full bg-zinc-950 hover:bg-zinc-900 border border-zinc-800/80 text-zinc-400 font-bold py-3.5 rounded-xl text-xs transition-all active:scale-98 text-center"
             >
-              Șterge planul și începe o idee nouă
+              {locale === "en" ? "Delete plan and start a new idea" : "Șterge planul și începe o idee nouă"}
             </button>
           </div>
         )}
@@ -660,8 +597,14 @@ export default function DemoMobile() {
               ✕
             </button>
             <div className="text-center space-y-1">
-              <h3 className="text-lg font-black">{isLoginMode ? "Intră în contul tău" : "Creează cont gratuit"}</h3>
-              <p className="text-xs text-zinc-400">Pentru a salva și descărca planurile generate.</p>
+              <h3 className="text-lg font-black">
+                {isLoginMode 
+                  ? (locale === "en" ? "Log in to your account" : "Intră în contul tău") 
+                  : (locale === "en" ? "Create free account" : "Creează cont gratuit")}
+              </h3>
+              <p className="text-xs text-zinc-400">
+                {locale === "en" ? "To save and download generated plans." : "Pentru a salva și descărca planurile generate."}
+              </p>
             </div>
 
             {authError && (
@@ -673,7 +616,7 @@ export default function DemoMobile() {
             <form onSubmit={handleEmailAuth} className="space-y-3.5">
               <input
                 type="email"
-                placeholder="Adresa de email"
+                placeholder={locale === "en" ? "Email Address" : "Adresa de email"}
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
@@ -681,7 +624,7 @@ export default function DemoMobile() {
               />
               <input
                 type="password"
-                placeholder="Parolă"
+                placeholder={locale === "en" ? "Password" : "Parolă"}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
@@ -692,13 +635,15 @@ export default function DemoMobile() {
                 disabled={isEmailLoading}
                 className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 rounded-xl text-xs transition-all active:scale-95 disabled:opacity-50"
               >
-                {isEmailLoading ? "Se procesează..." : (isLoginMode ? "Conectare" : "Înregistrare")}
+                {isEmailLoading 
+                  ? (locale === "en" ? "Processing..." : "Se procesează...") 
+                  : (isLoginMode ? (locale === "en" ? "Log In" : "Conectare") : (locale === "en" ? "Register" : "Înregistrare"))}
               </button>
             </form>
 
             <div className="flex items-center my-4">
               <div className="flex-1 h-px bg-zinc-800"></div>
-              <span className="px-3 text-[10px] text-zinc-500 font-bold uppercase">Sau</span>
+              <span className="px-3 text-[10px] text-zinc-500 font-bold uppercase">{locale === "en" ? "Or" : "Sau"}</span>
               <div className="flex-1 h-px bg-zinc-800"></div>
             </div>
 
@@ -722,7 +667,9 @@ export default function DemoMobile() {
                 onClick={() => setIsLoginMode(!isLoginMode)}
                 className="text-[11px] text-emerald-400 hover:text-emerald-300 font-semibold"
               >
-                {isLoginMode ? "Nu ai cont? Înregistrează-te" : "Ai deja cont? Conectează-te"}
+                {isLoginMode 
+                  ? (locale === "en" ? "Don't have an account? Register" : "Nu ai cont? Înregistrează-te") 
+                  : (locale === "en" ? "Already have an account? Log in" : "Ai deja cont? Conectează-te")}
               </button>
             </div>
           </div>
@@ -735,7 +682,7 @@ export default function DemoMobile() {
         onClose={() => setShowPricingModal(false)}
         onSuccess={() => {
           setShowPricingModal(false);
-          alert("Plată simulată cu succes! Accesul premium este acum deblocat.");
+          alert(locale === "en" ? "Payment simulated successfully! Premium access is now unlocked." : "Plată simulată cu succes! Accesul premium este acum deblocat.");
         }}
         onRequireLogin={() => {
           setShowPricingModal(false);
@@ -744,7 +691,8 @@ export default function DemoMobile() {
         userId={user?.uid || ""}
         userEmail={user?.email || ""}
         currency="LEI"
-        planName={result?.nume || "Plan de Afaceri"}
+        planName={result?.nume || (locale === "en" ? "Business Plan" : "Plan de Afaceri")}
+        locale={locale}
       />
     </div>
   );

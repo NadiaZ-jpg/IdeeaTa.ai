@@ -13,6 +13,8 @@ import { AdBanner } from '@/components/AdBanner';
 import { generateDocxBlob } from '@/lib/generateDocx';
 import { ConversionBanners } from '@/components/ConversionBanners';
 import { migrateLocalPlansToFirebase } from '@/lib/migrationManager';
+import { getExamples } from '@/lib/examples';
+import { t } from '@/lib/translations';
 
 const BudgetPieChart = dynamic(() => import('@/components/BudgetChart').then(mod => mod.BudgetPieChart), { ssr: false });
 
@@ -129,7 +131,7 @@ const getDynamicTextSize = (text: any, limits = { large: 400, medium: 800, extra
   return classes.default;
 };
 
-export default function DemoDesktop() {
+export default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" }) {
   const [skill, setSkill] = useState("");
   const [resultState, setResultState] = useState<any>(null);
   const [versions, setVersionsState] = useState<{ [key: string]: any }>({});
@@ -849,77 +851,7 @@ export default function DemoDesktop() {
   const presentationRef = useRef<any>(null);
   const pdfPrintRef = useRef<any>(null);
 
-  const ALL_EXAMPLES = [
-    { short: "Brutărie Tradițională", long: "O brutărie și patiserie tradițională, axată pe pâine cu maia și rețete locale autentice." },
-    { short: "Spălătorie Auto", long: "O spălătorie auto self-service modernă, cu jet de înaltă presiune și spumă activă biodegradabilă." },
-    { short: "Salon Înfrumusețare", long: "Un salon de înfrumusețare și frizerie complet, care oferă servicii premium de styling și tratamente." },
-    { short: "Restaurant Tradițional", long: "Un restaurant cu specific tradițional românesc, cu un meniu bazat exclusiv pe ingrediente de la producători locali." },
-    { short: "Firmă de Curățenie", long: "O firmă de curățenie profesională B2B și B2C, folosind exclusiv detergenți ecologici și echipamente silențioase." },
-    { short: "Magazin Mixt", long: "Un magazin mixt de cartier cu funcționare non-stop, optimizat pentru cumpărături rapide." },
-    { short: "Atelier Auto", long: "Un atelier auto și vulcanizare care oferă servicii rapide, diagnoză computerizată și asistență rutieră." },
-    { short: "Firmă de Construcții", long: "O firmă de construcții și amenajări interioare, specializată în renovări la cheie și finisaje premium." },
-    { short: "Cabinet Stomatologic", long: "Un cabinet stomatologic modern echipat cu tehnologie 3D și specializat în implantologie." },
-    { short: "Contabilitate", long: "O firmă de contabilitate complet digitalizată, dedicată startup-urilor și IMM-urilor." },
-    { short: "Farmacie de Cartier", long: "O farmacie de cartier care oferă consultanță personalizată și preparate magistrale." },
-    { short: "Veterinar Non-Stop", long: "Un cabinet veterinar cu program non-stop, dotat cu ecograf, raze X și laborator propriu." },
-    { short: "Servicii de Mutări", long: "O firmă de servicii de mutări și relocare ce oferă inclusiv servicii de ambalare și demontare." },
-    { short: "Agenție Imobiliară", long: "O agenție imobiliară de nișă, axată exclusiv pe apartamente premium și ansambluri rezidențiale noi." },
-    { short: "Fermă Agricolă", long: "O fermă agricolă mixtă, concentrată pe culturi organice și distribuție direct către consumator." },
-    
-    { short: "Matcha Bar & Cafenea", long: "Un matcha bar și cafenea de specialitate cu un design minimalist, oferind băuturi pe bază de ceai premium." },
-    { short: "Studio de Pilates", long: "Un studio de pilates și yoga boutique cu clase restrânse și antrenamente personalizate." },
-    { short: "Parfumuri Personalizate", long: "Un atelier de parfumuri personalizate unde clienții își creează propriile esențe unice." },
-    { short: "Boutique Vintage", long: "Un boutique cu haine vintage selecționate și recondiționate, promovând moda sustenabilă." },
-    { short: "Design Românesc", long: "Un concept store dedicat exclusiv designerilor români, de la haine la obiecte de decor." },
-    { short: "Florărie Minimalistă", long: "O florărie minimalistă care oferă abonamente lunare de flori proaspete pentru birouri și acasă." },
-    { short: "Cofetărie French", long: "O cofetărie artizanală de inspirație franceză, specializată în eclere și macarons." },
-    { short: "Design Interior", long: "Un studio de design interior și arhitectură axat pe spații rezidențiale ecologice și soluții smart-home." },
-    { short: "Cosmetică Organică", long: "Un salon de cosmetică organică ce folosește exclusiv produse naturale, cruelty-free." },
-    { short: "Galerie & Cafenea", long: "O galerie de artă contemporană combinată cu o cafenea de specialitate, un spațiu creativ." },
-    { short: "Vinuri & Brânzeturi", long: "Un magazin specializat în vinuri rare și brânzeturi fine, cu zonă de degustare." },
-    { short: "Planificare Nunți", long: "O agenție de planificare a nunților de lux, axată pe evenimente tematice unice." },
-    { short: "Ceramică Artizanală", long: "Un atelier de ceramică unde se produc obiecte unicat și se organizează workshop-uri." },
-    
-    { short: "Arenă E-Sports", long: "Un studio și arenă de e-sports dotată cu PC-uri high-end și echipamente profesionale." },
-    { short: "Cafenea Board Games", long: "O cafenea dedicată pasionaților de board games și jocuri retro, cu bibliotecă de jocuri." },
-    { short: "Agenție TikTok", long: "O agenție de influencer marketing specializată în campanii virale pe TikTok." },
-    { short: "Sneakers Resale", long: "Un magazin de resale și autentificare pentru sneakers rari și ediții limitate." },
-    { short: "Aplicație de Dating", long: "O aplicație de dating inovatoare bazată pe interese comune și hobby-uri specifice." },
-    { short: "E-learning Financiar", long: "O platformă de e-learning dedicată educației financiare și investițiilor pentru tineri." },
-    { short: "Streetwear Sustenabil", long: "Un brand de haine streetwear produs exclusiv din materiale reciclate și sustenabile." },
-    { short: "Creare Conținut UGC", long: "O agenție care oferă servicii de creare conținut video autentic generat de utilizatori (UGC)." },
-    { short: "Coworking Nomazi", long: "Un hub de coworking conceput special pentru nevoile nomazilor digitali și freelancerilor." },
-    { short: "Platformă Freelancing", long: "O platformă de freelancing strict pentru specialiști locali verificați manual." },
-    { short: "Jocuri Video Indie", long: "Un studio independent de dezvoltare jocuri video axat pe povești interactive." },
-    { short: "Arhitectură Minimalistă", long: "Un birou de arhitectură minimalistă, concentrat pe case pasive și eficiente energetic." },
-    
-    { short: "Hotel de Plante", long: "Un serviciu de îngrijire și 'hotel' pentru plante de apartament pe durata vacanțelor." },
-    { short: "Catering pe Baza ADN", long: "Un serviciu premium de catering cu meniu ultra-personalizat pe baza analizei ADN." },
-    { short: "Ambalaje din Miceliu", long: "O fabrică de producție de ambalaje 100% biodegradabile din miceliu (ciuperci)." },
-    { short: "AI Limbajul Semnelor", long: "O aplicație software bazată pe AI pentru traducerea în timp real a limbajului semnelor." },
-    { short: "Matchmaking Co-fondatori", long: "O platformă inteligentă de matchmaking pentru a găsi partenerul ideal de afaceri." },
-    { short: "Fermă Hidroponică", long: "O fermă hidroponică urbană de microplante, furnizând direct către restaurante de top." },
-    { short: "Design Peisagistic", long: "Servicii de design peisagistic specializate strict pentru balcoane și terase urbane." },
-    { short: "Conversie Mașini Clasice", long: "Un atelier dedicat conversiei mașinilor clasice pe benzină în vehicule 100% electrice." },
-    { short: "Mobilier AR", long: "O aplicație de realitate augmentată care permite probarea mobilierului direct în casă." },
-    { short: "Reciclare Baterii", long: "O stație avansată de recuperare și reciclare a bateriilor de la mașinile electrice." },
-    { short: "Telemedicină Veterinară", long: "O platformă de telemedicină și triaj virtual pentru urgențele animalelor de companie." },
-    
-    { short: "Securitate Cibernetică", long: "O firmă de consultanță în securitate cibernetică specializată în audituri și teste de penetrare." },
-    { short: "Analiză de Risc", long: "O companie care oferă servicii de analiză de risc instituțional pentru corporații." },
-    { short: "Soluții AI", long: "O agenție de dezvoltare software axată pe implementarea soluțiilor de Inteligență Artificială." },
-    { short: "Fonduri Europene", long: "O firmă de consultanță specializată în redactarea de proiecte pentru obținerea de fonduri europene." },
-    { short: "Marketing Digital", long: "O agenție de marketing digital integrat, de la SEO și Google Ads până la Social Media." },
-    { short: "Cursuri Online", long: "O platformă agregator de cursuri online cu certificare recunoscută." },
-    { short: "Magazin Produse Bio", long: "Un magazin online dedicat exclusiv produselor alimentare certificate bio și ecologice." },
-    { short: "Aplicație de Fitness", long: "O aplicație mobilă de fitness cu antrenor virtual bazat pe AI." },
-    { short: "Consultanță Nutriție", long: "Un cabinet online de consultanță în nutriție cu planuri de mese personalizate." },
-    { short: "Livrare Vegană", long: "Un serviciu de livrare de mâncare 100% vegană bazată pe rețete gourmet." },
-    { short: "Biciclete Electrice", long: "Un sistem de închiriere de biciclete și trotinete electrice pentru turism urban." },
-    { short: "SEO B2B", long: "O agenție specializată în optimizare SEO tehnică pentru companiile B2B." },
-    { short: "Aplicații Mobile", long: "Un studio de dezvoltare nativă de aplicații mobile pentru iOS și Android." },
-    { short: "Juridică Online", long: "O platformă care oferă servicii de asistență și consultanță juridică online rapidă." }
-  ];
+  const ALL_EXAMPLES = getExamples(locale);
 
   const [examplesList, setExamplesList] = useState<any[]>(ALL_EXAMPLES.slice(0, 18));
 
@@ -937,7 +869,15 @@ export default function DemoDesktop() {
 
   const randomIdeas = ALL_EXAMPLES;
 
-  const loadingMessages = [
+  const loadingMessages = locale === "en" ? [
+    "Initiating market analysis...",
+    "Calculating financial requirements...",
+    "Structuring the operational plan...",
+    "Fetching the updated currency exchange rate...",
+    "Finalizing the S.W.O.T. strategy...",
+    "Polishing the smart document...",
+    "Almost ready..."
+  ] : [
     "Se inițiază analiza de piață...",
     "Se calculează necesarul financiar...",
     "Se structurează planul operațional...",
@@ -984,7 +924,7 @@ export default function DemoDesktop() {
         fetch("/api/generate", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ skill }),
+          body: JSON.stringify({ skill, locale }),
         }),
         new Promise(resolve => setTimeout(resolve, 2000))
       ]);
@@ -1697,6 +1637,7 @@ export default function DemoDesktop() {
           result={result}
           onResetApp={resetApp}
           onAuthClick={() => setShowAuthModal(true)}
+          locale={locale}
         />
         {user && (
           <div className="w-full flex justify-between items-start sm:items-center py-2 border-b border-zinc-800/80 mb-3 print:hidden">
@@ -1724,15 +1665,15 @@ export default function DemoDesktop() {
                 </span>
               ) : euFundsUnlocked ? (
                 <span className="bg-amber-500/20 border border-amber-500/40 text-amber-300 px-2 py-0.5 rounded-full font-black uppercase tracking-wider">
-                  STUDIO &amp; FONDURI
+                  {locale === "en" ? "STUDIO & GRANTS" : "STUDIO & FONDURI"}
                 </span>
               ) : isPlanPaid ? (
                 <span className="bg-blue-500/20 border border-blue-500/40 text-blue-400 px-2 py-0.5 rounded-full font-black uppercase tracking-wider">
-                  STANDARD DEBLOCAT
+                  {locale === "en" ? "STANDARD UNLOCKED" : "STANDARD DEBLOCAT"}
                 </span>
               ) : (
                 <span className="bg-zinc-800 border border-zinc-700 text-zinc-300 px-2 py-0.5 rounded-full font-bold">
-                  PREVIZUALIZARE
+                  {locale === "en" ? "PREVIEW ONLY" : "PREVIZUALIZARE"}
                 </span>
               )}
               {!subscriptionActive && (
@@ -1740,14 +1681,14 @@ export default function DemoDesktop() {
                   onClick={() => { if (!user) { setShowAuthModal(true); } else { setShowPricingModal(true); } }}
                   className="text-emerald-400 hover:text-emerald-300 transition-colors font-bold underline cursor-pointer"
                 >
-                  Vezi Planuri
+                  {locale === "en" ? "View Plans" : "Vezi Planuri"}
                 </button>
               )}
               <button 
                 onClick={() => signOut(auth)}
                 className="text-zinc-500 hover:text-white transition-colors cursor-pointer"
               >
-                Ieși din cont
+                {locale === "en" ? "Log Out" : "Ieși din cont"}
               </button>
             </div>
           </div>
@@ -1761,7 +1702,7 @@ export default function DemoDesktop() {
           <>
           <div className="w-full flex flex-col items-center justify-center mb-12 lg:mb-16 relative">
             <div className="inline-flex items-center gap-2.5 px-5 py-2.5 rounded-full bg-zinc-900/90 border border-emerald-500/30 text-emerald-400 text-sm font-black uppercase tracking-wider shadow-[0_0_30px_rgba(16,185,129,0.1)] hover:border-emerald-400/50 transition-all duration-300 animate-pulse relative z-10">
-              <span className="text-base">✨</span> Nu începe o afacere înainte să verifici IdeeaTa.ai
+              <span className="text-base">✨</span> {locale === "en" ? "Don't start a business before checking IdeeaTa.ai" : "Nu începe o afacere înainte să verifici IdeeaTa.ai"}
             </div>
             {/* Elegant curved line bridging the gap below the pill */}
             <div className="w-full max-w-2xl mt-4 opacity-50 relative -top-6 -z-10 hidden md:block">
@@ -1783,14 +1724,18 @@ export default function DemoDesktop() {
             
             <div>
               <h2 className="text-3xl md:text-4xl lg:text-[3.5rem] font-black mb-8 leading-[1.1] not-italic text-white tracking-tighter text-left max-w-[90%]">
-                Transformă-ți <span className="text-emerald-400">experiența</span> într-un business validat.
+                {locale === "en" ? (
+                  <>Turn your <span className="text-emerald-400">expertise</span> into a validated business.</>
+                ) : (
+                  <>Transformă-ți <span className="text-emerald-400">experiența</span> într-un business validat.</>
+                )}
               </h2>
               
               <p className="text-zinc-400 text-xl lg:text-2xl leading-relaxed not-italic font-medium text-left">
-                Descrie la ce ești bun, iar noi îți vom genera un plan de afaceri complet.
+                {locale === "en" ? "Describe what you're good at, and we'll generate a complete business plan for you." : "Descrie la ce ești bun, iar noi îți vom genera un plan de afaceri complet."}
               </p>
               <p className="text-zinc-400 text-xl lg:text-2xl mt-4 leading-relaxed not-italic font-medium text-left">
-                Analiză SWOT, proiecții financiare și strategie de piață.
+                {locale === "en" ? "SWOT analysis, financial projections, and market strategy." : "Analiză SWOT, proiecții financiare și strategie de piață."}
               </p>
             </div>
 
@@ -1852,15 +1797,15 @@ export default function DemoDesktop() {
               <div className="flex flex-col gap-2">
                 <div className="w-full h-px bg-gradient-to-r from-emerald-500/40 via-zinc-700/40 to-transparent"></div>
                 <div className="flex items-center justify-between">
-                  <p className="text-zinc-400 text-sm font-semibold uppercase tracking-widest">Timp de generare</p>
-                  <p className="text-emerald-400 text-sm font-black">Sub 60 sec</p>
+                  <p className="text-zinc-400 text-sm font-semibold uppercase tracking-widest">{locale === "en" ? "Generation Time" : "Timp de generare"}</p>
+                  <p className="text-emerald-400 text-sm font-black">{locale === "en" ? "Under 60 sec" : "Sub 60 sec"}</p>
                 </div>
               </div>
 
               <div className="flex flex-col gap-2">
                 <div className="w-full h-px bg-gradient-to-r from-emerald-500/30 via-zinc-700/40 to-transparent"></div>
                 <div className="flex items-center justify-between">
-                  <p className="text-zinc-400 text-sm font-semibold uppercase tracking-widest">Format export</p>
+                  <p className="text-zinc-400 text-sm font-semibold uppercase tracking-widest">{locale === "en" ? "Export Format" : "Format export"}</p>
                   <p className="text-emerald-400 text-sm font-black">PDF · PPTX · DOCX</p>
                 </div>
               </div>
@@ -1868,16 +1813,16 @@ export default function DemoDesktop() {
               <div className="flex flex-col gap-2">
                 <div className="w-full h-px bg-gradient-to-r from-emerald-500/20 via-zinc-700/40 to-transparent"></div>
                 <div className="flex items-center justify-between">
-                  <p className="text-zinc-400 text-sm font-semibold uppercase tracking-widest">Structură Document</p>
-                  <p className="text-emerald-400 text-sm font-black">6 Capitole Standard</p>
+                  <p className="text-zinc-400 text-sm font-semibold uppercase tracking-widest">{locale === "en" ? "Document Structure" : "Structură Document"}</p>
+                  <p className="text-emerald-400 text-sm font-black">{locale === "en" ? "6 Standard Chapters" : "6 Capitole Standard"}</p>
                 </div>
               </div>
 
               <div className="flex flex-col gap-2">
                 <div className="w-full h-px bg-gradient-to-r from-emerald-500/10 via-zinc-700/30 to-transparent"></div>
                 <div className="flex items-center justify-between">
-                  <p className="text-zinc-400 text-sm font-semibold uppercase tracking-widest">Fonduri / Investitori</p>
-                  <p className="text-emerald-400 text-sm font-black">Plan Profesional</p>
+                  <p className="text-zinc-400 text-sm font-semibold uppercase tracking-widest">{locale === "en" ? "Grants / Investors" : "Fonduri / Investitori"}</p>
+                  <p className="text-emerald-400 text-sm font-black">{locale === "en" ? "Professional Plan" : "Plan Profesional"}</p>
                 </div>
               </div>
 
@@ -1906,7 +1851,7 @@ export default function DemoDesktop() {
               
               <div className="flex flex-col gap-1 text-center sm:text-left">
                 <p className="text-zinc-400 font-medium text-lg">
-                  Construiește planul tău de afaceri inteligent. Viziunea ta, sprijinul nostru!
+                  {locale === "en" ? "Build your business plan intelligently. Your vision, our support!" : "Construiește planul tău de afaceri inteligent. Viziunea ta, sprijinul nostru!"}
                 </p>
               </div>
               
@@ -1926,7 +1871,7 @@ export default function DemoDesktop() {
                     onChange={(e) => setSkill(e.target.value)}
                     onKeyDown={handleKeyDown}
                     disabled={loading}
-                    placeholder={"Descrie ideea ta de afaceri în detaliu... (ex: Vreau să deschid o cafenea de specialitate cu produse vegane în centrul orașului...)"}
+                    placeholder={locale === "en" ? "Describe your business idea in detail... (e.g. I want to open a specialty coffee shop with vegan products in the city center...)" : "Descrie ideea ta de afaceri în detaliu... (ex: Vreau să deschid o cafenea de specialitate cu produse vegane în centrul orașului...)"}
                     className="relative w-full h-32 p-6 rounded-2xl bg-[#09090b] border border-zinc-700 outline-none focus:border-emerald-500 transition-all text-lg shadow-inner resize-none placeholder:text-zinc-600 font-medium text-zinc-400"
                   />
                 </div>
@@ -1949,11 +1894,11 @@ export default function DemoDesktop() {
                     }}
                     className="whitespace-nowrap flex-shrink-0 text-zinc-400 font-bold text-lg px-6 py-4 rounded-xl transition-all duration-300 hover:bg-zinc-800/50 hover:text-emerald-400 flex items-center gap-2 w-full sm:w-auto justify-center border border-transparent hover:border-zinc-700/50"
                   >
-                    ✨ Inspiră-mă
+                    {locale === "en" ? "✨ Inspire me" : "✨ Inspiră-mă"}
                   </button>
 
                   <button type="submit" disabled={loading} className="w-full sm:w-auto bg-white text-black px-8 py-4 rounded-xl font-black text-lg hover:bg-zinc-200 transition-all shadow-[0_0_20px_rgba(255,255,255,0.2)] flex items-center justify-center gap-2">
-                    {loading ? loadingMessages[messageIndex] : "Generează Planul"}
+                    {loading ? loadingMessages[messageIndex] : (locale === "en" ? "Generate the Plan" : "Generează Planul")}
                     {!loading && <span>&rarr;</span>}
                   </button>
                 </div>
@@ -1970,7 +1915,7 @@ export default function DemoDesktop() {
                   <div className="w-3 h-3 rounded-full bg-zinc-700"></div>
                   <div className="w-3 h-3 rounded-full bg-zinc-700"></div>
                 </div>
-                <h3 className="text-xl font-bold tracking-tight text-white">💡 Exemple de Afaceri</h3>
+                <h3 className="text-xl font-bold tracking-tight text-white">{locale === "en" ? "💡 Business Examples" : "💡 Exemple de Afaceri"}</h3>
                 <div className="w-8"></div>
               </div>
               
@@ -2538,7 +2483,9 @@ export default function DemoDesktop() {
                     disabled={isDownloading !== null}
                     className="flex-none bg-emerald-600 hover:bg-emerald-500 text-white text-[10px] sm:text-[12px] h-full px-5 py-2.5 rounded-lg font-black uppercase tracking-wider transition-all flex items-center justify-center whitespace-nowrap gap-2 cursor-pointer shadow-[0_0_15px_rgba(16,185,129,0.3)]"
                   >
-                    {isDownloading === 'pdf-summary' ? "Se descarcă..." : "🎁 DESCARCĂ SUMAR GRATUIT"}
+                    {isDownloading === 'pdf-summary' 
+                      ? (locale === "en" ? "Downloading..." : "Se descarcă...") 
+                      : (locale === "en" ? "🎁 DOWNLOAD FREE SUMMARY" : "🎁 DESCARCĂ SUMAR GRATUIT")}
                   </button>
                 ) : (
                   <>
@@ -2547,7 +2494,7 @@ export default function DemoDesktop() {
                       disabled={isDownloading !== null}
                       className="flex-none hover:bg-zinc-800 text-[10px] sm:text-[11px] h-full px-3 py-2.5 rounded-lg font-black uppercase tracking-wider transition-all flex items-center justify-center whitespace-nowrap gap-1 cursor-pointer text-zinc-300 hover:text-white"
                     >
-                      {isDownloading === 'pdf' ? "⏳..." : "⬇ Prezentare"}
+                      {isDownloading === 'pdf' ? "⏳..." : (locale === "en" ? "⬇ Presentation" : "⬇ Prezentare")}
                     </button>
                     <div className="w-px h-4 bg-zinc-800 flex-none" />
                     <button 
@@ -2555,7 +2502,7 @@ export default function DemoDesktop() {
                       disabled={isDownloading !== null}
                       className="flex-none hover:bg-zinc-800 text-[10px] sm:text-[11px] h-full px-3 py-2.5 rounded-lg font-black uppercase tracking-wider transition-all flex items-center justify-center whitespace-nowrap gap-1 cursor-pointer text-zinc-300 hover:text-white"
                     >
-                      {isDownloading === 'pptx' ? "⏳..." : "⬇ Broșură"}
+                      {isDownloading === 'pptx' ? "⏳..." : (locale === "en" ? "⬇ Brochure" : "⬇ Broșură")}
                     </button>
                     <div className="w-px h-4 bg-zinc-800 flex-none" />
                     <button 
@@ -2563,7 +2510,7 @@ export default function DemoDesktop() {
                       disabled={isDownloading !== null}
                       className="flex-none hover:bg-zinc-800 text-[10px] sm:text-[11px] h-full px-3 py-2.5 rounded-lg font-black uppercase tracking-wider transition-all flex items-center justify-center whitespace-nowrap gap-1 cursor-pointer text-zinc-300 hover:text-white"
                     >
-                      {isDownloading === 'word' ? "⏳..." : "⬇ Document"}
+                      {isDownloading === 'word' ? "⏳..." : (locale === "en" ? "⬇ Document" : "⬇ Document")}
                     </button>
                   </>
                 )}
@@ -2575,7 +2522,7 @@ export default function DemoDesktop() {
                       type="button"
                       onClick={() => setShowPricingModal(true)}
                       className="flex-none text-xs text-amber-500 hover:text-amber-400 cursor-pointer px-3 h-full rounded-lg flex items-center justify-center hover:bg-zinc-800/50 hover:scale-110 transition-all"
-                      title="Deblochează Descărcările Complete (Pachet Standard)"
+                      title={locale === "en" ? "Unlock Full Downloads (Standard Package)" : "Deblochează Descărcările Complete (Pachet Standard)"}
                     >
                       🔒
                     </button>
@@ -2588,12 +2535,12 @@ export default function DemoDesktop() {
                   <div className="rounded-xl bg-zinc-950 px-4 py-3" style={{boxShadow: '0 0 24px 2px rgba(16,185,129,0.13)'}}>
                     <div className="flex items-center gap-2 mb-2">
                       <span className="text-emerald-400 text-sm">⬇</span>
-                      <span className="text-emerald-300 text-[11px] font-black uppercase tracking-widest">Pachet Standard</span>
+                      <span className="text-emerald-300 text-[11px] font-black uppercase tracking-widest">{locale === "en" ? "Standard Package" : "Pachet Standard"}</span>
                     </div>
                     <div className="flex flex-col gap-1">
-                      <div className="flex items-center gap-1.5 text-zinc-400 text-[10px]"><span className="text-emerald-500">▸</span> Prezentare PDF</div>
-                      <div className="flex items-center gap-1.5 text-zinc-400 text-[10px]"><span className="text-emerald-500">▸</span> Broșură PPTX</div>
-                      <div className="flex items-center gap-1.5 text-zinc-400 text-[10px]"><span className="text-emerald-500">▸</span> Document Word</div>
+                      <div className="flex items-center gap-1.5 text-zinc-400 text-[10px]"><span className="text-emerald-500">▸</span> {locale === "en" ? "PDF Presentation" : "Prezentare PDF"}</div>
+                      <div className="flex items-center gap-1.5 text-zinc-400 text-[10px]"><span className="text-emerald-500">▸</span> {locale === "en" ? "PPTX Brochure" : "Broșură PPTX"}</div>
+                      <div className="flex items-center gap-1.5 text-zinc-400 text-[10px]"><span className="text-emerald-500">▸</span> {locale === "en" ? "Word Document" : "Document Word"}</div>
                     </div>
                   </div>
                 </div>
@@ -2610,7 +2557,7 @@ export default function DemoDesktop() {
                   onClick={() => { setActiveVersionId('original'); setResultState(versions.original); }} 
                   className={`px-5 py-2.5 rounded-t-xl transition-all duration-300 font-bold text-sm tracking-wide flex items-center gap-2 ${activeVersionId === 'original' ? 'bg-[#09090b] border-t border-l border-r border-emerald-500/50 text-emerald-400 shadow-[0_-10px_20px_-10px_rgba(16,185,129,0.15)] relative z-10 translate-y-[1px]' : 'bg-zinc-900/50 border-t border-l border-r border-zinc-800 text-zinc-500 hover:text-zinc-300 hover:bg-zinc-900'}`}
                 >
-                  📝 Varianta Originală
+                  {locale === "en" ? "📝 Original Version" : "📝 Varianta Originală"}
                 </button>
               )}
               {versions.eu_funds && (
@@ -2618,7 +2565,7 @@ export default function DemoDesktop() {
                   onClick={() => { setActiveVersionId('eu_funds'); setResultState(versions.eu_funds); }} 
                   className={`px-5 py-2.5 rounded-t-xl transition-all duration-300 font-bold text-sm tracking-wide flex items-center gap-2 ${activeVersionId === 'eu_funds' ? 'bg-[#09090b] border-t border-l border-r border-emerald-500/50 text-emerald-400 shadow-[0_-10px_20px_-10px_rgba(16,185,129,0.15)] relative z-10 translate-y-[1px]' : 'bg-zinc-900/50 border-t border-l border-r border-zinc-800 text-zinc-500 hover:text-zinc-300 hover:bg-zinc-900'}`}
                 >
-                  🇪🇺 Optimizat Fonduri UE
+                  {locale === "en" ? "🇪🇺 EU Funds Optimized" : "🇪🇺 Optimizat Fonduri UE"}
                 </button>
               )}
               {versions.investor && (
@@ -2626,7 +2573,7 @@ export default function DemoDesktop() {
                   onClick={() => { setActiveVersionId('investor'); setResultState(versions.investor); }} 
                   className={`px-5 py-2.5 rounded-t-xl transition-all duration-300 font-bold text-sm tracking-wide flex items-center gap-2 ${activeVersionId === 'investor' ? 'bg-[#09090b] border-t border-l border-r border-emerald-500/50 text-emerald-400 shadow-[0_-10px_20px_-10px_rgba(16,185,129,0.15)] relative z-10 translate-y-[1px]' : 'bg-zinc-900/50 border-t border-l border-r border-zinc-800 text-zinc-500 hover:text-zinc-300 hover:bg-zinc-900'}`}
                 >
-                  🏦 Plan Investitori
+                  {locale === "en" ? "🏦 Investors Plan" : "🏦 Plan Investitori"}
                 </button>
               )}
             </div>
@@ -2654,9 +2601,9 @@ export default function DemoDesktop() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8 text-zinc-300 print:text-gray-800">
                 <div className="flex flex-col relative overflow-hidden">
                   <div className="leading-relaxed text-left z-10 relative">
-                    <p className="whitespace-pre-line"><strong className="text-white print:text-black block mb-1">Forma Juridică:</strong> {result.date_generale?.forma_juridica}</p>
-                    <p className="mt-4 whitespace-pre-line"><strong className="text-white print:text-black block mb-1">Cod CAEN:</strong> {result.date_generale?.cod_caen}</p>
-                    <p className="mt-4 whitespace-pre-line"><strong className="text-white print:text-black block mb-1">Contact:</strong> {result.date_generale?.date_contact}</p>
+                    <p className="whitespace-pre-line"><strong className="text-white print:text-black block mb-1">{locale === "en" ? "Legal Form:" : "Forma Juridică:"}</strong> {result.date_generale?.forma_juridica}</p>
+                    <p className="mt-4 whitespace-pre-line"><strong className="text-white print:text-black block mb-1">{locale === "en" ? "CAEN Code:" : "Cod CAEN:"}</strong> {result.date_generale?.cod_caen}</p>
+                    <p className="mt-4 whitespace-pre-line"><strong className="text-white print:text-black block mb-1">{locale === "en" ? "Contact:" : "Contact:"}</strong> {result.date_generale?.date_contact}</p>
                   </div>
                   
                   {/* Decorative curved lines to fill empty space */}
@@ -2708,31 +2655,31 @@ export default function DemoDesktop() {
                   </div>
                 </div>
                 <div>
-                  <p className="whitespace-pre-line"><strong className="text-white print:text-black block mb-1">Obiective (1 an):</strong>{formatNumberedText(result.viziune_strategie?.obiective_scurt)}</p>
-                  <p className="mt-4 whitespace-pre-line"><strong className="text-white print:text-black block mb-1">Obiective (3-5 ani):</strong>{formatNumberedText(result.viziune_strategie?.obiective_mediu)}</p>
+                  <p className="whitespace-pre-line"><strong className="text-white print:text-black block mb-1">{locale === "en" ? "Objectives (1 year):" : "Obiective (1 an):"}</strong>{formatNumberedText(result.viziune_strategie?.obiective_scurt)}</p>
+                  <p className="mt-4 whitespace-pre-line"><strong className="text-white print:text-black block mb-1">{locale === "en" ? "Objectives (3-5 years):" : "Obiective (3-5 ani):"}</strong>{formatNumberedText(result.viziune_strategie?.obiective_mediu)}</p>
                 </div>
               </div>
               <div className="mt-6 pt-6 border-t border-zinc-800/50 text-zinc-300 print:border-gray-200 print:text-gray-800 text-left leading-relaxed">
-                  <p className="whitespace-pre-line"><strong className="text-white print:text-black">Misiune și Valori:</strong> {formatNumberedText(result.viziune_strategie?.misiune_valori)}</p>
+                  <p className="whitespace-pre-line"><strong className="text-white print:text-black">{locale === "en" ? "Mission and Values:" : "Misiune și Valori:"}</strong> {formatNumberedText(result.viziune_strategie?.misiune_valori)}</p>
               </div>
             </div>
 
             {/* Analiza Pietei */}
             <div id="section-market" className="pdf-section mb-10 bg-zinc-900/50 p-10 rounded-3xl border-l-4 border-emerald-500 shadow-inner print:shadow-none print:bg-transparent print:border-l-4 print:border-emerald-700 print:text-black">
-              <h3 className="text-emerald-400 text-sm font-black uppercase mb-6 tracking-[0.2em]">III. Analiza Pieței și Promovarea</h3>
+              <h3 className="text-emerald-400 text-sm font-black uppercase mb-6 tracking-[0.2em]">{locale === "en" ? "III. Market Analysis and Promotion" : "III. Analiza Pieței și Promovarea"}</h3>
               <div className="space-y-6 text-zinc-300 print:text-gray-800 text-left leading-relaxed">
-                <div><strong className="text-white print:text-black block mb-1">Clienții Țintă:</strong> <span className="italic whitespace-pre-line">{formatNumberedText(result.analiza_pietei?.clienti_tinta)}</span></div>
-                <div><strong className="text-white print:text-black block mb-1">Concurența:</strong> <span className="italic whitespace-pre-line">{formatNumberedText(result.analiza_pietei?.concurenta)}</span></div>
-                <div><strong className="text-white print:text-black block mb-1">Strategia de Marketing:</strong> <span className="italic whitespace-pre-line">{formatNumberedText(result.analiza_pietei?.strategie_marketing)}</span></div>
+                <div><strong className="text-white print:text-black block mb-1">{locale === "en" ? "Target Customers:" : "Clienții Țintă:"}</strong> <span className="italic whitespace-pre-line">{formatNumberedText(result.analiza_pietei?.clienti_tinta)}</span></div>
+                <div><strong className="text-white print:text-black block mb-1">{locale === "en" ? "Competition:" : "Concurența:"}</strong> <span className="italic whitespace-pre-line">{formatNumberedText(result.analiza_pietei?.concurenta)}</span></div>
+                <div><strong className="text-white print:text-black block mb-1">{locale === "en" ? "Marketing Strategy:" : "Strategia de Marketing:"}</strong> <span className="italic whitespace-pre-line">{formatNumberedText(result.analiza_pietei?.strategie_marketing)}</span></div>
               </div>
             </div>
             
             <div id="section-swot" className="grid grid-cols-1 gap-6 mb-14 print:gap-4">
               {Object.entries({
-                puncte_tari: {t: 'Puncte Tari', l: 'S'},
-                puncte_slabe: {t: 'Slăbiciuni', l: 'W'},
-                oportunitati: {t: 'Oportunități', l: 'O'},
-                amenintari: {t: 'Amenințări', l: 'T'}
+                puncte_tari: {t: locale === "en" ? 'Strengths' : 'Puncte Tari', l: 'S'},
+                puncte_slabe: {t: locale === "en" ? 'Weaknesses' : 'Slăbiciuni', l: 'W'},
+                oportunitati: {t: locale === "en" ? 'Opportunities' : 'Oportunități', l: 'O'},
+                amenintari: {t: locale === "en" ? 'Threats' : 'Amenințări', l: 'T'}
               }).map(([key, info]) => (
                 <div key={key} className="pdf-section p-8 rounded-3xl border border-zinc-800/50 bg-black/20 shadow-inner print:break-inside-avoid print:p-0 print:border-none print:shadow-none print:bg-transparent">
                   <div className="flex items-center gap-4 mb-6 print:mb-4">
@@ -2756,11 +2703,11 @@ export default function DemoDesktop() {
 
             {/* Operational */}
             <div id="section-operational" className="pdf-section mb-10 bg-zinc-900/50 p-10 rounded-3xl border-l-4 border-emerald-500 shadow-inner print:shadow-none print:bg-transparent print:border-l-4 print:border-emerald-700 print:text-black">
-              <h3 className="text-emerald-400 text-sm font-black uppercase mb-6 tracking-[0.2em]">V. Planul Operațional și de Management</h3>
+              <h3 className="text-emerald-400 text-sm font-black uppercase mb-6 tracking-[0.2em]">{locale === "en" ? "V. Operational and Management Plan" : "V. Planul Operațional și de Management"}</h3>
               <ol className="space-y-6 text-zinc-300 print:text-gray-800 list-decimal pl-6 text-left leading-relaxed">
-                <li className="pl-2"><strong className="text-white print:text-black block mb-1">Descriere Flux Tehnologic:</strong> <span className="italic whitespace-pre-line">{formatNumberedText(result.plan_operational?.descriere_flux)}</span></li>
-                <li className="pl-2"><strong className="text-white print:text-black block mb-1">Resurse Umane:</strong> <span className="italic whitespace-pre-line">{formatNumberedText(result.plan_operational?.resurse_umane)}</span></li>
-                <li className="pl-2"><strong className="text-white print:text-black block mb-1">Locație și Dotări:</strong> <span className="italic whitespace-pre-line">{formatNumberedText(result.plan_operational?.locatie_dotari)}</span></li>
+                <li className="pl-2"><strong className="text-white print:text-black block mb-1">{locale === "en" ? "Technological Flow Description:" : "Descriere Flux Tehnologic:"}</strong> <span className="italic whitespace-pre-line">{formatNumberedText(result.plan_operational?.descriere_flux)}</span></li>
+                <li className="pl-2"><strong className="text-white print:text-black block mb-1">{locale === "en" ? "Human Resources:" : "Resurse Umane:"}</strong> <span className="italic whitespace-pre-line">{formatNumberedText(result.plan_operational?.resurse_umane)}</span></li>
+                <li className="pl-2"><strong className="text-white print:text-black block mb-1">{locale === "en" ? "Location and Equipment:" : "Locație și Dotări:"}</strong> <span className="italic whitespace-pre-line">{formatNumberedText(result.plan_operational?.locatie_dotari)}</span></li>
               </ol>
             </div>
 
@@ -3317,9 +3264,11 @@ export default function DemoDesktop() {
             <div className="w-16 h-16 bg-emerald-500/20 rounded-full flex items-center justify-center mb-6 border border-emerald-500/50 shadow-[0_0_15px_rgba(16,185,129,0.3)]">
               <span className="text-3xl">✨</span>
             </div>
-            <h2 className="text-2xl font-black text-white mb-4">Planul tău arată grozav!</h2>
+            <h2 className="text-2xl font-black text-white mb-4">{locale === "en" ? "Your plan looks great!" : "Planul tău arată grozav!"}</h2>
             <p className="text-zinc-400 mb-8 leading-relaxed">
-              Creează-ți un cont gratuit pentru a-l descărca complet în format PDF, DOCX sau PPTX și pentru a-ți salva toate modificările!
+              {locale === "en" 
+                ? "Create a free account to download it completely in PDF, DOCX, or PPTX format and to save all your changes!" 
+                : "Creează-ți un cont gratuit pentru a-l descărca complet în format PDF, DOCX sau PPTX și pentru a-ți salva toate modificările!"}
             </p>
             <div className="flex flex-col gap-3 w-full">
               <button 
@@ -3329,13 +3278,13 @@ export default function DemoDesktop() {
                 }}
                 className="w-full py-3.5 bg-emerald-500 hover:bg-emerald-400 text-white rounded-xl font-bold transition-all shadow-[0_0_20px_rgba(16,185,129,0.3)]"
               >
-                Creează cont gratuit
+                {locale === "en" ? "Create free account" : "Creează cont gratuit"}
               </button>
               <button 
                 onClick={() => setShowStudioExportModal(false)}
                 className="w-full py-3.5 bg-transparent hover:bg-zinc-900 text-zinc-400 rounded-xl font-bold transition-all"
               >
-                Înapoi la editare
+                {locale === "en" ? "Back to editing" : "Înapoi la editare"}
               </button>
             </div>
           </div>
@@ -3356,7 +3305,8 @@ export default function DemoDesktop() {
         userId={user?.uid || ""}
         userEmail={user?.email || ""}
         currency={currency}
-        planName={result?.nume || "Plan de Afaceri"}
+        planName={result?.nume || (locale === "en" ? "Business Plan" : "Plan de Afaceri")}
+        locale={locale}
       />
       {showAuthModal && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[200] flex items-center justify-center p-4">
@@ -3375,9 +3325,11 @@ export default function DemoDesktop() {
               </button>
             </div>
             
-            <h3 className="text-2xl font-black text-white mb-3 relative z-10">Creează-ți un cont gratuit</h3>
+            <h3 className="text-2xl font-black text-white mb-3 relative z-10">{locale === "en" ? "Create a free account" : "Creează-ți un cont gratuit"}</h3>
             <p className="text-zinc-400 mb-6 text-sm leading-relaxed relative z-10 font-sans">
-              Creează-ți un cont gratuit pentru a folosi instrumentele noastre avansate și a personaliza planul tău de afaceri.
+              {locale === "en" 
+                ? "Create a free account to use our advanced tools and customize your business plan." 
+                : "Creează-ți un cont gratuit pentru a folosi instrumentele noastre avansate și a personaliza planul tău de afaceri."}
             </p>
             
             <button 
@@ -3387,7 +3339,7 @@ export default function DemoDesktop() {
               }}
               className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 px-4 rounded-xl transition-all shadow-lg shadow-emerald-900/30 flex items-center justify-center gap-2"
             >
-              <span>Conectare / Înregistrare</span>
+              <span>{locale === "en" ? "Login / Register" : "Conectare / Înregistrare"}</span>
               <span>➔</span>
             </button>
             
@@ -3396,7 +3348,7 @@ export default function DemoDesktop() {
               onClick={() => setShowAuthModal(false)}
               className="mt-3 w-full bg-zinc-800/80 hover:bg-zinc-800 text-zinc-400 hover:text-white font-bold py-3 px-4 rounded-xl transition-all text-sm"
             >
-              Mai târziu
+              {locale === "en" ? "Maybe later" : "Mai târziu"}
             </button>
           </div>
         </div>

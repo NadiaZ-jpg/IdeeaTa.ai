@@ -2,6 +2,6 @@
 import React from 'react';
 import LandingPageContent from '@/components/LandingPageContent';
 
-export default function LandingPage() {
-  return <LandingPageContent locale="ro" />;
+export default function LandingPageEn() {
+  return <LandingPageContent locale="en" />;
 }

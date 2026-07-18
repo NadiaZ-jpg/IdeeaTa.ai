@@ -7,6 +7,7 @@ interface ConversionBannersProps {
   result: any;
   onResetApp: () => void;
   onAuthClick: () => void;
+  locale?: string;
 }
 
 export const ConversionBanners: React.FC<ConversionBannersProps> = ({
@@ -15,6 +16,7 @@ export const ConversionBanners: React.FC<ConversionBannersProps> = ({
   result,
   onResetApp,
   onAuthClick,
+  locale = "ro",
 }) => {
   // Banner 1: Planuri partajate (/shared -> /demo?sharedId=...)
   if (isSharedView) {
@@ -25,10 +27,12 @@ export const ConversionBanners: React.FC<ConversionBannersProps> = ({
           <span className="text-3xl select-none animate-bounce duration-1000 shrink-0">💡</span>
           <div>
             <h4 className="text-sm font-extrabold text-emerald-300 tracking-wide uppercase">
-              Previzualizezi un plan de afaceri partajat
+              {locale === "en" ? "You are previewing a shared business plan" : "Previzualizezi un plan de afaceri partajat"}
             </h4>
             <p className="text-xs text-zinc-400 mt-1 leading-relaxed">
-              Vrei să generezi propriul tău plan complet gratuit, personalizat în detaliu de AI pentru ideea ta de afacere?
+              {locale === "en" 
+                ? "Want to generate your own plan completely free, customized in detail by AI for your business idea?" 
+                : "Vrei să generezi propriul tău plan complet gratuit, personalizat în detaliu de AI pentru ideea ta de afacere?"}
             </p>
           </div>
         </div>
@@ -36,7 +40,7 @@ export const ConversionBanners: React.FC<ConversionBannersProps> = ({
           onClick={onResetApp}
           className="w-full md:w-auto bg-emerald-500 hover:bg-emerald-400 text-zinc-950 font-black text-xs uppercase tracking-wider px-6 py-3.5 rounded-xl hover:scale-[1.02] active:scale-[0.98] transition-all shadow-[0_4px_20px_rgba(16,185,129,0.25)] hover:shadow-[0_4px_25px_rgba(16,185,129,0.4)] cursor-pointer relative z-10 shrink-0"
         >
-          Generează Plan Gratuit
+          {locale === "en" ? "Generate Free Plan" : "Generează Plan Gratuit"}
         </button>
       </div>
     );
@@ -51,10 +55,12 @@ export const ConversionBanners: React.FC<ConversionBannersProps> = ({
           <span className="text-3xl select-none animate-pulse shrink-0">⚠️</span>
           <div>
             <h4 className="text-sm font-extrabold text-amber-400 tracking-wide uppercase">
-              Planul tău este stocat doar temporar
+              {locale === "en" ? "Your plan is only stored temporarily" : "Planul tău este stocat doar temporar"}
             </h4>
             <p className="text-xs text-zinc-400 mt-1 leading-relaxed">
-              Pentru a nu pierde acest plan la închiderea browser-ului, creează un cont gratuit acum și salvează-l permanent.
+              {locale === "en" 
+                ? "To avoid losing this plan when closing the browser, create a free account now and save it permanently." 
+                : "Pentru a nu pierde acest plan la închiderea browser-ului, creează un cont gratuit acum și salvează-l permanent."}
             </p>
           </div>
         </div>
@@ -62,7 +68,7 @@ export const ConversionBanners: React.FC<ConversionBannersProps> = ({
           onClick={onAuthClick}
           className="w-full md:w-auto bg-amber-500 hover:bg-amber-400 text-zinc-950 font-black text-xs uppercase tracking-wider px-6 py-3.5 rounded-xl hover:scale-[1.02] active:scale-[0.98] transition-all shadow-[0_4px_20px_rgba(245,158,11,0.25)] hover:shadow-[0_4px_25px_rgba(245,158,11,0.4)] cursor-pointer relative z-10 shrink-0"
         >
-          Salvează Planul în Cont
+          {locale === "en" ? "Save Plan to Account" : "Salvează Planul în Cont"}
         </button>
       </div>
     );

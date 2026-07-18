@@ -1,15 +1,7 @@
 "use client";
 import React from 'react';
-import { useDeviceDetect } from '@/hooks/useDeviceDetect';
-import StudioDesktop from '@/components/StudioDesktop';
-import StudioMobile from '@/components/StudioMobile';
+import StudioContent from './StudioContent';
 
 export default function Home() {
-  const isMobile = useDeviceDetect();
-
-  if (isMobile) {
-    return <StudioMobile />;
-  }
-
-  return <StudioDesktop />;
+  return <StudioContent locale="ro" />;
 }

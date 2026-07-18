@@ -9,9 +9,10 @@ interface PricingModalProps {
   userEmail: string | null;
   currency: string; // "LEI" or "EUR"
   planName?: string;
+  locale?: string;
 }
  
-export function PricingModal({ isOpen, onClose, onSuccess, onRequireLogin, userId, userEmail, currency, planName }: PricingModalProps) {
+export function PricingModal({ isOpen, onClose, onSuccess, onRequireLogin, userId, userEmail, currency, planName, locale = "ro" }: PricingModalProps) {
   const [loadingTier, setLoadingTier] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
  
@@ -22,7 +23,7 @@ export function PricingModal({ isOpen, onClose, onSuccess, onRequireLogin, userI
       if (onRequireLogin) {
         onRequireLogin();
       } else {
-        setError("Te rugăm să îți creezi un cont gratuit pentru a continua.");
+        setError(locale === "en" ? "Please create a free account to continue." : "Te rugăm să îți creezi un cont gratuit pentru a continua.");
       }
       return;
     }
@@ -48,11 +49,11 @@ export function PricingModal({ isOpen, onClose, onSuccess, onRequireLogin, userI
         }
         window.location.href = urlObj.toString();
       } else {
-        throw new Error("Pachet invalid.");
+        throw new Error(locale === "en" ? "Invalid package." : "Pachet invalid.");
       }
     } catch (err: any) {
       console.error(err);
-      setError(err.message || "A apărut o eroare. Te rugăm să încerci din nou.");
+      setError(err.message || (locale === "en" ? "An error occurred. Please try again." : "A apărut o eroare. Te rugăm să încerci din nou."));
       setLoadingTier(null);
     }
   };
@@ -85,20 +86,31 @@ export function PricingModal({ isOpen, onClose, onSuccess, onRequireLogin, userI
           <div className="absolute top-0 right-0">
             <input 
               type="text" 
-              placeholder="Cod promoțional" 
+              placeholder={locale === "en" ? "Promo code" : "Cod promoțional"} 
               className="bg-zinc-900 border border-zinc-800 text-white text-xs px-3 py-1 rounded-lg w-32 focus:outline-none focus:border-emerald-500 transition-colors"
-              onKeyDown={(e) => {
+              onKeyDown={async (e) => {
                 if (e.key === 'Enter') {
-                  const val = e.currentTarget.value.trim().toUpperCase();
-                  if (val && val === (process.env.NEXT_PUBLIC_PROMO_STANDARD || '').toUpperCase()) {
-                    if (onSuccess) onSuccess("standard");
-                    onClose();
-                  } else if (val && val === (process.env.NEXT_PUBLIC_PROMO_FONDURI || '').toUpperCase()) {
-                    if (onSuccess) onSuccess("eu-funds");
-                    onClose();
-                  } else if (val && val === (process.env.NEXT_PUBLIC_PROMO_ADMIN || '').toUpperCase()) {
-                    if (onSuccess) onSuccess("full-access");
-                    onClose();
+                  const val = e.currentTarget.value.trim();
+                  if (!val) return;
+
+                  setError(null);
+                  try {
+                    const res = await fetch("/api/validate-promo", {
+                      method: "POST",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({ code: val })
+                    });
+
+                    const data = await res.json();
+                    if (data.success) {
+                      if (onSuccess) onSuccess(data.tier);
+                      onClose();
+                    } else {
+                      setError(data.error || (locale === "en" ? "Invalid promo code" : "Cod promoțional invalid"));
+                    }
+                  } catch (err) {
+                    console.error("Eroare validare:", err);
+                    setError(locale === "en" ? "Error connecting to the server." : "Eroare la conectarea cu serverul.");
                   }
                 }
               }}
@@ -108,10 +120,10 @@ export function PricingModal({ isOpen, onClose, onSuccess, onRequireLogin, userI
             💰
           </div>
           <h2 className="text-3xl md:text-4xl font-black tracking-tight leading-tight bg-gradient-to-r from-white via-emerald-400 to-white bg-clip-text text-transparent">
-            Alege Planul Potrivit Afacerii Tale
+            {locale === "en" ? "Choose the Right Plan for Your Business" : "Alege Planul Potrivit Afacerii Tale"}
           </h2>
           <p className="text-zinc-400 text-sm mt-2 max-w-xl">
-            Deblochează instrumentele noastre de top și obține acces complet la planurile de afaceri.
+            {locale === "en" ? "Unlock our top tools and get full access to business plans." : "Deblochează instrumentele noastre de top și obține acces complet la planurile de afaceri."}
           </p>
         </div>
 
@@ -129,8 +141,8 @@ export function PricingModal({ isOpen, onClose, onSuccess, onRequireLogin, userI
           <div className="bg-zinc-950/50 border border-zinc-800 rounded-3xl p-6 flex flex-col justify-between hover:border-zinc-700 transition-all group relative">
             <div>
               <div className="flex justify-between items-start mb-4">
-                <span className="text-sm font-bold text-zinc-400">Pachet Standard</span>
-                <span className="text-xs bg-zinc-800 text-zinc-400 px-2.5 py-1 rounded-full font-bold uppercase tracking-wider">Unic</span>
+                <span className="text-sm font-bold text-zinc-400">{locale === "en" ? "Standard Package" : "Pachet Standard"}</span>
+                <span className="text-xs bg-zinc-800 text-zinc-400 px-2.5 py-1 rounded-full font-bold uppercase tracking-wider">{locale === "en" ? "One-time" : "Unic"}</span>
               </div>
               <div className="flex items-baseline gap-1 mb-6">
                 <span className="text-3xl font-black text-white">{getPriceDisplay("standard")}</span>
@@ -139,23 +151,23 @@ export function PricingModal({ isOpen, onClose, onSuccess, onRequireLogin, userI
               <ul className="space-y-3 mb-8 text-sm text-zinc-400">
                 <li className="flex items-start gap-2.5">
                   <span className="text-emerald-500 font-bold">✓</span>
-                  <span>Descărcare plan de afaceri</span>
+                  <span>{locale === "en" ? "Business plan download" : "Descărcare plan de afaceri"}</span>
                 </li>
                 <li className="flex items-start gap-2.5">
                   <span className="text-emerald-500 font-bold">✓</span>
-                  <span>Toate cele 3 formate: PDF, PPTX, Word</span>
+                  <span>{locale === "en" ? "All 3 formats: PDF, PPTX, Word" : "Toate cele 3 formate: PDF, PPTX, Word"}</span>
                 </li>
                 <li className="flex items-start gap-2.5">
                   <span className="text-emerald-500 font-bold">✓</span>
-                  <span>Fără watermark sau reclame</span>
+                  <span>{locale === "en" ? "No watermark or ads" : "Fără watermark sau reclame"}</span>
                 </li>
                 <li className="flex items-start gap-2.5">
                   <span className="text-emerald-500 font-bold">✓</span>
-                  <span className="text-zinc-200 font-medium">Editare text liberă în browser</span>
+                  <span className="text-zinc-200 font-medium">{locale === "en" ? "Free text editing in browser" : "Editare text liberă în browser"}</span>
                 </li>
                 <li className="flex items-start gap-2.5">
                   <span className="text-emerald-500 font-bold">✓</span>
-                  <span>Ton AI nelimitat (toate variantele)</span>
+                  <span>{locale === "en" ? "Unlimited AI Tone (all variations)" : "Ton AI nelimitat (toate variantele)"}</span>
                 </li>
               </ul>
             </div>
@@ -168,7 +180,7 @@ export function PricingModal({ isOpen, onClose, onSuccess, onRequireLogin, userI
               {loadingTier === "standard" ? (
                 <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
               ) : (
-                "Alege Standard"
+                locale === "en" ? "Choose Standard" : "Alege Standard"
               )}
             </button>
           </div>
@@ -176,13 +188,13 @@ export function PricingModal({ isOpen, onClose, onSuccess, onRequireLogin, userI
           {/* Tier 2: Studio + EU Funds */}
           <div className="bg-zinc-950/70 border border-amber-500/30 rounded-3xl p-6 flex flex-col justify-between hover:border-amber-500/50 transition-all group relative shadow-[0_0_30px_rgba(245,158,11,0.05)]">
             <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-amber-500 text-black px-4 py-1 rounded-full text-[10px] font-black uppercase tracking-widest whitespace-nowrap">
-              Instrumente PRO
+              {locale === "en" ? "PRO Tools" : "Instrumente PRO"}
             </div>
             
             <div>
               <div className="flex justify-between items-start mb-4 mt-2">
-                <span className="text-sm font-bold text-amber-300">Pachet Editare + Instrumente Profesionale</span>
-                <span className="text-xs bg-amber-500/20 text-amber-300 px-2.5 py-1 rounded-full font-bold uppercase tracking-wider">Unic</span>
+                <span className="text-sm font-bold text-amber-300">{locale === "en" ? "Editing + Professional Tools Package" : "Pachet Editare + Instrumente Profesionale"}</span>
+                <span className="text-xs bg-amber-500/20 text-amber-300 px-2.5 py-1 rounded-full font-bold uppercase tracking-wider">{locale === "en" ? "One-time" : "Unic"}</span>
               </div>
               <div className="flex items-baseline gap-1 mb-6">
                 <span className="text-3xl font-black text-white">{getPriceDisplay("eu-funds")}</span>
@@ -191,27 +203,33 @@ export function PricingModal({ isOpen, onClose, onSuccess, onRequireLogin, userI
               <ul className="space-y-3 mb-8 text-sm text-zinc-400">
                 <li className="flex items-start gap-2.5">
                   <span className="text-amber-500 font-bold">✓</span>
-                  <span>Tot ce include Pachetul Standard</span>
+                  <span>{locale === "en" ? "Everything in the Standard Package" : "Tot ce include Pachetul Standard"}</span>
                 </li>
                 <li className="flex items-start gap-2.5">
                   <span className="text-amber-500 font-bold">✓</span>
-                  <span className="text-zinc-200 font-medium">Toate cele <strong>4 variante de Ton AI</strong></span>
+                  <span className="text-zinc-200 font-medium">
+                    {locale === "en" ? "All 4 AI Tone variations" : <>Toate cele <strong>4 variante de Ton AI</strong></>}
+                  </span>
                 </li>
                 <li className="flex items-start gap-2.5">
                   <span className="text-amber-500 font-bold">✓</span>
-                  <span className="text-zinc-200 font-medium">Deblochează <strong>Plan Profesionist</strong> (Investitori/Bănci)</span>
+                  <span className="text-zinc-200 font-medium">
+                    {locale === "en" ? "Unlock Professional Plan (Investors/Banks)" : <>Deblochează <strong>Plan Profesionist</strong> (Investitori/Bănci)</>}
+                  </span>
                 </li>
                 <li className="flex items-start gap-2.5">
                   <span className="text-amber-500 font-bold">✓</span>
-                  <span>Deblochează <strong>Optimizare Fonduri Europene</strong></span>
+                  <span className="text-zinc-200 font-medium">
+                    {locale === "en" ? "Unlock EU Grants Optimization" : <>Deblochează <strong>Optimizare Fonduri Europene</strong></>}
+                  </span>
                 </li>
                 <li className="flex items-start gap-2.5">
                   <span className="text-amber-500 font-bold">✓</span>
-                  <span>Optimizare Buget AI (recalculare automată)</span>
+                  <span>{locale === "en" ? "AI Budget Optimization (auto-recalculation)" : "Optimizare Buget AI (recalculare automată)"}</span>
                 </li>
                 <li className="flex items-start gap-2.5">
                   <span className="text-amber-500 font-bold">✓</span>
-                  <span>Adaugă Secțiuni Noi (extinde planul oricând)</span>
+                  <span>{locale === "en" ? "Add New Sections (expand plan anytime)" : "Adaugă Secțiuni Noi (extinde planul oricând)"}</span>
                 </li>
               </ul>
             </div>
@@ -224,7 +242,7 @@ export function PricingModal({ isOpen, onClose, onSuccess, onRequireLogin, userI
               {loadingTier === "eu-funds" ? (
                 <div className="w-5 h-5 border-2 border-black border-t-transparent rounded-full animate-spin"></div>
               ) : (
-                "Alege Studio & Fonduri"
+                locale === "en" ? "Choose Studio & Grants" : "Alege Studio & Fonduri"
               )}
             </button>
           </div>
@@ -233,9 +251,15 @@ export function PricingModal({ isOpen, onClose, onSuccess, onRequireLogin, userI
 
         {/* Security Badges */}
         <div className="flex justify-center items-center gap-6 mt-2 opacity-50 text-[10px] text-zinc-500 border-t border-zinc-900 pt-6">
-          <span className="flex items-center gap-1.5 font-bold uppercase tracking-wider">🔒 Conexiune Securizată SSL</span>
-          <span className="flex items-center gap-1.5 font-bold uppercase tracking-wider">🛡 PCI-DSS Securitate Card</span>
-          <span className="flex items-center gap-1.5 font-bold uppercase tracking-wider">💳 Procesat Securizat prin Lemon Squeezy</span>
+          <span className="flex items-center gap-1.5 font-bold uppercase tracking-wider">
+            {locale === "en" ? "🔒 Secure SSL Connection" : "🔒 Conexiune Securizată SSL"}
+          </span>
+          <span className="flex items-center gap-1.5 font-bold uppercase tracking-wider">
+            {locale === "en" ? "🛡 PCI-DSS Card Security" : "🛡 PCI-DSS Securitate Card"}
+          </span>
+          <span className="flex items-center gap-1.5 font-bold uppercase tracking-wider">
+            {locale === "en" ? "💳 Securely Processed via Lemon Squeezy" : "💳 Procesat Securizat prin Lemon Squeezy"}
+          </span>
         </div>
 
       </div>

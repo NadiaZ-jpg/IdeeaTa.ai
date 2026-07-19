@@ -1,5 +1,6 @@
 import { GoogleGenAI } from "@google/genai";
 import { NextRequest, NextResponse } from "next/server";
+import { getExchangeRateRonToEur } from "@/lib/exchangeRate";
 
 export const maxDuration = 60; // Max execution time 60s to allow for retries and long generations
 
@@ -177,8 +178,10 @@ Do not include any other text besides the JSON block. Do not format with markdow
       text = jsonMatch[0];
     }
 
+    const fxRate = await getExchangeRateRonToEur();
+
     return NextResponse.json({
-      fx_rate: 0.201, // 1 RON = 0.20 EUR approximately
+      fx_rate: fxRate,
       ideas: [text]
     });
   } catch (error: any) {

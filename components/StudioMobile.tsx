@@ -5,7 +5,7 @@ import { toPng } from "html-to-image";
 import pptxgen from "pptxgenjs";
 import { auth, db } from '@/lib/firebase';
 import { onAuthStateChanged, User, sendEmailVerification, signOut } from 'firebase/auth';
-import { doc, setDoc, getDoc, updateDoc } from 'firebase/firestore';
+import { doc, setDoc, getDoc, updateDoc, onSnapshot } from 'firebase/firestore';
 import { PricingModal } from '@/components/PricingModal';
 import { AdBanner } from '@/components/AdBanner';
 import { useStudioFirebaseSync } from '@/hooks/useStudioFirebaseSync';
@@ -14,6 +14,8 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { t } from '@/lib/translations';
 import dynamic from 'next/dynamic';
+import { generateDocxBlob } from '@/lib/generateDocx';
+import { generatePptx } from '@/lib/generatePptx';
 
 const BudgetPieChart = dynamic(() => import('@/components/BudgetChart').then(mod => mod.BudgetPieChart), { ssr: false });
 
@@ -47,8 +49,22 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
   const [loading, setLoading] = useState(false);
   const [fxRate, setFxRate] = useState(0.201);
   const [showPricingModal, setShowPricingModal] = useState(false);
-  const [isDownloading, setIsDownloading] = useState<'pdf' | 'word' | 'pptx' | null>(null);
+  const [isDownloading, setIsDownloading] = useState<'pdf' | 'word' | 'pptx' | 'pdf-summary' | null>(null);
   
+  // Stări permisiuni utilizator (la fel ca pe desktop)
+  const [credits, setCredits] = useState(0);
+  const [euFundsUnlocked, setEuFundsUnlocked] = useState(false);
+  const [subscriptionActive, setSubscriptionActive] = useState(false);
+  const [unlockedPlans, setUnlockedPlans] = useState<string[]>([]);
+  const [promoCodeUnlocked, setPromoCodeUnlocked] = useState(false);
+  
+  const devBypass = typeof window !== 'undefined' && localStorage.getItem("devBypass") === "true";
+  const isAdmin = !!(user && (user.email === "adrian@ideeata.ai" || user.email === "contact@ideeata.ai"));
+  const isPaid = typeof window !== 'undefined' && localStorage.getItem(`isPaid_${result?.nume}`) === "true";
+
+  const isPlanPaid = promoCodeUnlocked || isAdmin || devBypass || subscriptionActive || (result && unlockedPlans.includes(result.nume)) || isPaid;
+  const isStudioPaid = promoCodeUnlocked || isAdmin || devBypass || subscriptionActive || euFundsUnlocked || isPaid;
+
   // Stări pentru editarea AI și manuală pe mobil (Bottom-Sheets)
   const [isEditingAi, setIsEditingAi] = useState(false);
   const [showVerificationModal, setShowVerificationModal] = useState(false);
@@ -81,6 +97,41 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
     });
     return () => unsubscribe();
   }, [router]);
+
+  useEffect(() => {
+    if (!user) {
+      setCredits(0);
+      setEuFundsUnlocked(false);
+      setSubscriptionActive(false);
+      setUnlockedPlans([]);
+      setPromoCodeUnlocked(false);
+      return;
+    }
+
+    const userRef = doc(db, "users", user.uid);
+    const unsubscribe = onSnapshot(userRef, (snapshot) => {
+      if (snapshot.exists()) {
+        const data = snapshot.data();
+        setCredits(data.credits || 0);
+        setEuFundsUnlocked(data.euFundsUnlocked || false);
+        setSubscriptionActive(data.subscriptionActive || false);
+        setUnlockedPlans(data.unlockedPlans || []);
+        setPromoCodeUnlocked(data.promoCodeUnlocked || false);
+      } else {
+        setDoc(userRef, {
+          email: user.email,
+          credits: 0,
+          euFundsUnlocked: false,
+          subscriptionActive: false,
+          unlockedPlans: [],
+          promoCodeUnlocked: false,
+          createdAt: new Date().toISOString(),
+        }, { merge: true });
+      }
+    });
+
+    return () => unsubscribe();
+  }, [user]);
 
   const handleAiEdit = async (action: string, customInput?: string) => {
     if (!result || !user) return;
@@ -170,8 +221,90 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
     }
   };
 
-  const handleDownload = () => {
-    setShowPricingModal(true); // Descărcările necesită Premium
+  const [showExportModal, setShowExportModal] = useState(false);
+  const [pendingDownloadMode, setPendingDownloadMode] = useState<'pdf' | 'pptx' | 'word' | 'pdf-summary' | null>(null);
+
+  const downloadAction = async (mode: 'word' | 'pptx' | 'pdf' | 'pdf-summary') => {
+    const planName = result?.nume || "Plan de Afaceri";
+
+    if (mode !== 'pdf-summary' && !isAdmin && !isPlanPaid && !subscriptionActive && !euFundsUnlocked) {
+      setPendingDownloadMode(mode);
+      setShowPricingModal(true);
+      return;
+    }
+
+    setIsDownloading(mode);
+    try {
+      const safeName = result?.nume?.replace(/[^a-zA-Z0-9]/g, '_') || 'Business';
+      
+      if (mode === 'word') {
+        const blob = await generateDocxBlob(result, null, locale);
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = `IdeeaTa_Document_${safeName}.docx`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      } else if (mode === 'pptx') {
+        await generatePptx(result, safeName, locale === "es" || locale === "en" ? "EUR" : "LEI", fxRate, locale);
+      } else if (mode === 'pdf' || mode === 'pdf-summary') {
+        const docPdf = new jsPDF({
+          orientation: "portrait",
+          unit: "pt",
+          format: "a4"
+        });
+        
+        docPdf.setFontSize(22);
+        docPdf.setTextColor(16, 185, 129); // Emerald
+        docPdf.text(result.nume || "Plan de Afaceri", 50, 80);
+        
+        docPdf.setFontSize(14);
+        docPdf.setTextColor(100, 100, 100);
+        docPdf.text(result.slogan || "", 50, 105);
+        
+        docPdf.setFontSize(12);
+        docPdf.setTextColor(40, 40, 40);
+        
+        let yPos = 140;
+        const addSection = (title: string, content: string) => {
+          if (yPos > 700) {
+            docPdf.addPage();
+            yPos = 50;
+          }
+          docPdf.setFontSize(13);
+          docPdf.setTextColor(16, 185, 129);
+          docPdf.text(title, 50, yPos);
+          yPos += 20;
+          
+          docPdf.setFontSize(10);
+          docPdf.setTextColor(60, 60, 60);
+          const lines = docPdf.splitTextToSize(content || "", 500);
+          docPdf.text(lines, 50, yPos);
+          yPos += (lines.length * 15) + 25;
+        };
+
+        addSection(locale === "en" ? "1. Business Description" : locale === "es" ? "1. Descripción del Negocio" : "1. Descriere Afacere", result.descriere || "");
+        addSection(locale === "en" ? "2. Market Opportunity" : locale === "es" ? "2. Oportunidad de Mercado" : "2. Oportunitatea Pieței", result.oportunitate_piata || "");
+        addSection(locale === "en" ? "3. Target Audience" : locale === "es" ? "3. Público Objetivo" : "3. Publicul Țintă", result.public_tinta || "");
+        
+        const formatSwot = (label: string, text: string) => {
+          return `${label}: ${text || ""}`;
+        };
+        
+        const swotText = `${formatSwot(locale === "en" ? "Strengths" : "Puncte Forte", result.analiza_swot?.puncte_forte)}\n\n${formatSwot(locale === "en" ? "Weaknesses" : "Puncte Slabe", result.analiza_swot?.puncte_slabe)}`;
+        addSection(locale === "en" ? "4. SWOT Analysis" : locale === "es" ? "4. Análisis SWOT" : "4. Analiza SWOT", swotText);
+        
+        const suffix = mode === 'pdf-summary' ? '_Sumar_Gratuit' : '';
+        docPdf.save(`IdeeaTa_Document_${safeName}${suffix}.pdf`);
+      }
+      
+      await new Promise(resolve => setTimeout(resolve, 1000));
+    } catch (e) {
+      console.error(e);
+      alert(locale === "en" ? "Error generating document" : "Eroare la generarea documentului");
+    } finally {
+      setIsDownloading(null);
+    }
   };
 
   if (!result) {
@@ -202,7 +335,7 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
             🔗
           </button>
           <button
-            onClick={handleDownload}
+            onClick={() => setShowExportModal(true)}
             className="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-3 py-2 rounded-lg text-xs flex items-center gap-1"
           >
             <span>{locale === "en" ? "Export" : locale === "es" ? "Exportar" : "Export"}</span>
@@ -320,10 +453,23 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
                 <div className="flex justify-between items-center">
                   <h3 className="text-emerald-400 font-bold text-sm">{locale === "en" ? "Initial Investment Budget" : locale === "es" ? "Presupuesto Inicial de Inversión" : "Buget Inițial de Investiții"}</h3>
                   <button
-                    onClick={() => setShowPricingModal(true)}
-                    className="text-[10px] bg-amber-500/15 border border-amber-500/30 text-amber-300 px-2 py-0.5 rounded font-black uppercase"
+                    onClick={() => {
+                      if (isStudioPaid || isPlanPaid) {
+                        handleAiEdit("optimize_budget");
+                      } else {
+                        setShowPricingModal(true);
+                      }
+                    }}
+                    className={`text-[10px] px-2 py-0.5 rounded font-black uppercase transition-all ${
+                      (isStudioPaid || isPlanPaid)
+                        ? "bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 hover:bg-emerald-500/25"
+                        : "bg-amber-500/15 border border-amber-500/30 text-amber-300 hover:bg-amber-500/25"
+                    }`}
                   >
-                    {locale === "en" ? "🔒 Optimize Budget with AI" : locale === "es" ? "🔒 Optimizar Presupuesto con IA" : "🔒 Optimizați Buget AI"}
+                    {(isStudioPaid || isPlanPaid)
+                      ? (locale === "en" ? "Optimize Budget with AI" : locale === "es" ? "Optimizar Presupuesto con IA" : "Optimizează Buget cu AI")
+                      : (locale === "en" ? "🔒 Optimize Budget with AI" : locale === "es" ? "🔒 Optimizar Presupuesto con IA" : "🔒 Optimizați Buget AI")
+                    }
                   </button>
                 </div>
                 <div className="space-y-2">
@@ -368,8 +514,8 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
                 </div>
                 <ToneEditor
                   user={user}
-                  isStudioPaid={false}
-                  isAdmin={false}
+                  isStudioPaid={isStudioPaid}
+                  isAdmin={isAdmin}
                   isEditingAi={isEditingAi}
                   setShowAuthModal={() => {}}
                   setShowPricingModal={setShowPricingModal}
@@ -526,6 +672,76 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
         planName={result?.nume || (locale === "en" ? "Business Plan" : locale === "es" ? "Plan de Negocios" : "Plan de Afaceri")}
         locale={locale}
       />
+
+      {/* Meniu Exporturi Bottom-Sheet */}
+      {showExportModal && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex flex-col justify-end">
+          {/* Backdrop Touch Close */}
+          <div className="flex-1" onClick={() => setShowExportModal(false)}></div>
+          
+          {/* Drawer Sheet */}
+          <div className="bg-zinc-900 border-t border-zinc-800 rounded-t-3xl p-6 max-h-[85vh] overflow-y-auto space-y-5 animate-in slide-in-from-bottom duration-300 flex flex-col">
+            <div className="flex justify-between items-center border-b border-zinc-800/60 pb-3">
+              <h4 className="text-sm font-black text-white">{locale === "en" ? "Export Options" : locale === "es" ? "Opciones de Exportación" : "Opțiuni de Exportare"}</h4>
+              <button onClick={() => setShowExportModal(false)} className="text-xs text-zinc-500 font-bold p-1">{locale === "en" ? "Close" : locale === "es" ? "Cerrar" : "Închide"}</button>
+            </div>
+            
+            <div className="flex flex-col gap-3">
+              {/* PDF Sumar Gratuit (Always Available) */}
+              <button
+                onClick={() => {
+                  downloadAction("pdf-summary");
+                  setShowExportModal(false);
+                }}
+                disabled={isDownloading !== null}
+                className="w-full bg-zinc-950 border border-zinc-800 text-zinc-300 hover:text-white font-bold py-3.5 rounded-xl text-xs transition-all active:scale-95 text-left px-4 flex justify-between items-center"
+              >
+                <span>📄 {locale === "en" ? "Free PDF Summary" : locale === "es" ? "Resumen PDF Gratis" : "Sumar PDF Gratuit"}</span>
+                <span className="text-[10px] bg-emerald-500/10 text-emerald-400 px-2 py-0.5 rounded font-black uppercase">{locale === "en" ? "Free" : "Gratis"}</span>
+              </button>
+
+              {/* Word (DOCX) Premium */}
+              <button
+                onClick={() => {
+                  downloadAction("word");
+                  setShowExportModal(false);
+                }}
+                disabled={isDownloading !== null}
+                className="w-full bg-zinc-950 border border-zinc-800 text-zinc-300 hover:text-white font-bold py-3.5 rounded-xl text-xs transition-all active:scale-95 text-left px-4 flex justify-between items-center"
+              >
+                <span>📝 {locale === "en" ? "Word Document (.docx)" : locale === "es" ? "Documento Word (.docx)" : "Document Word (.docx)"}</span>
+                {!isStudioPaid && !isPlanPaid && <span className="text-[10px] bg-amber-500/10 text-amber-400 px-2 py-0.5 rounded font-black uppercase">🔒 PRO</span>}
+              </button>
+
+              {/* PowerPoint (PPTX) Premium */}
+              <button
+                onClick={() => {
+                  downloadAction("pptx");
+                  setShowExportModal(false);
+                }}
+                disabled={isDownloading !== null}
+                className="w-full bg-zinc-950 border border-zinc-800 text-zinc-300 hover:text-white font-bold py-3.5 rounded-xl text-xs transition-all active:scale-95 text-left px-4 flex justify-between items-center"
+              >
+                <span>📊 {locale === "en" ? "PowerPoint Presentation (.pptx)" : locale === "es" ? "Presentación PowerPoint (.pptx)" : "Prezentare PowerPoint (.pptx)"}</span>
+                {!isStudioPaid && !isPlanPaid && <span className="text-[10px] bg-amber-500/10 text-amber-400 px-2 py-0.5 rounded font-black uppercase">🔒 PRO</span>}
+              </button>
+
+              {/* PDF Complet Premium */}
+              <button
+                onClick={() => {
+                  downloadAction("pdf");
+                  setShowExportModal(false);
+                }}
+                disabled={isDownloading !== null}
+                className="w-full bg-zinc-950 border border-zinc-800 text-zinc-300 hover:text-white font-bold py-3.5 rounded-xl text-xs transition-all active:scale-95 text-left px-4 flex justify-between items-center"
+              >
+                <span>📕 {locale === "en" ? "Full PDF Document" : locale === "es" ? "Documento PDF Completo" : "Document PDF Complet"}</span>
+                {!isStudioPaid && !isPlanPaid && <span className="text-[10px] bg-amber-500/10 text-amber-400 px-2 py-0.5 rounded font-black uppercase">🔒 PRO</span>}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

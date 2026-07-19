@@ -527,6 +527,7 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
         setEuFundsUnlocked(data.euFundsUnlocked || false);
         setSubscriptionActive(data.subscriptionActive || false);
         setUnlockedPlans(data.unlockedPlans || []);
+        setPromoCodeUnlocked(data.promoCodeUnlocked || false);
       } else {
         setDoc(userRef, {
           email: user.email,
@@ -534,6 +535,7 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
           euFundsUnlocked: false,
           subscriptionActive: false,
           unlockedPlans: [],
+          promoCodeUnlocked: false,
           createdAt: new Date().toISOString(),
         }, { merge: true });
       }

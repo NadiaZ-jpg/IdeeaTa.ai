@@ -148,7 +148,9 @@ Orice agent care primește o instrucțiune ambiguă trebuie să CEARĂ CONFIRMAR
 | `app/login/LoginContent.tsx` | Corectat tipul prop-ului `locale` |
 | `components/ConversionBanners.tsx` | Corectat tipul prop-ului `locale` din interface |
 | `components/EditForm.tsx` | Corectat tipul prop-ului `locale` |
-| `components/PricingModal.tsx` | Corectat tipul prop-ului `locale` din interface |
+| `components/PricingModal.tsx` | Corectat tipul prop-ului `locale` din interface, trimitere `userId` la validare |
+| `lib/exchangeRate.ts` | Utilitar server-side localizat cu cache de 12h pentru rate EUR/RON |
+| `app/api/validate-promo/route.ts` | Validare server-side promo codes în Firestore `/promo_codes` |
 
 ---
 
@@ -161,6 +163,13 @@ Orice agent care primește o instrucțiune ambiguă trebuie să CEARĂ CONFIRMAR
 - Corectarea link-urilor din PDF-uri pentru a folosi strict domeniul oficial `ideeata.ai` (respectarea REGULII #5).
 - Rezolvarea tuturor erorilor de compilare (sintaxă în `LandingPageContent` și tipuri în edit route, prop-uri locale etc.).
 - Build verificat la final: ✅ `✓ Compiled successfully` (4.7s), ✅ `✓ Generating static pages (43/43)`.
+
+### Checkpoint-19-Iulie-2026-Faza2-Mobil-Si-Securitate-Complet
+- Sincronizarea datelor de permisiuni Firestore în `StudioMobile.tsx` prin listener `onSnapshot` în timp real.
+- Integrarea selectorului elegant de exporturi (Word / PPTX / PDF) direct în layout-ul de mobil.
+- Mutarea validării codurilor promoționale în backend prin endpoint API `/api/validate-promo` legat la Firestore `/promo_codes`.
+- Implementarea cursurilor valutare dinamice cache-uite prin utilitarul `exchangeRate.ts` apelat în API `/api/generate`.
+- Rezolvarea tuturor problemelor de tipuri TypeScript și build final trecut 100% cu succes (`✓ Compiled successfully` în 5.0s pe 43/43 pagini).
 
 
 

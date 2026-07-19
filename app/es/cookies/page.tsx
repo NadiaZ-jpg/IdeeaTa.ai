@@ -4,6 +4,10 @@ export default function CookiesPageEs() {
   return (
     <div className="min-h-screen bg-[#09090b] text-zinc-300 py-24 px-4 sm:px-8">
       <div className="max-w-4xl mx-auto prose prose-invert prose-emerald text-justify">
+        <Link href="/es/demo" className="text-zinc-500 hover:text-white transition-colors text-sm font-bold flex items-center gap-2 mb-8 inline-flex no-underline">
+          <span>←</span>
+          <span>Volver a la aplicación</span>
+        </Link>
         <h1>Política de Cookies</h1>
         <p><strong>Última actualización:</strong> Junio de 2026</p>
 

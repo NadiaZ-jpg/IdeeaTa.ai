@@ -8,6 +8,7 @@ import { onAuthStateChanged, User, sendEmailVerification, signOut } from 'fireba
 import { collection, query, orderBy, getDocs, doc, deleteDoc } from 'firebase/firestore';
 import { Plus, FileText, Calendar, ArrowRight, Loader2, Sparkles, Mail, AlertTriangle, Trash2 } from 'lucide-react';
 import { migrateLocalPlansToFirebase } from '@/lib/migrationManager';
+import { LanguageSwitcher } from '@/components/LanguageSwitcher';
 
 export default function DashboardContent({ locale = "ro" }: { locale?: "ro" | "en" | "es" }) {
   const router = useRouter();
@@ -135,6 +136,7 @@ export default function DashboardContent({ locale = "ro" }: { locale?: "ro" | "e
           IdeeaTa<span className="text-emerald-400">.ai</span>
         </Link>
         <div className="flex items-center gap-4">
+          <LanguageSwitcher currentLocale={locale} />
           {user && (
             <div className="flex items-center gap-4">
               <span className="text-sm text-zinc-400 hidden sm:inline-block font-semibold">

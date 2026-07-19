@@ -9,6 +9,7 @@ import { auth, db } from '@/lib/firebase';
 import { signInWithPopup, GoogleAuthProvider, FacebookAuthProvider, onAuthStateChanged, User, getRedirectResult, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, sendPasswordResetEmail, sendEmailVerification } from 'firebase/auth';
 import { doc, onSnapshot, setDoc, getDoc, increment, arrayUnion } from 'firebase/firestore';
 import { PricingModal } from '@/components/PricingModal';
+import { LanguageSwitcher } from '@/components/LanguageSwitcher';
 import { AdBanner } from '@/components/AdBanner';
 import { generateDocxBlob } from '@/lib/generateDocx';
 import { generatePptx } from '@/lib/generatePptx';
@@ -1784,7 +1785,11 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
           <div className="flex flex-col items-center justify-center flex-1 px-4">
             <div className="w-16 h-16 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin mb-6"></div>
             <p className="text-2xl font-bold text-white tracking-widest uppercase text-center transition-all duration-300">
-              {locale === "en" ? "Your Idea is coming to life..." : "Ideea Ta prinde viață..."}
+              {locale === "en" 
+                ? "Your Idea is coming to life..." 
+                : locale === "es" 
+                ? "Tu Idea está cobrando vida..." 
+                : "Ideea Ta prinde viață..."}
             </p>
             <p className="text-emerald-400 font-medium mt-3 text-center transition-all duration-500 max-w-lg">
               {loadingMessages[messageIndex]}
@@ -1863,6 +1868,7 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
               </a>
             </div>
             <div className="flex items-center gap-4 text-xs font-medium">
+              <LanguageSwitcher currentLocale={locale} />
               <span className="text-zinc-400">{user.email}</span>
               {isAdmin ? (
                 <span className="bg-amber-500/20 border border-amber-500/40 text-amber-300 px-2 py-0.5 rounded-full font-black uppercase tracking-wider">

@@ -8,6 +8,7 @@ import { onAuthStateChanged, User, sendEmailVerification, signOut } from 'fireba
 import { doc, setDoc, getDoc, updateDoc, onSnapshot } from 'firebase/firestore';
 import { PricingModal } from '@/components/PricingModal';
 import { AdBanner } from '@/components/AdBanner';
+import { LanguageSwitcher } from '@/components/LanguageSwitcher';
 import { useStudioFirebaseSync } from '@/hooks/useStudioFirebaseSync';
 import { ToneEditor } from '@/components/ToneEditor';
 import Link from 'next/link';
@@ -326,7 +327,8 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
           <span>{locale === "en" ? "Dashboard" : locale === "es" ? "Panel" : "Dashboard"}</span>
         </Link>
         <span className="text-sm font-black">{locale === "en" ? "Mobile Studio" : locale === "es" ? "Studio Móvil" : "Studio Mobil"}</span>
-        <div className="flex gap-2">
+        <div className="flex items-center gap-2">
+          <LanguageSwitcher currentLocale={locale} />
           <button
             onClick={handleShare}
             className="bg-zinc-800 text-white font-bold p-2 rounded-lg text-xs"

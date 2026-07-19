@@ -7,6 +7,7 @@ import { auth, db } from '@/lib/firebase';
 import { signInWithPopup, GoogleAuthProvider, FacebookAuthProvider, onAuthStateChanged, User, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, sendPasswordResetEmail } from 'firebase/auth';
 import { doc, setDoc, getDoc, increment, arrayUnion } from 'firebase/firestore';
 import { PricingModal } from '@/components/PricingModal';
+import { LanguageSwitcher } from '@/components/LanguageSwitcher';
 import { AdBanner } from '@/components/AdBanner';
 import { generateDocxBlob } from '@/lib/generateDocx';
 import { ConversionBanners } from '@/components/ConversionBanners';
@@ -330,6 +331,7 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
         <Link href="/" className="text-xl font-black tracking-tight">
           IdeeaTa<span className="text-emerald-500">.ai</span>
         </Link>
+        <LanguageSwitcher currentLocale={locale} />
       </header>
 
       {/* Main Content */}

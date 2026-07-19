@@ -5,6 +5,7 @@ import { useRouter, usePathname } from 'next/navigation';
 import { auth } from '@/lib/firebase';
 import { onAuthStateChanged } from 'firebase/auth';
 import { t } from '@/lib/translations';
+import { LanguageSwitcher } from './LanguageSwitcher';
 
 export default function LandingPageContent({ locale = "ro" }: { locale?: "ro" | "en" | "es" }) {
   const router = useRouter();
@@ -47,6 +48,7 @@ export default function LandingPageContent({ locale = "ro" }: { locale?: "ro" | 
           <span className="text-xl font-black text-transparent bg-gradient-to-r from-zinc-100 to-zinc-400 bg-clip-text tracking-tight">IdeeaTa.ai</span>
         </div>
         <div className="flex items-center gap-4">
+          <LanguageSwitcher currentLocale={locale} />
           {!isLoading && (
             isLoggedIn ? (
               <Link 
@@ -149,7 +151,7 @@ export default function LandingPageContent({ locale = "ro" }: { locale?: "ro" | 
               <div className="w-3 h-3 rounded-full bg-green-500/80"></div>
             </div>
             <img 
-              src="/mockup-preview.png" 
+              src={locale === "ro" ? "/mockup-preview.png" : "/mockup-preview-abstract.png"} 
               alt="IdeeaTa.ai" 
               className="rounded-lg w-full object-cover opacity-90"
             />

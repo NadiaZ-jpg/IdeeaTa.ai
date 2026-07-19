@@ -189,12 +189,18 @@ Formele acceptate de acord expres:
 
 ---
 
+## FREEZE (19 Iulie 2026 — Localizare Exporturi & PDF-uri)
+- **lib/generateDocx.ts** — Adăugat suport complet pentru localizarea documentelor Word (titluri secțiuni, etichete tabele și formatele de preț/monedă) pentru limba spaniolă (`es`) și engleză (`en`). ÎNGHEȚAT.
+- **lib/generatePptx.ts** — Transformat în utilitar comun pentru generarea prezentărilor localizate cu dicționare de traduceri PPTX. ÎNGHEȚAT.
+- **components/DemoDesktop.tsx** — Refactorizat pentru a folosi utilitarul comun `generatePptx` și apelarea corectă a `generateDocxBlob` cu locale. ÎNGHEȚAT.
+- **components/StudioDesktop.tsx** — Refactorizat pentru a folosi utilitarul comun `generatePptx`, apelarea `generateDocxBlob` cu locale, dinamizarea footer-ului PDF conform limbii selectate și corectarea URL-urilor de redirecționare conform REGULII #5 (folosește strict `ideeata.ai`). ÎNGHEȚAT.
+
+---
+
 ## RĂMÂNE DE FĂCUT
 - **TRADUCEREA APLICAȚIEI (LIMBA ENGLEZĂ)** — Crearea rutei locale `/en/` și localizarea interfețelor, formularelor și prompturilor pentru Gemini.
 - **DEPLOY** — `git push origin main` → actualizează live app cu toate optimizările recente. Decizie utilizator.
 - **Vercel ENV** — Adaugă `NEXT_PUBLIC_PROMO_STANDARD/FONDURI/ADMIN` în Vercel Dashboard (tu manual). Done.
-- **Email Firebase template** — Emailul de verificare e în engleză. Personalizare în română în Firebase Console → Authentication → Templates. Done.
-
 
 
 

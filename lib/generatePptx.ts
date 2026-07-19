@@ -1,6 +1,12 @@
 import pptxgen from "pptxgenjs";
 
-export const generatePptx = async (result: any, safeName: string, currency: string, fxRate: number) => {
+export const generatePptx = async (
+  result: any,
+  safeName: string,
+  currency: string,
+  fxRate: number,
+  locale: "ro" | "en" | "es" = "ro"
+) => {
   const pres = new pptxgen();
   pres.layout = 'LAYOUT_16x9';
   pres.defineSlideMaster({
@@ -11,16 +17,112 @@ export const generatePptx = async (result: any, safeName: string, currency: stri
     ]
   });
 
+  const pptxTranslations = {
+    ro: {
+      generalInfoTitle: "DATE GENERALE & OBIECTIVE",
+      legalForm: "Forma juridică: ",
+      caenCode: "\nCod CAEN: ",
+      contactInfo: "\nContact: ",
+      shortTermObj: "Obiective (1 an)",
+      mediumTermObj: "OBIECTIVE PE TERMEN MEDIU",
+      mediumTermObjSub: "Obiective (3-5 ani)",
+      missionValues: "MISIUNE ȘI VALORI",
+      missionValuesSub: "Misiune și Valori",
+      marketCompTitle: "PIAȚA ȘI CONCURENȚA",
+      targetCustomers: "Clienții Țintă",
+      competition: "Concurența",
+      marketingTitle: "PROMOVARE",
+      marketingStrategy: "Strategia de Marketing",
+      swotTitle: "ANALIZĂ SWOT",
+      strengths: "PUNCTE TARI (S)",
+      weaknesses: "SLĂBICIUNI (W)",
+      opportunities: "OPORTUNITĂȚI (O)",
+      threats: "AMENINȚĂRI (T)",
+      operationalTitle: "PLAN OPERAȚIONAL",
+      workflowDesc: "Descriere Flux Tehnologic",
+      humanResources: "Resurse Umane",
+      facilities: "Locație și Dotări",
+      investmentBudget: "BUGET INVESTIȚII",
+      financialPlanTitle: "PLAN FINANCIAR - DISTRIBUȚIA COSTURILOR",
+      customSectionDefault: "Secțiune Adițională",
+      part: "Partea",
+      budgetName: "Buget"
+    },
+    en: {
+      generalInfoTitle: "GENERAL INFORMATION & OBJECTIVES",
+      legalForm: "Legal form: ",
+      caenCode: "\nCAEN Code: ",
+      contactInfo: "\nContact: ",
+      shortTermObj: "Objectives (1 year)",
+      mediumTermObj: "MEDIUM-TERM OBJECTIVES",
+      mediumTermObjSub: "Objectives (3-5 years)",
+      missionValues: "MISSION & VALUES",
+      missionValuesSub: "Mission & Values",
+      marketCompTitle: "MARKET & COMPETITION",
+      targetCustomers: "Target Customers",
+      competition: "Competition",
+      marketingTitle: "PROMOTION",
+      marketingStrategy: "Marketing Strategy",
+      swotTitle: "SWOT ANALYSIS",
+      strengths: "STRENGTHS (S)",
+      weaknesses: "WEAKNESSES (W)",
+      opportunities: "OPPORTUNITIES (O)",
+      threats: "THREATS (T)",
+      operationalTitle: "OPERATIONAL PLAN",
+      workflowDesc: "Workflow Description",
+      humanResources: "Human Resources",
+      facilities: "Location & Facilities",
+      investmentBudget: "INVESTMENT BUDGET",
+      financialPlanTitle: "FINANCIAL PLAN - COST DISTRIBUTION",
+      customSectionDefault: "Additional Section",
+      part: "Part",
+      budgetName: "Budget"
+    },
+    es: {
+      generalInfoTitle: "INFORMACIÓN GENERAL Y OBJETIVOS",
+      legalForm: "Forma jurídica: ",
+      caenCode: "\nCódigo CAEN: ",
+      contactInfo: "\nContacto: ",
+      shortTermObj: "Objetivos (1 año)",
+      mediumTermObj: "OBJETIVOS A MEDIO PLAZO",
+      mediumTermObjSub: "Objetivos (3-5 años)",
+      missionValues: "MISIÓN Y VALORES",
+      missionValuesSub: "Misión y Valores",
+      marketCompTitle: "MERCADO Y COMPETENCIA",
+      targetCustomers: "Clientes Objetivo",
+      competition: "Competencia",
+      marketingTitle: "PROMOCIÓN",
+      marketingStrategy: "Estrategia de Marketing",
+      swotTitle: "ANÁLISIS SWOT / DAFO",
+      strengths: "FORTALEZAS (S)",
+      weaknesses: "DEBILIDADES (W)",
+      opportunities: "OPORTUNIDADES (O)",
+      threats: "AMENAZAS (T)",
+      operationalTitle: "PLAN OPERATIVO",
+      workflowDesc: "Descripción del Flujo de Trabajo",
+      humanResources: "Recursos Humanos",
+      facilities: "Ubicación e Instalaciones",
+      investmentBudget: "PRESUPUESTO DE INVERSIÓN",
+      financialPlanTitle: "PLAN FINANCIERO - DISTRIBUCIÓN DE COSTES",
+      customSectionDefault: "Sección Adicional",
+      part: "Parte",
+      budgetName: "Presupuesto"
+    }
+  };
+
+  const tr = pptxTranslations[locale] || pptxTranslations.ro;
+
   const formatPrice = (priceText: any) => {
     if (!priceText) return "";
     const numericValue = parseInt(priceText.toString().replace(/[^0-9]/g, ""));
     if (isNaN(numericValue)) return priceText;
 
+    const locString = locale === "es" ? "es-ES" : locale === "en" ? "en-US" : "ro-RO";
     if (currency === "EUR") {
       const eurValue = Math.round(numericValue * fxRate);
-      return `€${eurValue.toLocaleString("ro-RO")}`;
+      return `€${eurValue.toLocaleString(locString)}`;
     }
-    return `${numericValue.toLocaleString("ro-RO")} RON`;
+    return `${numericValue.toLocaleString(locString)} RON`;
   };
 
   const splitTextIntoSlides = (text: string, maxLength: number) => {
@@ -49,8 +151,6 @@ export const generatePptx = async (result: any, safeName: string, currency: stri
     });
   };
 
-  const swotFormat = (arr: any[], color: string) => arr?.map((i: any) => ({ text: (i.titlu || i) + '\n' + (i.explicatie_tehnica || ''), options: { color, bullet: true, breakLine: true, fontFace: 'Times New Roman', align: 'justify' as any } as any })) || [];
-
   // Slide 1: Title
   let slide1 = pres.addSlide({ masterName: 'MASTER_SLIDE' });
   slide1.addText(result.nume || 'IdeeaTa', { x: 0, y: 2.5, w: '100%', h: 1, fontSize: 54, bold: true, color: '10b981', align: 'center', fontFace: 'Times New Roman' });
@@ -58,9 +158,9 @@ export const generatePptx = async (result: any, safeName: string, currency: stri
 
   // Slide 2: Obiective 1 An
   let slide2 = pres.addSlide({ masterName: 'MASTER_SLIDE' });
-  slide2.addText('DATE GENERALE & OBIECTIVE', { x: 0.5, y: 0.5, w: 9, h: 0.5, fontSize: 28, bold: true, color: '10b981', fontFace: 'Times New Roman' });
-  slide2.addText('Forma juridică: ' + result.date_generale?.forma_juridica + '\nCod CAEN: ' + result.date_generale?.cod_caen + '\nContact: ' + result.date_generale?.date_contact, { x: 0.5, y: 1.2, w: 9, h: 0.8, fontSize: 12, color: 'a1a1aa', fontFace: 'Times New Roman' });
-  slide2.addText('Obiective (1 an)', { x: 0.5, y: 2.2, w: 9, h: 0.4, fontSize: 16, bold: true, color: '10b981', fontFace: 'Times New Roman' });
+  slide2.addText(tr.generalInfoTitle, { x: 0.5, y: 0.5, w: 9, h: 0.5, fontSize: 28, bold: true, color: '10b981', fontFace: 'Times New Roman' });
+  slide2.addText(tr.legalForm + result.date_generale?.forma_juridica + tr.caenCode + result.date_generale?.cod_caen + tr.contactInfo + result.date_generale?.date_contact, { x: 0.5, y: 1.2, w: 9, h: 0.8, fontSize: 12, color: 'a1a1aa', fontFace: 'Times New Roman' });
+  slide2.addText(tr.shortTermObj, { x: 0.5, y: 2.2, w: 9, h: 0.4, fontSize: 16, bold: true, color: '10b981', fontFace: 'Times New Roman' });
   slide2.addText(formatPptText(result.viziune_strategie?.obiective_scurt), { x: 0.5, y: 2.6, w: 9, h: 4, fontSize: 12, valign: 'top' });
 
   const addTextSlide = (mainTitle: string, subTitle: string, contentStr: string | undefined) => {
@@ -69,7 +169,7 @@ export const generatePptx = async (result: any, safeName: string, currency: stri
     slides.forEach((content, slideIdx) => {
       let slide = pres.addSlide({ masterName: 'MASTER_SLIDE' });
       slide.addText(mainTitle, { x: 0.5, y: 0.5, w: 9, h: 0.5, fontSize: 28, bold: true, color: '10b981', fontFace: 'Times New Roman' });
-      slide.addText(subTitle + (slides.length > 1 ? ` (Partea ${slideIdx + 1})` : ''), { x: 0.5, y: 1.2, w: 9, h: 0.4, fontSize: 16, bold: true, color: '10b981', fontFace: 'Times New Roman' });
+      slide.addText(subTitle + (slides.length > 1 ? ` (${tr.part} ${slideIdx + 1})` : ''), { x: 0.5, y: 1.2, w: 9, h: 0.4, fontSize: 16, bold: true, color: '10b981', fontFace: 'Times New Roman' });
       slide.addText(formatPptText(content), { x: 0.5, y: 1.6, w: 9, h: 5.5, fontSize: 11, valign: 'top' });
     });
   };
@@ -81,32 +181,32 @@ export const generatePptx = async (result: any, safeName: string, currency: stri
     slides.forEach((content, slideIdx) => {
       let slide = pres.addSlide({ masterName: 'MASTER_SLIDE' });
       slide.addText(mainTitle, { x: 0.5, y: 0.5, w: 9, h: 0.5, fontSize: 28, bold: true, color, fontFace: 'Times New Roman' });
-      slide.addText(subTitle + (slides.length > 1 ? ` (Partea ${slideIdx + 1})` : ''), { x: 0.5, y: 1.2, w: 9, h: 0.4, fontSize: 16, bold: true, color, fontFace: 'Times New Roman' });
+      slide.addText(subTitle + (slides.length > 1 ? ` (${tr.part} ${slideIdx + 1})` : ''), { x: 0.5, y: 1.2, w: 9, h: 0.4, fontSize: 16, bold: true, color, fontFace: 'Times New Roman' });
       slide.addText(formatPptText(content, 'e4e4e7'), { x: 0.5, y: 1.6, w: 9, h: 5.5, fontSize: 11, valign: 'top' });
     });
   };
 
-  addTextSlide('OBIECTIVE PE TERMEN MEDIU', 'Obiective (3-5 ani)', result.viziune_strategie?.obiective_mediu);
-  addTextSlide('MISIUNE ȘI VALORI', 'Misiune și Valori', result.viziune_strategie?.misiune_valori);
-  addTextSlide('PIAȚA ȘI CONCURENȚA', 'Clienții Țintă', result.analiza_pietei?.clienti_tinta);
-  addTextSlide('PIAȚA ȘI CONCURENȚA', 'Concurența', result.analiza_pietei?.concurența);
-  addTextSlide('PROMOVARE', 'Strategia de Marketing', result.analiza_pietei?.strategie_marketing);
+  addTextSlide(tr.mediumTermObj, tr.mediumTermObjSub, result.viziune_strategie?.obiective_mediu);
+  addTextSlide(tr.missionValues, tr.missionValuesSub, result.viziune_strategie?.misiune_valori);
+  addTextSlide(tr.marketCompTitle, tr.targetCustomers, result.analiza_pietei?.clienti_tinta);
+  addTextSlide(tr.marketCompTitle, tr.competition, result.analiza_pietei?.concurenta);
+  addTextSlide(tr.marketingTitle, tr.marketingStrategy, result.analiza_pietei?.strategie_marketing);
 
-  addSwotSlide('ANALIZĂ SWOT', 'PUNCTE TARI (S)', '10b981', result.analiza_swot?.puncte_tari);
-  addSwotSlide('ANALIZĂ SWOT', 'SLĂBICIUNI (W)', 'ef4444', result.analiza_swot?.puncte_slabe);
-  addSwotSlide('ANALIZĂ SWOT', 'OPORTUNITĂȚI (O)', '3b82f6', result.analiza_swot?.oportunitati);
-  addSwotSlide('ANALIZĂ SWOT', 'AMENINȚĂRI (T)', 'eab308', result.analiza_swot?.amenintari);
+  addSwotSlide(tr.swotTitle, tr.strengths, '10b981', result.analiza_swot?.puncte_tari);
+  addSwotSlide(tr.swotTitle, tr.weaknesses, 'ef4444', result.analiza_swot?.puncte_slabe);
+  addSwotSlide(tr.swotTitle, tr.opportunities, '3b82f6', result.analiza_swot?.oportunitati);
+  addSwotSlide(tr.swotTitle, tr.threats, 'eab308', result.analiza_swot?.amenintari);
 
-  addTextSlide('PLAN OPERAȚIONAL', 'Descriere Flux Tehnologic', result.plan_operational?.descriere_flux);
-  addTextSlide('PLAN OPERAȚIONAL', 'Resurse Umane', result.plan_operational?.resurse_umane);
-  addTextSlide('PLAN OPERAȚIONAL', 'Locație și Dotări', result.plan_operational?.locatie_dotari);
+  addTextSlide(tr.operationalTitle, tr.workflowDesc, result.plan_operational?.descriere_flux);
+  addTextSlide(tr.operationalTitle, tr.humanResources, result.plan_operational?.resurse_umane);
+  addTextSlide(tr.operationalTitle, tr.facilities, result.plan_operational?.locatie_dotari);
 
   // Slides for Buget (chunked)
   const budgetItems = result.plan_financiar?.buget_investitii || [];
   const numBudgetSlides = Math.ceil((budgetItems.length || 1) / 4);
   for(let slideIdx = 0; slideIdx < numBudgetSlides; slideIdx++) {
     let bSlide = pres.addSlide({ masterName: 'MASTER_SLIDE' });
-    bSlide.addText('BUGET INVESTIȚII' + (slideIdx > 0 ? ` (Partea ${slideIdx + 1})` : ''), { x: 0.5, y: 0.5, w: 9, h: 0.5, fontSize: 28, bold: true, color: '10b981', fontFace: 'Times New Roman' });
+    bSlide.addText(tr.investmentBudget + (slideIdx > 0 ? ` (${tr.part} ${slideIdx + 1})` : ''), { x: 0.5, y: 0.5, w: 9, h: 0.5, fontSize: 28, bold: true, color: '10b981', fontFace: 'Times New Roman' });
     
     const chunk = budgetItems.slice(slideIdx * 4, slideIdx * 4 + 4);
     let bText = chunk.map((b: any) => ({ text: b.item + ' - ' + formatPrice(b.cost) + '\n' + b.explicatie, options: { bullet: true, color: 'e4e4e7', breakLine: true, fontFace: 'Times New Roman' } }));
@@ -115,11 +215,11 @@ export const generatePptx = async (result: any, safeName: string, currency: stri
 
   // Slide 8: Buget Chart (Native PPTX Chart)
   let cSlide = pres.addSlide({ masterName: 'MASTER_SLIDE' });
-  cSlide.addText('PLAN FINANCIAR - DISTRIBUȚIA COSTURILOR', { x: 0.5, y: 0.5, w: 9, h: 0.5, fontSize: 22, bold: true, color: '10b981', fontFace: 'Times New Roman' });
+  cSlide.addText(tr.financialPlanTitle, { x: 0.5, y: 0.5, w: 9, h: 0.5, fontSize: 22, bold: true, color: '10b981', fontFace: 'Times New Roman' });
   if (result?.plan_financiar?.buget_investitii && result.plan_financiar.buget_investitii.length > 0) {
     let dataChartPie = [
       {
-        name: "Buget",
+        name: tr.budgetName,
         labels: result.plan_financiar.buget_investitii.map((i: any) => i.item),
         values: result.plan_financiar.buget_investitii.map((i: any) => parseInt(i.cost.toString().replace(/[^0-9]/g, "")))
       }
@@ -145,8 +245,8 @@ export const generatePptx = async (result: any, safeName: string, currency: stri
     const slides = splitTextIntoSlides(sec.continut, 1800);
     slides.forEach((slideContent, slideIdx) => {
       let cSlide = pres.addSlide({ masterName: 'MASTER_SLIDE' });
-      const secTitle = (sec.titlu || 'Secțiune Adițională').toUpperCase();
-      cSlide.addText(secTitle + (slides.length > 1 ? ` (Partea ${slideIdx + 1})` : ''), { x: 0.5, y: 0.5, w: 9, h: 0.5, fontSize: 22, bold: true, color: '10b981', fontFace: 'Times New Roman' });
+      const secTitle = (sec.titlu || tr.customSectionDefault).toUpperCase();
+      cSlide.addText(secTitle + (slides.length > 1 ? ` (${tr.part} ${slideIdx + 1})` : ''), { x: 0.5, y: 0.5, w: 9, h: 0.5, fontSize: 22, bold: true, color: '10b981', fontFace: 'Times New Roman' });
       cSlide.addText(formatPptText(slideContent), { x: 0.5, y: 1.2, w: 9, h: 5.5, fontSize: 11, valign: 'top' });
     });
   });

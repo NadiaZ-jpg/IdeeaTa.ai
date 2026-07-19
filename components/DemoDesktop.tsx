@@ -11,6 +11,7 @@ import { doc, onSnapshot, setDoc, getDoc, increment, arrayUnion } from 'firebase
 import { PricingModal } from '@/components/PricingModal';
 import { AdBanner } from '@/components/AdBanner';
 import { generateDocxBlob } from '@/lib/generateDocx';
+import { generatePptx } from '@/lib/generatePptx';
 import { ConversionBanners } from '@/components/ConversionBanners';
 import { migrateLocalPlansToFirebase } from '@/lib/migrationManager';
 import { getExamples } from '@/lib/examples';
@@ -131,8 +132,10 @@ const getDynamicTextSize = (text: any, limits = { large: 400, medium: 800, extra
   return classes.default;
 };
 
-export default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" }) {
+export default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" | "es" }) {
   const [skill, setSkill] = useState("");
+  const isEn = locale === "en";
+  const isEs = locale === "es";
   const [resultState, setResultState] = useState<any>(null);
   const [versions, setVersionsState] = useState<{ [key: string]: any }>({});
   const activeVersionIdRef = useRef<string>("original");
@@ -877,6 +880,14 @@ export default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" })
     "Finalizing the S.W.O.T. strategy...",
     "Polishing the smart document...",
     "Almost ready..."
+  ] : locale === "es" ? [
+    "Iniciando el análisis de mercado...",
+    "Calculando los requerimientos financieros...",
+    "Estructurando el plan operativo...",
+    "Obteniendo la tasa de cambio de moneda actualizada...",
+    "Finalizando la estrategia F.O.D.A...",
+    "Puliendo el documento inteligente...",
+    "Casi listo..."
   ] : [
     "Se inițiază analiza de piață...",
     "Se calculează necesarul financiar...",
@@ -1077,134 +1088,10 @@ export default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" })
         }
       }
 
-      if (mode === 'pptx' || mode === 'pdf' || mode === 'pdf-summary') {
-        await new Promise(resolve => setTimeout(resolve, 800));
-      }
+      const safeName = result?.nume?.replace(/[^a-zA-Z0-9]/g, '_') || 'Business';
 
       if (mode === 'pptx') {
-        const pres = new pptxgen();
-        pres.layout = 'LAYOUT_16x9';
-
-        pres.defineSlideMaster({
-          title: 'MASTER_SLIDE',
-          background: { color: '09090b' },
-          objects: [
-            { rect: { x: 0, y: 0, w: '100%', h: 0.1, fill: { color: '10b981' } } }
-          ]
-        });
-
-        const formatPptText = (text: string | undefined, color: string = 'e4e4e7') => {
-            if (!text) return [];
-            let stripped = text.replace(/^(?:În primul an:?|În următorii(?:\s*\d+(?:-\d+)?\s*ani)?:?|Obiective(?:le)?[^:]*:?|Pentru primul an:?|Pe termen scurt:?|Pe termen mediu:?)\s*/i, '').replace(/\*\*/g, '');
-            return stripped.split('\n').filter(l => l.trim().length > 0).map(l => {
-                return { text: l.trim(), options: { bullet: false, color, breakLine: true, fontFace: 'Times New Roman', align: 'justify' as any } as any };
-            });
-        };
-
-        const swotFormat = (arr: any[], color: string) => arr?.map((i: any) => ({ text: (i.titlu || i) + '\n' + (i.explicatie_tehnica || ''), options: { color, bullet: true, breakLine: true, fontFace: 'Times New Roman', align: 'justify' as any } as any })) || [];
-
-        // Slide 1: Title
-        let slide1 = pres.addSlide({ masterName: 'MASTER_SLIDE' });
-        slide1.addText(result.nume || 'IdeeaTa', { x: 0, y: 2.5, w: '100%', h: 1, fontSize: 54, bold: true, color: '10b981', align: 'center', fontFace: 'Times New Roman' });
-        slide1.addText(result.slogan || '', { x: 0, y: 3.5, w: '100%', h: 1, fontSize: 24, italic: true, color: 'e4e4e7', align: 'center', fontFace: 'Times New Roman' });
-
-        // Slide 2: Obiective 1 An
-        let slide2 = pres.addSlide({ masterName: 'MASTER_SLIDE' });
-        slide2.addText('DATE GENERALE & OBIECTIVE', { x: 0.5, y: 0.5, w: 9, h: 0.5, fontSize: 28, bold: true, color: '10b981', fontFace: 'Times New Roman' });
-        slide2.addText('Forma juridică: ' + result.date_generale?.forma_juridica + '\nCod CAEN: ' + result.date_generale?.cod_caen + '\nContact: ' + result.date_generale?.date_contact, { x: 0.5, y: 1.2, w: 9, h: 0.8, fontSize: 12, color: 'a1a1aa', fontFace: 'Times New Roman' });
-        slide2.addText('Obiective (1 an)', { x: 0.5, y: 2.2, w: 9, h: 0.4, fontSize: 16, bold: true, color: '10b981', fontFace: 'Times New Roman' });
-        slide2.addText(formatPptText(result.viziune_strategie?.obiective_scurt), { x: 0.5, y: 2.6, w: 9, h: 4, fontSize: 12, valign: 'top' });
-
-        const addTextSlide = (mainTitle: string, subTitle: string, contentStr: string | undefined) => {
-           if(!contentStr) return;
-           const slides = splitTextIntoSlides(contentStr, 1100);
-           slides.forEach((content, slideIdx) => {
-             let slide = pres.addSlide({ masterName: 'MASTER_SLIDE' });
-             slide.addText(mainTitle, { x: 0.5, y: 0.5, w: 9, h: 0.5, fontSize: 28, bold: true, color: '10b981', fontFace: 'Times New Roman' });
-             slide.addText(subTitle + (slides.length > 1 ? ` (Partea ${slideIdx + 1})` : ''), { x: 0.5, y: 1.2, w: 9, h: 0.4, fontSize: 16, bold: true, color: '10b981', fontFace: 'Times New Roman' });
-             slide.addText(formatPptText(content), { x: 0.5, y: 1.6, w: 9, h: 5.5, fontSize: 11, valign: 'top' });
-           });
-        };
-
-        const addSwotSlide = (mainTitle: string, subTitle: string, color: string, swotArr: any[]) => {
-           if(!swotArr || !swotArr.length) return;
-           const contentStr = swotArr.map((i: any) => '• ' + (i.titlu || i) + '\n  ' + (i.explicatie_tehnica || '')).join('\n\n');
-           const slides = splitTextIntoSlides(contentStr, 1100);
-           slides.forEach((content, slideIdx) => {
-             let slide = pres.addSlide({ masterName: 'MASTER_SLIDE' });
-             slide.addText(mainTitle, { x: 0.5, y: 0.5, w: 9, h: 0.5, fontSize: 28, bold: true, color, fontFace: 'Times New Roman' });
-             slide.addText(subTitle + (slides.length > 1 ? ` (Partea ${slideIdx + 1})` : ''), { x: 0.5, y: 1.2, w: 9, h: 0.4, fontSize: 16, bold: true, color, fontFace: 'Times New Roman' });
-             slide.addText(formatPptText(content, 'e4e4e7'), { x: 0.5, y: 1.6, w: 9, h: 5.5, fontSize: 11, valign: 'top' });
-           });
-        };
-
-        addTextSlide('OBIECTIVE PE TERMEN MEDIU', 'Obiective (3-5 ani)', result.viziune_strategie?.obiective_mediu);
-        addTextSlide('MISIUNE ȘI VALORI', 'Misiune și Valori', result.viziune_strategie?.misiune_valori);
-        addTextSlide('PIAȚA ȘI CONCURENȚA', 'Clienții Țintă', result.analiza_pietei?.clienti_tinta);
-        addTextSlide('PIAȚA ȘI CONCURENȚA', 'Concurența', result.analiza_pietei?.concurența);
-        addTextSlide('PROMOVARE', 'Strategia de Marketing', result.analiza_pietei?.strategie_marketing);
-
-        addSwotSlide('ANALIZĂ SWOT', 'PUNCTE TARI (S)', '10b981', result.analiza_swot?.puncte_tari);
-        addSwotSlide('ANALIZĂ SWOT', 'SLĂBICIUNI (W)', 'ef4444', result.analiza_swot?.puncte_slabe);
-        addSwotSlide('ANALIZĂ SWOT', 'OPORTUNITĂȚI (O)', '3b82f6', result.analiza_swot?.oportunitati);
-        addSwotSlide('ANALIZĂ SWOT', 'AMENINȚĂRI (T)', 'eab308', result.analiza_swot?.amenintari);
-
-        addTextSlide('PLAN OPERAȚIONAL', 'Descriere Flux Tehnologic', result.plan_operational?.descriere_flux);
-        addTextSlide('PLAN OPERAȚIONAL', 'Resurse Umane', result.plan_operational?.resurse_umane);
-        addTextSlide('PLAN OPERAȚIONAL', 'Locație și Dotări', result.plan_operational?.locatie_dotari);
-
-        // Slides for Buget (chunked)
-        const budgetItems = result.plan_financiar?.buget_investitii || [];
-        const numBudgetSlides = Math.ceil((budgetItems.length || 1) / 4);
-        for(let slideIdx = 0; slideIdx < numBudgetSlides; slideIdx++) {
-           let bSlide = pres.addSlide({ masterName: 'MASTER_SLIDE' });
-           bSlide.addText('BUGET INVESTIȚII' + (slideIdx > 0 ? ` (Partea ${slideIdx + 1})` : ''), { x: 0.5, y: 0.5, w: 9, h: 0.5, fontSize: 28, bold: true, color: '10b981', fontFace: 'Times New Roman' });
-           
-           const chunk = budgetItems.slice(slideIdx * 4, slideIdx * 4 + 4);
-              let bText = chunk.map((b: any) => ({ text: b.item + ' - ' + formatPrice(b.cost) + '\n' + b.explicatie, options: { bullet: true, color: 'e4e4e7', breakLine: true, fontFace: 'Times New Roman' } }));
-           bSlide.addText(bText, { x: 0.5, y: 1.2, w: 9, h: 5.5, fontSize: 11, valign: 'top' });
-        }
-
-        // Slide 8: Buget Chart (Native PPTX Chart)
-        let cSlide = pres.addSlide({ masterName: 'MASTER_SLIDE' });
-        cSlide.addText('PLAN FINANCIAR - DISTRIBUȚIA COSTURILOR', { x: 0.5, y: 0.5, w: 9, h: 0.5, fontSize: 22, bold: true, color: '10b981', fontFace: 'Times New Roman' });
-        if (result?.plan_financiar?.buget_investitii && result.plan_financiar.buget_investitii.length > 0) {
-           let dataChartPie = [
-             {
-               name: "Buget",
-               labels: result.plan_financiar.buget_investitii.map((i: any) => i.item),
-               values: result.plan_financiar.buget_investitii.map((i: any) => parseInt(i.cost.toString().replace(/[^0-9]/g, "")))
-             }
-           ];
-           cSlide.addChart(pres.ChartType.doughnut, dataChartPie, { 
-              x: 1.8, y: 1.8, w: 6.4, h: 3.5, 
-              showLegend: true, legendPos: 'r', 
-              showPercent: true,
-              dataLabelPosition: 'outEnd',
-              holeSize: 50,
-              dataLabelColor: 'e4e4e7',
-              dataLabelFontSize: 10,
-              legendColor: 'e4e4e7',
-              legendFontSize: 10,
-              showTitle: false,
-              chartColors: ['10b981', '3b82f6', 'f59e0b', 'ef4444', '8b5cf6', 'ec4899', '14b8a6']
-           });
-        }
-
-        // Slides for Custom/Additional Sections
-        result.sectiuni_aditionale?.forEach((sec: any) => {
-           if (!sec || !sec.continut) return;
-           const slides = splitTextIntoSlides(sec.continut, 1800);
-           slides.forEach((slideContent, slideIdx) => {
-              let cSlide = pres.addSlide({ masterName: 'MASTER_SLIDE' });
-              const secTitle = (sec.titlu || 'Secțiune Adițională').toUpperCase();
-              cSlide.addText(secTitle + (slides.length > 1 ? ` (Partea ${slideIdx + 1})` : ''), { x: 0.5, y: 0.5, w: 9, h: 0.5, fontSize: 22, bold: true, color: '10b981', fontFace: 'Times New Roman' });
-              cSlide.addText(formatPptText(slideContent), { x: 0.5, y: 1.2, w: 9, h: 5.5, fontSize: 11, valign: 'top' });
-           });
-        });
-
-        const safeName = result?.nume?.replace(/[^a-zA-Z0-9]/g, '_') || 'Business';
-        await pres.writeFile({ fileName: `IdeeaTa_Brosura_${safeName}.pptx` });
+        await generatePptx(result, safeName, isEs || isEn ? "EUR" : "RON", 0.201, locale);
       } else if (mode === 'pdf' || mode === 'pdf-summary') {
         let slidesArray = Array.from(document.querySelectorAll('.pdf-presentation-slide'));
         if (slidesArray.length === 0) {
@@ -1276,7 +1163,7 @@ export default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" })
                 chartDataUrl = await toPng(chartElement, { backgroundColor: '#ffffff' });
              } catch(e) { console.error(e); }
           }
-          const blob = await generateDocxBlob(result, chartDataUrl);
+          const blob = await generateDocxBlob(result, chartDataUrl, locale);
           const link = document.createElement('a');
           link.href = URL.createObjectURL(blob);
           const safeName2 = result?.nume?.replace(/[^a-zA-Z0-9]/g, '_') || 'Business';
@@ -1657,23 +1544,23 @@ export default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" })
               <span className="text-zinc-400">{user.email}</span>
               {isAdmin ? (
                 <span className="bg-amber-500/20 border border-amber-500/40 text-amber-300 px-2 py-0.5 rounded-full font-black uppercase tracking-wider">
-                  ADMIN ★
+                   ADMIN ★
                 </span>
               ) : subscriptionActive ? (
                 <span className="bg-emerald-500/20 border border-emerald-500/40 text-emerald-400 px-2 py-0.5 rounded-full font-black uppercase tracking-wider">
-                  PRO
+                   PRO
                 </span>
               ) : euFundsUnlocked ? (
                 <span className="bg-amber-500/20 border border-amber-500/40 text-amber-300 px-2 py-0.5 rounded-full font-black uppercase tracking-wider">
-                  {locale === "en" ? "STUDIO & GRANTS" : "STUDIO & FONDURI"}
+                  {locale === "en" ? "STUDIO & GRANTS" : locale === "es" ? "STUDIO Y BECAS" : "STUDIO & FONDURI"}
                 </span>
               ) : isPlanPaid ? (
                 <span className="bg-blue-500/20 border border-blue-500/40 text-blue-400 px-2 py-0.5 rounded-full font-black uppercase tracking-wider">
-                  {locale === "en" ? "STANDARD UNLOCKED" : "STANDARD DEBLOCAT"}
+                  {locale === "en" ? "STANDARD UNLOCKED" : locale === "es" ? "STANDARD DESBLOQUEADO" : "STANDARD DEBLOCAT"}
                 </span>
               ) : (
                 <span className="bg-zinc-800 border border-zinc-700 text-zinc-300 px-2 py-0.5 rounded-full font-bold">
-                  {locale === "en" ? "PREVIEW ONLY" : "PREVIZUALIZARE"}
+                  {locale === "en" ? "PREVIEW ONLY" : locale === "es" ? "SOLO VISTA PREVIA" : "PREVIZUALIZARE"}
                 </span>
               )}
               {!subscriptionActive && (
@@ -1681,14 +1568,14 @@ export default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" })
                   onClick={() => { if (!user) { setShowAuthModal(true); } else { setShowPricingModal(true); } }}
                   className="text-emerald-400 hover:text-emerald-300 transition-colors font-bold underline cursor-pointer"
                 >
-                  {locale === "en" ? "View Plans" : "Vezi Planuri"}
+                  {locale === "en" ? "View Plans" : locale === "es" ? "Ver Planes" : "Vezi Planuri"}
                 </button>
               )}
               <button 
                 onClick={() => signOut(auth)}
                 className="text-zinc-500 hover:text-white transition-colors cursor-pointer"
               >
-                {locale === "en" ? "Log Out" : "Ieși din cont"}
+                {locale === "en" ? "Log Out" : locale === "es" ? "Cerrar sesión" : "Ieși din cont"}
               </button>
             </div>
           </div>
@@ -1702,7 +1589,7 @@ export default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" })
           <>
           <div className="w-full flex flex-col items-center justify-center mb-12 lg:mb-16 relative">
             <div className="inline-flex items-center gap-2.5 px-5 py-2.5 rounded-full bg-zinc-900/90 border border-emerald-500/30 text-emerald-400 text-sm font-black uppercase tracking-wider shadow-[0_0_30px_rgba(16,185,129,0.1)] hover:border-emerald-400/50 transition-all duration-300 animate-pulse relative z-10">
-              <span className="text-base">✨</span> {locale === "en" ? "Don't start a business before checking IdeeaTa.ai" : "Nu începe o afacere înainte să verifici IdeeaTa.ai"}
+              <span className="text-base">✨</span> {locale === "en" ? "Don't start a business before checking IdeeaTa.ai" : locale === "es" ? "No empieces un negocio antes de consultar IdeeaTa.ai" : "Nu începe o afacere înainte să verifici IdeeaTa.ai"}
             </div>
             {/* Elegant curved line bridging the gap below the pill */}
             <div className="w-full max-w-2xl mt-4 opacity-50 relative -top-6 -z-10 hidden md:block">
@@ -1726,16 +1613,18 @@ export default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" })
               <h2 className="text-3xl md:text-4xl lg:text-[3.5rem] font-black mb-8 leading-[1.1] not-italic text-white tracking-tighter text-left max-w-[90%]">
                 {locale === "en" ? (
                   <>Turn your <span className="text-emerald-400">expertise</span> into a validated business.</>
+                ) : locale === "es" ? (
+                  <>Convierte tu <span className="text-emerald-400">experiencia</span> en un negocio validado.</>
                 ) : (
                   <>Transformă-ți <span className="text-emerald-400">experiența</span> într-un business validat.</>
                 )}
               </h2>
               
               <p className="text-zinc-400 text-xl lg:text-2xl leading-relaxed not-italic font-medium text-left">
-                {locale === "en" ? "Describe what you're good at, and we'll generate a complete business plan for you." : "Descrie la ce ești bun, iar noi îți vom genera un plan de afaceri complet."}
+                {locale === "en" ? "Describe what you're good at, and we'll generate a complete business plan for you." : locale === "es" ? "Describe en qué eres bueno y generaremos un plan de negocios completo para ti." : "Descrie la ce ești bun, iar noi îți vom genera un plan de afaceri complet."}
               </p>
               <p className="text-zinc-400 text-xl lg:text-2xl mt-4 leading-relaxed not-italic font-medium text-left">
-                {locale === "en" ? "SWOT analysis, financial projections, and market strategy." : "Analiză SWOT, proiecții financiare și strategie de piață."}
+                {locale === "en" ? "SWOT analysis, financial projections, and market strategy." : locale === "es" ? "Análisis FODA, proyecciones financieras y estrategia de mercado." : "Analiză SWOT, proiecții financiare și strategie de piață."}
               </p>
             </div>
 
@@ -1797,15 +1686,15 @@ export default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" })
               <div className="flex flex-col gap-2">
                 <div className="w-full h-px bg-gradient-to-r from-emerald-500/40 via-zinc-700/40 to-transparent"></div>
                 <div className="flex items-center justify-between">
-                  <p className="text-zinc-400 text-sm font-semibold uppercase tracking-widest">{locale === "en" ? "Generation Time" : "Timp de generare"}</p>
-                  <p className="text-emerald-400 text-sm font-black">{locale === "en" ? "Under 60 sec" : "Sub 60 sec"}</p>
+                  <p className="text-zinc-400 text-sm font-semibold uppercase tracking-widest">{locale === "en" ? "Generation Time" : locale === "es" ? "Tiempo de Generación" : "Timp de generare"}</p>
+                  <p className="text-emerald-400 text-sm font-black">{locale === "en" ? "Under 60 sec" : locale === "es" ? "Menos de 60 seg" : "Sub 60 sec"}</p>
                 </div>
               </div>
 
               <div className="flex flex-col gap-2">
                 <div className="w-full h-px bg-gradient-to-r from-emerald-500/30 via-zinc-700/40 to-transparent"></div>
                 <div className="flex items-center justify-between">
-                  <p className="text-zinc-400 text-sm font-semibold uppercase tracking-widest">{locale === "en" ? "Export Format" : "Format export"}</p>
+                  <p className="text-zinc-400 text-sm font-semibold uppercase tracking-widest">{locale === "en" ? "Export Format" : locale === "es" ? "Formato de Exportación" : "Format export"}</p>
                   <p className="text-emerald-400 text-sm font-black">PDF · PPTX · DOCX</p>
                 </div>
               </div>
@@ -1813,16 +1702,16 @@ export default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" })
               <div className="flex flex-col gap-2">
                 <div className="w-full h-px bg-gradient-to-r from-emerald-500/20 via-zinc-700/40 to-transparent"></div>
                 <div className="flex items-center justify-between">
-                  <p className="text-zinc-400 text-sm font-semibold uppercase tracking-widest">{locale === "en" ? "Document Structure" : "Structură Document"}</p>
-                  <p className="text-emerald-400 text-sm font-black">{locale === "en" ? "6 Standard Chapters" : "6 Capitole Standard"}</p>
+                  <p className="text-zinc-400 text-sm font-semibold uppercase tracking-widest">{locale === "en" ? "Document Structure" : locale === "es" ? "Estructura del Documento" : "Structură Document"}</p>
+                  <p className="text-emerald-400 text-sm font-black">{locale === "en" ? "6 Standard Chapters" : locale === "es" ? "6 Capítulos Estándar" : "6 Capitole Standard"}</p>
                 </div>
               </div>
 
               <div className="flex flex-col gap-2">
                 <div className="w-full h-px bg-gradient-to-r from-emerald-500/10 via-zinc-700/30 to-transparent"></div>
                 <div className="flex items-center justify-between">
-                  <p className="text-zinc-400 text-sm font-semibold uppercase tracking-widest">{locale === "en" ? "Grants / Investors" : "Fonduri / Investitori"}</p>
-                  <p className="text-emerald-400 text-sm font-black">{locale === "en" ? "Professional Plan" : "Plan Profesional"}</p>
+                  <p className="text-zinc-400 text-sm font-semibold uppercase tracking-widest">{locale === "en" ? "Grants / Investors" : locale === "es" ? "Subvenciones / Inversores" : "Fonduri / Investitori"}</p>
+                  <p className="text-emerald-400 text-sm font-black">{locale === "en" ? "Professional Plan" : locale === "es" ? "Plan Profesional" : "Plan Profesional"}</p>
                 </div>
               </div>
 
@@ -1851,7 +1740,7 @@ export default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" })
               
               <div className="flex flex-col gap-1 text-center sm:text-left">
                 <p className="text-zinc-400 font-medium text-lg">
-                  {locale === "en" ? "Build your business plan intelligently. Your vision, our support!" : "Construiește planul tău de afaceri inteligent. Viziunea ta, sprijinul nostru!"}
+                  {locale === "en" ? "Build your business plan intelligently. Your vision, our support!" : locale === "es" ? "Crea tu plan de negocios inteligentemente. ¡Tu visión, nuestro apoyo!" : "Construiește planul tău de afaceri inteligent. Viziunea ta, sprijinul nostru!"}
                 </p>
               </div>
               
@@ -1871,7 +1760,7 @@ export default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" })
                     onChange={(e) => setSkill(e.target.value)}
                     onKeyDown={handleKeyDown}
                     disabled={loading}
-                    placeholder={locale === "en" ? "Describe your business idea in detail... (e.g. I want to open a specialty coffee shop with vegan products in the city center...)" : "Descrie ideea ta de afaceri în detaliu... (ex: Vreau să deschid o cafenea de specialitate cu produse vegane în centrul orașului...)"}
+                    placeholder={locale === "en" ? "Describe your business idea in detail... (e.g. I want to open a specialty coffee shop with vegan products in the city center...)" : locale === "es" ? "Describe tu idea de negocio en detalle... (ej: Quiero abrir una cafetería de especialidad con productos veganos en el centro de la ciudad...)" : "Descrie ideea ta de afaceri în detaliu... (ex: Vreau să deschid o cafenea de specialitate cu produse vegane în centrul orașului...)"}
                     className="relative w-full h-32 p-6 rounded-2xl bg-[#09090b] border border-zinc-700 outline-none focus:border-emerald-500 transition-all text-lg shadow-inner resize-none placeholder:text-zinc-600 font-medium text-zinc-400"
                   />
                 </div>
@@ -1894,11 +1783,11 @@ export default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" })
                     }}
                     className="whitespace-nowrap flex-shrink-0 text-zinc-400 font-bold text-lg px-6 py-4 rounded-xl transition-all duration-300 hover:bg-zinc-800/50 hover:text-emerald-400 flex items-center gap-2 w-full sm:w-auto justify-center border border-transparent hover:border-zinc-700/50"
                   >
-                    {locale === "en" ? "✨ Inspire me" : "✨ Inspiră-mă"}
+                    {locale === "en" ? "✨ Inspire me" : locale === "es" ? "✨ Inspírame" : "✨ Inspiră-mă"}
                   </button>
 
                   <button type="submit" disabled={loading} className="w-full sm:w-auto bg-white text-black px-8 py-4 rounded-xl font-black text-lg hover:bg-zinc-200 transition-all shadow-[0_0_20px_rgba(255,255,255,0.2)] flex items-center justify-center gap-2">
-                    {loading ? loadingMessages[messageIndex] : (locale === "en" ? "Generate the Plan" : "Generează Planul")}
+                    {loading ? loadingMessages[messageIndex] : (locale === "en" ? "Generate the Plan" : locale === "es" ? "Generar el Plan" : "Generează Planul")}
                     {!loading && <span>&rarr;</span>}
                   </button>
                 </div>
@@ -1915,7 +1804,7 @@ export default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" })
                   <div className="w-3 h-3 rounded-full bg-zinc-700"></div>
                   <div className="w-3 h-3 rounded-full bg-zinc-700"></div>
                 </div>
-                <h3 className="text-xl font-bold tracking-tight text-white">{locale === "en" ? "💡 Business Examples" : "💡 Exemple de Afaceri"}</h3>
+                <h3 className="text-xl font-bold tracking-tight text-white">{locale === "en" ? "💡 Business Examples" : locale === "es" ? "💡 Ejemplos de Negocios" : "💡 Exemple de Afaceri"}</h3>
                 <div className="w-8"></div>
               </div>
               
@@ -2484,8 +2373,8 @@ export default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" })
                     className="flex-none bg-emerald-600 hover:bg-emerald-500 text-white text-[10px] sm:text-[12px] h-full px-5 py-2.5 rounded-lg font-black uppercase tracking-wider transition-all flex items-center justify-center whitespace-nowrap gap-2 cursor-pointer shadow-[0_0_15px_rgba(16,185,129,0.3)]"
                   >
                     {isDownloading === 'pdf-summary' 
-                      ? (locale === "en" ? "Downloading..." : "Se descarcă...") 
-                      : (locale === "en" ? "🎁 DOWNLOAD FREE SUMMARY" : "🎁 DESCARCĂ SUMAR GRATUIT")}
+                      ? (locale === "en" ? "Downloading..." : locale === "es" ? "Descargando..." : "Se descarcă...") 
+                      : (locale === "en" ? "🎁 DOWNLOAD FREE SUMMARY" : locale === "es" ? "🎁 DESCARGAR RESUMEN GRATUITO" : "🎁 DESCARCĂ SUMAR GRATUIT")}
                   </button>
                 ) : (
                   <>
@@ -2494,7 +2383,7 @@ export default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" })
                       disabled={isDownloading !== null}
                       className="flex-none hover:bg-zinc-800 text-[10px] sm:text-[11px] h-full px-3 py-2.5 rounded-lg font-black uppercase tracking-wider transition-all flex items-center justify-center whitespace-nowrap gap-1 cursor-pointer text-zinc-300 hover:text-white"
                     >
-                      {isDownloading === 'pdf' ? "⏳..." : (locale === "en" ? "⬇ Presentation" : "⬇ Prezentare")}
+                      {isDownloading === 'pdf' ? "⏳..." : (locale === "en" ? "⬇ Presentation" : locale === "es" ? "⬇ Presentación" : "⬇ Prezentare")}
                     </button>
                     <div className="w-px h-4 bg-zinc-800 flex-none" />
                     <button 
@@ -2502,7 +2391,7 @@ export default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" })
                       disabled={isDownloading !== null}
                       className="flex-none hover:bg-zinc-800 text-[10px] sm:text-[11px] h-full px-3 py-2.5 rounded-lg font-black uppercase tracking-wider transition-all flex items-center justify-center whitespace-nowrap gap-1 cursor-pointer text-zinc-300 hover:text-white"
                     >
-                      {isDownloading === 'pptx' ? "⏳..." : (locale === "en" ? "⬇ Brochure" : "⬇ Broșură")}
+                      {isDownloading === 'pptx' ? "⏳..." : (locale === "en" ? "⬇ Brochure" : locale === "es" ? "⬇ Folleto" : "⬇ Broșură")}
                     </button>
                     <div className="w-px h-4 bg-zinc-800 flex-none" />
                     <button 
@@ -2510,7 +2399,7 @@ export default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" })
                       disabled={isDownloading !== null}
                       className="flex-none hover:bg-zinc-800 text-[10px] sm:text-[11px] h-full px-3 py-2.5 rounded-lg font-black uppercase tracking-wider transition-all flex items-center justify-center whitespace-nowrap gap-1 cursor-pointer text-zinc-300 hover:text-white"
                     >
-                      {isDownloading === 'word' ? "⏳..." : (locale === "en" ? "⬇ Document" : "⬇ Document")}
+                      {isDownloading === 'word' ? "⏳..." : (locale === "en" ? "⬇ Document" : locale === "es" ? "⬇ Documento" : "⬇ Document")}
                     </button>
                   </>
                 )}
@@ -2522,7 +2411,7 @@ export default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" })
                       type="button"
                       onClick={() => setShowPricingModal(true)}
                       className="flex-none text-xs text-amber-500 hover:text-amber-400 cursor-pointer px-3 h-full rounded-lg flex items-center justify-center hover:bg-zinc-800/50 hover:scale-110 transition-all"
-                      title={locale === "en" ? "Unlock Full Downloads (Standard Package)" : "Deblochează Descărcările Complete (Pachet Standard)"}
+                      title={locale === "en" ? "Unlock Full Downloads (Standard Package)" : locale === "es" ? "Desbloquear Descargas Completas (Paquete Estándar)" : "Deblochează Descărcările Complete (Pachet Standard)"}
                     >
                       🔒
                     </button>
@@ -2535,12 +2424,12 @@ export default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" })
                   <div className="rounded-xl bg-zinc-950 px-4 py-3" style={{boxShadow: '0 0 24px 2px rgba(16,185,129,0.13)'}}>
                     <div className="flex items-center gap-2 mb-2">
                       <span className="text-emerald-400 text-sm">⬇</span>
-                      <span className="text-emerald-300 text-[11px] font-black uppercase tracking-widest">{locale === "en" ? "Standard Package" : "Pachet Standard"}</span>
+                      <span className="text-emerald-300 text-[11px] font-black uppercase tracking-widest">{locale === "en" ? "Standard Package" : locale === "es" ? "Paquete Estándar" : "Pachet Standard"}</span>
                     </div>
                     <div className="flex flex-col gap-1">
-                      <div className="flex items-center gap-1.5 text-zinc-400 text-[10px]"><span className="text-emerald-500">▸</span> {locale === "en" ? "PDF Presentation" : "Prezentare PDF"}</div>
-                      <div className="flex items-center gap-1.5 text-zinc-400 text-[10px]"><span className="text-emerald-500">▸</span> {locale === "en" ? "PPTX Brochure" : "Broșură PPTX"}</div>
-                      <div className="flex items-center gap-1.5 text-zinc-400 text-[10px]"><span className="text-emerald-500">▸</span> {locale === "en" ? "Word Document" : "Document Word"}</div>
+                      <div className="flex items-center gap-1.5 text-zinc-400 text-[10px]"><span className="text-emerald-500">▸</span> {locale === "en" ? "PDF Presentation" : locale === "es" ? "Presentación PDF" : "Prezentare PDF"}</div>
+                      <div className="flex items-center gap-1.5 text-zinc-400 text-[10px]"><span className="text-emerald-500">▸</span> {locale === "en" ? "PPTX Brochure" : locale === "es" ? "Folleto PPTX" : "Broșură PPTX"}</div>
+                      <div className="flex items-center gap-1.5 text-zinc-400 text-[10px]"><span className="text-emerald-500">▸</span> {locale === "en" ? "Word Document" : locale === "es" ? "Documento Word" : "Document Word"}</div>
                     </div>
                   </div>
                 </div>
@@ -2557,7 +2446,7 @@ export default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" })
                   onClick={() => { setActiveVersionId('original'); setResultState(versions.original); }} 
                   className={`px-5 py-2.5 rounded-t-xl transition-all duration-300 font-bold text-sm tracking-wide flex items-center gap-2 ${activeVersionId === 'original' ? 'bg-[#09090b] border-t border-l border-r border-emerald-500/50 text-emerald-400 shadow-[0_-10px_20px_-10px_rgba(16,185,129,0.15)] relative z-10 translate-y-[1px]' : 'bg-zinc-900/50 border-t border-l border-r border-zinc-800 text-zinc-500 hover:text-zinc-300 hover:bg-zinc-900'}`}
                 >
-                  {locale === "en" ? "📝 Original Version" : "📝 Varianta Originală"}
+                  {locale === "en" ? "📝 Original Version" : locale === "es" ? "📝 Versión Original" : "📝 Varianta Originală"}
                 </button>
               )}
               {versions.eu_funds && (
@@ -2565,7 +2454,7 @@ export default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" })
                   onClick={() => { setActiveVersionId('eu_funds'); setResultState(versions.eu_funds); }} 
                   className={`px-5 py-2.5 rounded-t-xl transition-all duration-300 font-bold text-sm tracking-wide flex items-center gap-2 ${activeVersionId === 'eu_funds' ? 'bg-[#09090b] border-t border-l border-r border-emerald-500/50 text-emerald-400 shadow-[0_-10px_20px_-10px_rgba(16,185,129,0.15)] relative z-10 translate-y-[1px]' : 'bg-zinc-900/50 border-t border-l border-r border-zinc-800 text-zinc-500 hover:text-zinc-300 hover:bg-zinc-900'}`}
                 >
-                  {locale === "en" ? "🇪🇺 EU Funds Optimized" : "🇪🇺 Optimizat Fonduri UE"}
+                  {locale === "en" ? "🇪🇺 EU Funds Optimized" : locale === "es" ? "🇪🇺 Optimizado para Fondos UE" : "🇪🇺 Optimizat Fonduri UE"}
                 </button>
               )}
               {versions.investor && (
@@ -2573,7 +2462,7 @@ export default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" })
                   onClick={() => { setActiveVersionId('investor'); setResultState(versions.investor); }} 
                   className={`px-5 py-2.5 rounded-t-xl transition-all duration-300 font-bold text-sm tracking-wide flex items-center gap-2 ${activeVersionId === 'investor' ? 'bg-[#09090b] border-t border-l border-r border-emerald-500/50 text-emerald-400 shadow-[0_-10px_20px_-10px_rgba(16,185,129,0.15)] relative z-10 translate-y-[1px]' : 'bg-zinc-900/50 border-t border-l border-r border-zinc-800 text-zinc-500 hover:text-zinc-300 hover:bg-zinc-900'}`}
                 >
-                  {locale === "en" ? "🏦 Investors Plan" : "🏦 Plan Investitori"}
+                  {locale === "en" ? "🏦 Investors Plan" : locale === "es" ? "🏦 Plan para Inversores" : "🏦 Plan Investitori"}
                 </button>
               )}
             </div>
@@ -2597,13 +2486,13 @@ export default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" })
 
             {/* Date Generale & Viziune */}
             <div id="section-general" className="pdf-section mb-10 bg-zinc-900/50 p-10 rounded-3xl border-l-4 border-emerald-500 shadow-inner print:shadow-none print:bg-transparent print:border-l-4 print:border-emerald-700 print:text-black">
-              <h3 className="text-emerald-400 text-sm font-black uppercase mb-6 tracking-[0.2em]">I & II. Date Generale și Viziune</h3>
+              <h3 className="text-emerald-400 text-sm font-black uppercase mb-6 tracking-[0.2em]">{locale === "en" ? "I & II. General Information and Vision" : locale === "es" ? "I & II. Información General y Visión" : "I & II. Date Generale și Viziune"}</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8 text-zinc-300 print:text-gray-800">
                 <div className="flex flex-col relative overflow-hidden">
                   <div className="leading-relaxed text-left z-10 relative">
-                    <p className="whitespace-pre-line"><strong className="text-white print:text-black block mb-1">{locale === "en" ? "Legal Form:" : "Forma Juridică:"}</strong> {result.date_generale?.forma_juridica}</p>
-                    <p className="mt-4 whitespace-pre-line"><strong className="text-white print:text-black block mb-1">{locale === "en" ? "CAEN Code:" : "Cod CAEN:"}</strong> {result.date_generale?.cod_caen}</p>
-                    <p className="mt-4 whitespace-pre-line"><strong className="text-white print:text-black block mb-1">{locale === "en" ? "Contact:" : "Contact:"}</strong> {result.date_generale?.date_contact}</p>
+                    <p className="whitespace-pre-line"><strong className="text-white print:text-black block mb-1">{locale === "en" ? "Legal Form:" : locale === "es" ? "Forma Jurídica:" : "Forma Juridică:"}</strong> {result.date_generale?.forma_juridica}</p>
+                    <p className="mt-4 whitespace-pre-line"><strong className="text-white print:text-black block mb-1">{locale === "en" ? "CAEN Code:" : locale === "es" ? "Código CAEN:" : "Cod CAEN:"}</strong> {result.date_generale?.cod_caen}</p>
+                    <p className="mt-4 whitespace-pre-line"><strong className="text-white print:text-black block mb-1">{locale === "en" ? "Contact:" : locale === "es" ? "Contacto:" : "Contact:"}</strong> {result.date_generale?.date_contact}</p>
                   </div>
                   
                   {/* Decorative curved lines to fill empty space */}
@@ -2655,31 +2544,31 @@ export default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" })
                   </div>
                 </div>
                 <div>
-                  <p className="whitespace-pre-line"><strong className="text-white print:text-black block mb-1">{locale === "en" ? "Objectives (1 year):" : "Obiective (1 an):"}</strong>{formatNumberedText(result.viziune_strategie?.obiective_scurt)}</p>
-                  <p className="mt-4 whitespace-pre-line"><strong className="text-white print:text-black block mb-1">{locale === "en" ? "Objectives (3-5 years):" : "Obiective (3-5 ani):"}</strong>{formatNumberedText(result.viziune_strategie?.obiective_mediu)}</p>
+                  <p className="whitespace-pre-line"><strong className="text-white print:text-black block mb-1">{locale === "en" ? "Objectives (1 year):" : locale === "es" ? "Objetivos (1 año):" : "Obiective (1 an):"}</strong>{formatNumberedText(result.viziune_strategie?.obiective_scurt)}</p>
+                  <p className="mt-4 whitespace-pre-line"><strong className="text-white print:text-black block mb-1">{locale === "en" ? "Objectives (3-5 years):" : locale === "es" ? "Objetivos (3-5 años):" : "Obiective (3-5 ani):"}</strong>{formatNumberedText(result.viziune_strategie?.obiective_mediu)}</p>
                 </div>
               </div>
               <div className="mt-6 pt-6 border-t border-zinc-800/50 text-zinc-300 print:border-gray-200 print:text-gray-800 text-left leading-relaxed">
-                  <p className="whitespace-pre-line"><strong className="text-white print:text-black">{locale === "en" ? "Mission and Values:" : "Misiune și Valori:"}</strong> {formatNumberedText(result.viziune_strategie?.misiune_valori)}</p>
+                  <p className="whitespace-pre-line"><strong className="text-white print:text-black">{locale === "en" ? "Mission and Values:" : locale === "es" ? "Misión y Valores:" : "Misiune și Valori:"}</strong> {formatNumberedText(result.viziune_strategie?.misiune_valori)}</p>
               </div>
             </div>
 
             {/* Analiza Pietei */}
             <div id="section-market" className="pdf-section mb-10 bg-zinc-900/50 p-10 rounded-3xl border-l-4 border-emerald-500 shadow-inner print:shadow-none print:bg-transparent print:border-l-4 print:border-emerald-700 print:text-black">
-              <h3 className="text-emerald-400 text-sm font-black uppercase mb-6 tracking-[0.2em]">{locale === "en" ? "III. Market Analysis and Promotion" : "III. Analiza Pieței și Promovarea"}</h3>
+              <h3 className="text-emerald-400 text-sm font-black uppercase mb-6 tracking-[0.2em]">{locale === "en" ? "III. Market Analysis and Promotion" : locale === "es" ? "III. Análisis de Mercado y Promoción" : "III. Analiza Pieței și Promovarea"}</h3>
               <div className="space-y-6 text-zinc-300 print:text-gray-800 text-left leading-relaxed">
-                <div><strong className="text-white print:text-black block mb-1">{locale === "en" ? "Target Customers:" : "Clienții Țintă:"}</strong> <span className="italic whitespace-pre-line">{formatNumberedText(result.analiza_pietei?.clienti_tinta)}</span></div>
-                <div><strong className="text-white print:text-black block mb-1">{locale === "en" ? "Competition:" : "Concurența:"}</strong> <span className="italic whitespace-pre-line">{formatNumberedText(result.analiza_pietei?.concurenta)}</span></div>
-                <div><strong className="text-white print:text-black block mb-1">{locale === "en" ? "Marketing Strategy:" : "Strategia de Marketing:"}</strong> <span className="italic whitespace-pre-line">{formatNumberedText(result.analiza_pietei?.strategie_marketing)}</span></div>
+                <div><strong className="text-white print:text-black block mb-1">{locale === "en" ? "Target Customers:" : locale === "es" ? "Clientes Objetivo:" : "Clienții Țintă:"}</strong> <span className="italic whitespace-pre-line">{formatNumberedText(result.analiza_pietei?.clienti_tinta)}</span></div>
+                <div><strong className="text-white print:text-black block mb-1">{locale === "en" ? "Competition:" : locale === "es" ? "Competencia:" : "Concurența:"}</strong> <span className="italic whitespace-pre-line">{formatNumberedText(result.analiza_pietei?.concurenta)}</span></div>
+                <div><strong className="text-white print:text-black block mb-1">{locale === "en" ? "Marketing Strategy:" : locale === "es" ? "Estrategia de Marketing:" : "Strategia de Marketing:"}</strong> <span className="italic whitespace-pre-line">{formatNumberedText(result.analiza_pietei?.strategie_marketing)}</span></div>
               </div>
             </div>
             
             <div id="section-swot" className="grid grid-cols-1 gap-6 mb-14 print:gap-4">
               {Object.entries({
-                puncte_tari: {t: locale === "en" ? 'Strengths' : 'Puncte Tari', l: 'S'},
-                puncte_slabe: {t: locale === "en" ? 'Weaknesses' : 'Slăbiciuni', l: 'W'},
-                oportunitati: {t: locale === "en" ? 'Opportunities' : 'Oportunități', l: 'O'},
-                amenintari: {t: locale === "en" ? 'Threats' : 'Amenințări', l: 'T'}
+                puncte_tari: {t: locale === "en" ? 'Strengths' : locale === "es" ? 'Fortalezas' : 'Puncte Tari', l: locale === "es" ? 'F' : 'S'},
+                puncte_slabe: {t: locale === "en" ? 'Weaknesses' : locale === "es" ? 'Debilidades' : 'Slăbiciuni', l: locale === "es" ? 'D' : 'W'},
+                oportunitati: {t: locale === "en" ? 'Opportunities' : locale === "es" ? 'Oportunidades' : 'Oportunități', l: 'O'},
+                amenintari: {t: locale === "en" ? 'Threats' : locale === "es" ? 'Amenazas' : 'Amenințări', l: locale === "es" ? 'A' : 'T'}
               }).map(([key, info]) => (
                 <div key={key} className="pdf-section p-8 rounded-3xl border border-zinc-800/50 bg-black/20 shadow-inner print:break-inside-avoid print:p-0 print:border-none print:shadow-none print:bg-transparent">
                   <div className="flex items-center gap-4 mb-6 print:mb-4">
@@ -2703,11 +2592,11 @@ export default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" })
 
             {/* Operational */}
             <div id="section-operational" className="pdf-section mb-10 bg-zinc-900/50 p-10 rounded-3xl border-l-4 border-emerald-500 shadow-inner print:shadow-none print:bg-transparent print:border-l-4 print:border-emerald-700 print:text-black">
-              <h3 className="text-emerald-400 text-sm font-black uppercase mb-6 tracking-[0.2em]">{locale === "en" ? "V. Operational and Management Plan" : "V. Planul Operațional și de Management"}</h3>
+              <h3 className="text-emerald-400 text-sm font-black uppercase mb-6 tracking-[0.2em]">{locale === "en" ? "V. Operational and Management Plan" : locale === "es" ? "V. Plan Operativo y de Gestión" : "V. Planul Operațional și de Management"}</h3>
               <ol className="space-y-6 text-zinc-300 print:text-gray-800 list-decimal pl-6 text-left leading-relaxed">
-                <li className="pl-2"><strong className="text-white print:text-black block mb-1">{locale === "en" ? "Technological Flow Description:" : "Descriere Flux Tehnologic:"}</strong> <span className="italic whitespace-pre-line">{formatNumberedText(result.plan_operational?.descriere_flux)}</span></li>
-                <li className="pl-2"><strong className="text-white print:text-black block mb-1">{locale === "en" ? "Human Resources:" : "Resurse Umane:"}</strong> <span className="italic whitespace-pre-line">{formatNumberedText(result.plan_operational?.resurse_umane)}</span></li>
-                <li className="pl-2"><strong className="text-white print:text-black block mb-1">{locale === "en" ? "Location and Equipment:" : "Locație și Dotări:"}</strong> <span className="italic whitespace-pre-line">{formatNumberedText(result.plan_operational?.locatie_dotari)}</span></li>
+                <li className="pl-2"><strong className="text-white print:text-black block mb-1">{locale === "en" ? "Technological Flow Description:" : locale === "es" ? "Descripción del Flujo Tecnológico:" : "Descriere Flux Tehnologic:"}</strong> <span className="italic whitespace-pre-line">{formatNumberedText(result.plan_operational?.descriere_flux)}</span></li>
+                <li className="pl-2"><strong className="text-white print:text-black block mb-1">{locale === "en" ? "Human Resources:" : locale === "es" ? "Recursos Humanos:" : "Resurse Umane:"}</strong> <span className="italic whitespace-pre-line">{formatNumberedText(result.plan_operational?.resurse_umane)}</span></li>
+                <li className="pl-2"><strong className="text-white print:text-black block mb-1">{locale === "en" ? "Location and Equipment:" : locale === "es" ? "Ubicación y Equipamiento:" : "Locație și Dotări:"}</strong> <span className="italic whitespace-pre-line">{formatNumberedText(result.plan_operational?.locatie_dotari)}</span></li>
               </ol>
             </div>
 
@@ -2725,7 +2614,7 @@ export default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" })
 
             <div id="section-financial" className="pt-10 border-t border-zinc-800 print:border-none print:pt-4">
                <h3 className="pdf-section text-emerald-400 text-sm font-black uppercase mb-6 tracking-[0.2em] text-center drop-shadow-md print:text-emerald-800 print:drop-shadow-none">
-                 VI. Planul Financiar
+                 {locale === "en" ? "VI. Financial Plan" : locale === "es" ? "VI. Plan Financiero" : "VI. Planul Financiar"}
                </h3>
                
                <div className="pdf-section text-zinc-300 italic text-left leading-relaxed max-w-4xl mx-auto mb-10 print:text-gray-700 whitespace-pre-line">
@@ -2733,7 +2622,7 @@ export default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" })
                </div>
 
                <div className="mb-16" id="docx-chart-container">
-                 <h4 className="text-zinc-500 font-bold uppercase tracking-wider mb-6 text-sm">Distribuția costurilor</h4>
+                 <h4 className="text-zinc-500 font-bold uppercase tracking-wider mb-6 text-sm">{locale === "en" ? "Cost Distribution" : locale === "es" ? "Distribución de Costos" : "Distribuția costurilor"}</h4>
                  <BudgetPieChart budget={result.plan_financiar?.buget_investitii} currency={currency} />
                </div>
 
@@ -2776,21 +2665,21 @@ export default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" })
             <div className="presentation-slide w-[1280px] h-[720px] bg-[#09090b] text-white flex flex-col justify-center p-24 border-[12px] border-zinc-900 box-border relative">
               <div className="flex items-center gap-6 mb-12">
                 <div className="w-16 h-2 bg-emerald-500"></div>
-                <h2 className="text-5xl font-black font-sans uppercase tracking-widest text-emerald-400">Viziune și Strategie</h2>
+                <h2 className="text-5xl font-black font-sans uppercase tracking-widest text-emerald-400">{locale === "en" ? "Vision and Strategy" : locale === "es" ? "Visión y Estrategia" : "Viziune și Strategie"}</h2>
               </div>
               <div className="grid grid-cols-2 gap-12 font-sans leading-normal text-zinc-200">
                 <div className="flex flex-col gap-4">
                   <div className="overflow-hidden">
-                    <h3 className="text-xl font-bold text-emerald-700 mb-2">Obiective (1 an)</h3>
+                    <h3 className="text-xl font-bold text-emerald-700 mb-2">{locale === "en" ? "Objectives (1 year)" : locale === "es" ? "Objetivos (1 año)" : "Obiective (1 an)"}</h3>
                     <p className="text-base leading-relaxed text-left">{truncateText(result.viziune_strategie?.obiective_scurt, 280)}</p>
                   </div>
                   <div className="overflow-hidden">
-                    <h3 className="text-xl font-bold text-emerald-700 mb-2">Obiective (3-5 ani)</h3>
+                    <h3 className="text-xl font-bold text-emerald-700 mb-2">{locale === "en" ? "Objectives (3-5 years)" : locale === "es" ? "Objetivos (3-5 años)" : "Obiective (3-5 ani)"}</h3>
                     <p className="text-base leading-relaxed text-left">{truncateText(result.viziune_strategie?.obiective_mediu, 280)}</p>
                   </div>
                 </div>
                 <div className="overflow-hidden">
-                  <h3 className="text-xl font-bold text-emerald-700 mb-2">Misiune și Valori</h3>
+                  <h3 className="text-xl font-bold text-emerald-700 mb-2">{locale === "en" ? "Mission and Values" : locale === "es" ? "Misión y Valores" : "Misiune și Valori"}</h3>
                   <p className="text-base leading-relaxed text-left">{truncateText(result.viziune_strategie?.misiune_valori, 500)}</p>
                 </div>
               </div>
@@ -2800,14 +2689,14 @@ export default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" })
             <div className="presentation-slide w-[1280px] h-[720px] bg-[#09090b] text-white flex flex-col justify-center p-24 border-[12px] border-zinc-900 box-border relative">
               <div className="flex items-center gap-6 mb-8">
                 <div className="w-16 h-2 bg-emerald-500"></div>
-                <h2 className="text-5xl font-black font-sans uppercase tracking-widest text-emerald-400">Analiza Pieței</h2>
+                <h2 className="text-5xl font-black font-sans uppercase tracking-widest text-emerald-400">{locale === "en" ? "Market Analysis" : locale === "es" ? "Análisis de Mercado" : "Analiza Pieței"}</h2>
               </div>
               <div className="flex flex-col gap-6 font-serif leading-normal text-zinc-300 text-left flex-1 overflow-hidden justify-start">
-                  <div className="overflow-hidden"><h3 className="text-3xl font-bold text-emerald-500 mb-2">Clienții Țintă</h3>
+                  <div className="overflow-hidden"><h3 className="text-3xl font-bold text-emerald-500 mb-2">{locale === "en" ? "Target Customers" : locale === "es" ? "Clientes Objetivo" : "Clienții Țintă"}</h3>
                   <p className="text-2xl">{truncateText(result.analiza_pietei?.clienti_tinta, 250)}</p></div>
-                  <div className="overflow-hidden"><h3 className="text-3xl font-bold text-emerald-500 mb-2">Concurența</h3>
+                  <div className="overflow-hidden"><h3 className="text-3xl font-bold text-emerald-500 mb-2">{locale === "en" ? "Competition" : locale === "es" ? "Competencia" : "Concurența"}</h3>
                   <p className="text-2xl">{truncateText(result.analiza_pietei?.concurenta, 250)}</p></div>
-                  <div className="overflow-hidden"><h3 className="text-3xl font-bold text-emerald-500 mb-2">Strategia de Marketing</h3>
+                  <div className="overflow-hidden"><h3 className="text-3xl font-bold text-emerald-500 mb-2">{locale === "en" ? "Marketing Strategy" : locale === "es" ? "Estrategia de Marketing" : "Strategia de Marketing"}</h3>
                   <p className="text-2xl">{truncateText(result.analiza_pietei?.strategie_marketing, 250)}</p></div>
               </div>
             </div>
@@ -2816,10 +2705,10 @@ export default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" })
             <div className="presentation-slide w-[1280px] h-[720px] bg-[#09090b] flex flex-col px-24 py-16 border-[12px] border-zinc-900 box-border relative">
               <div className="flex items-center gap-6 mb-8 shrink-0">
                 <div className="w-16 h-2 bg-emerald-500"></div>
-                <h2 className="text-5xl font-black font-sans uppercase tracking-widest text-emerald-400">Analiză Strategica SWOT</h2>
+                <h2 className="text-5xl font-black font-sans uppercase tracking-widest text-emerald-400">{locale === "en" ? "Strategic SWOT Analysis" : locale === "es" ? "Análisis FODA Estratégico" : "Analiză Strategica SWOT"}</h2>
               </div>
               <div className="bg-zinc-900/50 p-8 border-l-8 border-emerald-500 flex flex-col gap-6 rounded-3xl flex-1">
-                <h3 className="text-4xl font-black text-white uppercase tracking-widest pb-4 border-b-2 border-zinc-800 shrink-0">Puncte Tari (Strengths)</h3>
+                <h3 className="text-4xl font-black text-white uppercase tracking-widest pb-4 border-b-2 border-zinc-800 shrink-0">{locale === "en" ? "Strengths" : locale === "es" ? "Fortalezas (Strengths)" : "Puncte Tari (Strengths)"}</h3>
                 <div className="grid grid-cols-2 gap-x-12 gap-y-6 flex-1">
                   {result.analiza_swot?.puncte_tari?.slice(0, 8).map((item: any, idx: number) => (
                     <div key={idx} className="flex flex-col gap-2">
@@ -2835,10 +2724,10 @@ export default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" })
             <div className="presentation-slide w-[1280px] h-[720px] bg-[#09090b] flex flex-col px-24 py-16 border-[12px] border-zinc-900 box-border relative">
               <div className="flex items-center gap-6 mb-8 shrink-0">
                 <div className="w-16 h-2 bg-[#ff4d6d]"></div>
-                <h2 className="text-5xl font-black font-sans uppercase tracking-widest text-[#ff4d6d]">Analiză Strategica SWOT</h2>
+                <h2 className="text-5xl font-black font-sans uppercase tracking-widest text-[#ff4d6d]">{locale === "en" ? "Strategic SWOT Analysis" : locale === "es" ? "Análisis FODA Estratégico" : "Analiză Strategica SWOT"}</h2>
               </div>
               <div className="bg-zinc-900/50 p-8 border-l-8 border-[#ff4d6d] flex flex-col gap-6 rounded-3xl flex-1">
-                <h3 className="text-4xl font-black text-white uppercase tracking-widest pb-4 border-b-2 border-zinc-800 shrink-0">Slăbiciuni (Weaknesses)</h3>
+                <h3 className="text-4xl font-black text-white uppercase tracking-widest pb-4 border-b-2 border-zinc-800 shrink-0">{locale === "en" ? "Weaknesses" : locale === "es" ? "Debilidades (Weaknesses)" : "Slăbiciuni (Weaknesses)"}</h3>
                 <div className="grid grid-cols-2 gap-x-12 gap-y-6 flex-1">
                   {result.analiza_swot?.puncte_slabe?.slice(0, 8).map((item: any, idx: number) => (
                     <div key={idx} className="flex flex-col gap-2">
@@ -2854,10 +2743,10 @@ export default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" })
             <div className="presentation-slide w-[1280px] h-[720px] bg-[#09090b] flex flex-col px-24 py-16 border-[12px] border-zinc-900 box-border relative">
               <div className="flex items-center gap-6 mb-8 shrink-0">
                 <div className="w-16 h-2 bg-blue-500"></div>
-                <h2 className="text-5xl font-black font-sans uppercase tracking-widest text-blue-400">Analiză Strategica SWOT</h2>
+                <h2 className="text-5xl font-black font-sans uppercase tracking-widest text-blue-400">{locale === "en" ? "Strategic SWOT Analysis" : locale === "es" ? "Análisis FODA Estratégico" : "Analiză Strategica SWOT"}</h2>
               </div>
               <div className="bg-zinc-900/50 p-8 border-l-8 border-blue-500 flex flex-col gap-6 rounded-3xl flex-1">
-                <h3 className="text-4xl font-black text-white uppercase tracking-widest pb-4 border-b-2 border-zinc-800 shrink-0">Oportunități (Opportunities)</h3>
+                <h3 className="text-4xl font-black text-white uppercase tracking-widest pb-4 border-b-2 border-zinc-800 shrink-0">{locale === "en" ? "Opportunities" : locale === "es" ? "Oportunidades (Opportunities)" : "Oportunități (Opportunities)"}</h3>
                 <div className="grid grid-cols-2 gap-x-12 gap-y-6 flex-1">
                   {result.analiza_swot?.oportunitati?.slice(0, 8).map((item: any, idx: number) => (
                     <div key={idx} className="flex flex-col gap-2">
@@ -2873,10 +2762,10 @@ export default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" })
             <div className="presentation-slide w-[1280px] h-[720px] bg-[#09090b] flex flex-col px-24 py-16 border-[12px] border-zinc-900 box-border relative">
               <div className="flex items-center gap-6 mb-8 shrink-0">
                 <div className="w-16 h-2 bg-orange-500"></div>
-                <h2 className="text-5xl font-black font-sans uppercase tracking-widest text-orange-400">Analiză Strategica SWOT</h2>
+                <h2 className="text-5xl font-black font-sans uppercase tracking-widest text-orange-400">{locale === "en" ? "Strategic SWOT Analysis" : locale === "es" ? "Análisis FODA Estratégico" : "Analiză Strategica SWOT"}</h2>
               </div>
               <div className="bg-zinc-900/50 p-8 border-l-8 border-orange-500 flex flex-col gap-6 rounded-3xl flex-1">
-                <h3 className="text-4xl font-black text-white uppercase tracking-widest pb-4 border-b-2 border-zinc-800 shrink-0">Amenințări (Threats)</h3>
+                <h3 className="text-4xl font-black text-white uppercase tracking-widest pb-4 border-b-2 border-zinc-800 shrink-0">{locale === "en" ? "Threats" : locale === "es" ? "Amenazas (Threats)" : "Amenințări (Threats)"}</h3>
                 <div className="grid grid-cols-2 gap-x-12 gap-y-6 flex-1">
                   {result.analiza_swot?.amenintari?.slice(0, 8).map((item: any, idx: number) => (
                     <div key={idx} className="flex flex-col gap-2">
@@ -2892,20 +2781,20 @@ export default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" })
             <div className="presentation-slide w-[1280px] h-[720px] bg-[#09090b] flex flex-col px-24 py-16 border-[12px] border-zinc-900 box-border relative">
               <div className="flex items-center gap-6 mb-8 shrink-0">
                 <div className="w-16 h-2 bg-emerald-500"></div>
-                <h2 className="text-5xl font-black font-sans uppercase tracking-widest text-emerald-400">Planul Operațional</h2>
+                <h2 className="text-5xl font-black font-sans uppercase tracking-widest text-emerald-400">{locale === "en" ? "Operational Plan" : locale === "es" ? "Plan Operativo" : "Planul Operațional"}</h2>
               </div>
               <div className="bg-zinc-900/50 p-8 border-l-8 border-emerald-500 flex flex-col gap-6 rounded-3xl flex-1">
                 <div className="flex flex-col gap-6 flex-1 pl-4 text-left">
                     <div className="flex flex-col gap-2">
-                      <h4 className="text-2xl font-bold text-emerald-400 leading-snug">1. Descriere Flux (Sustenabilitate / Verde)</h4>
+                      <h4 className="text-2xl font-bold text-emerald-400 leading-snug">{locale === "en" ? "1. Technological Flow" : locale === "es" ? "1. Flujo Tecnológico" : "1. Descriere Flux (Sustenabilitate / Verde)"}</h4>
                       <p className="text-lg text-zinc-300 leading-relaxed">{result.plan_operational?.descriere_flux}</p>
                     </div>
                     <div className="flex flex-col gap-2">
-                      <h4 className="text-2xl font-bold text-emerald-400 leading-snug">2. Resurse Umane</h4>
+                      <h4 className="text-2xl font-bold text-emerald-400 leading-snug">{locale === "en" ? "2. Human Resources" : locale === "es" ? "2. Recursos Humanos" : "2. Resurse Umane"}</h4>
                       <p className="text-lg text-zinc-300 leading-relaxed">{result.plan_operational?.resurse_umane}</p>
                     </div>
                     <div className="flex flex-col gap-2">
-                      <h4 className="text-2xl font-bold text-emerald-400 leading-snug">3. Locație și Dotări</h4>
+                      <h4 className="text-2xl font-bold text-emerald-400 leading-snug">{locale === "en" ? "3. Location and Equipment" : locale === "es" ? "3. Ubicación y Equipamiento" : "3. Locație și Dotări"}</h4>
                       <p className="text-lg text-zinc-300 leading-relaxed">{result.plan_operational?.locatie_dotari}</p>
                     </div>
                 </div>
@@ -2916,7 +2805,7 @@ export default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" })
             <div className="presentation-slide w-[1280px] h-[720px] bg-[#09090b] flex flex-col p-24 border-[12px] border-zinc-900 box-border relative">
               <div className="flex items-center gap-6 mb-12 shrink-0">
                 <div className="w-16 h-2 bg-emerald-500"></div>
-                <h2 className="text-5xl font-black font-sans uppercase tracking-widest text-emerald-400">Buget Investiții</h2>
+                <h2 className="text-5xl font-black font-sans uppercase tracking-widest text-emerald-400">{locale === "en" ? "Investment Budget" : locale === "es" ? "Presupuesto de Inversión" : "Buget Investiții"}</h2>
               </div>
               <div className="grid grid-cols-2 gap-x-12 gap-y-8 font-sans items-start content-start">
                 {[...(result.plan_financiar?.buget_investitii || [])].sort((a: any, b: any) => parseInt(b.cost?.toString().replace(/[^0-9]/g, '') || '0') - parseInt(a.cost?.toString().replace(/[^0-9]/g, '') || '0')).slice(0, 8).map((b: any, i: number) => (
@@ -2932,7 +2821,7 @@ export default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" })
               
               <div className="absolute bottom-12 right-24">
                  <div className="bg-emerald-600 text-white px-12 py-6 flex items-center rounded-3xl shadow-2xl">
-                   <span className="text-3xl font-bold uppercase tracking-wider mr-6">Total Estimat:</span>
+                   <span className="text-3xl font-bold uppercase tracking-wider mr-6">{locale === "en" ? "Estimated Total:" : locale === "es" ? "Total Estimado:" : "Total Estimat:"}</span>
                    <span className="text-5xl font-black text-zinc-900">{formatPrice(result.plan_financiar?.buget_investitii?.reduce((sum: number, b: any) => sum + parseInt(b.cost?.toString().replace(/[^0-9]/g, '') || '0'), 0).toString())}</span>
                  </div>
               </div>
@@ -2942,7 +2831,7 @@ export default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" })
             <div className="presentation-slide w-[1280px] h-[720px] bg-[#09090b] flex flex-col p-24 border-[12px] border-zinc-900 box-border relative">
               <div className="flex items-center gap-6 mb-12 shrink-0">
                 <div className="w-16 h-2 bg-emerald-500"></div>
-                <h2 className="text-5xl font-black font-sans uppercase tracking-widest text-emerald-400">Distribuția Costurilor</h2>
+                <h2 className="text-5xl font-black font-sans uppercase tracking-widest text-emerald-400">{locale === "en" ? "Cost Distribution" : locale === "es" ? "Distribución de Costos" : "Distribuția Costurilor"}</h2>
               </div>
               <div className="flex-1 w-full bg-zinc-900/50 p-8 rounded-3xl border border-zinc-800">
                   <BudgetPieChart budget={result.plan_financiar?.buget_investitii} currency={currency} />
@@ -2958,7 +2847,7 @@ export default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" })
                   <div className="flex items-center gap-6 mb-8 shrink-0">
                     <div className="w-16 h-2 bg-emerald-500"></div>
                     <h2 className="text-3xl font-black font-sans uppercase tracking-widest text-emerald-400 line-clamp-1">
-                      {sec.titlu || 'Secțiune Adițională'} {slides.length > 1 ? `(Partea ${slideIdx + 1})` : ''}
+                      {sec.titlu || (locale === "en" ? "Additional Section" : locale === "es" ? "Sección Adicional" : "Secțiune Adițională")} {slides.length > 1 ? `(${locale === "en" ? "Part" : locale === "es" ? "Parte" : "Partea"} ${slideIdx + 1})` : ''}
                     </h2>
                   </div>
                   <div className="flex-1 w-full bg-zinc-900/50 p-8 rounded-3xl border border-zinc-800 overflow-hidden">

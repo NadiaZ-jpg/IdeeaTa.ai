@@ -11,6 +11,7 @@ import { doc, onSnapshot, setDoc, getDoc, increment, arrayUnion } from 'firebase
 import { PricingModal } from '@/components/PricingModal';
 import { AdBanner } from '@/components/AdBanner';
 import { generateDocxBlob } from '@/lib/generateDocx';
+import { generatePptx } from '@/lib/generatePptx';
 import { useStudioFirebaseSync } from '@/hooks/useStudioFirebaseSync';
 import { t } from '@/lib/translations';
 import { Mail } from 'lucide-react';
@@ -130,7 +131,9 @@ const getDynamicTextSize = (text: any, limits = { large: 400, medium: 800, extra
   return classes.default;
 };
 
-export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" }) {
+export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" | "es" }) {
+  const isEn = locale === "en";
+  const isEs = locale === "es";
   const [skill, setSkill] = useState("");
   const [resultState, setResultState] = useState<any>(null);
   const [versions, setVersionsState] = useState<{ [key: string]: any }>({});
@@ -1078,130 +1081,10 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
         await new Promise(resolve => setTimeout(resolve, 800));
       }
 
+      const safeName = result?.nume?.replace(/[^a-zA-Z0-9]/g, '_') || 'Business';
+
       if (mode === 'pptx') {
-        const pres = new pptxgen();
-        pres.layout = 'LAYOUT_16x9';
-
-        pres.defineSlideMaster({
-          title: 'MASTER_SLIDE',
-          background: { color: '09090b' },
-          objects: [
-            { rect: { x: 0, y: 0, w: '100%', h: 0.1, fill: { color: '10b981' } } }
-          ]
-        });
-
-        const formatPptText = (text: string | undefined, color: string = 'e4e4e7') => {
-            if (!text) return [];
-            let stripped = text.replace(/^(?:În primul an:?|În următorii(?:\s*\d+(?:-\d+)?\s*ani)?:?|Obiective(?:le)?[^:]*:?|Pentru primul an:?|Pe termen scurt:?|Pe termen mediu:?)\s*/i, '').replace(/\*\*/g, '');
-            return stripped.split('\n').filter(l => l.trim().length > 0).map(l => {
-                return { text: l.trim(), options: { bullet: false, color, breakLine: true, fontFace: 'Times New Roman', align: 'justify' as any } as any };
-            });
-        };
-
-        const swotFormat = (arr: any[], color: string) => arr?.map((i: any) => ({ text: (i.titlu || i) + '\n' + (i.explicatie_tehnica || ''), options: { color, bullet: true, breakLine: true, fontFace: 'Times New Roman', align: 'justify' as any } as any })) || [];
-
-        // Slide 1: Title
-        let slide1 = pres.addSlide({ masterName: 'MASTER_SLIDE' });
-        slide1.addText(result.nume || 'IdeeaTa', { x: 0, y: 2.5, w: '100%', h: 1, fontSize: 54, bold: true, color: '10b981', align: 'center', fontFace: 'Times New Roman' });
-        slide1.addText(result.slogan || '', { x: 0, y: 3.5, w: '100%', h: 1, fontSize: 24, italic: true, color: 'e4e4e7', align: 'center', fontFace: 'Times New Roman' });
-
-        // Slide 2: Obiective 1 An
-        let slide2 = pres.addSlide({ masterName: 'MASTER_SLIDE' });
-        slide2.addText('DATE GENERALE & OBIECTIVE', { x: 0.5, y: 0.5, w: 9, h: 0.5, fontSize: 28, bold: true, color: '10b981', fontFace: 'Times New Roman' });
-        slide2.addText('Forma juridică: ' + result.date_generale?.forma_juridica + '\nCod CAEN: ' + result.date_generale?.cod_caen + '\nContact: ' + result.date_generale?.date_contact, { x: 0.5, y: 1.2, w: 9, h: 0.8, fontSize: 12, color: 'a1a1aa', fontFace: 'Times New Roman' });
-        slide2.addText('Obiective (1 an)', { x: 0.5, y: 2.2, w: 9, h: 0.4, fontSize: 16, bold: true, color: '10b981', fontFace: 'Times New Roman' });
-        slide2.addText(formatPptText(result.viziune_strategie?.obiective_scurt), { x: 0.5, y: 2.6, w: 9, h: 4, fontSize: 12, valign: 'top' });
-
-        const addTextSlide = (mainTitle: string, subTitle: string, contentStr: string | undefined) => {
-           if(!contentStr) return;
-           const slides = splitTextIntoSlides(contentStr, 1100);
-           slides.forEach((content, slideIdx) => {
-             let slide = pres.addSlide({ masterName: 'MASTER_SLIDE' });
-             slide.addText(mainTitle, { x: 0.5, y: 0.5, w: 9, h: 0.5, fontSize: 28, bold: true, color: '10b981', fontFace: 'Times New Roman' });
-             slide.addText(subTitle + (slides.length > 1 ? ` (Partea ${slideIdx + 1})` : ''), { x: 0.5, y: 1.2, w: 9, h: 0.4, fontSize: 16, bold: true, color: '10b981', fontFace: 'Times New Roman' });
-             slide.addText(formatPptText(content), { x: 0.5, y: 1.6, w: 9, h: 5.5, fontSize: 11, valign: 'top' });
-           });
-        };
-
-        const addSwotSlide = (mainTitle: string, subTitle: string, color: string, swotArr: any[]) => {
-           if(!swotArr || !swotArr.length) return;
-           const contentStr = swotArr.map((i: any) => '• ' + (i.titlu || i) + '\n  ' + (i.explicatie_tehnica || '')).join('\n\n');
-           const slides = splitTextIntoSlides(contentStr, 1100);
-           slides.forEach((content, slideIdx) => {
-             let slide = pres.addSlide({ masterName: 'MASTER_SLIDE' });
-             slide.addText(mainTitle, { x: 0.5, y: 0.5, w: 9, h: 0.5, fontSize: 28, bold: true, color, fontFace: 'Times New Roman' });
-             slide.addText(subTitle + (slides.length > 1 ? ` (Partea ${slideIdx + 1})` : ''), { x: 0.5, y: 1.2, w: 9, h: 0.4, fontSize: 16, bold: true, color, fontFace: 'Times New Roman' });
-             slide.addText(formatPptText(content, 'e4e4e7'), { x: 0.5, y: 1.6, w: 9, h: 5.5, fontSize: 11, valign: 'top' });
-           });
-        };
-
-        addTextSlide('OBIECTIVE PE TERMEN MEDIU', 'Obiective (3-5 ani)', result.viziune_strategie?.obiective_mediu);
-        addTextSlide('MISIUNE ȘI VALORI', 'Misiune și Valori', result.viziune_strategie?.misiune_valori);
-        addTextSlide('PIAȚA ȘI CONCURENȚA', 'Clienții Țintă', result.analiza_pietei?.clienti_tinta);
-        addTextSlide('PIAȚA ȘI CONCURENȚA', 'Concurența', result.analiza_pietei?.concurența);
-        addTextSlide('PROMOVARE', 'Strategia de Marketing', result.analiza_pietei?.strategie_marketing);
-
-        addSwotSlide('ANALIZĂ SWOT', 'PUNCTE TARI (S)', '10b981', result.analiza_swot?.puncte_tari);
-        addSwotSlide('ANALIZĂ SWOT', 'SLĂBICIUNI (W)', 'ef4444', result.analiza_swot?.puncte_slabe);
-        addSwotSlide('ANALIZĂ SWOT', 'OPORTUNITĂȚI (O)', '3b82f6', result.analiza_swot?.oportunitati);
-        addSwotSlide('ANALIZĂ SWOT', 'AMENINȚĂRI (T)', 'eab308', result.analiza_swot?.amenintari);
-
-        addTextSlide('PLAN OPERAȚIONAL', 'Descriere Flux Tehnologic', result.plan_operational?.descriere_flux);
-        addTextSlide('PLAN OPERAȚIONAL', 'Resurse Umane', result.plan_operational?.resurse_umane);
-        addTextSlide('PLAN OPERAȚIONAL', 'Locație și Dotări', result.plan_operational?.locatie_dotari);
-
-        // Slides for Buget (chunked)
-        const budgetItems = result.plan_financiar?.buget_investitii || [];
-        const numBudgetSlides = Math.ceil((budgetItems.length || 1) / 4);
-        for(let slideIdx = 0; slideIdx < numBudgetSlides; slideIdx++) {
-           let bSlide = pres.addSlide({ masterName: 'MASTER_SLIDE' });
-           bSlide.addText('BUGET INVESTIȚII' + (slideIdx > 0 ? ` (Partea ${slideIdx + 1})` : ''), { x: 0.5, y: 0.5, w: 9, h: 0.5, fontSize: 28, bold: true, color: '10b981', fontFace: 'Times New Roman' });
-           
-           const chunk = budgetItems.slice(slideIdx * 4, slideIdx * 4 + 4);
-              let bText = chunk.map((b: any) => ({ text: b.item + ' - ' + formatPrice(b.cost) + '\n' + b.explicatie, options: { bullet: true, color: 'e4e4e7', breakLine: true, fontFace: 'Times New Roman' } }));
-           bSlide.addText(bText, { x: 0.5, y: 1.2, w: 9, h: 5.5, fontSize: 11, valign: 'top' });
-        }
-
-        // Slide 8: Buget Chart (Native PPTX Chart)
-        let cSlide = pres.addSlide({ masterName: 'MASTER_SLIDE' });
-        cSlide.addText('PLAN FINANCIAR - DISTRIBUȚIA COSTURILOR', { x: 0.5, y: 0.5, w: 9, h: 0.5, fontSize: 22, bold: true, color: '10b981', fontFace: 'Times New Roman' });
-        if (result?.plan_financiar?.buget_investitii && result.plan_financiar.buget_investitii.length > 0) {
-           let dataChartPie = [
-             {
-               name: "Buget",
-               labels: result.plan_financiar.buget_investitii.map((i: any) => i.item),
-               values: result.plan_financiar.buget_investitii.map((i: any) => parseInt(i.cost.toString().replace(/[^0-9]/g, "")))
-             }
-           ];
-           cSlide.addChart(pres.ChartType.doughnut, dataChartPie, { 
-              x: 1.8, y: 1.8, w: 6.4, h: 3.5, 
-              showLegend: true, legendPos: 'r', 
-              showPercent: true,
-              dataLabelPosition: 'outEnd',
-              holeSize: 50,
-              dataLabelColor: 'e4e4e7',
-              dataLabelFontSize: 10,
-              legendColor: 'e4e4e7',
-              legendFontSize: 10,
-              showTitle: false,
-              chartColors: ['10b981', '3b82f6', 'f59e0b', 'ef4444', '8b5cf6', 'ec4899', '14b8a6']
-           });
-        }
-
-        // Slides for Custom/Additional Sections
-        result.sectiuni_aditionale?.forEach((sec: any) => {
-           if (!sec || !sec.continut) return;
-           const slides = splitTextIntoSlides(sec.continut, 1800);
-           slides.forEach((slideContent, slideIdx) => {
-              let cSlide = pres.addSlide({ masterName: 'MASTER_SLIDE' });
-              const secTitle = (sec.titlu || 'Secțiune Adițională').toUpperCase();
-              cSlide.addText(secTitle + (slides.length > 1 ? ` (Partea ${slideIdx + 1})` : ''), { x: 0.5, y: 0.5, w: 9, h: 0.5, fontSize: 22, bold: true, color: '10b981', fontFace: 'Times New Roman' });
-              cSlide.addText(formatPptText(slideContent), { x: 0.5, y: 1.2, w: 9, h: 5.5, fontSize: 11, valign: 'top' });
-           });
-        });
-
-        const safeName = result?.nume?.replace(/[^a-zA-Z0-9]/g, '_') || 'Business';
-        await pres.writeFile({ fileName: `IdeeaTa_Brosura_${safeName}.pptx` });
+        await generatePptx(result, safeName, currency || (locale === "es" || locale === "en" ? "EUR" : "RON"), 0.201, locale);
       } else if (mode === 'pdf' || mode === 'pdf-summary') {
         let slidesArray = Array.from(document.querySelectorAll('.pdf-presentation-slide'));
         if (slidesArray.length === 0) {
@@ -1223,11 +1106,18 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
           format: [1280, 720]
         });
 
-        let pdfUrl = 'https://ideea-ta-ai.vercel.app/';
+        // REGULA #5: Folosește domeniul oficial de producție ideeata.ai
+        let pdfUrl = 'https://ideeata.ai/';
         const currentShareId = result?.id || generatedShareId;
         if (currentShareId) {
-          pdfUrl = `https://ideea-ta-ai.vercel.app/shared/${currentShareId}`;
+          pdfUrl = `https://ideeata.ai/shared/${currentShareId}`;
         }
+
+        const pdfFooters = {
+          ro: "Plan generat inteligent de IdeeaTa.ai",
+          en: "Business plan smartly generated by IdeeaTa.ai",
+          es: "Plan de negocios generado inteligentemente por IdeeaTa.ai"
+        };
 
         for (let i = 0; i < slidesArray.length; i++) {
           const slideElement = slidesArray[i] as HTMLElement;
@@ -1243,13 +1133,12 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
           // Stamp footer on every page
           pdf.setTextColor(150, 150, 150); // Gray color
           pdf.setFontSize(14);
-          pdf.text("Plan generat inteligent de IdeeaTa.ai", 640, 700, { align: 'center' });
+          pdf.text(pdfFooters[locale] || pdfFooters.ro, 640, 700, { align: 'center' });
           
           // Add invisible link covering the footer area on every page
           pdf.link(300, 680, 680, 40, { url: pdfUrl });
         }
         
-        const safeName = result?.nume?.replace(/[^a-zA-Z0-9]/g, '_') || 'Business';
         const suffix = mode === 'pdf-summary' ? '_Sumar_Gratuit' : '';
         pdf.save(`IdeeaTa_Prezentare_${safeName}${suffix}.pdf`);
       } else if (mode === 'word') {
@@ -1260,7 +1149,7 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
                 chartDataUrl = await toPng(chartElement, { backgroundColor: '#ffffff' });
              } catch(e) { console.error(e); }
           }
-          const blob = await generateDocxBlob(result, chartDataUrl);
+          const blob = await generateDocxBlob(result, chartDataUrl, locale);
           const link = document.createElement('a');
           link.href = URL.createObjectURL(blob);
           const safeName2 = result?.nume?.replace(/[^a-zA-Z0-9]/g, '_') || 'Business';
@@ -1283,9 +1172,9 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
     <div className="w-full lg:w-2/5 xl:w-1/3 flex flex-col gap-6 sticky top-8 print:hidden">
       
                 <div className="bg-zinc-900 border border-zinc-800 rounded-[2rem] p-8 shadow-xl sticky top-8">
-                   <h3 className="text-2xl font-black text-white mb-4 flex items-center gap-3"><span className="text-emerald-500">✨</span> {locale === "en" ? "Tools" : "Instrumente"}</h3>
+                   <h3 className="text-2xl font-black text-white mb-4 flex items-center gap-3"><span className="text-emerald-500">✨</span> {locale === "en" ? "Tools" : locale === "es" ? "Herramientas" : "Instrumente"}</h3>
                    <p className="text-zinc-400 text-sm mb-6 leading-relaxed">
-                     {locale === "en" ? "Here you can use the intelligent assistant to add more information and details to your plan." : "Aici poți folosi asistentul inteligent pentru a adăuga mai multe informații și detalii planului tău."}
+                     {locale === "en" ? "Here you can use the intelligent assistant to add more information and details to your plan." : locale === "es" ? "Aquí puedes utilizar el asistente inteligente para añadir más información y detalles a tu plan." : "Aici poți folosi asistentul inteligent pentru a adăuga mai multe informații și detalii planului tău."}
                    </p>
                    
                    <div className="flex flex-col gap-3">
@@ -1310,7 +1199,7 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
                         >
                           <span className="flex items-center gap-3">
                             <span className="text-emerald-500 group-hover:scale-110 transition-transform">🪄</span>
-                            <span>{locale === "en" ? "Rewrite tone" : "Rescrie tonul"}</span>
+                            <span>{locale === "en" ? "Rewrite tone" : locale === "es" ? "Reescribir tono" : "Rescrie tonul"}</span>
                           </span>
                           <span className="flex items-center gap-2">
                             {(!user || (!isAdmin && !isPlanPaid && (typeof window !== "undefined" ? parseInt(localStorage.getItem("studioToneCount") || "0", 10) >= 2 : false))) ? (
@@ -1331,7 +1220,7 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
                               disabled={isEditingAi}
                               className="w-full text-xs text-left px-4 py-2.5 rounded-lg hover:bg-zinc-900 text-zinc-400 hover:text-white transition-all font-semibold"
                             >
-                              {locale === "en" ? "💼 Professional & Corporate" : "💼 Profesional & Corporativ"}
+                              {locale === "en" ? "💼 Professional & Corporate" : locale === "es" ? "💼 Profesional y Corporativo" : "💼 Profesional & Corporativ"}
                             </button>
                             <button 
                               type="button"
@@ -1339,7 +1228,7 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
                               disabled={isEditingAi}
                               className="w-full text-xs text-left px-4 py-2.5 rounded-lg hover:bg-zinc-900 text-zinc-400 hover:text-white transition-all font-semibold"
                             >
-                              {locale === "en" ? "🎨 Enthusiastic & Creative" : "🎨 Entuziast & Creativ"}
+                              {locale === "en" ? "🎨 Enthusiastic & Creative" : locale === "es" ? "🎨 Entusiasta y Creativo" : "🎨 Entuziast & Creativ"}
                             </button>
                             <button 
                               type="button"
@@ -1347,7 +1236,7 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
                               disabled={isEditingAi}
                               className="w-full text-xs text-left px-4 py-2.5 rounded-lg hover:bg-zinc-900 text-zinc-400 hover:text-white transition-all font-semibold"
                             >
-                              {locale === "en" ? "📈 Persuasive & Sales" : "📈 Persuasiv & Vânzări"}
+                              {locale === "en" ? "📈 Persuasive & Sales" : locale === "es" ? "📈 Persuasivo y Comercial" : "📈 Persuasiv & Vânzări"}
                             </button>
                             <button 
                               type="button"
@@ -1355,7 +1244,7 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
                               disabled={isEditingAi}
                               className="w-full text-xs text-left px-4 py-2.5 rounded-lg hover:bg-zinc-900 text-zinc-400 hover:text-white transition-all font-semibold"
                             >
-                              {locale === "en" ? "🤝 Friendly & Casual" : "🤝 Prietenos & Casual"}
+                              {locale === "en" ? "🤝 Friendly & Casual" : locale === "es" ? "🤝 Amigable y Casual" : "🤝 Prietenos & Casual"}
                             </button>
                           </div>
                         )}
@@ -1373,10 +1262,12 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
                           } else {
                             setActiveAiPrompt(activeAiPrompt?.action === "eu_funds_optimization" ? null : {
                               action: "eu_funds_optimization", 
-                              title: locale === "en" ? "EU Grants Optimization" : "Optimizare Fonduri Europene", 
+                              title: locale === "en" ? "EU Grants Optimization" : locale === "es" ? "Optimización de Subvenciones de la UE" : "Optimizare Fonduri Europene", 
                               isConfirm: true, 
                               desc: locale === "en" 
                                 ? "The plan will be adapted for EU grants:\n1. Key concepts: digitization, sustainability.\n2. Renaming purchases to be eligible.\n\nAre you ready?" 
+                                : locale === "es"
+                                ? "El plan se adaptará para subvenciones de la UE:\n1. Conceptos clave: digitalización, sostenibilidad.\n2. Renombramiento de compras para que sean elegibles.\n\n¿Estás listo?"
                                 : "Se va adapta planul pentru fonduri europene:\n1. Concepte cheie: digitalizare, sustenabilitate.\n2. Redenumirea achizițiilor pentru a fi eligibile.\n\nEști gata?"
                             });
                           }
@@ -1392,8 +1283,8 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
                           <span className="text-amber-500 group-hover:scale-110 transition-transform">🇪🇺</span>
                           <span>
                             {isEditingAi 
-                              ? (locale === "en" ? "Processing..." : "Se procesează...") 
-                              : (locale === "en" ? "Optimized for EU Grants" : "Optimizat pentru Fonduri Europene")}
+                              ? (locale === "en" ? "Processing..." : locale === "es" ? "Procesando..." : "Se procesează...") 
+                              : (locale === "en" ? "Optimized for EU Grants" : locale === "es" ? "Optimizado para Subvenciones de la UE" : "Optimizat pentru Fonduri Europene")}
                           </span>
                         </span>
                         {!isStudioPaid && (
@@ -1417,10 +1308,12 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
                           }
                           setActiveAiPrompt(activeAiPrompt?.action === "optimize_budget" ? null : {
                             action: "optimize_budget", 
-                            title: locale === "en" ? "Optimize Budget" : "Optimizează Bugetul", 
-                            placeholder: locale === "en" ? "e.g. 10, 20, 30" : "ex: 10, 20, 30", 
+                            title: locale === "en" ? "Optimize Budget" : locale === "es" ? "Optimizar Presupuesto" : "Optimizează Bugetul", 
+                            placeholder: locale === "en" ? "e.g. 10, 20, 30" : locale === "es" ? "ej: 10, 20, 30" : "ex: 10, 20, 30", 
                             desc: locale === "en" 
                               ? "By what percentage do you want to reduce the budgeted costs?" 
+                              : locale === "es" 
+                              ? "¿Qué porcentaje deseas reducir de los costos presupuestados?" 
                               : "Cu ce procent dorești să reduci costurile bugetate?"
                           });
                         }} 
@@ -1434,10 +1327,14 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
                         <span className="flex items-center gap-3">
                           <span className="text-emerald-500 group-hover:scale-110 transition-transform">📉</span>
                           <span>
-                            {isEditingAi ? (locale === "en" ? "Processing..." : "Se procesează...") : (
+                            {isEditingAi ? (locale === "en" ? "Processing..." : locale === "es" ? "Procesando..." : "Se procesează...") : (
                               locale === "en" ? (
                                 <>
                                   Optimize Budget <span className="whitespace-nowrap">(Custom)</span>
+                                </>
+                              ) : locale === "es" ? (
+                                <>
+                                  Optimizar Presupuesto <span className="whitespace-nowrap">(Personalizado)</span>
                                 </>
                               ) : (
                                 <>
@@ -1468,10 +1365,12 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
                           }
                           setActiveAiPrompt(activeAiPrompt?.action === "add_sections" ? null : {
                             action: "add_sections", 
-                            title: locale === "en" ? "Add New Sections" : "Adaugă Secțiuni Noi", 
-                            placeholder: locale === "en" ? "e.g. Marketing Plan, Risk Analysis, Competition" : "ex: Plan de Marketing, Analiza Riscurilor, Concurență", 
+                            title: locale === "en" ? "Add New Sections" : locale === "es" ? "Añadir Nuevas Secciones" : "Adaugă Secțiuni Noi", 
+                            placeholder: locale === "en" ? "e.g. Marketing Plan, Risk Analysis, Competition" : locale === "es" ? "ej: Plan de Marketing, Análisis de Riesgos, Competencia" : "ex: Plan de Marketing, Analiza Riscurilor, Concurență", 
                             desc: locale === "en" 
                               ? "What additional information do you want to add?" 
+                              : locale === "es" 
+                              ? "¿Qué información adicional deseas añadir?" 
                               : "Ce informații suplimentare dorești să adaugi?"
                           });
                         }} 
@@ -1486,8 +1385,8 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
                           <span className="text-emerald-500 group-hover:scale-110 transition-transform">💡</span> 
                           <span>
                             {isEditingAi 
-                              ? (locale === "en" ? "Processing..." : "Se procesează...") 
-                              : (locale === "en" ? "Add new sections" : "Adaugă secțiuni noi")}
+                              ? (locale === "en" ? "Processing..." : locale === "es" ? "Procesando..." : "Se procesează...") 
+                              : (locale === "en" ? "Add new sections" : locale === "es" ? "Añadir nuevas secciones" : "Adaugă secțiuni noi")}
                           </span>
                         </span>
                         {(!user || !isPlanPaid) && !isAdmin && (
@@ -1502,9 +1401,9 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
                           setShowAuthModal(true);
                           return;
                         }
-                        const isAlreadyAdded = result?.sectiuni_aditionale?.findIndex((sec: any) => sec.titlu.includes("Plan Profesionist") || sec.titlu.includes("Investitori") || sec.titlu.includes("Professional") || sec.titlu.includes("Investor"));
+                        const isAlreadyAdded = result?.sectiuni_aditionale?.findIndex((sec: any) => sec.titlu.includes("Plan Profesionist") || sec.titlu.includes("Investitori") || sec.titlu.includes("Professional") || sec.titlu.includes("Investor") || sec.titlu.includes("Profesional") || sec.titlu.includes("Inversor"));
                         if (isAlreadyAdded !== undefined && isAlreadyAdded >= 0) {
-                          alert(locale === "en" ? "This chapter has already been added! We are redirecting you to it." : "Acest capitol a fost deja adăugat! Te redirecționăm către el.");
+                          alert(locale === "en" ? "This chapter has already been added! We are redirecting you to it." : locale === "es" ? "¡Este capítulo ya ha sido añadido! Te estamos redirigiendo a él." : "Acest capitol a fost deja adăugat! Te redirecționăm către el.");
                           document.getElementById(`custom-section-${isAlreadyAdded}`)?.scrollIntoView({ behavior: "smooth", block: "center" });
                           return;
                         }
@@ -1514,16 +1413,18 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
                         }
                         setActiveAiPrompt(activeAiPrompt?.action === "investor_ready" ? null : {
                           action: "investor_ready", 
-                          title: locale === "en" ? "Professional Plan" : "Plan Profesionist", 
+                          title: locale === "en" ? "Professional Plan" : locale === "es" ? "Plan Profesional" : "Plan Profesionist", 
                           isConfirm: true, 
                           desc: locale === "en" 
                             ? "The following will be generated:\n1. Executive Summary\n2. Differentiation Matrix\n3. 'Go-To-Market' Strategy\n4. Risk Analysis\n5. Financial Scenarios" 
+                            : locale === "es"
+                            ? "Se generará lo siguiente:\n1. Resumen Ejecutivo\n2. Matriz de Diferenciación\n3. Estrategia 'Go-To-Market'\n4. Análisis de Riesgos\n5. Escenarios Financieros"
                             : "Se va genera:\n1. Rezumat Executiv\n2. Matrice Diferențiere\n3. Strategie 'Go-To-Market'\n4. Analiză Risc\n5. Scenarii Financiare"
                         });
                       }} disabled={isEditingAi} className="w-full bg-zinc-900/80 hover:bg-zinc-800 border border-emerald-500/30 rounded-xl px-5 py-4 font-bold text-sm text-emerald-100 transition-all text-left flex items-center justify-between group disabled:opacity-50 disabled:cursor-not-allowed shadow-[0_0_15px_rgba(16,185,129,0.1)]">
                         <span className="flex items-center gap-3">
                           <span className="text-emerald-400 group-hover:scale-110 transition-transform text-lg">🏦</span> 
-                          <span>{isEditingAi ? (locale === "en" ? "Processing..." : "Se procesează...") : (locale === "en" ? "Professional Plan (Investors/Banks)" : "Plan Profesionist (Investitori/Bănci)")}</span>
+                          <span>{isEditingAi ? (locale === "en" ? "Processing..." : locale === "es" ? "Procesando..." : "Se procesează...") : (locale === "en" ? "Professional Plan (Investors/Banks)" : locale === "es" ? "Plan Profesional (Inversores/Bancos)" : "Plan Profesionist (Investitori/Bănci)")}</span>
                         </span>
                         {!isStudioPaid && (
                           <span className="text-xs font-black bg-amber-500/20 text-amber-400 px-2.5 py-1 rounded-md border border-amber-500/20 group-hover:bg-amber-500/30 transition-colors flex items-center gap-1.5 shadow-[0_0_10px_rgba(245,158,11,0.2)]">
@@ -1565,15 +1466,15 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
                             className="flex-1 bg-emerald-600 hover:bg-emerald-500 disabled:bg-zinc-800 disabled:text-zinc-500 text-white font-bold text-xs py-2 rounded-lg transition-colors"
                           >
                             {activeAiPrompt.isConfirm 
-                              ? (locale === "en" ? "Confirm" : "Confirmă") 
-                              : (locale === "en" ? "Apply" : "Aplică")}
+                              ? (locale === "en" ? "Confirm" : locale === "es" ? "Confirmar" : "Confirmă") 
+                              : (locale === "en" ? "Apply" : locale === "es" ? "Aplicar" : "Aplică")}
                           </button>
                           <button 
                             type="button"
                             onClick={() => { setActiveAiPrompt(null); setAiPromptInput(""); }}
                             className="flex-1 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 font-bold text-xs py-2 rounded-lg transition-colors"
                           >
-                            {locale === "en" ? "Cancel" : "Anulează"}
+                            {locale === "en" ? "Cancel" : locale === "es" ? "Cancelar" : "Anulează"}
                           </button>
                         </div>
                       </div>
@@ -1616,7 +1517,7 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
         <div className="w-full max-w-md p-8 md:p-12 bg-zinc-900/80 backdrop-blur-md rounded-3xl border border-zinc-800 shadow-2xl relative z-10 flex flex-col items-center my-12 shrink-0">
           <h1 className="text-4xl font-black text-transparent bg-gradient-to-r from-zinc-400 via-emerald-400 to-zinc-400 bg-clip-text text-center mb-4 tracking-tighter">IdeeaTa.ai</h1>
           <p className="text-zinc-400 text-center mb-10 font-medium">
-            {locale === "en" ? "Authentication is required to continue." : "Platforma necesită autentificare pentru a continua."}
+            {locale === "en" ? "Authentication is required to continue." : locale === "es" ? "Se requiere autenticación para continuar." : "Platforma necesită autentificare pentru a continua."}
           </p>
           
           <form onSubmit={handleEmailAuth} className="w-full mb-6 space-y-4">
@@ -1625,7 +1526,7 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
                 id="email"
                 name="email"
                 type="email" 
-                placeholder={locale === "en" ? "Email Address" : "Adresa de email"}
+                placeholder={locale === "en" ? "Email Address" : locale === "es" ? "Dirección de correo electrónico" : "Adresa de email"}
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
@@ -1639,7 +1540,7 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
                   id="password"
                   name="password"
                   type="password" 
-                  placeholder={locale === "en" ? "Password" : "Parola"}
+                  placeholder={locale === "en" ? "Password" : locale === "es" ? "Contraseña" : "Parola"}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
@@ -1655,18 +1556,18 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
               className="w-full py-4 px-6 bg-emerald-500 hover:bg-emerald-600 text-white font-bold rounded-xl transition-all shadow-lg disabled:opacity-50"
             >
               {isEmailLoading 
-                ? (locale === "en" ? "Processing..." : "Se procesează...") 
+                ? (locale === "en" ? "Processing..." : locale === "es" ? "Procesando..." : "Se procesează...") 
                 : isForgotMode 
-                  ? (locale === "en" ? "Send reset link" : "Trimite link de resetare") 
+                  ? (locale === "en" ? "Send reset link" : locale === "es" ? "Enviar enlace de restablecimiento" : "Trimite link de resetare") 
                   : (isLoginMode 
-                      ? (locale === "en" ? "Log in" : "Intră în cont") 
-                      : (locale === "en" ? "Create new account" : "Creează cont nou"))}
+                      ? (locale === "en" ? "Log in" : locale === "es" ? "Iniciar sesión" : "Intră în cont") 
+                      : (locale === "en" ? "Create new account" : locale === "es" ? "Crear cuenta nueva" : "Creează cont nou"))}
             </button>
 
             {resetEmailSent && (
               <div className="w-full p-4 bg-emerald-500/10 border border-emerald-500/20 rounded-xl">
                 <p className="text-emerald-400 text-sm font-medium text-center">
-                  {locale === "en" ? "✅ Reset link has been sent! Check your email." : "✅ Link-ul de resetare a fost trimis! Verifică-ți emailul."}
+                  {locale === "en" ? "✅ Reset link has been sent! Check your email." : locale === "es" ? "✅ ¡El enlace de restablecimiento ha sido enviado! Revisa tu correo." : "✅ Link-ul de resetare a fost trimis! Verifică-ți emailul."}
                 </p>
               </div>
             )}
@@ -1678,7 +1579,7 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
                   onClick={() => { setIsForgotMode(true); setAuthError(null); setResetEmailSent(false); }}
                   className="text-zinc-500 hover:text-zinc-300 transition-colors"
                 >
-                  {locale === "en" ? "Forgot password?" : "Ai uitat parola?"}
+                  {locale === "en" ? "Forgot password?" : locale === "es" ? "¿Olvidaste tu contraseña?" : "Ai uitat parola?"}
                 </button>
               )}
               {isForgotMode && (
@@ -1687,7 +1588,7 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
                   onClick={() => { setIsForgotMode(false); setAuthError(null); setResetEmailSent(false); }}
                   className="text-zinc-500 hover:text-zinc-300 transition-colors"
                 >
-                  {locale === "en" ? "← Back to login" : "← Înapoi la login"}
+                  {locale === "en" ? "← Back to login" : locale === "es" ? "← Volver al inicio de sesión" : "← Înapoi la login"}
                 </button>
               )}
               {!isForgotMode && (
@@ -1702,8 +1603,8 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
                   className="text-emerald-400 font-medium hover:text-emerald-300 transition-colors ml-auto"
                 >
                   {isLoginMode 
-                    ? (locale === "en" ? "Don't have an account? Sign up" : "Nu ai cont? Creează unul nou") 
-                    : (locale === "en" ? "Already have an account? Log in" : "Ai deja cont? Intră aici")}
+                    ? (locale === "en" ? "Don't have an account? Sign up" : locale === "es" ? "¿No tienes una cuenta? Regístrate" : "Nu ai cont? Creează unul nou") 
+                    : (locale === "en" ? "Already have an account? Log in" : locale === "es" ? "¿Ya tienes una cuenta? Inicia sesión" : "Ai deja cont? Intră aici")}
                 </button>
               )}
             </div>
@@ -1723,7 +1624,7 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
             <svg viewBox="0 0 24 24" className="w-5 h-5" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
               <path d="M3 3h7v7H3V3zm2 2v3h3V5H5zm9-2h7v7h-7V3zm2 2v3h3V5h-3zM3 14h7v7H3v-7zm2 2v3h3v-3H5zm11 0h2v2h-2v-2zm2 2h2v2h-2v-2zm-2 2h2v2h-2v-2zm-4-4h2v2h-2v-2zm2 2h2v2h-2v-2zm2-2h2v2h-2v-2z"/>
             </svg>
-            {locale === "en" ? "Open on phone (QR)" : "Deschide pe telefon (QR)"}
+            {locale === "en" ? "Open on phone (QR)" : locale === "es" ? "Abrir en el teléfono (QR)" : "Deschide pe telefon (QR)"}
           </button>
 
           {/* Back to Document Button */}
@@ -1732,7 +1633,7 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
               onClick={() => setIsSharedView(true)}
               className="mt-6 text-zinc-400 hover:text-white transition-colors text-sm flex items-center gap-2 font-medium"
             >
-              <span>&larr;</span> {locale === "en" ? "Back to document view" : "Înapoi la vizualizarea documentului"}
+              <span>&larr;</span> {locale === "en" ? "Back to document view" : locale === "es" ? "Volver a la vista del documento" : "Înapoi la vizualizarea documentului"}
             </button>
           )}
 
@@ -1746,10 +1647,12 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
                 className="bg-zinc-900 border border-zinc-700 rounded-2xl p-8 flex flex-col items-center gap-5 max-w-sm w-full shadow-2xl"
                 onClick={(e) => e.stopPropagation()}
               >
-                <h3 className="text-white font-bold text-lg">{locale === "en" ? "Open on phone" : "Deschide pe telefon"}</h3>
+                <h3 className="text-white font-bold text-lg">{locale === "en" ? "Open on phone" : locale === "es" ? "Abrir en el teléfono" : "Deschide pe telefon"}</h3>
                 <p className="text-zinc-400 text-sm text-center">
                   {locale === "en" 
                     ? "Scan the QR code with your phone's camera to access the platform directly on mobile." 
+                    : locale === "es"
+                    ? "Escanea el código QR con la cámara de tu teléfono para acceder a la plataforma directamente en el móvil."
                     : "Scanează codul QR cu camera telefonului tău pentru a accesa platforma direct pe mobil."}
                 </p>
                 <div className="bg-white p-4 rounded-xl">
@@ -1765,7 +1668,7 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
                   onClick={() => setShowQrModal(false)}
                   className="text-zinc-500 hover:text-white text-sm transition-colors"
                 >
-                  {locale === "en" ? "Close" : "Închide"}
+                  {locale === "en" ? "Close" : locale === "es" ? "Cerrar" : "Închide"}
                 </button>
               </div>
             </div>
@@ -1776,11 +1679,13 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
         <div className="w-full max-w-4xl mt-12 mb-20 px-8 py-16 bg-zinc-900/40 border border-zinc-800/80 rounded-3xl relative z-10 flex flex-col gap-10 text-zinc-300 backdrop-blur-sm">
           <div className="text-center">
             <h2 className="text-3xl font-black text-white mb-4">
-              {locale === "en" ? "Intelligent Business Plan Generation" : "Generare Inteligentă de Planuri de Afaceri"}
+              {locale === "en" ? "Intelligent Business Plan Generation" : locale === "es" ? "Generación Inteligente de Planes de Negocio" : "Generare Inteligentă de Planuri de Afaceri"}
             </h2>
             <p className="text-zinc-400 text-lg max-w-2xl mx-auto">
               {locale === "en" 
                 ? "IdeeaTa.ai offers entrepreneurs a complete suite of tools for writing, structuring, and editing business plans, tailored for funding, bank loans, or grants." 
+                : locale === "es"
+                ? "IdeeaTa.ai ofrece a los emprendedores una suite completa de herramientas para redactar, estructurar y editar planes de negocio, adaptados para financiación, préstamos bancarios o subvenciones."
                 : "IdeeaTa.ai oferă antreprenorilor români o suită completă de instrumente pentru scrierea, structurarea și editarea planurilor de afaceri, adaptate pentru finanțări, credite bancare sau fonduri europene."}
             </p>
           </div>
@@ -1788,44 +1693,52 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mt-6">
             <div className="bg-zinc-950/60 p-6 rounded-2xl border border-zinc-800/50">
               <h3 className="text-xl font-bold text-emerald-400 mb-3">
-                {locale === "en" ? "📊 SWOT & Financial Analysis" : "📊 Analiză SWOT & Financiară"}
+                {locale === "en" ? "📊 SWOT & Financial Analysis" : locale === "es" ? "📊 Análisis FODA y Financiero" : "📊 Analiză SWOT & Financiară"}
               </h3>
               <p className="text-sm text-zinc-400 leading-relaxed">
                 {locale === "en" 
                   ? "Instantly get the complete SWOT matrix. Includes detailed investment budgets, 12-month financial estimates, operating cost calculations, and profit margin forecasting." 
+                  : locale === "es"
+                  ? "Obtén instantáneamente la matriz FODA completa. Incluye presupuestos detallados de inversión, estimaciones financieras de 12 meses, cálculo de costos operativos y previsión de márgenes de beneficio."
                   : "Obține instant matricea SWOT completă pentru piața din România. Include bugete de investiții detaliate, estimări financiare pe 12 luni, calcularea costurilor operaționale și previzionarea marjei de profit."}
               </p>
             </div>
             
             <div className="bg-zinc-950/60 p-6 rounded-2xl border border-zinc-800/50">
               <h3 className="text-xl font-bold text-emerald-400 mb-3">
-                {locale === "en" ? "🇪🇺 Optimization for Grants" : "🇪🇺 Optimizare pentru Fonduri Europene"}
+                {locale === "en" ? "🇪🇺 Optimization for Grants" : locale === "es" ? "🇪🇺 Optimización para Subvenciones" : "🇪🇺 Optimizare pentru Fonduri Europene"}
               </h3>
               <p className="text-sm text-zinc-400 leading-relaxed">
                 {locale === "en" 
                   ? "Our assistant analyzes CAEN eligibility and digitization criteria to adapt the business plan to the requirements of grant funding guidelines (sustainability, circular economy, and digital transformation)." 
+                  : locale === "es"
+                  ? "Nuestro asistente analiza la elegibilidad de CAEN y los criterios de digitalización para adaptar el plan de negocios a los requisitos de las directrices de financiación de subvenciones (sostenibilidad, economía circular y transformación digital)."
                   : "Asistentul nostru analizează criteriile de eligibilitate CAEN și digitalizare pentru a adapta planul de afaceri cerințelor ghidurilor de finanțare nerambursabilă (sustenabilitate, economie circulară și transformare digitală)."}
               </p>
             </div>
 
             <div className="bg-zinc-950/60 p-6 rounded-2xl border border-zinc-800/50">
               <h3 className="text-xl font-bold text-emerald-400 mb-3">
-                {locale === "en" ? "🏛️ Standard Project Structure" : "🏛️ Structură Standard de Proiect"}
+                {locale === "en" ? "🏛️ Standard Project Structure" : locale === "es" ? "🏛️ Estructura Estándar de Proyecto" : "🏛️ Structură Standard de Proiect"}
               </h3>
               <p className="text-sm text-zinc-400 leading-relaxed">
                 {locale === "en" 
                   ? "We generate complete sections from slogan, vision, mission, problem definition, proposed solutions, competitor analysis, go-to-market commercial strategies, to detailed human resources plan." 
+                  : locale === "es"
+                  ? "Generamos secciones completas desde slogan, visión, misión, definición de problemas, soluciones propuestas, análisis de competidores, estrategias comerciales go-to-market, hasta el plan detallado de recursos humanos."
                   : "Generăm secțiuni complete de la Slogan, viziune, misiune, definirea problemelor, soluții propuse, analiza competiției, strategii comerciale go-to-market până la planul detaliat de resurse umane."}
               </p>
             </div>
 
             <div className="bg-zinc-950/60 p-6 rounded-2xl border border-zinc-800/50">
               <h3 className="text-xl font-bold text-emerald-400 mb-3">
-                {locale === "en" ? "✏️ Advanced Editing Studio" : "✏️ Studio de Editare Avansat"}
+                {locale === "en" ? "✏️ Advanced Editing Studio" : locale === "es" ? "✏️ Estudio de Edición Avanzado" : "✏️ Studio de Editare Avansat"}
               </h3>
               <p className="text-sm text-zinc-400 leading-relaxed">
                 {locale === "en" 
                   ? "Modify business plans manually or assisted directly in the browser. Use assisted writing for expansion, professional restructuring, or tone adaptation in seconds." 
+                  : locale === "es"
+                  ? "Modifica los planes de negocio manualmente o asistido directamente en el navegador. Utiliza la escritura asistida para la expansión, la reestructuración profesional o la adaptación del tono en segundos."
                   : "Modifică planurile de afaceri manual sau asistat direct în browser. Folosește scrierea asistată pentru extinderea, restructurarea profesională sau adaptarea tonului în câteva secunde."}
               </p>
             </div>

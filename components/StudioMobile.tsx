@@ -34,7 +34,9 @@ const formatNumberedText = (text: string | undefined) => {
   return formatted;
 };
 
-export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" }) {
+export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" | "es" }) {
+  const isEn = locale === "en";
+  const isEs = locale === "es";
   const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
   const [result, setResult] = useState<any>(null);
@@ -176,7 +178,7 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" }
     return (
       <div className="min-h-screen bg-[#09090b] text-white flex flex-col items-center justify-center p-6 text-center">
         <div className="w-10 h-10 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin mb-4"></div>
-        <p className="text-zinc-400 text-sm">{locale === "en" ? "Loading your Studio workspace..." : "Se încarcă spațiul tău de lucru Studio..."}</p>
+        <p className="text-zinc-400 text-sm">{locale === "en" ? "Loading your Studio workspace..." : locale === "es" ? "Cargando tu espacio de trabajo de Studio..." : "Se încarcă spațiul tău de lucru Studio..."}</p>
       </div>
     );
   }
@@ -188,14 +190,14 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" }
       <header className="h-16 px-4 flex items-center justify-between border-b border-zinc-800/80 sticky top-0 bg-[#09090b]/80 backdrop-blur-md z-30">
         <Link href="/dashboard" className="text-xs font-bold text-zinc-400 hover:text-white flex items-center gap-1">
           <span>←</span>
-          <span>{locale === "en" ? "Dashboard" : "Dashboard"}</span>
+          <span>{locale === "en" ? "Dashboard" : locale === "es" ? "Panel" : "Dashboard"}</span>
         </Link>
-        <span className="text-sm font-black">{locale === "en" ? "Mobile Studio" : "Studio Mobil"}</span>
+        <span className="text-sm font-black">{locale === "en" ? "Mobile Studio" : locale === "es" ? "Studio Móvil" : "Studio Mobil"}</span>
         <div className="flex gap-2">
           <button
             onClick={handleShare}
             className="bg-zinc-800 text-white font-bold p-2 rounded-lg text-xs"
-            title={locale === "en" ? "Share" : "Distribui"}
+            title={locale === "en" ? "Share" : locale === "es" ? "Compartir" : "Distribui"}
           >
             🔗
           </button>
@@ -203,7 +205,7 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" }
             onClick={handleDownload}
             className="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-3 py-2 rounded-lg text-xs flex items-center gap-1"
           >
-            <span>{locale === "en" ? "Export" : "Export"}</span>
+            <span>{locale === "en" ? "Export" : locale === "es" ? "Exportar" : "Export"}</span>
             <span>📥</span>
           </button>
         </div>
@@ -214,7 +216,7 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" }
         
         {showShareSuccess && (
           <div className="bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs text-center py-2 rounded-lg animate-pulse font-bold">
-            {locale === "en" ? "Link copied to clipboard!" : "Link copiat în clipboard!"}
+            {locale === "en" ? "Link copied to clipboard!" : locale === "es" ? "¡Enlace copiado al portapapeles!" : "Link copiat în clipboard!"}
           </div>
         )}
 
@@ -222,9 +224,9 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" }
         <div className="bg-zinc-900/60 border border-zinc-800/80 rounded-xl p-4 flex justify-between items-center backdrop-blur-md">
           <div className="min-w-0">
             <span className="text-[9px] bg-amber-500/10 border border-amber-500/20 text-amber-400 px-2 py-0.5 rounded-full font-bold uppercase block w-max mb-1">
-              {locale === "en" ? "Edit Mode" : "Mod Editare"}
+              {locale === "en" ? "Edit Mode" : locale === "es" ? "Modo de Edición" : "Mod Editare"}
             </span>
-            <h2 className="text-sm font-black text-white truncate">{result.nume || (locale === "en" ? "Business Plan" : "Plan de Afaceri")}</h2>
+            <h2 className="text-sm font-black text-white truncate">{result.nume || (locale === "en" ? "Business Plan" : locale === "es" ? "Plan de Negocios" : "Plan de Afaceri")}</h2>
           </div>
           <button
             onClick={() => setShowPricingModal(true)}
@@ -240,25 +242,25 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" }
             onClick={() => setActiveTab("overview")}
             className={`flex-1 text-center py-2.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap px-4 ${activeTab === "overview" ? "bg-zinc-800 text-white" : "text-zinc-400 hover:text-white"}`}
           >
-            {locale === "en" ? "📈 Overview" : "📈 Prezentare"}
+            {locale === "en" ? "📈 Overview" : locale === "es" ? "📈 Resumen" : "📈 Prezentare"}
           </button>
           <button
             onClick={() => setActiveTab("budget")}
             className={`flex-1 text-center py-2.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap px-4 ${activeTab === "budget" ? "bg-zinc-800 text-white" : "text-zinc-400 hover:text-white"}`}
           >
-            {locale === "en" ? "💰 Finance" : "💰 Finanțe"}
+            {locale === "en" ? "💰 Finance" : locale === "es" ? "💰 Finanzas" : "💰 Finanțe"}
           </button>
           <button
             onClick={() => setActiveTab("marketing")}
             className={`flex-1 text-center py-2.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap px-4 ${activeTab === "marketing" ? "bg-zinc-800 text-white" : "text-zinc-400 hover:text-white"}`}
           >
-            {locale === "en" ? "📣 Marketing" : "📣 Promovare"}
+            {locale === "en" ? "📣 Marketing" : locale === "es" ? "📣 Marketing" : "📣 Promovare"}
           </button>
           <button
             onClick={() => setActiveTab("swot")}
             className={`flex-1 text-center py-2.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap px-4 ${activeTab === "swot" ? "bg-zinc-800 text-white" : "text-zinc-400 hover:text-white"}`}
           >
-            {locale === "en" ? "📋 SWOT" : "📋 SWOT"}
+            {locale === "en" ? "📋 SWOT" : locale === "es" ? "📋 FODA" : "📋 SWOT"}
           </button>
         </div>
 
@@ -269,12 +271,12 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" }
             <div className="space-y-5">
               <div className="space-y-1 relative group">
                 <div className="flex justify-between items-center">
-                  <h3 className="text-emerald-400 font-bold text-sm">{locale === "en" ? "Business Description" : "Descriere Afacere"}</h3>
+                  <h3 className="text-emerald-400 font-bold text-sm">{locale === "en" ? "Business Description" : locale === "es" ? "Descripción del Negocio" : "Descriere Afacere"}</h3>
                   <button
-                    onClick={() => setEditingField({ key: "descriere", title: locale === "en" ? "Business Description" : "Descriere Afacere", value: result.descriere || "" })}
+                    onClick={() => setEditingField({ key: "descriere", title: locale === "en" ? "Business Description" : locale === "es" ? "Descripción del Negocio" : "Descriere Afacere", value: result.descriere || "" })}
                     className="text-[11px] text-zinc-500 hover:text-white"
                   >
-                    {locale === "en" ? "✏️ Edit" : "✏️ Editează"}
+                    {locale === "en" ? "✏️ Edit" : locale === "es" ? "✏️ Editar" : "✏️ Editează"}
                   </button>
                 </div>
                 <p className="text-zinc-300 text-xs leading-relaxed">{formatNumberedText(result.descriere)}</p>
@@ -284,12 +286,12 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" }
 
               <div className="space-y-1 relative group">
                 <div className="flex justify-between items-center">
-                  <h3 className="text-emerald-400 font-bold text-sm">{locale === "en" ? "Market Opportunity" : "Oportunitatea Pieței"}</h3>
+                  <h3 className="text-emerald-400 font-bold text-sm">{locale === "en" ? "Market Opportunity" : locale === "es" ? "Oportunidad de Mercado" : "Oportunitatea Pieței"}</h3>
                   <button
-                    onClick={() => setEditingField({ key: "oportunitate_piata", title: locale === "en" ? "Market Opportunity" : "Oportunitatea Pieței", value: result.oportunitate_piata || "" })}
+                    onClick={() => setEditingField({ key: "oportunitate_piata", title: locale === "en" ? "Market Opportunity" : locale === "es" ? "Oportunidad de Mercado" : "Oportunitatea Pieței", value: result.oportunitate_piata || "" })}
                     className="text-[11px] text-zinc-500 hover:text-white"
                   >
-                    {locale === "en" ? "✏️ Edit" : "✏️ Editează"}
+                    {locale === "en" ? "✏️ Edit" : locale === "es" ? "✏️ Editar" : "✏️ Editează"}
                   </button>
                 </div>
                 <p className="text-zinc-300 text-xs leading-relaxed">{formatNumberedText(result.oportunitate_piata)}</p>
@@ -299,12 +301,12 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" }
 
               <div className="space-y-1 relative group">
                 <div className="flex justify-between items-center">
-                  <h3 className="text-emerald-400 font-bold text-sm">{locale === "en" ? "Target Audience" : "Publicul Țintă"}</h3>
+                  <h3 className="text-emerald-400 font-bold text-sm">{locale === "en" ? "Target Audience" : locale === "es" ? "Público Objetivo" : "Publicul Țintă"}</h3>
                   <button
-                    onClick={() => setEditingField({ key: "public_tinta", title: locale === "en" ? "Target Audience" : "Publicul Țintă", value: result.public_tinta || "" })}
+                    onClick={() => setEditingField({ key: "public_tinta", title: locale === "en" ? "Target Audience" : locale === "es" ? "Público Objetivo" : "Publicul Țintă", value: result.public_tinta || "" })}
                     className="text-[11px] text-zinc-500 hover:text-white"
                   >
-                    {locale === "en" ? "✏️ Edit" : "✏️ Editează"}
+                    {locale === "en" ? "✏️ Edit" : locale === "es" ? "✏️ Editar" : "✏️ Editează"}
                   </button>
                 </div>
                 <p className="text-zinc-300 text-xs leading-relaxed">{formatNumberedText(result.public_tinta)}</p>
@@ -316,19 +318,19 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" }
             <div className="space-y-6">
               <div className="space-y-3">
                 <div className="flex justify-between items-center">
-                  <h3 className="text-emerald-400 font-bold text-sm">{locale === "en" ? "Initial Investment Budget" : "Buget Inițial de Investiții"}</h3>
+                  <h3 className="text-emerald-400 font-bold text-sm">{locale === "en" ? "Initial Investment Budget" : locale === "es" ? "Presupuesto Inicial de Inversión" : "Buget Inițial de Investiții"}</h3>
                   <button
                     onClick={() => setShowPricingModal(true)}
                     className="text-[10px] bg-amber-500/15 border border-amber-500/30 text-amber-300 px-2 py-0.5 rounded font-black uppercase"
                   >
-                    {locale === "en" ? "🔒 Optimize Budget with AI" : "🔒 Optimizați Buget AI"}
+                    {locale === "en" ? "🔒 Optimize Budget with AI" : locale === "es" ? "🔒 Optimizar Presupuesto con IA" : "🔒 Optimizați Buget AI"}
                   </button>
                 </div>
                 <div className="space-y-2">
                   {result.plan_financiar?.buget_investitii?.map((item: any, idx: number) => (
                     <div key={idx} className="bg-zinc-950/40 border border-zinc-800/50 rounded-xl p-3 flex justify-between items-center text-xs">
                       <span className="font-semibold text-zinc-300">{item.categorie}</span>
-                      <span className="font-black text-emerald-400">{item.suma_lei?.toLocaleString()} LEI</span>
+                      <span className="font-black text-emerald-400">{item.suma_lei?.toLocaleString()} {locale === "ro" ? "LEI" : "EUR"}</span>
                     </div>
                   ))}
                 </div>
@@ -336,9 +338,9 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" }
 
               {/* Chart Container */}
               <div className="bg-zinc-950/30 border border-zinc-800/60 rounded-xl p-4 flex flex-col items-center justify-center">
-                <h4 className="text-[10px] font-bold text-zinc-400 mb-4 uppercase">{locale === "en" ? "Funds Distribution" : "Distribuția Fondurilor"}</h4>
+                <h4 className="text-[10px] font-bold text-zinc-400 mb-4 uppercase">{locale === "en" ? "Funds Distribution" : locale === "es" ? "Distribución de Fondos" : "Distribuția Fondurilor"}</h4>
                 <div className="w-full max-w-[200px] aspect-square flex items-center justify-center">
-                      <BudgetPieChart budget={result.plan_financiar?.buget_investitii || []} currency="LEI" />
+                      <BudgetPieChart budget={result.plan_financiar?.buget_investitii || []} currency={locale === "ro" ? "LEI" : "EUR"} />
                 </div>
               </div>
             </div>
@@ -347,7 +349,7 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" }
           {activeTab === "marketing" && (
             <div className="space-y-6">
               <div className="space-y-3">
-                <h3 className="text-emerald-400 font-bold text-sm">{locale === "en" ? "Promotion Channels" : "Canale de Promovare"}</h3>
+                <h3 className="text-emerald-400 font-bold text-sm">{locale === "en" ? "Promotion Channels" : locale === "es" ? "Canales de Promoción" : "Canale de Promovare"}</h3>
                 <div className="space-y-3">
                   {result.strategie_marketing?.canale_promovare?.map((canal: any, idx: number) => (
                     <div key={idx} className="bg-zinc-950/30 border border-zinc-800/60 rounded-xl p-4 space-y-1 relative">
@@ -361,8 +363,8 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" }
               {/* Tone Editor inside Studio */}
               <div className="bg-zinc-950/40 border border-zinc-800/60 rounded-xl p-4 space-y-3">
                 <div className="space-y-1">
-                  <h4 className="text-xs font-bold text-zinc-200">{locale === "en" ? "Customize Presentation Tone" : "Personalizează Tonul Prezentării"}</h4>
-                  <p className="text-[10px] text-zinc-400">{locale === "en" ? "Automatically change the tone of the saved plan using AI." : "Schimbă automat tonul planului salvat folosind AI-ul."}</p>
+                  <h4 className="text-xs font-bold text-zinc-200">{locale === "en" ? "Customize Presentation Tone" : locale === "es" ? "Personalizar el Tono de la Presentación" : "Personalizează Tonul Prezentării"}</h4>
+                  <p className="text-[10px] text-zinc-400">{locale === "en" ? "Automatically change the tone of the saved plan using AI." : locale === "es" ? "Cambia automáticamente el tono del plan guardado usando IA." : "Schimbă automat tonul planului salvat folosind AI-ul."}</p>
                 </div>
                 <ToneEditor
                   user={user}
@@ -379,16 +381,16 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" }
 
           {activeTab === "swot" && (
             <div className="space-y-5">
-              <h3 className="text-emerald-400 font-bold text-sm">{locale === "en" ? "SWOT Analysis" : "Analiza SWOT"}</h3>
+              <h3 className="text-emerald-400 font-bold text-sm">{locale === "en" ? "SWOT Analysis" : locale === "es" ? "Análisis FODA" : "Analiza SWOT"}</h3>
               <div className="grid grid-cols-1 gap-3">
                 <div className="bg-emerald-950/10 border border-emerald-800/20 rounded-xl p-4 relative">
                   <div className="flex justify-between items-center mb-1">
-                    <span className="text-[10px] text-emerald-400 font-black tracking-wider uppercase">{locale === "en" ? "💪 Strengths" : "💪 Puncte Forte"}</span>
+                    <span className="text-[10px] text-emerald-400 font-black tracking-wider uppercase">{locale === "en" ? "💪 Strengths" : locale === "es" ? "💪 Fortalezas" : "💪 Puncte Forte"}</span>
                     <button
-                      onClick={() => setEditingField({ key: "analiza_swot.puncte_forte", title: locale === "en" ? "Strengths" : "Puncte Forte (Strengths)", value: result.analiza_swot?.puncte_forte || "" })}
+                      onClick={() => setEditingField({ key: "analiza_swot.puncte_forte", title: locale === "en" ? "Strengths" : locale === "es" ? "Fortalezas" : "Puncte Forte (Strengths)", value: result.analiza_swot?.puncte_forte || "" })}
                       className="text-[10px] text-zinc-500 hover:text-white"
                     >
-                      {locale === "en" ? "✏️ Edit" : "✏️ Editează"}
+                      {locale === "en" ? "✏️ Edit" : locale === "es" ? "✏️ Editar" : "✏️ Editează"}
                     </button>
                   </div>
                   <p className="text-zinc-300 text-xs leading-relaxed">{formatNumberedText(result.analiza_swot?.puncte_forte)}</p>
@@ -396,12 +398,12 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" }
                 
                 <div className="bg-rose-950/10 border border-rose-800/20 rounded-xl p-4 relative">
                   <div className="flex justify-between items-center mb-1">
-                    <span className="text-[10px] text-rose-400 font-black tracking-wider uppercase">{locale === "en" ? "⚠️ Weaknesses" : "⚠️ Puncte Slabe"}</span>
+                    <span className="text-[10px] text-rose-400 font-black tracking-wider uppercase">{locale === "en" ? "⚠️ Weaknesses" : locale === "es" ? "⚠️ Debilidades" : "⚠️ Puncte Slabe"}</span>
                     <button
-                      onClick={() => setEditingField({ key: "analiza_swot.puncte_slabe", title: locale === "en" ? "Weaknesses" : "Puncte Slabe (Weaknesses)", value: result.analiza_swot?.puncte_slabe || "" })}
+                      onClick={() => setEditingField({ key: "analiza_swot.puncte_slabe", title: locale === "en" ? "Weaknesses" : locale === "es" ? "Debilidades" : "Puncte Slabe (Weaknesses)", value: result.analiza_swot?.puncte_slabe || "" })}
                       className="text-[10px] text-zinc-500 hover:text-white"
                     >
-                      {locale === "en" ? "✏️ Edit" : "✏️ Editează"}
+                      {locale === "en" ? "✏️ Edit" : locale === "es" ? "✏️ Editar" : "✏️ Editează"}
                     </button>
                   </div>
                   <p className="text-zinc-300 text-xs leading-relaxed">{formatNumberedText(result.analiza_swot?.puncte_slabe)}</p>
@@ -425,7 +427,7 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" }
           <div className="bg-zinc-900 border-t border-zinc-800 rounded-t-3xl p-6 max-h-[85vh] overflow-y-auto space-y-4 animate-in slide-in-from-bottom duration-300 flex flex-col">
             <div className="flex justify-between items-center border-b border-zinc-800/60 pb-3">
               <h4 className="text-sm font-black text-white">{editingField.title}</h4>
-              <button onClick={() => setEditingField(null)} className="text-xs text-zinc-500 font-bold p-1">{locale === "en" ? "Close" : "Închide"}</button>
+              <button onClick={() => setEditingField(null)} className="text-xs text-zinc-500 font-bold p-1">{locale === "en" ? "Close" : locale === "es" ? "Cerrar" : "Închide"}</button>
             </div>
             
             <textarea
@@ -439,13 +441,13 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" }
                 onClick={() => setEditingField(null)}
                 className="w-full bg-zinc-950 border border-zinc-800 text-zinc-400 font-bold py-3.5 rounded-xl text-xs transition-all active:scale-95 text-center"
               >
-                {locale === "en" ? "Cancel" : "Renunță"}
+                {locale === "en" ? "Cancel" : locale === "es" ? "Cancelar" : "Renunță"}
               </button>
               <button
                 onClick={handleManualSave}
                 className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3.5 rounded-xl text-xs transition-all active:scale-95 text-center"
               >
-                {locale === "en" ? "Save Changes" : "Salvează Modificările"}
+                {locale === "en" ? "Save Changes" : locale === "es" ? "Guardar Cambios" : "Salvează Modificările"}
               </button>
             </div>
           </div>
@@ -469,17 +471,19 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" }
               ✉️
             </div>
             <div className="space-y-2">
-              <h3 className="text-lg font-black">{locale === "en" ? "Verify your email address" : "Confirmă adresa de email"}</h3>
+              <h3 className="text-lg font-black">{locale === "en" ? "Verify your email address" : locale === "es" ? "Verifica tu dirección de correo electrónico" : "Confirmă adresa de email"}</h3>
               <p className="text-xs text-zinc-400 leading-relaxed">
                 {locale === "en" 
                   ? "We have sent a verification link to your email. Please activate your account to use the Studio." 
+                  : locale === "es"
+                  ? "Hemos enviado un enlace de verificación a tu correo. Por favor, activa tu cuenta para usar el Studio."
                   : "Ți-am trimis un link de verificare pe adresa ta. Te rugăm să activezi contul pentru a putea folosi Studio."}
               </p>
             </div>
 
             {verificationSent && (
               <div className="bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs py-2 px-3 rounded-lg font-semibold">
-                {locale === "en" ? "The activation link has been resent successfully!" : "Link-ul de activare a fost retrimis cu succes!"}
+                {locale === "en" ? "The activation link has been resent successfully!" : locale === "es" ? "¡El enlace de activación ha sido reenviado con éxito!" : "Link-ul de activare a fost retrimis cu succes!"}
               </div>
             )}
 
@@ -488,7 +492,7 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" }
                 onClick={handleResendVerification}
                 className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 rounded-xl text-xs transition-all active:scale-95"
               >
-                {locale === "en" ? "Resend Activation Email" : "Retrimite Email de Activare"}
+                {locale === "en" ? "Resend Activation Email" : locale === "es" ? "Reenviar Correo de Activación" : "Retrimite Email de Activare"}
               </button>
               <button
                 onClick={() => {
@@ -497,7 +501,7 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" }
                 }}
                 className="w-full bg-zinc-950 border border-zinc-800 text-zinc-400 font-bold py-3 rounded-xl text-xs transition-all active:scale-95"
               >
-                {locale === "en" ? "Go to Dashboard" : "Mergi la Dashboard"}
+                {locale === "en" ? "Go to Dashboard" : locale === "es" ? "Ir al Panel" : "Mergi la Dashboard"}
               </button>
             </div>
           </div>
@@ -510,7 +514,7 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" }
         onClose={() => setShowPricingModal(false)}
         onSuccess={() => {
           setShowPricingModal(false);
-          alert(locale === "en" ? "Payment simulated successfully! Premium access is now unlocked." : "Plată simulată cu succes! Accesul premium este acum deblocat.");
+          alert(locale === "en" ? "Payment simulated successfully! Premium access is now unlocked." : locale === "es" ? "¡Pago simulado con éxito! El acceso premium ya está desbloqueado." : "Plată simulată cu succes! Accesul premium este acum deblocat.");
         }}
         onRequireLogin={() => {
           setShowPricingModal(false);
@@ -518,8 +522,8 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" }
         }}
         userId={user?.uid || ""}
         userEmail={user?.email || ""}
-        currency="LEI"
-        planName={result?.nume || (locale === "en" ? "Business Plan" : "Plan de Afaceri")}
+        currency={locale === "es" || locale === "en" ? "EUR" : "LEI"}
+        planName={result?.nume || (locale === "en" ? "Business Plan" : locale === "es" ? "Plan de Negocios" : "Plan de Afaceri")}
         locale={locale}
       />
     </div>

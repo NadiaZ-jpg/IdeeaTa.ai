@@ -9,7 +9,7 @@ import { collection, query, orderBy, getDocs, doc, deleteDoc } from 'firebase/fi
 import { Plus, FileText, Calendar, ArrowRight, Loader2, Sparkles, Mail, AlertTriangle, Trash2 } from 'lucide-react';
 import { migrateLocalPlansToFirebase } from '@/lib/migrationManager';
 
-export default function DashboardContent({ locale = "ro" }: { locale?: "ro" | "en" }) {
+export default function DashboardContent({ locale = "ro" }: { locale?: "ro" | "en" | "es" }) {
   const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
   const [plans, setPlans] = useState<any[]>([]);
@@ -18,6 +18,7 @@ export default function DashboardContent({ locale = "ro" }: { locale?: "ro" | "e
   const [verificationSent, setVerificationSent] = useState(false);
   
   const isEn = locale === "en";
+  const isEs = locale === "es";
 
   // FEAT-3: Avertizare vizuală dacă utilizatorul gratuit a consumat generarea
   const studioLimitUsed = typeof window !== 'undefined'
@@ -37,7 +38,7 @@ export default function DashboardContent({ locale = "ro" }: { locale?: "ro" | "e
         localStorage.removeItem("businessDetails");
         localStorage.removeItem("studioActiveTab");
       }
-      router.push(isEn ? '/en/studio' : '/studio');
+      router.push(isEn ? '/en/studio' : isEs ? '/es/studio' : '/studio');
     }
   };
 
@@ -59,6 +60,8 @@ export default function DashboardContent({ locale = "ro" }: { locale?: "ro" | "e
     const confirmDelete = window.confirm(
       isEn 
         ? "Are you sure you want to permanently delete this business plan? This action cannot be undone."
+        : isEs
+        ? "¿Estás seguro de que deseas eliminar permanentemente este plan de negocios? Esta acción no se puede deshacer."
         : "Ești sigur că dorești să ștergi definitiv acest plan de afaceri? Această acțiune nu poate fi anulată."
     );
     if (!confirmDelete) return;
@@ -71,6 +74,8 @@ export default function DashboardContent({ locale = "ro" }: { locale?: "ro" | "e
       alert(
         isEn 
           ? "An error occurred while deleting the plan. Please try again." 
+          : isEs
+          ? "Ocurrió un error al eliminar el plan. Por favor, inténtalo de nuevo."
           : "A apărut o eroare la ștergerea planului. Te rugăm să încerci din nou."
       );
     }
@@ -79,7 +84,7 @@ export default function DashboardContent({ locale = "ro" }: { locale?: "ro" | "e
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       if (!currentUser) {
-        router.push(isEn ? '/en/login' : '/login');
+        router.push(isEn ? '/en/login' : isEs ? '/es/login' : '/login');
         return;
       }
       setUser(currentUser);
@@ -106,7 +111,7 @@ export default function DashboardContent({ locale = "ro" }: { locale?: "ro" | "e
     });
 
     return () => unsubscribe();
-  }, [router, isEn]);
+  }, [router, isEn, isEs]);
 
   if (loading) {
     return (
@@ -126,7 +131,7 @@ export default function DashboardContent({ locale = "ro" }: { locale?: "ro" | "e
 
       {/* Header Simplu */}
       <div className="w-full h-20 border-b border-zinc-800/80 flex items-center px-6 md:px-12 justify-between z-20 relative bg-[#09090b]/80 backdrop-blur-md">
-        <Link href={isEn ? "/en" : "/"} className="text-2xl font-black text-white hover:text-emerald-400 transition-colors">
+        <Link href={isEn ? "/en" : isEs ? "/es" : "/"} className="text-2xl font-black text-white hover:text-emerald-400 transition-colors">
           IdeeaTa<span className="text-emerald-400">.ai</span>
         </Link>
         <div className="flex items-center gap-4">
@@ -139,7 +144,7 @@ export default function DashboardContent({ locale = "ro" }: { locale?: "ro" | "e
                 onClick={() => signOut(auth)}
                 className="text-sm font-bold text-zinc-500 hover:text-white transition-colors cursor-pointer"
               >
-                {isEn ? "Log Out" : "Ieși din cont"}
+                {isEn ? "Log Out" : isEs ? "Cerrar sesión" : "Ieși din cont"}
               </button>
             </div>
           )}
@@ -151,21 +156,21 @@ export default function DashboardContent({ locale = "ro" }: { locale?: "ro" | "e
         <header className="flex flex-col md:flex-row justify-between items-start md:items-center mb-16 gap-6">
           <div>
             <h1 className="text-4xl md:text-5xl font-black mb-2 tracking-tight">
-              {isEn ? "My Plans" : "Proiectele Mele"}
+              {isEn ? "My Plans" : isEs ? "Mis Planes" : "Proiectele Mele"}
             </h1>
             <p className="text-zinc-400 text-lg">
-              {isEn ? "Manage and edit your business plans" : "Gestionează și editează planurile tale de afaceri"}
+              {isEn ? "Manage and edit your business plans" : isEs ? "Gestiona y edita tus planes de negocios" : "Gestionează și editează planurile tale de afaceri"}
             </p>
           </div>
           
           <div className="flex flex-col items-end gap-1.5">
             <button onClick={handleGenerateNew} className="bg-emerald-600 hover:bg-emerald-500 text-white px-6 py-3.5 rounded-xl font-bold uppercase tracking-wider transition-all flex items-center gap-2 shadow-[0_0_20px_rgba(16,185,129,0.2)] hover:shadow-[0_0_30px_rgba(16,185,129,0.4)] hover:-translate-y-1">
               <Plus className="w-5 h-5" />
-              {isEn ? "Generate New Plan" : "Generează Plan Nou"}
+              {isEn ? "Generate New Plan" : isEs ? "Generar Nuevo Plan" : "Generează Plan Nou"}
             </button>
             {studioLimitUsed && (
               <span className="text-[11px] text-amber-400 font-semibold flex items-center gap-1">
-                ⚡ {isEn ? "Free plan limit reached — upgrade required for new plan" : "Planul gratuit folosit — upgrade necesar pentru plan nou"}
+                ⚡ {isEn ? "Free plan limit reached — upgrade required for new plan" : isEs ? "Límite del plan gratuito alcanzado — se requiere actualización para nuevo plan" : "Planul gratuit folosit — upgrade necesar pentru plan nou"}
               </span>
             )}
           </div>
@@ -178,16 +183,18 @@ export default function DashboardContent({ locale = "ro" }: { locale?: "ro" | "e
               <Sparkles className="w-10 h-10 text-zinc-500" />
             </div>
             <h3 className="text-2xl font-bold mb-4 text-white">
-              {isEn ? "No plans generated yet" : "Niciun plan generat încă"}
+              {isEn ? "No plans generated yet" : isEs ? "Aún no se han generado planes" : "Niciun plan generat încă"}
             </h3>
             <p className="text-zinc-400 max-w-md mx-auto mb-8">
               {isEn 
                 ? "Your generated business plans will appear here. Start now and turn your idea into reality!"
+                : isEs
+                ? "Tus planes de negocios generados aparecerán aquí. ¡Comienza ahora y convierte tu idea en realidad!"
                 : "Aici vor apărea toate planurile tale de afaceri. Începe acum și transformă-ți ideea în realitate!"}
             </p>
             <button onClick={handleGenerateNew} className="bg-emerald-600 hover:bg-emerald-500 text-white px-6 py-3 rounded-xl font-bold uppercase tracking-wider transition-all flex items-center gap-2 shadow-[0_0_20px_rgba(16,185,129,0.2)]">
               <Plus className="w-5 h-5" />
-              {isEn ? "Start first project" : "Începe primul proiect"}
+              {isEn ? "Start first project" : isEs ? "Iniciar primer proyecto" : "Începe primul proiect"}
             </button>
           </div>
         ) : (
@@ -195,7 +202,7 @@ export default function DashboardContent({ locale = "ro" }: { locale?: "ro" | "e
             {plans.map((plan) => (
               <div 
                 key={plan.id}
-                onClick={() => router.push(isEn ? `/en/studio?planId=${plan.id}` : `/studio?planId=${plan.id}`)}
+                onClick={() => router.push(isEn ? `/en/studio?planId=${plan.id}` : isEs ? `/es/studio?planId=${plan.id}` : `/studio?planId=${plan.id}`)}
                 className="bg-zinc-900/60 border border-zinc-800 hover:border-emerald-500/50 rounded-2xl p-6 transition-all duration-300 cursor-pointer group flex flex-col hover:-translate-y-1 hover:shadow-[0_10px_30px_-15px_rgba(16,185,129,0.3)] relative overflow-hidden"
               >
                 <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-emerald-500 to-emerald-400 transform origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-300"></div>
@@ -211,29 +218,29 @@ export default function DashboardContent({ locale = "ro" }: { locale?: "ro" | "e
                       </span>
                     ) : (
                       <span className="bg-zinc-800 text-zinc-400 border border-zinc-700 text-[10px] uppercase font-black px-2 py-0.5 rounded-full flex items-center gap-1">
-                        {isEn ? "Free" : "Gratuit"}
+                        {isEn ? "Free" : isEs ? "Gratis" : "Gratuit"}
                       </span>
                     )}
                     <div className="flex items-center gap-1.5 text-zinc-500 text-xs font-semibold bg-zinc-800/50 px-2.5 py-1 rounded-md">
                       <Calendar className="w-3.5 h-3.5" />
-                      {new Date(plan.createdAt || Date.now()).toLocaleDateString(isEn ? 'en-US' : 'ro-RO', { day: 'numeric', month: 'short', year: 'numeric' })}
+                      {new Date(plan.createdAt || Date.now()).toLocaleDateString(isEn ? 'en-US' : isEs ? 'es-ES' : 'ro-RO', { day: 'numeric', month: 'short', year: 'numeric' })}
                     </div>
                   </div>
                 </div>
 
-                <h3 className="text-xl font-bold text-white mb-2 line-clamp-1">{plan.nume || (isEn ? "Unnamed Plan" : "Plan Fără Nume")}</h3>
+                <h3 className="text-xl font-bold text-white mb-2 line-clamp-1">{plan.nume || (isEn ? "Unnamed Plan" : isEs ? "Plan Sin Nombre" : "Plan Fără Nume")}</h3>
                 <p className="text-zinc-400 text-sm mb-6 line-clamp-2 min-h-[40px]">
-                  {plan.slogan || (isEn ? "Business project generated with IdeeaTa.ai" : "Proiect de afaceri generat cu IdeeaTa.ai")}
+                  {plan.slogan || (isEn ? "Business project generated with IdeeaTa.ai" : isEs ? "Proyecto de negocio generado con IdeeaTa.ai" : "Proiect de afaceri generat cu IdeeaTa.ai")}
                 </p>
 
                 <div className="mt-auto pt-4 border-t border-zinc-800/80 flex justify-between items-center text-emerald-400 font-bold text-sm">
-                  <span>{isEn ? "Open in Studio" : "Deschide în Studio"}</span>
+                  <span>{isEn ? "Open in Studio" : isEs ? "Abrir en Studio" : "Deschide în Studio"}</span>
                   <div className="flex items-center gap-3">
                     <button
                       type="button"
                       onClick={(e) => handleDeletePlan(e, plan.id)}
                       className="p-1.5 text-zinc-500 hover:text-red-400 hover:bg-zinc-800/50 rounded-lg transition-all"
-                      title={isEn ? "Delete plan" : "Șterge planul"}
+                      title={isEn ? "Delete plan" : isEs ? "Eliminar plan" : "Șterge planul"}
                     >
                       <Trash2 className="w-4 h-4" />
                     </button>
@@ -257,10 +264,12 @@ export default function DashboardContent({ locale = "ro" }: { locale?: "ro" | "e
             </div>
 
             <div>
-              <h2 className="text-2xl font-black text-white mb-2">{isEn ? "Confirm email address" : "Confirmă adresa de email"}</h2>
+              <h2 className="text-2xl font-black text-white mb-2">{isEn ? "Confirm email address" : isEs ? "Confirmar dirección de correo" : "Confirmă adresa de email"}</h2>
               <p className="text-zinc-400">
                 {isEn 
                   ? "To generate a free plan and receive 3 Premium Edits, please confirm your email address by clicking the link in your Inbox."
+                  : isEs
+                  ? "Para generar un plan gratuito y recibir 3 Ediciones Premium, por favor confirma tu dirección de correo electrónico haciendo clic en el enlace recibido en tu bandeja de entrada."
                   : "Pentru a genera un plan gratuit și a primi cele 3 Editări Premium, te rugăm să îți confirmi adresa de email dând click pe link-ul primit în Inbox."}
               </p>
             </div>
@@ -272,7 +281,7 @@ export default function DashboardContent({ locale = "ro" }: { locale?: "ro" | "e
                 }}
                 className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3.5 rounded-xl transition-all"
               >
-                {isEn ? "I confirmed, continue" : "Am confirmat, continuă"}
+                {isEn ? "I confirmed, continue" : isEs ? "Ya confirmé, continuar" : "Am confirmat, continuă"}
               </button>
               
               <button 
@@ -280,14 +289,14 @@ export default function DashboardContent({ locale = "ro" }: { locale?: "ro" | "e
                 disabled={verificationSent}
                 className="w-full bg-zinc-800 hover:bg-zinc-700 text-white font-bold py-3.5 rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {verificationSent ? (isEn ? "Email sent!" : "Email trimis!") : (isEn ? "Resend verification email" : "Trimite emailul din nou")}
+                {verificationSent ? (isEn ? "Email sent!" : isEs ? "¡Correo enviado!" : "Email trimis!") : (isEn ? "Resend verification email" : isEs ? "Reenviar correo de verificación" : "Trimite emailul din nou")}
               </button>
               
               <button 
                 onClick={() => setShowVerificationModal(false)}
                 className="w-full text-zinc-500 hover:text-white font-medium py-2 transition-all mt-2"
               >
-                {isEn ? "Close" : "Închide"}
+                {isEn ? "Close" : isEs ? "Cerrar" : "Închide"}
               </button>
             </div>
           </div>

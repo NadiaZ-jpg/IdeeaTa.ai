@@ -147,6 +147,80 @@ export const ALL_EXAMPLES_EN: BusinessExample[] = [
   { short: "Online Legal Assistance", long: "A platform providing fast online legal assistance and consulting services." }
 ];
 
-export function getExamples(locale: "ro" | "en" = "ro"): BusinessExample[] {
-  return locale === "en" ? ALL_EXAMPLES_EN : ALL_EXAMPLES_RO;
+export const ALL_EXAMPLES_ES: BusinessExample[] = [
+  { short: "Panadería Tradicional", long: "Una panadería y pastelería tradicional, centrada en pan de masa madre y recetas locales auténticas." },
+  { short: "Lavado de Autos Autoservicio", long: "Un moderno lavado de autos autoservicio con chorro de alta presión y espuma activa biodegradable." },
+  { short: "Salón de Belleza", long: "Un salón completo de belleza y peluquería, que ofrece servicios premium de peinado y tratamientos." },
+  { short: "Restaurante Tradicional", long: "Un restaurante de comida tradicional local, con un menú basado exclusivamente en ingredientes de productores locales." },
+  { short: "Empresa de Limpieza", long: "Una empresa profesional de limpieza B2B y B2C, que utiliza exclusivamente detergentes ecológicos y equipos silenciosos." },
+  { short: "Tienda de Conveniencia", long: "Una moderna tienda de conveniencia abierta las 24 horas, los 7 días de la semana, optimizada para compras rápidas." },
+  { short: "Taller Mecánico", long: "Un taller mecánico y de neumáticos que ofrece servicios rápidos, diagnóstico por computadora y asistencia en carretera." },
+  { short: "Empresa de Construcción", long: "Una empresa de construcción y diseño de interiores, especializada en renovaciones llave en mano y acabados premium." },
+  { short: "Clínica Dental", long: "Una clínica dental moderna equipada con tecnología 3D y especializada en implantología." },
+  { short: "Firma de Contabilidad", long: "Una firma de contabilidad totalmente digitalizada, dedicada a startups y pymes." },
+  { short: "Farmacia Local", long: "Una farmacia local que ofrece asesoramiento personalizado y fórmulas magistrales." },
+  { short: "Veterinaria 24/7", long: "Una clínica veterinaria con servicio las 24 horas, equipada con ecógrafo, rayos X y laboratorio propio." },
+  { short: "Servicios de Mudanza", long: "Una empresa de servicios de mudanza y reubicación que también ofrece embalaje y desmontaje." },
+  { short: "Agencia Inmobiliaria", long: "Una agencia inmobiliaria de nicho, centrada exclusivamente en apartamentos premium y nuevos complejos residenciales." },
+  { short: "Granja Orgánica", long: "Una granja agrícola mixta, centrada en cultivos ecológicos y distribución directa a los consumidores." },
+  
+  { short: "Bar de Matcha y Café", long: "Un bar de matcha minimalista y cafetería de especialidad, que ofrece bebidas a base de té premium." },
+  { short: "Estudio de Pilates", long: "Un estudio boutique de pilates y yoga con clases reducidas y entrenamiento personalizado." },
+  { short: "Perfumes Personalizados", long: "Un taller de perfumes personalizados donde los clientes crean sus propias fragancias únicas." },
+  { short: "Boutique Vintage", long: "Una boutique con ropa vintage seleccionada y restaurada, promoviendo la moda sostenible." },
+  { short: "Tienda de Diseñador Local", long: "Una tienda conceptual dedicada exclusivamente a diseñadores locales, desde ropa hasta decoración para el hogar." },
+  { short: "Florería Minimalista", long: "Una florería minimalista que ofrece suscripciones mensuales de flores para oficinas y hogares." },
+  { short: "Pastelería Francesa Artesanal", long: "Una pastelería artesanal de inspiración francesa, especializada en eclairs y macarons." },
+  { short: "Diseño de Interiores", long: "Un estudio de diseño de interiores y arquitectura enfocado en espacios residenciales ecológicos y soluciones smart-home." },
+  { short: "Salón de Cosmética Orgánica", long: "Un salón de belleza orgánico que utiliza exclusivamente productos naturales y cruelty-free." },
+  { short: "Galería de Arte y Café", long: "Una galería de arte contemporáneo combinada con una cafetería de especialidad, un espacio creativo." },
+  { short: "Tienda de Vinos y Quesos", long: "Una tienda especializada en vinos raros y quesos finos, con zona de degustación." },
+  { short: "Planificación de Bodas", long: "Una agencia de planificación de bodas de lujo, centrada en eventos temáticos únicos." },
+  { short: "Taller de Cerámica Artesanal", long: "Un taller de cerámica que produce artículos únicos y organiza talleres interactivos." },
+  
+  { short: "Arena de E-Sports", long: "Un centro de juegos y arena de e-sports equipado con PCs de gama alta y equipo profesional." },
+  { short: "Café de Juegos de Mesa", long: "Un café dedicado a los juegos de mesa y los juegos retro, con una gran biblioteca de juegos." },
+  { short: "Agencia de Marketing TikTok", long: "Una agencia de marketing de influencers especializada en campañas virales en TikTok." },
+  { short: "Tienda de Reventa de Sneakers", long: "Una tienda de reventa y autenticación de zapatillas raras y ediciones limitadas." },
+  { short: "Aplicación de Citas", long: "Una aplicación de citas innovadora basada en intereses comunes y pasatiempos específicos." },
+  { short: "E-learning Financiero", long: "Una plataforma de e-learning dedicada a la educación financiera y las inversiones para jóvenes." },
+  { short: "Streetwear Sostenible", long: "Una marca de ropa urbana producida exclusivamente a partir de materiales reciclados y sostenibles." },
+  { short: "Agencia de Contenido UGC", long: "Una agencia que ofrece servicios de creación de videos auténticos generados por usuarios (UGC)." },
+  { short: "Coworking para Nómadas", long: "Un espacio de coworking diseñado específicamente para nómadas digitales y autónomos." },
+  { short: "Plataforma de Freelance", long: "Una plataforma de trabajo independiente estrictamente para especialistas locales verificados manualmente." },
+  { short: "Estudio de Videojuegos Indie", long: "Un estudio independiente de desarrollo de videojuegos centrado en historias interactivas." },
+  { short: "Arquitectura Minimalista", long: "Un estudio de arquitectura minimalista centrado en casas pasivas y de bajo consumo energético." },
+  
+  { short: "Hotel de Plantas", long: "Un servicio de cuidado y 'hotel' para plantas de interior durante las vacaciones." },
+  { short: "Catering Basado en ADN", long: "Un servicio de catering premium con un menú ultra-personalizado basado en el análisis de ADN del cliente." },
+  { short: "Envases de Micelio", long: "Una fábrica que produce envases 100% biodegradables a partir de micelio (hongos)." },
+  { short: "AI Lenguaje de Señas", long: "Una aplicación de software basada en IA para la traducción en tiempo real de la lengua de señas." },
+  { short: "Buscador de Co-fundadores", long: "Una plataforma de emparejamiento inteligente para encontrar al socio comercial ideal." },
+  { short: "Granja Hidropónica", long: "Una granja urbana de microvegetales hidropónicos que abastece directamente a los mejores restaurantes." },
+  { short: "Paisajismo Urbano", long: "Servicios de diseño paisajístico especializados estrictamente en balcones y terrazas urbanas." },
+  { short: "Conversión de Autos Eléctricos", long: "Un taller dedicado a convertir coches de gasolina clásicos en vehículos 100% eléctricos." },
+  { short: "Aplicación de Muebles AR", long: "Una aplicación de realidad aumentada que permite a los usuarios probar muebles directamente en sus hogares." },
+  { short: "Reciclaje de Baterías EV", long: "Una estación avanzada de recuperación y reciclaje para baterías de vehículos eléctricos." },
+  { short: "Telemedicina para Mascotas", long: "Una plataforma de telemedicina y triaje virtual para urgencias de mascotas." },
+  
+  { short: "Firma de Ciberseguridad", long: "Una firma de consultoría en ciberseguridad especializada en auditorías y pruebas de penetración." },
+  { short: "Evaluación de Riesgos", long: "Una empresa que ofrece servicios de evaluación de riesgos institucionales para corporaciones." },
+  { short: "Agencia de Soluciones AI", long: "Una agencia de desarrollo de software enfocada en implementar soluciones de Inteligencia Artificial." },
+  { short: "Agencia de Subvenciones", long: "Una empresa de consultoría especializada en la redacción de proyectos para obtener fondos públicos/europeos." },
+  { short: "Agencia de Marketing Digital", long: "Una agencia integrada de marketing digital, desde SEO y Google Ads hasta redes sociales." },
+  { short: "Agregador de Cursos Online", long: "Una plataforma agregadora de cursos en línea con certificación reconocida." },
+  { short: "Tienda Orgánica Online", long: "Una tienda en línea dedicada exclusivamente a productos alimenticios ecológicos y orgánicos certificados." },
+  { short: "Aplicación de Fitness", long: "Una aplicación móvil de fitness con un entrenador virtual basado en IA." },
+  { short: "Consultoría de Nutrición", long: "Una clínica en línea de consultoría de nutrición con planes de alimentación personalizados." },
+  { short: "Entrega de Comida Vegana", long: "Un servicio de entrega de comida 100% vegana basado en recetas gourmet." },
+  { short: "Alquiler de Bicicletas", long: "Un sistema de alquiler de bicicletas y patinetes eléctricos para el turismo urbano." },
+  { short: "Agencia SEO B2B", long: "Una agencia especializada en optimización SEO técnica para empresas B2B." },
+  { short: "Estudio de Apps Móviles", long: "Un estudio de desarrollo de aplicaciones móviles nativas para iOS y Android." },
+  { short: "Asistencia Legal Online", long: "Una plataforma que brinda asistencia legal rápida y servicios de consultoría en línea." }
+];
+
+export function getExamples(locale: "ro" | "en" | "es" = "ro"): BusinessExample[] {
+  if (locale === "en") return ALL_EXAMPLES_EN;
+  if (locale === "es") return ALL_EXAMPLES_ES;
+  return ALL_EXAMPLES_RO;
 }

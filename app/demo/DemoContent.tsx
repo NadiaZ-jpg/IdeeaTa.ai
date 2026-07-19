@@ -4,7 +4,7 @@ import { useDeviceDetect } from '@/hooks/useDeviceDetect';
 import DemoDesktop from '@/components/DemoDesktop';
 import DemoMobile from '@/components/DemoMobile';
 
-export default function DemoContent({ locale = "ro" }: { locale?: "ro" | "en" }) {
+export default function DemoContent({ locale = "ro" }: { locale?: "ro" | "en" | "es" }) {
   const isMobile = useDeviceDetect();
 
   if (isMobile) {

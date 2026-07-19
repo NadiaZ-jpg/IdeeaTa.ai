@@ -4,7 +4,7 @@ import { useDeviceDetect } from '@/hooks/useDeviceDetect';
 import StudioDesktop from '@/components/StudioDesktop';
 import StudioMobile from '@/components/StudioMobile';
 
-export default function StudioContent({ locale = "ro" }: { locale?: "ro" | "en" }) {
+export default function StudioContent({ locale = "ro" }: { locale?: "ro" | "en" | "es" }) {
   const isMobile = useDeviceDetect();
 
   if (isMobile) {

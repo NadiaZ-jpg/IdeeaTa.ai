@@ -11,9 +11,9 @@ const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 export async function POST(req: NextRequest) {
   try {
     const { skill, locale } = await req.json();
-    const isEn = locale === "en";
-
-    const prompt = isEn ? `
+    let prompt = "";
+    if (locale === "en") {
+      prompt = `
 Generate a comprehensive business plan in English based on the following skill or business idea: "${skill}".
 It must adhere to the official standards for accessing Eco-Tech / Sustainability and Digitalization SME programs in 2026.
 You must strictly follow the requirements for the green transition (Eco-Tech/Sustainability) and digitalization (Automation/ERP/CRM).
@@ -56,7 +56,54 @@ Return the result strictly as a valid JSON object with the following structure:
 }
 Include at least 6-8 budgeted items (must include green tech and software/digitalization).
 Do not include any other text besides the JSON block. Do not format with markdown block quotes (\`\`\`json) if possible, but if you do, it will be stripped out.
-` : `
+`;
+    } else if (locale === "es") {
+      prompt = `
+Generate a comprehensive business plan in Spanish based on the following skill or business idea: "${skill}".
+It must adhere to the official standards for accessing Eco-Tech / Sustainability and Digitalization SME programs in 2026.
+You must strictly follow the requirements for the green transition (Eco-Tech/Sustainability) and digitalization (Automation/ERP/CRM).
+Return the result strictly as a valid JSON object with the following structure:
+{
+  "nume": "Nombre de la Empresa",
+  "slogan": "Un eslogan llamativo",
+  "date_generale": {
+    "forma_juridica": "Ej: S.L., Sociedad Anónima, Autónomo, Coop",
+    "cod_caen": "Categoría principal de negocio / Descripción de industria",
+    "date_contact": "Ej: Representante Legal"
+  },
+  "viziune_strategie": {
+    "obiective_scurt": "Objetivos a corto plazo (1 año)",
+    "obiective_mediu": "Objetivos a medio/largo plazo (3-5 años)",
+    "misiune_valori": "Misión y valores"
+  },
+  "analiza_pietei": {
+    "clienti_tinta": "¿Quiénes son los clientes objetivo?",
+    "concurenta": "Principales competidores y ventajas",
+    "strategie_marketing": "Estrategia de marketing y precios"
+  },
+  "analiza_swot": {
+    "puncte_tari": [ { "titlu": "Fortaleza 1", "explicatie_tehnica": "Explicación" } ],
+    "puncte_slabe": [ { "titlu": "Debilidad 1", "explicatie_tehnica": "Explicación" } ],
+    "oportunitati": [ { "titlu": "Oportunidad 1", "explicatie_tehnica": "Explicación" } ],
+    "amenintari": [ { "titlu": "Amenaza 1", "explicatie_tehnica": "Explicación" } ]
+  },
+  "plan_operational": {
+    "descriere_flux": "Descripción de operaciones, detallando explícitamente la transición ecológica y la digitalización.",
+    "resurse_umane": "Organigrama y roles clave",
+    "locatie_dotari": "Ubicación y equipamiento necesario (enfatizando eficiencia energética y transporte ecológico si aplica)"
+  },
+  "plan_financiar": {
+    "buget_investitii": [
+      { "item": "Equipo/Servicio", "explicatie": "Justificación (precios realistas de 2026)", "cost": "3000 EUR" }
+    ],
+    "strategie_financiara": "Resumen riguroso del modelo de ingresos, estabilidad del flujo de caja y punto de equilibrio."
+  }
+}
+Include at least 6-8 budgeted items (must include green tech and software/digitalization).
+Do not include any other text besides the JSON block. Do not format with markdown block quotes (\`\`\`json) if possible, but if you do, it will be stripped out.
+`;
+    } else {
+      prompt = `
 Generate a comprehensive business plan in Romanian based on the following skill or business idea: "${skill}".
 It must adhere to the official Romanian structural standard for accessing EU Funds / SME Eco-Tech programs in 2026.
 You must strictly follow the requirements for "Pilonul Verde" (Eco-Tech/Sustainability) and "Digitalizare" (Automation/ERP/CRM).
@@ -100,6 +147,7 @@ Return the result strictly as a valid JSON object with the following structure:
 Include at least 6-8 budgeted items (must include green tech and software/digitalization).
 Do not include any other text besides the JSON block. Do not format with markdown block quotes (\`\`\`json) if possible, but if you do, it will be stripped out.
 `;
+    }
 
     let response;
     let retries = 3;

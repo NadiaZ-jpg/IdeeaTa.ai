@@ -44,10 +44,9 @@ function extractRelevantSection(result: any, action: string) {
 export async function POST(req: NextRequest) {
   try {
     const { result, action, customStyle, targetSection, locale } = await req.json();
-    const isEn = locale === "en";
-
+    const isEn = locale === "en" || locale === "es";
     let instruction = "";
-    if (isEn) {
+    if (locale === "en") {
       if (action === "professional_tone") {
         instruction = `Rewrite the textual content to have a ${customStyle || 'formal, corporate and professional'} tone, keeping the exact structure. Do not change any numbers.`;
       } else if (action === "optimize_budget") {
@@ -98,6 +97,58 @@ IMPORTANT: Keep the original JSON structure, but rewrite and enrich the content 
         instruction = "Shorten and synthesize the text drastically. Keep the essence but use short sentences. Reduce the volume by half for presentation slides.";
       } else {
         instruction = "Perform minor improvements for flow and correctness.";
+      }
+    } else if (locale === "es") {
+      if (action === "professional_tone") {
+        instruction = `Reescribe el contenido textual para tener un tono ${customStyle || 'formal, corporativo y profesional'}, manteniendo la estructura exacta. No cambies ningún número.`;
+      } else if (action === "optimize_budget") {
+        instruction = `Reduce los costes en 'plan_financiar.buget_investitii' en aproximadamente un ${targetSection}% y ajusta las explicaciones mostrando cómo se lograron los ahorros. Mantén todo lo demás intacto.`;
+      } else if (action === "add_sections") {
+        instruction = `Genera NUEVAS secciones de texto para el plan de negocios, refiriéndote estrictamente a los temas solicitados: "${targetSection || 'lo que consideres necesario'}". 
+        IMPORTANTE:
+        - Si la solicitud del usuario es un comando de eliminación o modificación (ej. "eliminar", "borrar", "modificar capítulo X"), devuelve una sección titulada "⚠️ Consejo de Edición" y explica en "continut" que esta herramienta de IA es solo para *añadir* nuevas secciones, y para eliminaciones/modificaciones deben usar el icono de papelera 🗑️ en el Studio o editar el texto manualmente.
+        - No utilices formato de tabla Markdown (sin barras verticales |). Estructura la información como una lista numerada (1., 2., 3., etc.) ya que la interfaz solo muestra texto plano.
+        - ¡NO devuelvas el plan actual!
+        - Devuelve EXCLUSIVAMENTE un JSON que contenga únicamente una clave llamada "sectiuni_aditionale".
+        - Esta clave debe ser un ARRAY de objetos. Cada objeto contiene "titlu" y "continut".
+        - Si el usuario solicita varias cosas distintas, crea OBJETOS SEPARADOS para cada tema en este array.
+        - El contenido debe ser muy detallado y formateado con \\n para los párrafos.
+        
+        Formato obligatorio exacto (ejemplo con 2 secciones):
+        {
+          "sectiuni_aditionale": [
+            {
+              "titlu": "Plan de Marketing",
+              "continut": "Plan de marketing detallado..."
+            },
+            {
+              "titlu": "Análisis de Riesgos",
+              "continut": "Análisis de riesgos detallado..."
+            }
+          ]
+        }`;
+      } else if (action === "eu_funds_optimization") {
+        instruction = `REESCRIBE LA ESTRUCTURA COMPLETA de este plan de negocios para que esté "OPTIMIZADO PARA PROGRAMAS DE FINANCIACIÓN ECOLÓGICA Y DIGITAL".
+Debes alinear el proyecto con los criterios estrictos de financiación:
+1. Alineación estratégica (Relevancia): Detalla cómo el proyecto contribuye a la digitalización, la transición ecológica y la reducción de la huella de carbono.
+2. Marco lógico y KPIs: Añade indicadores claros de output/outcome/impacto en la visión y estrategia.
+3. Presupuestación adecuada: Menciona la rentabilidad, la estabilidad del flujo de caja y la elegibilidad de los gastos en la estrategia financiera.
+4. Criterios horizontales: Integra la igualdad de género, la no discriminación y el principio DNSH (No causar daño significativo al medio ambiente).
+5. Sostenibilidad: Muestra cómo el proyecto sigue siendo viable de 3 a 5 años después de su finalización.
+IMPORTANTE: ¡Mantén la estructura JSON original, pero reescribe y enriquece el contenido de las secciones existentes! No cambies los números del presupuesto.`;
+      } else if (action === "investor_ready") {
+        instruction = `REESCRIBE LA ESTRUCTURA COMPLETA de este plan de negocios para atraer inversores y bancos ("PLAN PROFESIONAL").
+Transforma el lenguaje para enfatizar la viabilidad comercial, la gestión de riesgos y la rentabilidad:
+1. Dinámica financiera: Introduce proyecciones de flujo de caja, TIR, VAN, ROI y runway en la estrategia financiera.
+2. Análisis de sensibilidad y escenarios de riesgo: Simula fallos controlados (ej. si los costes suben o las ventas bajan).
+3. Tracción de mercado: Detalla el tamaño del mercado (TAM, SAM, SOM), Unit Economics (CAC vs LTV 1:3) y barreras de entrada (Foso/Moat).
+4. Financiación y estrategia de salida: Explica el uso de fondos y las estrategias de salida (IPO, adquisición).
+5. Equipo de gestión: Destaca las habilidades complementarias y la trayectoria.
+IMPORTANTE: ¡Mantén la estructura JSON original, pero reescribe y enriquece el contenido de las secciones existentes! No cambies los números del presupuesto.`;
+      } else if (action === "shorten_for_export") {
+        instruction = "Acorta y sintetiza el texto drásticamente. Mantén la esencia pero usa oraciones cortas. Reduce el volumen a la mitad para diapositivas de presentación.";
+      } else {
+        instruction = "Realiza mejoras menores para la fluidez y corrección del texto.";
       }
     } else {
       if (action === "professional_tone") {
@@ -156,7 +207,9 @@ IMPORTANT: Keep the original JSON structure, but rewrite and enrich the content 
     // Use only the relevant section for most actions to reduce token usage
     const inputData = extractRelevantSection(result, action);
 
-    let prompt = isEn ? `You are an expert business consultant. 
+    let prompt = "";
+    if (locale === "en") {
+      prompt = `You are an expert business consultant. 
 Here is the background information of the current plan for context:
 ${JSON.stringify(inputData)}
 
@@ -168,7 +221,23 @@ IMPORTANT FOR JSON:
 - DO NOT use real unescaped newlines inside strings! For paragraphs, strictly use '\\n' (escaped).
 - You MUST escape double quotes inside text using backslash (\\"). It is safest to use single quotes (') inside text.
 - NO trailing commas.
-- DO NOT add markdown formatting, DO NOT add backticks (\`\`\`), DO NOT add additional text before or after the JSON.` : `Ești un consultant de afaceri expert. 
+- DO NOT add markdown formatting, DO NOT add backticks (\`\`\`), DO NOT add additional text before or after the JSON.`;
+    } else if (locale === "es") {
+      prompt = `Eres un consultor de negocios experto. 
+Aquí tienes la información de fondo del plan actual para el contexto:
+${JSON.stringify(inputData)}
+
+TU TAREA:
+${instruction}
+
+Debes responder EXCLUSIVAMENTE con un JSON válido.
+IMPORTANTE PARA EL JSON: 
+- ¡NO utilices saltos de línea reales sin escapar dentro de las cadenas! Para los párrafos, usa estrictamente '\\n' (escapado).
+- DEBES escapar las comillas dobles dentro del texto usando barra invertida (\\"). Lo más seguro es usar comillas simples (') dentro del texto.
+- SIN comas flotantes al final (no trailing commas).
+- NO agregues formato markdown, NO agregues comillas invertidas (\`\`\`), NO agregues texto adicional antes o después del JSON.`;
+    } else {
+      prompt = `Ești un consultant de afaceri expert. 
 Aici sunt informațiile de bază ale planului curent pentru context:
 ${JSON.stringify(inputData)}
 
@@ -181,6 +250,7 @@ IMPORTANT PENTRU JSON:
 - ESCAPEAZĂ obligatoriu ghilimelele duble din interiorul textului folosind backslash (\\"). Cel mai sigur este să folosești doar ghilimele simple (') în interiorul textului.
 - FĂRĂ virgule la finalul ultimului element din obiect sau array (fără trailing commas).
 - NU adăuga formatare markdown, NU adăuga backticks (\`\`\`), NU adăuga text adițional înainte sau după JSON.`;
+    }
 
     const callGemini = async (sysPrompt: string) => {
       let retries = 3;

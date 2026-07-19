@@ -58,7 +58,9 @@ const formatObjectNumbers = (obj: any): any => {
     return newObj;
   }
 }
-export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" }) {
+export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "es" }) {
+  const isEn = locale === "en";
+  const isEs = locale === "es";
   const ALL_EXAMPLES = getExamples(locale);
   const [skill, setSkill] = useState("");
   const [result, setResult] = useState<any>(null);
@@ -105,6 +107,13 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" }) 
     "Building promotion strategy and optimal channels...",
     "Identifying strengths, weaknesses, opportunities, and threats...",
     "Assembling the final document tailored just for you..."
+  ] : locale === "es" ? [
+    "Generando ideas de negocio innovadoras...",
+    "Analizando la competencia y oportunidades del mercado...",
+    "Calculando el presupuesto de inversión y estimaciones financieras...",
+    "Construyendo la estrategia de promoción y canales óptimos...",
+    "Identificando fortalezas, debilidades, oportunidades y amenazas...",
+    "Ensamblando el documento final especialmente para ti..."
   ] : [
     "Generăm idei inovatoare de afaceri...",
     "Analizăm competiția și oportunitățile pieței...",
@@ -330,7 +339,7 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" }) 
           <div className="flex-1 flex flex-col items-center justify-center py-20 text-center gap-6">
             <div className="w-16 h-16 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin"></div>
             <div className="space-y-2 max-w-xs">
-              <h3 className="font-bold text-lg text-emerald-400">{locale === "en" ? "AI Assistant is working" : "Asistentul AI lucrează"}</h3>
+              <h3 className="font-bold text-lg text-emerald-400">{locale === "en" ? "AI Assistant is working" : locale === "es" ? "El asistente de IA está trabajando" : "Asistentul AI lucrează"}</h3>
               <p className="text-sm text-zinc-400 animate-pulse">{loadingMessages[loadingMessageIndex]}</p>
             </div>
           </div>
@@ -340,20 +349,20 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" }) 
           <div className="flex flex-col gap-6 animate-in fade-in slide-in-from-bottom-4 duration-300">
             <div className="text-center space-y-2 mt-4">
               <span className="text-[10px] bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 px-3 py-1 rounded-full font-bold uppercase tracking-wider">
-                {locale === "en" ? "Free Demo" : "Demo Gratuit"}
+                {locale === "en" ? "Free Demo" : locale === "es" ? "Demo Gratis" : "Demo Gratuit"}
               </span>
               <h1 className="text-3xl font-black tracking-tight leading-none mt-2">{t("generatePlanNow", locale)}</h1>
-              <p className="text-zinc-400 text-sm">{locale === "en" ? "Turn any idea into a complete plan in 60 seconds." : "Transformă orice idee într-un plan complet în 60 de secunde."}</p>
+              <p className="text-zinc-400 text-sm">{locale === "en" ? "Turn any idea into a complete plan in 60 seconds." : locale === "es" ? "Convierte cualquier idea en un plan completo en 60 segundos." : "Transformă orice idee într-un plan complet în 60 de secunde."}</p>
             </div>
 
             {/* Form Card */}
             <div className="bg-zinc-900/40 border border-zinc-800/80 rounded-2xl p-5 backdrop-blur-md space-y-4">
               <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-zinc-400">{locale === "en" ? "Describe your business briefly" : "Descrie afacerea pe scurt"}</label>
+                <label className="text-xs font-semibold text-zinc-400">{locale === "en" ? "Describe your business briefly" : locale === "es" ? "Describe tu negocio brevemente" : "Descrie afacerea pe scurt"}</label>
                 <textarea
                   value={skill}
                   onChange={(e) => setSkill(e.target.value)}
-                  placeholder={locale === "en" ? "E.g. A coffee shop with its own roastery and coworking space..." : "Ex: O cafenea cu prăjitorie proprie și spațiu de co-working..."}
+                  placeholder={locale === "en" ? "E.g. A coffee shop with its own roastery and coworking space..." : locale === "es" ? "Ej: Una cafetería con tostador propio y espacio de co-working..." : "Ex: O cafenea cu prăjitorie proprie și spațiu de co-working..."}
                   className="w-full bg-zinc-950 border border-zinc-800 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500/30 rounded-xl px-4 py-3 text-sm text-white placeholder-zinc-500 h-28 outline-none resize-none transition-all"
                 />
               </div>
@@ -363,7 +372,7 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" }) 
                 disabled={!skill.trim()}
                 className="w-full bg-gradient-to-r from-emerald-600 to-teal-500 hover:from-emerald-500 hover:to-teal-400 disabled:opacity-50 text-white font-bold py-4 rounded-xl text-sm transition-all shadow-lg shadow-emerald-950/20 active:scale-[0.98] flex items-center justify-center gap-2"
               >
-                <span>{locale === "en" ? "Generate Free Plan" : "Generează Planul Gratuit"}</span>
+                <span>{locale === "en" ? "Generate Free Plan" : locale === "es" ? "Generar Plan Gratuito" : "Generează Planul Gratuit"}</span>
                 <span>🚀</span>
               </button>
             </div>
@@ -396,15 +405,15 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" }) 
             <div className="bg-zinc-900/60 border border-zinc-800 rounded-xl p-4 flex items-center justify-between gap-4 backdrop-blur-md">
               <div className="min-w-0">
                 <span className="text-[9px] bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 px-2 py-0.5 rounded-full font-bold uppercase tracking-wider block w-max mb-1">
-                  {locale === "en" ? "Plan Generated" : "Plan Generat"}
+                  {locale === "en" ? "Plan Generated" : locale === "es" ? "Plan Generado" : "Plan Generat"}
                 </span>
-                <h2 className="text-sm font-black text-white truncate">{result.nume || (locale === "en" ? "Business Plan" : "Plan de Afaceri")}</h2>
+                <h2 className="text-sm font-black text-white truncate">{result.nume || (locale === "en" ? "Business Plan" : locale === "es" ? "Plan de Negocios" : "Plan de Afaceri")}</h2>
               </div>
               <div className="flex gap-2 shrink-0">
                 <button
                   onClick={handleShare}
                   className="bg-zinc-800 hover:bg-zinc-700 text-white font-bold p-2.5 rounded-lg text-xs transition-all active:scale-95"
-                  title={locale === "en" ? "Copy link" : "Copiază link-ul"}
+                  title={locale === "en" ? "Copy link" : locale === "es" ? "Copiar enlace" : "Copiază link-ul"}
                 >
                   🔗
                 </button>
@@ -412,7 +421,7 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" }) 
                   onClick={() => handleDownload('pdf')}
                   className="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-3 py-2 rounded-lg text-xs transition-all active:scale-95 flex items-center gap-1.5"
                 >
-                  <span>{locale === "en" ? "Export" : "Export"}</span>
+                  <span>{locale === "en" ? "Export" : locale === "es" ? "Exportar" : "Export"}</span>
                   <span>📥</span>
                 </button>
               </div>
@@ -420,7 +429,7 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" }) 
 
             {showShareSuccess && (
               <div className="bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs text-center py-2 rounded-lg animate-pulse font-bold">
-                {locale === "en" ? "Link copied to clipboard!" : "Link copiat în clipboard!"}
+                {locale === "en" ? "Link copied to clipboard!" : locale === "es" ? "¡Enlace copiado al portapapeles!" : "Link copiat în clipboard!"}
               </div>
             )}
 
@@ -430,25 +439,25 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" }) 
                 onClick={() => setActiveTab("overview")}
                 className={`flex-1 text-center py-2.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap px-4 ${activeTab === "overview" ? "bg-zinc-800 text-white" : "text-zinc-400 hover:text-white"}`}
               >
-                {locale === "en" ? "📈 Overview" : "📈 Prezentare"}
+                {locale === "en" ? "📈 Overview" : locale === "es" ? "📈 Resumen" : "📈 Prezentare"}
               </button>
               <button
                 onClick={() => setActiveTab("budget")}
                 className={`flex-1 text-center py-2.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap px-4 ${activeTab === "budget" ? "bg-zinc-800 text-white" : "text-zinc-400 hover:text-white"}`}
               >
-                {locale === "en" ? "💰 Finance" : "💰 Finanțe"}
+                {locale === "en" ? "💰 Finance" : locale === "es" ? "💰 Finanzas" : "💰 Finanțe"}
               </button>
               <button
                 onClick={() => setActiveTab("marketing")}
                 className={`flex-1 text-center py-2.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap px-4 ${activeTab === "marketing" ? "bg-zinc-800 text-white" : "text-zinc-400 hover:text-white"}`}
               >
-                {locale === "en" ? "📣 Marketing" : "📣 Promovare"}
+                {locale === "en" ? "📣 Marketing" : locale === "es" ? "📣 Marketing" : "📣 Promovare"}
               </button>
               <button
                 onClick={() => setActiveTab("swot")}
                 className={`flex-1 text-center py-2.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap px-4 ${activeTab === "swot" ? "bg-zinc-800 text-white" : "text-zinc-400 hover:text-white"}`}
               >
-                {locale === "en" ? "📋 SWOT" : "📋 SWOT"}
+                {locale === "en" ? "📋 SWOT" : locale === "es" ? "📋 FODA" : "📋 SWOT"}
               </button>
             </div>
 
@@ -471,17 +480,17 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" }) 
               {activeTab === "overview" && (
                 <div className="space-y-5 animate-in fade-in duration-200">
                   <div className="space-y-1">
-                    <h3 className="text-emerald-400 font-bold text-sm">{locale === "en" ? "Business Description" : "Descriere Afacere"}</h3>
+                    <h3 className="text-emerald-400 font-bold text-sm">{locale === "en" ? "Business Description" : locale === "es" ? "Descripción del Negocio" : "Descriere Afacere"}</h3>
                     <p className="text-zinc-300 text-xs leading-relaxed">{formatNumberedText(result.descriere)}</p>
                   </div>
                   <div className="h-px bg-zinc-800/60"></div>
                   <div className="space-y-1">
-                    <h3 className="text-emerald-400 font-bold text-sm">{locale === "en" ? "Market Opportunity" : "Oportunitatea Pieței"}</h3>
+                    <h3 className="text-emerald-400 font-bold text-sm">{locale === "en" ? "Market Opportunity" : locale === "es" ? "Oportunidad de Mercado" : "Oportunitatea Pieței"}</h3>
                     <p className="text-zinc-300 text-xs leading-relaxed">{formatNumberedText(result.oportunitate_piata)}</p>
                   </div>
                   <div className="h-px bg-zinc-800/60"></div>
                   <div className="space-y-1">
-                    <h3 className="text-emerald-400 font-bold text-sm">{locale === "en" ? "Target Audience" : "Publicul Țintă"}</h3>
+                    <h3 className="text-emerald-400 font-bold text-sm">{locale === "en" ? "Target Audience" : locale === "es" ? "Público Objetivo" : "Publicul Țintă"}</h3>
                     <p className="text-zinc-300 text-xs leading-relaxed">{formatNumberedText(result.public_tinta)}</p>
                   </div>
                 </div>
@@ -490,12 +499,12 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" }) 
               {activeTab === "budget" && (
                 <div className="space-y-6 animate-in fade-in duration-200">
                   <div className="space-y-3">
-                    <h3 className="text-emerald-400 font-bold text-sm">{locale === "en" ? "Initial Investment Budget" : "Buget Inițial de Investiții"}</h3>
+                    <h3 className="text-emerald-400 font-bold text-sm">{locale === "en" ? "Initial Investment Budget" : locale === "es" ? "Presupuesto Inicial de Inversión" : "Buget Inițial de Investiții"}</h3>
                     <div className="space-y-2">
                       {result.plan_financiar?.buget_investitii?.map((item: any, idx: number) => (
                         <div key={idx} className="bg-zinc-950/40 border border-zinc-800/50 rounded-xl p-3 flex justify-between items-center text-xs">
                           <span className="font-semibold text-zinc-300">{item.categorie}</span>
-                          <span className="font-black text-emerald-400">{item.suma_lei?.toLocaleString()} LEI</span>
+                          <span className="font-black text-emerald-400">{item.suma_lei?.toLocaleString()} {locale === "ro" ? "LEI" : "EUR"}</span>
                         </div>
                       ))}
                     </div>
@@ -503,9 +512,9 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" }) 
 
                   {/* Budget Chart (Dynamic container) */}
                   <div className="bg-zinc-950/30 border border-zinc-800/60 rounded-xl p-4 flex flex-col items-center justify-center">
-                    <h4 className="text-[10px] font-bold text-zinc-400 mb-4 uppercase">{locale === "en" ? "Funds Distribution" : "Distribuția Fondurilor"}</h4>
+                    <h4 className="text-[10px] font-bold text-zinc-400 mb-4 uppercase">{locale === "en" ? "Funds Distribution" : locale === "es" ? "Distribución de Fondos" : "Distribuția Fondurilor"}</h4>
                     <div className="w-full max-w-[200px] aspect-square flex items-center justify-center">
-                      <BudgetPieChart budget={result.plan_financiar?.buget_investitii || []} currency="LEI" />
+                      <BudgetPieChart budget={result.plan_financiar?.buget_investitii || []} currency={locale === "ro" ? "LEI" : "EUR"} />
                     </div>
                   </div>
                 </div>
@@ -514,7 +523,7 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" }) 
               {activeTab === "marketing" && (
                 <div className="space-y-6 animate-in fade-in duration-200">
                   <div className="space-y-3">
-                    <h3 className="text-emerald-400 font-bold text-sm">{locale === "en" ? "Promotion Channels" : "Canale de Promovare"}</h3>
+                    <h3 className="text-emerald-400 font-bold text-sm">{locale === "en" ? "Promotion Channels" : locale === "es" ? "Canales de Promoción" : "Canale de Promovare"}</h3>
                     <div className="space-y-3">
                       {result.strategie_marketing?.canale_promovare?.map((canal: any, idx: number) => (
                         <div key={idx} className="bg-zinc-950/30 border border-zinc-800/60 rounded-xl p-4 space-y-1">
@@ -528,8 +537,8 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" }) 
                   {/* Tone Editor Bottom Element */}
                   <div className="bg-zinc-950/40 border border-zinc-800/60 rounded-xl p-4 space-y-3">
                     <div className="space-y-1">
-                      <h4 className="text-xs font-bold text-zinc-200">{locale === "en" ? "Customize Presentation Tone" : "Personalizează Tonul Prezentării"}</h4>
-                      <p className="text-[10px] text-zinc-400">{locale === "en" ? "Automatically rewrite the business plan in a formal, commercial, or friendly style." : "Rescrie automat planul de afaceri într-un stil formal, comercial sau prietenos."}</p>
+                      <h4 className="text-xs font-bold text-zinc-200">{locale === "en" ? "Customize Presentation Tone" : locale === "es" ? "Personalizar el Tono de la Presentación" : "Personalizează Tonul Prezentării"}</h4>
+                      <p className="text-[10px] text-zinc-400">{locale === "en" ? "Automatically rewrite the business plan in a formal, commercial, or friendly style." : locale === "es" ? "Reescribe automáticamente el plan de negocios en un estilo formal, comercial o amigable." : "Rescrie automat planul de afaceri într-un stil formal, comercial sau prietenos."}</p>
                     </div>
                     <ToneEditor
                       user={user}
@@ -546,22 +555,22 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" }) 
 
               {activeTab === "swot" && (
                 <div className="space-y-5 animate-in fade-in duration-200">
-                  <h3 className="text-emerald-400 font-bold text-sm">{locale === "en" ? "SWOT Analysis" : "Analiza SWOT"}</h3>
+                  <h3 className="text-emerald-400 font-bold text-sm">{locale === "en" ? "SWOT Analysis" : locale === "es" ? "Análisis FODA" : "Analiza SWOT"}</h3>
                   <div className="grid grid-cols-1 gap-3">
                     <div className="bg-emerald-950/10 border border-emerald-800/20 rounded-xl p-4">
-                      <span className="text-[10px] text-emerald-400 font-black tracking-wider uppercase block mb-1">{locale === "en" ? "💪 Strengths" : "💪 Puncte Forte (Strengths)"}</span>
+                      <span className="text-[10px] text-emerald-400 font-black tracking-wider uppercase block mb-1">{locale === "en" ? "💪 Strengths" : locale === "es" ? "💪 Fortalezas" : "💪 Puncte Forte (Strengths)"}</span>
                       <p className="text-zinc-300 text-xs leading-relaxed">{formatNumberedText(result.analiza_swot?.puncte_forte)}</p>
                     </div>
                     <div className="bg-rose-950/10 border border-rose-800/20 rounded-xl p-4">
-                      <span className="text-[10px] text-rose-400 font-black tracking-wider uppercase block mb-1">{locale === "en" ? "⚠️ Weaknesses" : "⚠️ Puncte Slabe (Weaknesses)"}</span>
+                      <span className="text-[10px] text-rose-400 font-black tracking-wider uppercase block mb-1">{locale === "en" ? "⚠️ Weaknesses" : locale === "es" ? "⚠️ Debilidades" : "⚠️ Puncte Slabe (Weaknesses)"}</span>
                       <p className="text-zinc-300 text-xs leading-relaxed">{formatNumberedText(result.analiza_swot?.puncte_slabe)}</p>
                     </div>
                     <div className="bg-blue-950/10 border border-blue-800/20 rounded-xl p-4">
-                      <span className="text-[10px] text-blue-400 font-black tracking-wider uppercase block mb-1">{locale === "en" ? "🚀 Opportunities" : "🚀 Oportunități (Opportunities)"}</span>
+                      <span className="text-[10px] text-blue-400 font-black tracking-wider uppercase block mb-1">{locale === "en" ? "🚀 Opportunities" : locale === "es" ? "🚀 Oportunidades" : "🚀 Oportunități (Opportunities)"}</span>
                       <p className="text-zinc-300 text-xs leading-relaxed">{formatNumberedText(result.analiza_swot?.oportunitati)}</p>
                     </div>
                     <div className="bg-amber-950/10 border border-amber-800/20 rounded-xl p-4">
-                      <span className="text-[10px] text-amber-400 font-black tracking-wider uppercase block mb-1">{locale === "en" ? "☠️ Threats" : "☠️ Amenințări (Threats)"}</span>
+                      <span className="text-[10px] text-amber-400 font-black tracking-wider uppercase block mb-1">{locale === "en" ? "☠️ Threats" : locale === "es" ? "☠️ Amenazas" : "☠️ Amenințări (Threats)"}</span>
                       <p className="text-zinc-300 text-xs leading-relaxed">{formatNumberedText(result.analiza_swot?.amenintari)}</p>
                     </div>
                   </div>
@@ -578,7 +587,7 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" }) 
               }}
               className="w-full bg-zinc-950 hover:bg-zinc-900 border border-zinc-800/80 text-zinc-400 font-bold py-3.5 rounded-xl text-xs transition-all active:scale-98 text-center"
             >
-              {locale === "en" ? "Delete plan and start a new idea" : "Șterge planul și începe o idee nouă"}
+              {locale === "en" ? "Delete plan and start a new idea" : locale === "es" ? "Eliminar plan y comenzar una nueva idea" : "Șterge planul și începe o idee nouă"}
             </button>
           </div>
         )}
@@ -599,11 +608,11 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" }) 
             <div className="text-center space-y-1">
               <h3 className="text-lg font-black">
                 {isLoginMode 
-                  ? (locale === "en" ? "Log in to your account" : "Intră în contul tău") 
-                  : (locale === "en" ? "Create free account" : "Creează cont gratuit")}
+                  ? (locale === "en" ? "Log in to your account" : locale === "es" ? "Inicia sesión en tu cuenta" : "Intră în contul tău") 
+                  : (locale === "en" ? "Create free account" : locale === "es" ? "Crear cuenta gratis" : "Creează cont gratuit")}
               </h3>
               <p className="text-xs text-zinc-400">
-                {locale === "en" ? "To save and download generated plans." : "Pentru a salva și descărca planurile generate."}
+                {locale === "en" ? "To save and download generated plans." : locale === "es" ? "Para guardar y descargar los planes generados." : "Pentru a salva și descărca planurile generate."}
               </p>
             </div>
 
@@ -616,7 +625,7 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" }) 
             <form onSubmit={handleEmailAuth} className="space-y-3.5">
               <input
                 type="email"
-                placeholder={locale === "en" ? "Email Address" : "Adresa de email"}
+                placeholder={locale === "en" ? "Email Address" : locale === "es" ? "Dirección de correo electrónico" : "Adresa de email"}
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
@@ -624,7 +633,7 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" }) 
               />
               <input
                 type="password"
-                placeholder={locale === "en" ? "Password" : "Parolă"}
+                placeholder={locale === "en" ? "Password" : locale === "es" ? "Contraseña" : "Parolă"}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
@@ -636,14 +645,14 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" }) 
                 className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 rounded-xl text-xs transition-all active:scale-95 disabled:opacity-50"
               >
                 {isEmailLoading 
-                  ? (locale === "en" ? "Processing..." : "Se procesează...") 
-                  : (isLoginMode ? (locale === "en" ? "Log In" : "Conectare") : (locale === "en" ? "Register" : "Înregistrare"))}
+                  ? (locale === "en" ? "Processing..." : locale === "es" ? "Procesando..." : "Se procesează...") 
+                  : (isLoginMode ? (locale === "en" ? "Log In" : locale === "es" ? "Iniciar sesión" : "Conectare") : (locale === "en" ? "Register" : locale === "es" ? "Registrarse" : "Înregistrare"))}
               </button>
             </form>
 
             <div className="flex items-center my-4">
               <div className="flex-1 h-px bg-zinc-800"></div>
-              <span className="px-3 text-[10px] text-zinc-500 font-bold uppercase">{locale === "en" ? "Or" : "Sau"}</span>
+              <span className="px-3 text-[10px] text-zinc-500 font-bold uppercase">{locale === "en" ? "Or" : locale === "es" ? "O" : "Sau"}</span>
               <div className="flex-1 h-px bg-zinc-800"></div>
             </div>
 
@@ -668,8 +677,8 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" }) 
                 className="text-[11px] text-emerald-400 hover:text-emerald-300 font-semibold"
               >
                 {isLoginMode 
-                  ? (locale === "en" ? "Don't have an account? Register" : "Nu ai cont? Înregistrează-te") 
-                  : (locale === "en" ? "Already have an account? Log in" : "Ai deja cont? Conectează-te")}
+                  ? (locale === "en" ? "Don't have an account? Register" : locale === "es" ? "¿No tienes una cuenta? Regístrate" : "Nu ai cont? Înregistrează-te") 
+                  : (locale === "en" ? "Already have an account? Log in" : locale === "es" ? "¿Ya tienes una cuenta? Inicia sesión" : "Ai deja cont? Conectează-te")}
               </button>
             </div>
           </div>
@@ -682,7 +691,7 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" }) 
         onClose={() => setShowPricingModal(false)}
         onSuccess={() => {
           setShowPricingModal(false);
-          alert(locale === "en" ? "Payment simulated successfully! Premium access is now unlocked." : "Plată simulată cu succes! Accesul premium este acum deblocat.");
+          alert(locale === "en" ? "Payment simulated successfully! Premium access is now unlocked." : locale === "es" ? "¡Pago simulado con éxito! El acceso premium ya está desbloqueado." : "Plată simulată cu succes! Accesul premium este acum deblocat.");
         }}
         onRequireLogin={() => {
           setShowPricingModal(false);

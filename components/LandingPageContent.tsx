@@ -6,13 +6,14 @@ import { auth } from '@/lib/firebase';
 import { onAuthStateChanged } from 'firebase/auth';
 import { t } from '@/lib/translations';
 
-export default function LandingPageContent({ locale = "ro" }: { locale?: "ro" | "en" }) {
+export default function LandingPageContent({ locale = "ro" }: { locale?: "ro" | "en" | "es" }) {
   const router = useRouter();
   const pathname = usePathname();
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
   const isEn = locale === "en";
+  const isEs = locale === "es";
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
@@ -49,25 +50,25 @@ export default function LandingPageContent({ locale = "ro" }: { locale?: "ro" | 
           {!isLoading && (
             isLoggedIn ? (
               <Link 
-                href={isEn ? "/en/studio" : "/studio"} 
+                href={isEn ? "/en/studio" : isEs ? "/es/studio" : "/studio"} 
                 className="text-sm font-semibold text-zinc-300 hover:text-white px-4 py-2 transition-colors"
               >
-                {isEn ? "Go to Studio →" : "Intră în Studio →"}
+                {isEn ? "Go to Studio →" : isEs ? "Entrar al Studio →" : "Intră în Studio →"}
               </Link>
             ) : (
               <Link 
-                href={isEn ? "/en/login" : "/login"} 
+                href={isEn ? "/en/login" : isEs ? "/es/login" : "/login"} 
                 className="text-sm font-semibold text-zinc-300 hover:text-white px-4 py-2 transition-colors"
               >
-                {isEn ? "Log In" : "Autentificare"}
+                {isEn ? "Log In" : isEs ? "Iniciar sesión" : "Autentificare"}
               </Link>
             )
           )}
           <Link 
-            href={isEn ? "/en/demo?start=nou" : "/demo?start=nou"} 
+            href={isEn ? "/en/demo?start=nou" : isEs ? "/es/demo?start=nou" : "/demo?start=nou"} 
             className="text-sm font-bold bg-white text-black px-5 py-2.5 rounded-full hover:bg-zinc-200 transition-all hover:scale-105 shadow-[0_0_20px_rgba(255,255,255,0.1)]"
           >
-            {isEn ? "Try for Free" : "Testează Gratuit"}
+            {isEn ? "Try for Free" : isEs ? "Probar Gratis" : "Testează Gratuit"}
           </Link>
         </div>
       </nav>
@@ -79,7 +80,7 @@ export default function LandingPageContent({ locale = "ro" }: { locale?: "ro" | 
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
             <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
           </span>
-          {isEn ? "The most advanced assistant for entrepreneurs" : "Cel mai avansat asistent pentru antreprenori"}
+          {isEn ? "The most advanced assistant for entrepreneurs" : isEs ? "El asistente más avanzado para emprendedores" : "Cel mai avansat asistent pentru antreprenori"}
         </div>
         
         <h1 className="text-5xl md:text-7xl font-black tracking-tighter mb-8 leading-[1.1] max-w-4xl">
@@ -87,6 +88,11 @@ export default function LandingPageContent({ locale = "ro" }: { locale?: "ro" | 
             <>
               From a simple idea to a <br className="hidden md:block"/>
               <span className="text-transparent bg-gradient-to-r from-emerald-400 via-teal-300 to-emerald-500 bg-clip-text">Business Plan</span>.
+            </>
+          ) : isEs ? (
+            <>
+              De una simple idea a un <br className="hidden md:block"/>
+              <span className="text-transparent bg-gradient-to-r from-emerald-400 via-teal-300 to-emerald-500 bg-clip-text">Plan de Negocios</span> completo.
             </>
           ) : (
             <>
@@ -98,16 +104,16 @@ export default function LandingPageContent({ locale = "ro" }: { locale?: "ro" | 
         
         <div className="mb-10 max-w-3xl mx-auto">
           <p className="text-lg md:text-xl text-zinc-400 leading-relaxed mb-4">
-            {isEn ? "Instantly generate complete documentation to access funding, bank loans, or EU grants." : "Generează instantaneu documentația completă pentru a obține finanțare, credite bancare sau fonduri europene."}
+            {isEn ? "Instantly generate complete documentation to access funding, bank loans, or EU grants." : isEs ? "Genera instantáneamente documentación completa para acceder a financiación, préstamos bancarios o subvenciones." : "Generează instantaneu documentația completă pentru a obține finanțare, credite bancare sau fonduri europene."}
           </p>
           <p className="text-lg md:text-xl text-zinc-400 leading-relaxed">
-            {isEn ? "Structured to the millimeter, with no hassle." : "Structurat la milimetru, fără bătăi de cap."}
+            {isEn ? "Structured to the millimeter, with no hassle." : isEs ? "Estructurado al milímetro, sin complicaciones." : "Structurat la milimetru, fără bătăi de cap."}
           </p>
         </div>
 
         <div className="flex flex-col sm:flex-row gap-4 items-center">
           <Link 
-            href={isEn ? "/en/demo?start=nou" : "/demo?start=nou"}
+            href={isEn ? "/en/demo?start=nou" : isEs ? "/es/demo?start=nou" : "/demo?start=nou"}
             className="group relative px-8 py-4 bg-emerald-500 hover:bg-emerald-400 text-black font-black text-lg rounded-full transition-all hover:scale-105 shadow-[0_0_40px_rgba(16,185,129,0.3)] overflow-hidden"
           >
             <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out"></div>
@@ -194,18 +200,18 @@ export default function LandingPageContent({ locale = "ro" }: { locale?: "ro" | 
       <footer className="relative z-10 py-24 px-6 text-center border-t border-zinc-800/50">
         <h2 className="text-3xl font-bold text-white mb-6">{t('readyToTurnDream', locale)}</h2>
         <Link 
-          href={isEn ? "/en/demo?start=nou" : "/demo?start=nou"}
+          href={isEn ? "/en/demo?start=nou" : isEs ? "/es/demo?start=nou" : "/demo?start=nou"}
           className="inline-block px-8 py-4 bg-white text-black font-bold rounded-full hover:bg-zinc-200 transition-transform hover:scale-105 shadow-xl"
         >
           {t('startFreeNow', locale)}
         </Link>
         <div className="mt-16 text-zinc-600 text-sm flex flex-col items-center gap-2">
           <div className="flex gap-4">
-            <Link href={isEn ? "/en/terms" : "/termeni"} className="hover:text-zinc-400 transition-colors">
+            <Link href={isEn ? "/en/terms" : isEs ? "/es/terms" : "/termeni"} className="hover:text-zinc-400 transition-colors">
               {t('termsAndConditions', locale)}
             </Link>
             <span>&bull;</span>
-            <Link href={isEn ? "/en/privacy" : "/privacy"} className="hover:text-zinc-400 transition-colors">
+            <Link href={isEn ? "/en/privacy" : isEs ? "/es/privacy" : "/privacy"} className="hover:text-zinc-400 transition-colors">
               {t('privacyPolicy', locale)}
             </Link>
           </div>

@@ -136,7 +136,6 @@ export default function DashboardContent({ locale = "ro" }: { locale?: "ro" | "e
           IdeeaTa<span className="text-emerald-400">.ai</span>
         </Link>
         <div className="flex items-center gap-4">
-          <LanguageSwitcher currentLocale={locale} />
           {user && (
             <div className="flex items-center gap-4">
               <span className="text-sm text-zinc-400 hidden sm:inline-block font-semibold">

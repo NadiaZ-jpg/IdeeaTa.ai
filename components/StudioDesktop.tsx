@@ -15,6 +15,7 @@ import { generateDocxBlob } from '@/lib/generateDocx';
 import { generatePptx } from '@/lib/generatePptx';
 import { useStudioFirebaseSync } from '@/hooks/useStudioFirebaseSync';
 import { t } from '@/lib/translations';
+import { getExamples } from '@/lib/examples';
 import { Mail } from 'lucide-react';
 
 const BudgetPieChart = dynamic(() => import('@/components/BudgetChart').then(mod => mod.BudgetPieChart), { ssr: false });
@@ -836,36 +837,41 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
   const presentationRef = useRef<any>(null);
   const pdfPrintRef = useRef<any>(null);
 
-  const ALL_EXAMPLES = [
-    // Idei Clasice
-    "Brutărie și Patiserie Tradițională", "Spălătorie Auto Self-Service", "Salon de Înfrumusețare și Frizerie", "Restaurant cu Specific Tradițional", "Firmă de Curățenie Profesională", "Magazin Mixt de Cartier", "Atelier Auto și Vulcanizare", "Firmă de Construcții și Amenajări Interioare", "Cabinet Stomatologic", "Firmă de Contabilitate", "Farmacie de Cartier", "Cabinet Veterinar Non-Stop", "Servicii de Mutări și Relocare", "Agenție Imobiliară", "Crescătorie de Păsări sau Ferma Agricolă",
-    
-    // Idei Șic & Premium
-    "Matcha Bar & Cafenea de Specialitate", "Studio de Pilates și Yoga Boutique", "Atelier de Parfumuri Personalizate", "Boutique cu Haine Vintage Selecționate", "Concept Store cu Design Românesc", "Florărie Minimalistă cu Abonamente", "Cofetărie Artizanală French-Inspired", "Studio de Design Interior și Arhitectură", "Salon de Cosmetică Organică", "Galerie de Artă Contemporană și Cafenea", "Magazin de Vinuri și Brânzeturi Fine", "Servicii de Planificare a Nunților de Lux", "Atelier Ceramică Artizanală",
-    
-    // Idei pentru Tineri (Gen Z / Millennials)
-    "Studio și Arenă de E-Sports", "Cafenea cu Board Games și Jocuri Retro", "Agenție de Influencer Marketing și TikTok", "Magazin de Resale pentru Sneakers Rari", "Aplicație de Dating Bazată pe Interese Comune", "Platformă E-learning pentru Educație Financiară", "Producție de Haine Streetwear Sustenabile", "Servicii de Creare Conținut Video (UGC)", "Hub de Coworking pentru Nomazi Digitali", "Platformă Freelancing Local", "Dezvoltare Jocuri Video Indie", "Servicii Arhitectură Minimalistă",
-    
-    // Idei Originale și Inovatoare
-    "Hotel și Servicii de Îngrijire pentru Plante", "Catering cu Meniu Personalizat pe Baza ADN-ului", "Producție de Ambalaje Biodegradabile din Miceliu", "Aplicație AI pentru Traducerea Limbajului Semnelor", "Platformă de Matchmaking pentru Co-fondatori", "Fermă Hidroponică Urbană de Microplante", "Servicii de Design Peisagistic pe Balcoane și Terase", "Atelier de Conversie a Mașinilor Clasice în Electrice", "Aplicație de Realitate Augmentată pentru Mobilier", "Reciclare Baterii Auto", "Telemedicină Veterinară",
-    
-    // Idei Tech & Servicii
-    "Consultanță Securitate Cibernetică", "Analiză de Risc Instituțional", "Dezvoltare Soluții AI", "Consultanță Fonduri Europene", "Agenție Marketing Digital", "Platformă Cursuri Online", "Magazin Online Produse Bio", "Aplicație de Fitness", "Consultanță Nutriție", "Livrare Mâncare Vegană", "Închiriere Biciclete Electrice", "Optimizare SEO B2B", "Dezvoltare Aplicații Mobile", "Consultanță Juridică Online"
-  ];
+  const ALL_EXAMPLES = getExamples(locale);
 
-  const [examplesList, setExamplesList] = useState<string[]>(ALL_EXAMPLES.slice(0, 18));
+  const [examplesList, setExamplesList] = useState<any[]>(ALL_EXAMPLES.slice(0, 18));
 
   useEffect(() => {
-    // Schimbare automată o dată la 7 zile
-    const oneWeekMs = 7 * 24 * 60 * 60 * 1000;
+    // Schimbare automată o dată la 14 zile
+    const twoWeeksMs = 14 * 24 * 60 * 60 * 1000;
     const epoch = 1700000000000; 
-    const chunkIndex = Math.floor((Date.now() - epoch) / oneWeekMs) % Math.ceil(ALL_EXAMPLES.length / 18);
-    setExamplesList(ALL_EXAMPLES.slice(chunkIndex * 18, (chunkIndex + 1) * 18));
+    const startIndex = (Math.floor((Date.now() - epoch) / twoWeeksMs) * 18) % ALL_EXAMPLES.length;
+    const currentExamples = [];
+    for (let i = 0; i < 18; i++) {
+      currentExamples.push(ALL_EXAMPLES[(startIndex + i) % ALL_EXAMPLES.length]);
+    }
+    setExamplesList(currentExamples);
   }, []);
 
   const randomIdeas = ALL_EXAMPLES;
 
-  const loadingMessages = [
+  const loadingMessages = locale === "en" ? [
+    "Initiating market analysis...",
+    "Calculating financial requirements...",
+    "Structuring the operational plan...",
+    "Fetching the updated currency exchange rate...",
+    "Finalizing the S.W.O.T. strategy...",
+    "Polishing the smart document...",
+    "Almost ready..."
+  ] : locale === "es" ? [
+    "Iniciando el análisis de mercado...",
+    "Calculando los requerimientos financieros...",
+    "Estructurando el plan operativo...",
+    "Obteniendo la tasa de cambio de moneda actualizada...",
+    "Finalizando la estrategia F.O.D.A...",
+    "Puliendo el documento inteligente...",
+    "Casi listo..."
+  ] : [
     "Se inițiază analiza de piață...",
     "Se calculează necesarul financiar...",
     "Se structurează planul operațional...",
@@ -1867,8 +1873,8 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
                 <span>☕</span> Buy me a coffee
               </a>
             </div>
+
             <div className="flex items-center gap-4 text-xs font-medium">
-              <LanguageSwitcher currentLocale={locale} />
               <span className="text-zinc-400">{user.email}</span>
               {isAdmin ? (
                 <span className="bg-amber-500/20 border border-amber-500/40 text-amber-300 px-2 py-0.5 rounded-full font-black uppercase tracking-wider">
@@ -2062,7 +2068,11 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
               
               <div className="flex flex-col gap-1 text-center sm:text-left">
                 <p className="text-zinc-400 font-medium text-lg">
-                  Construiește planul tău de afaceri inteligent. Viziunea ta, sprijinul nostru!
+                  {locale === "en" 
+                    ? "Build your business plan intelligently. Your vision, our support!" 
+                    : locale === "es" 
+                    ? "Crea tu plan de negocios inteligentemente. ¡Tu visión, nuestro apoyo!" 
+                    : "Construiește planul tău de afaceri inteligent. Viziunea ta, sprijinul nostru!"}
                 </p>
               </div>
               
@@ -2082,7 +2092,7 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
                     onChange={(e) => setSkill(e.target.value)}
                     onKeyDown={handleKeyDown}
                     disabled={loading}
-                    placeholder={animatedPlaceholder || "Crează un plan pentru... (ex: Consultanță securitate)"}
+                    placeholder={animatedPlaceholder || (locale === "en" ? "Create a plan for... (e.g. Cybersecurity consulting)" : locale === "es" ? "Crea un plan para... (ej. Consultoría en ciberseguridad)" : "Crează un plan pentru... (ex: Consultanță securitate)")}
                     className="relative w-full h-32 p-6 rounded-2xl bg-[#09090b] border border-zinc-700 outline-none focus:border-emerald-500 transition-all text-xl shadow-inner resize-none placeholder:text-zinc-600 font-medium text-white"
                   />
                 </div>
@@ -2095,21 +2105,21 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
                         usedIdeasRef.current = [];
                       }
                       let nextIndex = Math.floor(Math.random() * randomIdeas.length);
-                      while (usedIdeasRef.current.includes(nextIndex) || randomIdeas[nextIndex] === skill) {
+                      while (usedIdeasRef.current.includes(nextIndex) || randomIdeas[nextIndex].long === skill) {
                         nextIndex = Math.floor(Math.random() * randomIdeas.length);
                       }
                       usedIdeasRef.current.push(nextIndex);
-                      setSkill(randomIdeas[nextIndex]);
+                      setSkill(randomIdeas[nextIndex].long);
                       setShowExamples(false);
                       setTimeout(() => inputRef.current?.focus(), 50);
                     }}
                     className="whitespace-nowrap flex-shrink-0 text-zinc-400 font-bold text-lg px-6 py-4 rounded-xl transition-all duration-300 hover:bg-zinc-800/50 hover:text-emerald-400 flex items-center gap-2 w-full sm:w-auto justify-center border border-transparent hover:border-zinc-700/50"
                   >
-                    ✨ Inspiră-mă
+                    {locale === "en" ? "✨ Inspire me" : locale === "es" ? "✨ Inspírame" : "✨ Inspiră-mă"}
                   </button>
 
                   <button type="submit" disabled={loading} className="w-full sm:w-auto bg-white text-black px-8 py-4 rounded-xl font-black text-lg hover:bg-zinc-200 transition-all shadow-[0_0_20px_rgba(255,255,255,0.2)] flex items-center justify-center gap-2">
-                    {loading ? loadingMessages[messageIndex] : "Generează Planul"}
+                    {loading ? loadingMessages[messageIndex] : (locale === "en" ? "Generate the Plan" : locale === "es" ? "Generar el Plan" : "Generează Planul")}
                     {!loading && <span>&rarr;</span>}
                   </button>
                 </div>
@@ -2126,7 +2136,9 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
                   <div className="w-3 h-3 rounded-full bg-zinc-700"></div>
                   <div className="w-3 h-3 rounded-full bg-zinc-700"></div>
                 </div>
-                <h3 className="text-xl font-bold tracking-tight text-white">💡 Exemple de Afaceri</h3>
+                <h3 className="text-xl font-bold tracking-tight text-white">
+                  {locale === "en" ? "💡 Business Examples" : locale === "es" ? "💡 Ejemplos de Negocios" : "💡 Exemple de Afaceri"}
+                </h3>
                 <div className="w-8"></div>
               </div>
               
@@ -2136,12 +2148,12 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
                     key={idx}
                     type="button"
                     onClick={() => {
-                      setSkill(ex);
+                      setSkill(ex.long);
                       setTimeout(() => inputRef.current?.focus(), 50);
                     }}
                     className="bg-zinc-900/80 border border-zinc-700/80 text-zinc-300 font-medium text-xs sm:text-sm px-2 py-3 rounded-xl transition-all duration-300 hover:bg-emerald-900/60 hover:text-emerald-400 hover:border-emerald-500 hover:scale-[1.02] text-center w-full shadow-sm leading-snug"
                   >
-                    {ex}
+                    {ex.short}
                   </button>
                 ))}
               </div>

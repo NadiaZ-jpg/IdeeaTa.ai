@@ -331,7 +331,7 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
         <Link href="/" className="text-xl font-black tracking-tight">
           IdeeaTa<span className="text-emerald-500">.ai</span>
         </Link>
-        <LanguageSwitcher currentLocale={locale} />
+        {!result && <LanguageSwitcher currentLocale={locale} />}
       </header>
 
       {/* Main Content */}

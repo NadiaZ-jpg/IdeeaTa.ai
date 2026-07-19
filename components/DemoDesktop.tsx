@@ -1531,7 +1531,7 @@ export default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" | 
           onAuthClick={() => setShowAuthModal(true)}
           locale={locale}
         />
-        {!user && (
+        {!result && !user && (
           <div className="w-full flex justify-end py-2 mb-3 print:hidden">
             <LanguageSwitcher currentLocale={locale} />
           </div>
@@ -1551,7 +1551,7 @@ export default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" | 
               </a>
             </div>
             <div className="flex items-center gap-4 text-xs font-medium">
-              <LanguageSwitcher currentLocale={locale} />
+              {!result && <LanguageSwitcher currentLocale={locale} />}
               <span className="text-zinc-400">{user.email}</span>
               {isAdmin ? (
                 <span className="bg-amber-500/20 border border-amber-500/40 text-amber-300 px-2 py-0.5 rounded-full font-black uppercase tracking-wider">

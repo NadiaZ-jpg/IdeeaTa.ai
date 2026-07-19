@@ -328,7 +328,6 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
         </Link>
         <span className="text-sm font-black">{locale === "en" ? "Mobile Studio" : locale === "es" ? "Studio Móvil" : "Studio Mobil"}</span>
         <div className="flex items-center gap-2">
-          <LanguageSwitcher currentLocale={locale} />
           <button
             onClick={handleShare}
             className="bg-zinc-800 text-white font-bold p-2 rounded-lg text-xs"

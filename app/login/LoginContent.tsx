@@ -105,7 +105,13 @@ export default function LoginContent({ locale = "ro" }: { locale?: "ro" | "en" |
         await signInWithEmailAndPassword(auth, email, password);
       } else {
         const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-        await sendEmailVerification(userCredential.user);
+        
+        // Trimitem email-ul de activare multilingv și personalizat prin API-ul nostru backend
+        await fetch('/api/auth/send-verification', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: userCredential.user.email, locale }),
+        });
         // onAuthStateChanged va redirectiona automat la /dashboard
       }
       // Daca are succes, onAuthStateChanged va redirectiona automat

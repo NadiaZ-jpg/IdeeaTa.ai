@@ -197,10 +197,22 @@ Formele acceptate de acord expres:
 
 ---
 
+## FREEZE (23 Iulie 2026 — Remedieri Traduceri Complete & Detecție Limbă Browser)
+- **components/DemoDesktop.tsx** — Corectat 10 ternare în modalele de Export și Auth pentru a afișa corect limba spaniolă (`locale === "es"`). ÎNGHEȚAT.
+- **components/StudioDesktop.tsx** — Corectat 17 ternare (AI loadere, butoane editare/reset, tab-uri versiuni, bară download, tooltip Standard Package). ÎNGHEȚAT.
+- **app/demo/page.tsx**, **app/studio/page.tsx**, **app/dashboard/page.tsx**, **app/login/page.tsx** — Adăugată logica automată de detecție a limbii browserului (bazată pe `localStorage` și `navigator.language`) cu redirecționare automată la sub-rutele corespunzătoare `/es/` și `/en/`. ÎNGHEȚATE.
+- **Build verificat local:** ✅ `✓ Compiled successfully in 7.1s` — 43/43 pagini statice generate (RO, EN, ES complete).
+- **Server Hetzner (`167.233.93.47`):**
+  - Confirmat setup cu PM2 (procese active: ideeata, Dashboard, Watchdog).
+  - Confirmat că autostart-ul la boot al PM2 este activ (`enabled` ✅).
+  - Rulate actualizările de sistem și kernel (`sudo apt update && sudo apt upgrade -y`).
+  - Repornit complet serverul (`sudo reboot`) cu succes. Noul kernel `7.0.0-28-generic` este acum activ.
+
+---
+
 ## RĂMÂNE DE FĂCUT
-- **TRADUCEREA APLICAȚIEI (LIMBA ENGLEZĂ)** — Crearea rutei locale `/en/` și localizarea interfețelor, formularelor și prompturilor pentru Gemini.
-- **DEPLOY** — `git push origin main` → actualizează live app cu toate optimizările recente. Decizie utilizator.
-- **Vercel ENV** — Adaugă `NEXT_PUBLIC_PROMO_STANDARD/FONDURI/ADMIN` în Vercel Dashboard (tu manual). Done.
+- **DEPLOY** — `git push origin main` din local, apoi `git pull origin main` și `npm run build && pm2 restart 0` pe serverul Hetzner pentru a urca toate cele 36 de commit-uri (actualizările tale cumulate + traducerile/detecțiile noastre de azi).
+
 
 
 

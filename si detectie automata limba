@@ -1,0 +1,246 @@
+warning: in the working copy of 'app/dashboard/page.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'app/demo/page.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'app/login/page.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'app/studio/page.tsx', LF will be replaced by CRLF the next time Git touches it
+[1mdiff --git a/app/dashboard/page.tsx b/app/dashboard/page.tsx[m
+[1mindex 5207cb8..86957d7 100644[m
+[1m--- a/app/dashboard/page.tsx[m
+[1m+++ b/app/dashboard/page.tsx[m
+[36m@@ -1,7 +1,28 @@[m
+ "use client";[m
+[31m-import React from 'react';[m
+[32m+[m[32mimport React, { useEffect, useState } from 'react';[m
+[32m+[m[32mimport { useRouter } from 'next/navigation';[m
+ import DashboardContent from './DashboardContent';[m
+ [m
+ export default function DashboardPage() {[m
+[31m-  return <DashboardContent locale="ro" />;[m
+[32m+[m[32m  const router = useRouter();[m
+[32m+[m[32m  const [locale, setLocale] = useState<"ro" | "en" | "es">("ro");[m
+[32m+[m[32m  const [mounted, setMounted] = useState(false);[m
+[32m+[m
+[32m+[m[32m  useEffect(() => {[m
+[32m+[m[32m    if (typeof window === "undefined") return;[m
+[32m+[m[32m    const preferred = localStorage.getItem("preferred_language");[m
+[32m+[m[32m    if (preferred === "en") { router.replace("/en/dashboard"); return; }[m
+[32m+[m[32m    if (preferred === "es") { router.replace("/es/dashboard"); return; }[m
+[32m+[m[32m    if (!preferred) {[m
+[32m+[m[32m      const lang = (navigator.language || navigator.languages?.[0] || "").toLowerCase();[m
+[32m+[m[32m      if (lang.startsWith("es")) { localStorage.setItem("preferred_language", "es"); router.replace("/es/dashboard"); return; }[m
+[32m+[m[32m      if (lang.startsWith("en")) { localStorage.setItem("preferred_language", "en"); router.replace("/en/dashboard"); return; }[m
+[32m+[m[32m      localStorage.setItem("preferred_language", "ro");[m
+[32m+[m[32m    }[m
+[32m+[m[32m    setLocale("ro");[m
+[32m+[m[32m    setMounted(true);[m
+[32m+[m[32m  }, [router]);[m
+[32m+[m
+[32m+[m[32m  if (!mounted) return <div className="min-h-screen bg-[#09090b]" />;[m
+[32m+[m[32m  return <DashboardContent locale={locale} />;[m
+ }[m
+[1mdiff --git a/app/demo/page.tsx b/app/demo/page.tsx[m
+[1mindex c833c88..313ce82 100644[m
+[1m--- a/app/demo/page.tsx[m
+[1m+++ b/app/demo/page.tsx[m
+[36m@@ -1,7 +1,28 @@[m
+ "use client";[m
+[31m-import React from 'react';[m
+[32m+[m[32mimport React, { useEffect, useState } from 'react';[m
+[32m+[m[32mimport { useRouter } from 'next/navigation';[m
+ import DemoContent from './DemoContent';[m
+ [m
+[31m-export default function Home() {[m
+[31m-  return <DemoContent locale="ro" />;[m
+[32m+[m[32mexport default function DemoPage() {[m
+[32m+[m[32m  const router = useRouter();[m
+[32m+[m[32m  const [locale, setLocale] = useState<"ro" | "en" | "es">("ro");[m
+[32m+[m[32m  const [mounted, setMounted] = useState(false);[m
+[32m+[m
+[32m+[m[32m  useEffect(() => {[m
+[32m+[m[32m    if (typeof window === "undefined") return;[m
+[32m+[m[32m    const preferred = localStorage.getItem("preferred_language");[m
+[32m+[m[32m    if (preferred === "en") { router.replace("/en/demo"); return; }[m
+[32m+[m[32m    if (preferred === "es") { router.replace("/es/demo"); return; }[m
+[32m+[m[32m    if (!preferred) {[m
+[32m+[m[32m      const lang = (navigator.language || navigator.languages?.[0] || "").toLowerCase();[m
+[32m+[m[32m      if (lang.startsWith("es")) { localStorage.setItem("preferred_language", "es"); router.replace("/es/demo"); return; }[m
+[32m+[m[32m      if (lang.startsWith("en")) { localStorage.setItem("preferred_language", "en"); router.replace("/en/demo"); return; }[m
+[32m+[m[32m      localStorage.setItem("preferred_language", "ro");[m
+[32m+[m[32m    }[m
+[32m+[m[32m    setLocale("ro");[m
+[32m+[m[32m    setMounted(true);[m
+[32m+[m[32m  }, [router]);[m
+[32m+[m
+[32m+[m[32m  if (!mounted) return <div className="min-h-screen bg-[#09090b]" />;[m
+[32m+[m[32m  return <DemoContent locale={locale} />;[m
+ }[m
+[1mdiff --git a/app/login/page.tsx b/app/login/page.tsx[m
+[1mindex 4c2c690..089b40b 100644[m
+[1m--- a/app/login/page.tsx[m
+[1m+++ b/app/login/page.tsx[m
+[36m@@ -1,7 +1,28 @@[m
+ "use client";[m
+[31m-import React from 'react';[m
+[32m+[m[32mimport React, { useEffect, useState } from 'react';[m
+[32m+[m[32mimport { useRouter } from 'next/navigation';[m
+ import LoginContent from './LoginContent';[m
+ [m
+ export default function LoginPage() {[m
+[31m-  return <LoginContent locale="ro" />;[m
+[32m+[m[32m  const router = useRouter();[m
+[32m+[m[32m  const [locale, setLocale] = useState<"ro" | "en" | "es">("ro");[m
+[32m+[m[32m  const [mounted, setMounted] = useState(false);[m
+[32m+[m
+[32m+[m[32m  useEffect(() => {[m
+[32m+[m[32m    if (typeof window === "undefined") return;[m
+[32m+[m[32m    const preferred = localStorage.getItem("preferred_language");[m
+[32m+[m[32m    if (preferred === "en") { router.replace("/en/login"); return; }[m
+[32m+[m[32m    if (preferred === "es") { router.replace("/es/login"); return; }[m
+[32m+[m[32m    if (!preferred) {[m
+[32m+[m[32m      const lang = (navigator.language || navigator.languages?.[0] || "").toLowerCase();[m
+[32m+[m[32m      if (lang.startsWith("es")) { localStorage.setItem("preferred_language", "es"); router.replace("/es/login"); return; }[m
+[32m+[m[32m      if (lang.startsWith("en")) { localStorage.setItem("preferred_language", "en"); router.replace("/en/login"); return; }[m
+[32m+[m[32m      localStorage.setItem("preferred_language", "ro");[m
+[32m+[m[32m    }[m
+[32m+[m[32m    setLocale("ro");[m
+[32m+[m[32m    setMounted(true);[m
+[32m+[m[32m  }, [router]);[m
+[32m+[m
+[32m+[m[32m  if (!mounted) return <div className="min-h-screen bg-[#09090b]" />;[m
+[32m+[m[32m  return <LoginContent locale={locale} />;[m
+ }[m
+[1mdiff --git a/app/studio/page.tsx b/app/studio/page.tsx[m
+[1mindex dec7c00..246f638 100644[m
+[1m--- a/app/studio/page.tsx[m
+[1m+++ b/app/studio/page.tsx[m
+[36m@@ -1,7 +1,28 @@[m
+ "use client";[m
+[31m-import React from 'react';[m
+[32m+[m[32mimport React, { useEffect, useState } from 'react';[m
+[32m+[m[32mimport { useRouter } from 'next/navigation';[m
+ import StudioContent from './StudioContent';[m
+ [m
+[31m-export default function Home() {[m
+[31m-  return <StudioContent locale="ro" />;[m
+[32m+[m[32mexport default function StudioPage() {[m
+[32m+[m[32m  const router = useRouter();[m
+[32m+[m[32m  const [locale, setLocale] = useState<"ro" | "en" | "es">("ro");[m
+[32m+[m[32m  const [mounted, setMounted] = useState(false);[m
+[32m+[m
+[32m+[m[32m  useEffect(() => {[m
+[32m+[m[32m    if (typeof window === "undefined") return;[m
+[32m+[m[32m    const preferred = localStorage.getItem("preferred_language");[m
+[32m+[m[32m    if (preferred === "en") { router.replace("/en/studio"); return; }[m
+[32m+[m[32m    if (preferred === "es") { router.replace("/es/studio"); return; }[m
+[32m+[m[32m    if (!preferred) {[m
+[32m+[m[32m      const lang = (navigator.language || navigator.languages?.[0] || "").toLowerCase();[m
+[32m+[m[32m      if (lang.startsWith("es")) { localStorage.setItem("preferred_language", "es"); router.replace("/es/studio"); return; }[m
+[32m+[m[32m      if (lang.startsWith("en")) { localStorage.setItem("preferred_language", "en"); router.replace("/en/studio"); return; }[m
+[32m+[m[32m      localStorage.setItem("preferred_language", "ro");[m
+[32m+[m[32m    }[m
+[32m+[m[32m    setLocale("ro");[m
+[32m+[m[32m    setMounted(true);[m
+[32m+[m[32m  }, [router]);[m
+[32m+[m
+[32m+[m[32m  if (!mounted) return <div className="min-h-screen bg-[#09090b]" />;[m
+[32m+[m[32m  return <StudioContent locale={locale} />;[m
+ }[m
+[1mdiff --git a/components/DemoDesktop.tsx b/components/DemoDesktop.tsx[m
+[1mindex d39e158..6557bef 100644[m
+[1m--- a/components/DemoDesktop.tsx[m
+[1m+++ b/components/DemoDesktop.tsx[m
+[36m@@ -3164,10 +3164,12 @@[m [mexport default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" |[m
+             <div className="w-16 h-16 bg-emerald-500/20 rounded-full flex items-center justify-center mb-6 border border-emerald-500/50 shadow-[0_0_15px_rgba(16,185,129,0.3)]">[m
+               <span className="text-3xl">✨</span>[m
+             </div>[m
+[31m-            <h2 className="text-2xl font-black text-white mb-4">{locale === "en" ? "Your plan looks great!" : "Planul tău arată grozav!"}</h2>[m
+[32m+[m[32m            <h2 className="text-2xl font-black text-white mb-4">{locale === "en" ? "Your plan looks great!" : locale === "es" ? "¡Tu plan está quedando increíble!" : "Planul tău arată grozav!"}</h2>[m
+             <p className="text-zinc-400 mb-8 leading-relaxed">[m
+               {locale === "en" [m
+[31m-                ? "Create a free account to download it completely in PDF, DOCX, or PPTX format and to save all your changes!" [m
+[32m+[m[32m                ? "Create a free account to download it completely in PDF, DOCX, or PPTX format and to save all your changes!"[m
+[32m+[m[32m                : locale === "es"[m
+[32m+[m[32m                ? "¡Crea una cuenta gratuita para descargarlo completamente en formato PDF, DOCX o PPTX y guardar todos tus cambios!"[m
+                 : "Creează-ți un cont gratuit pentru a-l descărca complet în format PDF, DOCX sau PPTX și pentru a-ți salva toate modificările!"}[m
+             </p>[m
+             <div className="flex flex-col gap-3 w-full">[m
+[36m@@ -3178,13 +3180,13 @@[m [mexport default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" |[m
+                 }}[m
+                 className="w-full py-3.5 bg-emerald-500 hover:bg-emerald-400 text-white rounded-xl font-bold transition-all shadow-[0_0_20px_rgba(16,185,129,0.3)]"[m
+               >[m
+[31m-                {locale === "en" ? "Create free account" : "Creează cont gratuit"}[m
+[32m+[m[32m                {locale === "en" ? "Create free account" : locale === "es" ? "Crear cuenta gratuita" : "Creează cont gratuit"}[m
+               </button>[m
+               <button [m
+                 onClick={() => setShowStudioExportModal(false)}[m
+                 className="w-full py-3.5 bg-transparent hover:bg-zinc-900 text-zinc-400 rounded-xl font-bold transition-all"[m
+               >[m
+[31m-                {locale === "en" ? "Back to editing" : "Înapoi la editare"}[m
+[32m+[m[32m                {locale === "en" ? "Back to editing" : locale === "es" ? "Volver a editar" : "Înapoi la editare"}[m
+               </button>[m
+             </div>[m
+           </div>[m
+[36m@@ -3205,7 +3207,7 @@[m [mexport default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" |[m
+         userId={user?.uid || ""}[m
+         userEmail={user?.email || ""}[m
+         currency={currency}[m
+[31m-        planName={result?.nume || (locale === "en" ? "Business Plan" : "Plan de Afaceri")}[m
+[32m+[m[32m        planName={result?.nume || (locale === "en" ? "Business Plan" : locale === "es" ? "Plan de Negocios" : "Plan de Afaceri")}[m
+         locale={locale}[m
+       />[m
+       {showAuthModal && ([m
+[36m@@ -3228,7 +3230,9 @@[m [mexport default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" |[m
+             <h3 className="text-2xl font-black text-white mb-3 relative z-10">{locale === "en" ? "Create a free account" : "Creează-ți un cont gratuit"}</h3>[m
+             <p className="text-zinc-400 mb-6 text-sm leading-relaxed relative z-10 font-sans">[m
+               {locale === "en" [m
+[31m-                ? "Create a free account to use our advanced tools and customize your business plan." [m
+[32m+[m[32m                ? "Create a free account to use our advanced tools and customize your business plan."[m
+[32m+[m[32m                : locale === "es"[m
+[32m+[m[32m                ? "Crea tu cuenta gratuita para usar nuestras herramientas avanzadas y personalizar tu plan de negocios."[m
+                 : "Creează-ți un cont gratuit pentru a folosi instrumentele noastre avansate și a personaliza planul tău de afaceri."}[m
+             </p>[m
+             [m
+[36m@@ -3239,7 +3243,7 @@[m [mexport default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" |[m
+               }}[m
+               className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 px-4 rounded-xl transition-all shadow-lg shadow-emerald-900/30 flex items-center justify-center gap-2"[m
+             >[m
+[31m-              <span>{locale === "en" ? "Login / Register" : "Conectare / Înregistrare"}</span>[m
+[32m+[m[32m              <span>{locale === "en" ? "Login / Register" : locale === "es" ? "Iniciar sesión / Registrarse" : "Conectare / Înregistrare"}</span>[m
+               <span>➔</span>[m
+             </button>[m
+             [m
+[36m@@ -3248,7 +3252,7 @@[m [mexport default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" |[m
+               onClick={() => setShowAuthModal(false)}[m
+               className="mt-3 w-full bg-zinc-800/80 hover:bg-zinc-800 text-zinc-400 hover:text-white font-bold py-3 px-4 rounded-xl transition-all text-sm"[m
+             >[m
+[31m-              {locale === "en" ? "Maybe later" : "Mai târziu"}[m
+[32m+[m[32m              {locale === "en" ? "Maybe later" : locale === "es" ? "Quizás más tarde" : "Mai târziu"}[m
+             </button>[m
+           </div>[m
+         </div>[m
+[1mdiff --git a/components/StudioDesktop.tsx b/components/StudioDesktop.tsx[m
+[1mindex da52fa7..b40727f 100644[m
+[1m--- a/components/StudioDesktop.tsx[m
+[1m+++ b/components/StudioDesktop.tsx[m
+[36m@@ -1774,7 +1774,7 @@[m [mexport default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en"[m
+       onContextMenu={(e) => e.preventDefault()}[m
+     >[m
+       <div className="hidden print:block w-full h-full bg-white text-black text-center p-20 text-3xl font-bold">[m
+[31m-        {locale === "en" ? "Content is protected. To obtain the document, use the download function inside the application." : "Conținutul este protejat. Pentru a obține documentul, utilizați funcția de descărcare din aplicație."}[m
+[32m+[m[32m        {locale === "en" ? "Content is protected. To obtain the document, use the download function inside the application." : locale === "es" ? "El contenido está protegido. Para obtener el documento, utiliza la función de descarga dentro de la aplicación." : "Conținutul este protejat. Pentru a obține documentul, utilizați funcția de descărcare din aplicație."}[m
+       </div>[m
+       {/* Background glow orbs */}[m
+       <div className="absolute top-[10%] left-[-15%] w-[600px] h-[600px] rounded-full bg-emerald-500/5 blur-[120px] pointer-events-none animate-pulse duration-[8000ms] z-0"></div>[m
+[36m@@ -1815,13 +1815,13 @@[m [mexport default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en"[m
+             <div className="w-16 h-16 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin mb-6"></div>[m
+             <p className="text-2xl font-bold text-white tracking-widest uppercase text-center">[m
+               {isDownloading === 'pptx' [m
+[31m-                ? (locale === "en" ? 'Generating presentation brochure...' : 'Se generează broșură de prezentare...') [m
+[32m+[m[32m                ? (locale === "en" ? 'Generating presentation brochure...' : locale === "es" ? 'Generando folleto de presentación...' : 'Se generează broșură de prezentare...')[m[41m [m
+                 : isDownloading === 'pdf' [m
+[31m-                  ? (locale === "en" ? 'Generating presentation...' : 'Se generează prezentarea...') [m
+[31m-                  : (locale === "en" ? 'Generating document...' : 'Se generează document...')}[m
+[32m+[m[32m                  ? (locale === "en" ? 'Generating presentation...' : locale === "es" ? 'Generando presentación...' : 'Se generează prezentarea...')[m[41m [m
+[32m+[m[32m                  : (locale === "en" ? 'Generating document...' : locale === "es" ? 'Generando documento...' : 'Se generează document...')}[m
+             </p>[m
+             <p className="text-emerald-400 font-medium mt-3 text-center">[m
+[31m-              {locale === "en" ? "This process takes a few moments to ensure maximum quality." : "Acest proces durează câteva momente pentru a asigu

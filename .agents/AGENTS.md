@@ -171,6 +171,14 @@ Orice agent care primește o instrucțiune ambiguă trebuie să CEARĂ CONFIRMAR
 - Implementarea cursurilor valutare dinamice cache-uite prin utilitarul `exchangeRate.ts` apelat în API `/api/generate`.
 - Rezolvarea tuturor problemelor de tipuri TypeScript și build final trecut 100% cu succes (`✓ Compiled successfully` în 5.0s pe 43/43 pagini).
 
+### Checkpoint-23-Iulie-2026-Pachet-Major-36-Commits
+- Remediat 10 ternare în DemoDesktop și 17 în StudioDesktop pentru traducerile complete în spaniolă (ES).
+- Implementat detecția automată a limbii browserului/sistemului în app/demo, app/studio, app/dashboard, app/login.
+- Actualizat serverul Hetzner: instalat actualizări pachete și kernel nou (`7.0.0-28-generic`), verificat autostart PM2, repornit serverul complet în siguranță.
+- Pregătit pachetul cumulat de 36 de commit-uri (35 locale anterioare + 1 commit localizare) pentru deploy live.
+- Build local validat cu succes (`✓ Compiled successfully` în 7.1s, 43/43 pagini statice generate).
+
+
 
 
 

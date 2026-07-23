@@ -3164,10 +3164,12 @@ export default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" | 
             <div className="w-16 h-16 bg-emerald-500/20 rounded-full flex items-center justify-center mb-6 border border-emerald-500/50 shadow-[0_0_15px_rgba(16,185,129,0.3)]">
               <span className="text-3xl">✨</span>
             </div>
-            <h2 className="text-2xl font-black text-white mb-4">{locale === "en" ? "Your plan looks great!" : "Planul tău arată grozav!"}</h2>
+            <h2 className="text-2xl font-black text-white mb-4">{locale === "en" ? "Your plan looks great!" : locale === "es" ? "¡Tu plan está quedando increíble!" : "Planul tău arată grozav!"}</h2>
             <p className="text-zinc-400 mb-8 leading-relaxed">
               {locale === "en" 
-                ? "Create a free account to download it completely in PDF, DOCX, or PPTX format and to save all your changes!" 
+                ? "Create a free account to download it completely in PDF, DOCX, or PPTX format and to save all your changes!"
+                : locale === "es"
+                ? "¡Crea una cuenta gratuita para descargarlo completamente en formato PDF, DOCX o PPTX y guardar todos tus cambios!"
                 : "Creează-ți un cont gratuit pentru a-l descărca complet în format PDF, DOCX sau PPTX și pentru a-ți salva toate modificările!"}
             </p>
             <div className="flex flex-col gap-3 w-full">
@@ -3178,13 +3180,13 @@ export default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" | 
                 }}
                 className="w-full py-3.5 bg-emerald-500 hover:bg-emerald-400 text-white rounded-xl font-bold transition-all shadow-[0_0_20px_rgba(16,185,129,0.3)]"
               >
-                {locale === "en" ? "Create free account" : "Creează cont gratuit"}
+                {locale === "en" ? "Create free account" : locale === "es" ? "Crear cuenta gratuita" : "Creează cont gratuit"}
               </button>
               <button 
                 onClick={() => setShowStudioExportModal(false)}
                 className="w-full py-3.5 bg-transparent hover:bg-zinc-900 text-zinc-400 rounded-xl font-bold transition-all"
               >
-                {locale === "en" ? "Back to editing" : "Înapoi la editare"}
+                {locale === "en" ? "Back to editing" : locale === "es" ? "Volver a editar" : "Înapoi la editare"}
               </button>
             </div>
           </div>
@@ -3205,7 +3207,7 @@ export default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" | 
         userId={user?.uid || ""}
         userEmail={user?.email || ""}
         currency={currency}
-        planName={result?.nume || (locale === "en" ? "Business Plan" : "Plan de Afaceri")}
+        planName={result?.nume || (locale === "en" ? "Business Plan" : locale === "es" ? "Plan de Negocios" : "Plan de Afaceri")}
         locale={locale}
       />
       {showAuthModal && (
@@ -3228,7 +3230,9 @@ export default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" | 
             <h3 className="text-2xl font-black text-white mb-3 relative z-10">{locale === "en" ? "Create a free account" : "Creează-ți un cont gratuit"}</h3>
             <p className="text-zinc-400 mb-6 text-sm leading-relaxed relative z-10 font-sans">
               {locale === "en" 
-                ? "Create a free account to use our advanced tools and customize your business plan." 
+                ? "Create a free account to use our advanced tools and customize your business plan."
+                : locale === "es"
+                ? "Crea tu cuenta gratuita para usar nuestras herramientas avanzadas y personalizar tu plan de negocios."
                 : "Creează-ți un cont gratuit pentru a folosi instrumentele noastre avansate și a personaliza planul tău de afaceri."}
             </p>
             
@@ -3239,7 +3243,7 @@ export default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" | 
               }}
               className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 px-4 rounded-xl transition-all shadow-lg shadow-emerald-900/30 flex items-center justify-center gap-2"
             >
-              <span>{locale === "en" ? "Login / Register" : "Conectare / Înregistrare"}</span>
+              <span>{locale === "en" ? "Login / Register" : locale === "es" ? "Iniciar sesión / Registrarse" : "Conectare / Înregistrare"}</span>
               <span>➔</span>
             </button>
             
@@ -3248,7 +3252,7 @@ export default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" | 
               onClick={() => setShowAuthModal(false)}
               className="mt-3 w-full bg-zinc-800/80 hover:bg-zinc-800 text-zinc-400 hover:text-white font-bold py-3 px-4 rounded-xl transition-all text-sm"
             >
-              {locale === "en" ? "Maybe later" : "Mai târziu"}
+              {locale === "en" ? "Maybe later" : locale === "es" ? "Quizás más tarde" : "Mai târziu"}
             </button>
           </div>
         </div>

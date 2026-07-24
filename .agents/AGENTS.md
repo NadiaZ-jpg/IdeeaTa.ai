@@ -178,6 +178,12 @@ Orice agent care primește o instrucțiune ambiguă trebuie să CEARĂ CONFIRMAR
 - Pregătit pachetul cumulat de 36 de commit-uri (35 locale anterioare + 1 commit localizare) pentru deploy live.
 - Build local validat cu succes (`✓ Compiled successfully` în 7.1s, 43/43 pagini statice generate).
 
+### Checkpoint-24-Iulie-2026-Remediere-Audit-Complet-Faza1-Faza2
+- Finalizat implementarea întregului plan de remediere audit:
+  - Faza 1: validate-promo securizat complet (limite și tier-uri), token JWT enforțat, prompt localizat în ES și RO în backend, curățare coliziuni în migrationManager, securizat api debug rute.
+  - Faza 2: eliminat devBypass din toate cele 4 ecrane, localizat modal e-mail și placeholders, buton dedicat promo pe mobil, confirmări inline în Dashboard, protecții hydration în dispatchere pentru a opri flash-ul visual, unificat formatObjectNumbers centralizat.
+- Proiect compilat local cu succes: ✅ `✓ Compiled successfully in 19.2s` (44/44 pagini statice generate).
+
 
 
 

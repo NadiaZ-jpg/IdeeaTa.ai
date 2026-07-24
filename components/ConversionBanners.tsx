@@ -31,10 +31,10 @@ export const ConversionBanners: React.FC<ConversionBannersProps> = ({
             </h4>
             <p className="text-xs text-zinc-400 mt-1 leading-relaxed">
               {locale === "en" 
-                ? "Want to generate your own plan completely free, customized in detail by AI for your business idea?" 
+                ? "Want to generate your own plan completely free, customized in detail by assistant for your business idea?" 
                 : locale === "es"
-                ? "¿Quieres generar tu propio plan de forma completamente gratuita, personalizado en detalle por la IA para tu idea de negocio?"
-                : "Vrei să generezi propriul tău plan complet gratuit, personalizat în detaliu de AI pentru ideea ta de afacere?"}
+                ? "¿Quieres generar tu propio plan de forma completamente gratuita, personalizado en detalle por el asistente para tu idea de negocio?"
+                : "Vrei să generezi propriul tău plan complet gratuit, personalizat în detaliu de asistent pentru ideea ta de afacere?"}
             </p>
           </div>
         </div>

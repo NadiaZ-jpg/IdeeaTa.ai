@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { auth, db } from '@/lib/firebase';
 import { onAuthStateChanged, User, sendEmailVerification, signOut } from 'firebase/auth';
-import { collection, query, orderBy, getDocs, doc, deleteDoc } from 'firebase/firestore';
+import { collection, query, orderBy, getDocs, doc, deleteDoc, getDoc } from 'firebase/firestore';
 import { Plus, FileText, Calendar, ArrowRight, Loader2, Sparkles, Mail, AlertTriangle, Trash2 } from 'lucide-react';
 import { migrateLocalPlansToFirebase } from '@/lib/migrationManager';
 import { LanguageSwitcher } from '@/components/LanguageSwitcher';
@@ -14,17 +14,17 @@ export default function DashboardContent({ locale = "ro" }: { locale?: "ro" | "e
   const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
   const [plans, setPlans] = useState<any[]>([]);
+  const [isPaidUser, setIsPaidUser] = useState(false);
   const [loading, setLoading] = useState(true);
   const [showVerificationModal, setShowVerificationModal] = useState(false);
   const [verificationSent, setVerificationSent] = useState(false);
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
   
   const isEn = locale === "en";
   const isEs = locale === "es";
 
-  // FEAT-3: Avertizare vizuală dacă utilizatorul gratuit a consumat generarea
-  const studioLimitUsed = typeof window !== 'undefined'
-    ? parseInt(localStorage.getItem('studioGenerateCount') || '0', 10) >= 1
-    : false;
+  // FEAT-3: Avertizare vizuală dacă utilizatorul gratuit a consumat limita de 4 generări
+  const studioLimitUsed = plans.length >= 4;
 
   const handleGenerateNew = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -58,25 +58,17 @@ export default function DashboardContent({ locale = "ro" }: { locale?: "ro" | "e
     e.stopPropagation(); // Previne navigarea la studio
     if (!user) return;
     
-    const confirmDelete = window.confirm(
-      isEn 
-        ? "Are you sure you want to permanently delete this business plan? This action cannot be undone."
-        : isEs
-        ? "¿Estás seguro de que deseas eliminar permanentemente este plan de negocios? Esta acción no se puede deshacer."
-        : "Ești sigur că dorești să ștergi definitiv acest plan de afaceri? Această acțiune nu poate fi anulată."
-    );
-    if (!confirmDelete) return;
-    
     try {
       await deleteDoc(doc(db, "users", user.uid, "plans", planId));
       setPlans(plans.filter(p => p.id !== planId));
+      setConfirmDeleteId(null);
     } catch (err) {
       console.error("Eroare la ștergerea planului:", err);
       alert(
         isEn 
           ? "An error occurred while deleting the plan. Please try again." 
           : isEs
-          ? "Ocurrió un error al eliminar el plan. Por favor, inténtalo de nuevo."
+          ? "Ocurrió un error al eliminar the plan. Por favor, inténtalo de nuevo."
           : "A apărut o eroare la ștergerea planului. Te rugăm să încerci din nou."
       );
     }
@@ -93,6 +85,15 @@ export default function DashboardContent({ locale = "ro" }: { locale?: "ro" | "e
       try {
         // Asigurăm migrarea planurilor locale înainte de a le prelua din Firestore (elimină race condition-ul)
         await migrateLocalPlansToFirebase(currentUser);
+
+        // Preluăm starea de plată din documentul de utilizator
+        const userDocRef = doc(db, "users", currentUser.uid);
+        const userDocSnap = await getDoc(userDocRef);
+        if (userDocSnap.exists()) {
+          const uData = userDocSnap.data();
+          const isPaid = uData.isPaid || uData.subscriptionActive || uData.promoCodeTier === "standard" || uData.promoCodeTier === "eu-funds" || uData.promoCodeTier === "full-access" || false;
+          setIsPaidUser(isPaid);
+        }
 
         const plansRef = collection(db, "users", currentUser.uid, "plans");
         const q = query(plansRef, orderBy("createdAt", "desc"));
@@ -169,10 +170,20 @@ export default function DashboardContent({ locale = "ro" }: { locale?: "ro" | "e
               <Plus className="w-5 h-5" />
               {isEn ? "Generate New Plan" : isEs ? "Generar Nuevo Plan" : "Generează Plan Nou"}
             </button>
-            {studioLimitUsed && (
-              <span className="text-[11px] text-amber-400 font-semibold flex items-center gap-1">
-                ⚡ {isEn ? "Free plan limit reached — upgrade required for new plan" : isEs ? "Límite del plan gratuito alcanzado — se requiere actualización para nuevo plan" : "Planul gratuit folosit — upgrade necesar pentru plan nou"}
-              </span>
+            {!isPaidUser && (
+              studioLimitUsed ? (
+                <span className="text-[11px] text-amber-400 font-semibold flex items-center gap-1">
+                  ⚡ {isEn ? "Free plan limit reached — upgrade required for new plan" : isEs ? "Límite del plan gratuito alcanzado — se requiere actualización para nuevo plan" : "Planul gratuit folosit — upgrade necesar pentru plan nou"}
+                </span>
+              ) : (
+                <span className="text-[11px] text-emerald-400 font-semibold flex items-center gap-1">
+                  🎁 {isEn 
+                    ? (4 - plans.length === 1 ? "You have 1 free plan generation remaining." : `You have ${4 - plans.length} free plan generations remaining.`) 
+                    : isEs 
+                    ? (4 - plans.length === 1 ? "Te queda 1 generación de plan gratuito." : `Te quedan ${4 - plans.length} generaciones de planes gratuitos.`) 
+                    : (4 - plans.length === 1 ? "Mai ai dreptul la 1 plan gratuit." : `Mai ai dreptul la ${4 - plans.length} planuri gratuite.`)}
+                </span>
+              )
             )}
           </div>
         </header>
@@ -235,18 +246,48 @@ export default function DashboardContent({ locale = "ro" }: { locale?: "ro" | "e
                 </p>
 
                 <div className="mt-auto pt-4 border-t border-zinc-800/80 flex justify-between items-center text-emerald-400 font-bold text-sm">
-                  <span>{isEn ? "Open in Studio" : isEs ? "Abrir en Studio" : "Deschide în Studio"}</span>
-                  <div className="flex items-center gap-3">
-                    <button
-                      type="button"
-                      onClick={(e) => handleDeletePlan(e, plan.id)}
-                      className="p-1.5 text-zinc-500 hover:text-red-400 hover:bg-zinc-800/50 rounded-lg transition-all"
-                      title={isEn ? "Delete plan" : isEs ? "Eliminar plan" : "Șterge planul"}
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
-                    <ArrowRight className="w-4 h-4 transform group-hover:translate-x-1 transition-transform" />
-                  </div>
+                  {confirmDeleteId === plan.id ? (
+                    <div className="flex items-center gap-2 text-xs w-full justify-between" onClick={(e) => e.stopPropagation()}>
+                      <span className="text-red-400 font-semibold">{isEn ? "Sure?" : isEs ? "¿Seguro?" : "Sigur?"}</span>
+                      <div className="flex gap-2">
+                        <button
+                          type="button"
+                          onClick={(e) => handleDeletePlan(e, plan.id)}
+                          className="px-2.5 py-1 bg-red-600 hover:bg-red-500 text-white rounded-lg font-bold transition-all cursor-pointer text-xs"
+                        >
+                          {isEn ? "Yes" : isEs ? "Sí" : "Da"}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setConfirmDeleteId(null);
+                          }}
+                          className="px-2.5 py-1 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 rounded-lg font-bold transition-all cursor-pointer text-xs"
+                        >
+                          {isEn ? "No" : isEs ? "No" : "Nu"}
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <>
+                      <span>{isEn ? "Open in Studio" : isEs ? "Abrir en Studio" : "Deschide în Studio"}</span>
+                      <div className="flex items-center gap-3">
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setConfirmDeleteId(plan.id);
+                          }}
+                          className="p-1.5 text-zinc-500 hover:text-red-400 hover:bg-zinc-800/50 rounded-lg transition-all"
+                          title={isEn ? "Delete plan" : isEs ? "Eliminar plan" : "Șterge planul"}
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                        <ArrowRight className="w-4 h-4 transform group-hover:translate-x-1 transition-transform" />
+                      </div>
+                    </>
+                  )}
                 </div>
               </div>
             ))}

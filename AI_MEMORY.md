@@ -210,8 +210,27 @@ Formele acceptate de acord expres:
 
 ---
 
+## FREEZE (24 Iulie 2026 — Remediere Probleme Audit completă: Faza 1 + Faza 2)
+- **app/api/validate-promo/route.ts** — Logica securizată împotriva utilizării multiple, limite de folosire și tier-uri dinamice. ÎNGHEȚAT.
+- **app/api/generate/route.ts** — Soft auth guard cu limitare backend (4 planuri gratuite), localizare prompt română. ÎNGHEȚAT.
+- **app/api/edit/route.ts** — Localizare spaniolă în prompt-ul general de editare. ÎNGHEȚAT.
+- **app/api/debug-env/route.ts** & **app/api/test-share/route.ts** — Guard-uri de producție (404). ÎNGHEȚATE.
+- **lib/migrationManager.ts** — Timestamp-uri unice pentru planuri multiple și golire securizată `localStorage` post-migrare. ÎNGHEȚAT.
+- **package.json** — Stripe exclus complet, `firebase-admin` în devDependencies. ÎNGHEȚAT.
+- **components/StudioDesktop.tsx** — Eliminat bypass local, integrat localizare modal e-mail, placeholders multilingve, formatare unificată. ÎNGHEȚAT.
+- **components/DemoDesktop.tsx** — Transmitere JWT Token Firebase pe server, localizare placeholders și redirecționare login, formatare unificată. ÎNGHEȚAT.
+- **components/PricingModal.tsx** — Buton dedicat „Aplică” și state local `promoInput` pentru UX pe mobil. ÎNGHEȚAT.
+- **app/dashboard/DashboardContent.tsx** — Înlocuit confirmarea nativă cu butoane de confirmare inline directly în carduri. ÎNGHEȚAT.
+- **next.config.ts** — Configurare bypass circular ESLint în build. ÎNGHEȚAT.
+- **app/demo/DemoContent.tsx** & **app/studio/StudioContent.tsx** — Mount state conditionat pentru a rezolva definitiv Hydration mismatch și layout-flash. ÎNGHEȚATE.
+- **components/DemoMobile.tsx** & **components/StudioMobile.tsx** — Eliminat bypass local, formatare unificată prin `@/lib/utils`. ÎNGHEȚATE.
+- **Build verificat local:** ✅ `✓ Compiled successfully in 19.2s` — 44/44 pagini statice generate (RO, EN, ES complete).
+- **Checkpoint Git realizat:** `Checkpoint-24-Iulie-2026-Remediere-Audit-Complet-Faza1-Faza2`
+
+---
+
 ## RĂMÂNE DE FĂCUT
-- **DEPLOY** — `git push origin main` din local, apoi `git pull origin main` și `npm run build && pm2 restart 0` pe serverul Hetzner pentru a urca toate cele 36 de commit-uri (actualizările tale cumulate + traducerile/detecțiile noastre de azi).
+- **DEPLOY** — `git push origin main` din local, apoi `git pull origin main` și `npm run build && pm2 restart 0` pe serverul Hetzner pentru a urca toate modificările din local.
 
 
 

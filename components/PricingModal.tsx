@@ -15,6 +15,8 @@ interface PricingModalProps {
 export function PricingModal({ isOpen, onClose, onSuccess, onRequireLogin, userId, userEmail, currency, planName, locale = "ro" }: PricingModalProps) {
   const [loadingTier, setLoadingTier] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [promoInput, setPromoInput] = useState("");
+  const [promoLoading, setPromoLoading] = useState(false);
  
   if (!isOpen) return null;
  
@@ -64,6 +66,34 @@ export function PricingModal({ isOpen, onClose, onSuccess, onRequireLogin, userI
     return "";
   };
 
+  const handleValidatePromo = async () => {
+    const val = promoInput.trim();
+    if (!val) return;
+
+    setError(null);
+    setPromoLoading(true);
+    try {
+      const res = await fetch("/api/validate-promo", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code: val, userId })
+      });
+
+      const data = await res.json();
+      if (data.success) {
+        if (onSuccess) onSuccess(data.tier);
+        onClose();
+      } else {
+        setError(data.error || (locale === "en" ? "Invalid promo code" : locale === "es" ? "Código promocional inválido" : "Cod promoțional invalid"));
+      }
+    } catch (err) {
+      console.error("Eroare validare:", err);
+      setError(locale === "en" ? "Error connecting to the server." : locale === "es" ? "Error al conectar con el servidor." : "Eroare la conectarea cu serverul.");
+    } finally {
+      setPromoLoading(false);
+    }
+  };
+
   return (
     <div className="fixed inset-0 bg-black/80 backdrop-blur-md z-[110] flex items-center justify-center p-4 overflow-y-auto animate-in fade-in duration-300">
       <div className="bg-[#09090b] border border-zinc-800 rounded-[2.5rem] w-full max-w-5xl shadow-2xl p-6 md:p-10 relative overflow-hidden flex flex-col gap-8 animate-in slide-in-from-bottom-12 duration-300 text-left">
@@ -83,38 +113,28 @@ export function PricingModal({ isOpen, onClose, onSuccess, onRequireLogin, userI
 
         {/* Header */}
         <div className="text-center flex flex-col items-center gap-2 relative">
-          <div className="absolute top-0 right-0">
+          <div className="absolute top-0 right-0 flex items-center gap-1.5 z-20">
             <input 
               type="text" 
+              value={promoInput}
+              onChange={(e) => setPromoInput(e.target.value)}
               placeholder={locale === "en" ? "Promo code" : locale === "es" ? "Código promocional" : "Cod promoțional"} 
-              className="bg-zinc-900 border border-zinc-800 text-white text-xs px-3 py-1 rounded-lg w-32 focus:outline-none focus:border-emerald-500 transition-colors"
+              className="bg-zinc-900 border border-zinc-800 text-white text-xs px-3 py-1.5 rounded-lg w-28 md:w-32 focus:outline-none focus:border-emerald-500 transition-colors"
               onKeyDown={async (e) => {
                 if (e.key === 'Enter') {
-                  const val = e.currentTarget.value.trim();
-                  if (!val) return;
-
-                  setError(null);
-                  try {
-                    const res = await fetch("/api/validate-promo", {
-                      method: "POST",
-                      headers: { "Content-Type": "application/json" },
-                      body: JSON.stringify({ code: val, userId })
-                    });
-
-                    const data = await res.json();
-                    if (data.success) {
-                      if (onSuccess) onSuccess(data.tier);
-                      onClose();
-                    } else {
-                      setError(data.error || (locale === "en" ? "Invalid promo code" : locale === "es" ? "Código promocional inválido" : "Cod promoțional invalid"));
-                    }
-                  } catch (err) {
-                    console.error("Eroare validare:", err);
-                    setError(locale === "en" ? "Error connecting to the server." : locale === "es" ? "Error al conectar con el servidor." : "Eroare la conectarea cu serverul.");
-                  }
+                  handleValidatePromo();
                 }
               }}
             />
+            <button
+              onClick={handleValidatePromo}
+              disabled={promoLoading}
+              className="bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white text-[10px] md:text-xs font-bold px-2.5 py-1.5 rounded-lg transition-colors cursor-pointer"
+            >
+              {promoLoading 
+                ? "..." 
+                : (locale === "en" ? "Apply" : locale === "es" ? "Aplicar" : "Aplică")}
+            </button>
           </div>
           <div className="w-16 h-16 bg-emerald-950/40 border border-emerald-500/30 text-emerald-400 rounded-2xl flex items-center justify-center text-3xl mb-2 shadow-[0_0_20px_rgba(52,211,153,0.1)]">
             💰
@@ -167,7 +187,7 @@ export function PricingModal({ isOpen, onClose, onSuccess, onRequireLogin, userI
                 </li>
                 <li className="flex items-start gap-2.5">
                   <span className="text-emerald-500 font-bold">✓</span>
-                  <span>{locale === "en" ? "Unlimited AI Tone (all variations)" : locale === "es" ? "Tono de IA ilimitado (todas las variantes)" : "Ton AI nelimitat (toate variantele)"}</span>
+                  <span>{locale === "en" ? "Unlimited Assisted Tone (all variations)" : locale === "es" ? "Tono asistido ilimitado (todas las variantes)" : "Ton Asistat nelimitat (toate variantele)"}</span>
                 </li>
               </ul>
             </div>
@@ -208,7 +228,7 @@ export function PricingModal({ isOpen, onClose, onSuccess, onRequireLogin, userI
                 <li className="flex items-start gap-2.5">
                   <span className="text-amber-500 font-bold">✓</span>
                   <span className="text-zinc-200 font-medium">
-                    {locale === "en" ? "All 4 AI Tone variations" : locale === "es" ? "Las 4 variaciones de Tono de IA" : <>Toate cele <strong>4 variante de Ton AI</strong></>}
+                    {locale === "en" ? "All 4 Assisted Tone variations" : locale === "es" ? "Las 4 variaciones de Tono Asistido" : <>Toate cele <strong>4 variante de Ton Asistat</strong></>}
                   </span>
                 </li>
                 <li className="flex items-start gap-2.5">
@@ -225,7 +245,7 @@ export function PricingModal({ isOpen, onClose, onSuccess, onRequireLogin, userI
                 </li>
                 <li className="flex items-start gap-2.5">
                   <span className="text-amber-500 font-bold">✓</span>
-                  <span>{locale === "en" ? "AI Budget Optimization (auto-recalculation)" : locale === "es" ? "Optimización de Presupuesto por IA (recalculo automático)" : "Optimizare Buget AI (recalculare automată)"}</span>
+                  <span>{locale === "en" ? "Assisted Budget Optimization (auto-recalculation)" : locale === "es" ? "Optimización de Presupuesto Asistida (recalculo automático)" : "Optimizare Buget Asistat (recalculare automată)"}</span>
                 </li>
                 <li className="flex items-start gap-2.5">
                   <span className="text-amber-500 font-bold">✓</span>

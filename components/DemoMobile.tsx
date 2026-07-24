@@ -17,53 +17,15 @@ import Link from 'next/link';
 import { getExamples } from '@/lib/examples';
 import { t } from '@/lib/translations';
 import dynamic from 'next/dynamic';
+import { formatObjectNumbers, formatNumberedText } from "@/lib/utils";
 
 const BudgetPieChart = dynamic(() => import('@/components/BudgetChart').then(mod => mod.BudgetPieChart), { ssr: false });
-
-const formatNumberedText = (text: string | undefined) => {
-  if (typeof text !== 'string') return text;
-  let formatted = text;
-  formatted = formatted.replace(/^(?:În primul an:?|În următorii(?:\s*\d+(?:-\d+)?\s*ani)?:?|Obiective(?:le)?[^:]*:?|Pentru primul an:?|Pe termen scurt:?|Pe termen mediu:?)\s*/i, '');
-  formatted = formatted.replace(/\*\*/g, '');
-  formatted = formatted.replace(/^\s*\*\s*/gm, '');
-  formatted = formatted.replace(/\s*\*\s*$/gm, '');
-  formatted = formatted.replace(/\n\s*\n+/g, '\n\n');
-  formatted = formatted.replace(/\n+\s*(\d+\.)\s+/g, '\n$1 ');
-  formatted = formatted.replace(/([.!?])\s+(\d+\.)\s+/g, '$1\n$2 ');
-  formatted = formatted.replace(/^[\s,;.-]+/, '');
-  formatted = formatted.replace(/(^|\n|[.!?]\s+)([^a-zA-ZăâîșțĂÂÎȘȚ]*)([a-zăâîșț])/g, (match, p1, p2, p3) => {
-    return p1 + p2 + p3.toUpperCase();
-  });
-  return formatted;
-};
-
-const formatObjectNumbers = (obj: any): any => {
-  if (obj === null || obj === undefined) return obj;
-  if (typeof obj === 'string') {
-    if (/^\s*\d+(?:\.\d+)?\s*$/.test(obj)) {
-      const parsed = parseFloat(obj.trim());
-      if (!isNaN(parsed)) return parsed;
-    }
-    return obj;
-  }
-  if (Array.isArray(obj)) {
-    return obj.map(item => formatObjectNumbers(item));
-  }
-  if (typeof obj === 'object') {
-    const newObj: any = {};
-    for (const key in obj) {
-      if (Object.prototype.hasOwnProperty.call(obj, key)) {
-        newObj[key] = formatObjectNumbers(obj[key]);
-      }
-    }
-    return newObj;
-  }
-}
 export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "es" }) {
   const isEn = locale === "en";
   const isEs = locale === "es";
   const ALL_EXAMPLES = getExamples(locale);
   const [skill, setSkill] = useState("");
+  const [demoCount, setDemoCount] = useState(0);
   const [result, setResult] = useState<any>(null);
   const [activeTab, setActiveTab] = useState<"overview" | "budget" | "marketing" | "swot">("overview");
   const [loading, setLoading] = useState(false);
@@ -88,6 +50,9 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
   const [examplesList, setExamplesList] = useState<any[]>(ALL_EXAMPLES.slice(0, 18));
 
   useEffect(() => {
+    if (typeof window !== "undefined") {
+      setDemoCount(parseInt(localStorage.getItem("demoGenerateCount") || "0", 10));
+    }
     // Schimbare automată o dată la 14 zile
     const twoWeeksMs = 14 * 24 * 60 * 60 * 1000;
     const epoch = 1700000000000; 
@@ -172,6 +137,7 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
         return;
       }
       localStorage.setItem("demoGenerateCount", (count + 1).toString());
+      setDemoCount(count + 1);
     }
 
     setLoading(true);
@@ -341,7 +307,7 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
           <div className="flex-1 flex flex-col items-center justify-center py-20 text-center gap-6">
             <div className="w-16 h-16 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin"></div>
             <div className="space-y-2 max-w-xs">
-              <h3 className="font-bold text-lg text-emerald-400">{locale === "en" ? "AI Assistant is working" : locale === "es" ? "El asistente de IA está trabajando" : "Asistentul AI lucrează"}</h3>
+              <h3 className="font-bold text-lg text-emerald-400">{locale === "en" ? "Assistant is working" : locale === "es" ? "El asistente está trabajando" : "Asistentul lucrează"}</h3>
               <p className="text-sm text-zinc-400 animate-pulse">{loadingMessages[loadingMessageIndex]}</p>
             </div>
           </div>
@@ -377,6 +343,25 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
                 <span>{locale === "en" ? "Generate Free Plan" : locale === "es" ? "Generar Plan Gratuito" : "Generează Planul Gratuit"}</span>
                 <span>🚀</span>
               </button>
+              {!user && (
+                <div className="text-center mt-2">
+                  <span className="text-[11px] font-bold text-emerald-400">
+                    {demoCount >= 3 ? (
+                      locale === "en" 
+                        ? "🔒 You have used your 3 free guest plan generations. Register for free to unlock +1 more plan." 
+                        : locale === "es"
+                        ? "🔒 Has agotado las 3 generaciones gratuitas como invitado. Regístrate gratis para desbloquear +1 plan más."
+                        : "🔒 Ai epuizat cele 3 planuri gratuite fără cont. Înregistrează-te gratuit pentru a debloca încă +1 plan."
+                    ) : (
+                      locale === "en"
+                        ? `🎁 You have ${3 - demoCount} free guest plan generations remaining. Create a free account later for +1 more.`
+                        : locale === "es"
+                        ? `🎁 Te quedan ${3 - demoCount} generaciones de planes gratuitos como invitado. Crea una cuenta gratuita más tarde para +1 más.`
+                        : `🎁 Mai ai dreptul la ${3 - demoCount} planuri gratuite fără cont. Creează cont gratuit ulterior pentru încă +1 plan.`
+                    )}
+                  </span>
+                </div>
+              )}
             </div>
 
             {/* Examples Carousel */}

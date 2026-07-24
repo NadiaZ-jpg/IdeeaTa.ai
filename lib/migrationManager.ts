@@ -35,11 +35,11 @@ export const migrateLocalPlansToFirebase = async (user: User) => {
       try {
         const plansList = JSON.parse(plansListStr);
         if (Array.isArray(plansList)) {
-          plansList.forEach((plan) => {
+          plansList.forEach((plan, index) => {
             if (plan && typeof plan === 'object') {
               if (!plan.id) {
                 const safeName = plan.nume?.replace(/[^a-zA-Z0-9]/g, '_') || 'Plan';
-                plan.id = `${safeName}_${Date.now()}`;
+                plan.id = `${safeName}_${Date.now()}_${index}`;
               }
               // Evităm duplicatele în localPlans bazat pe ID sau Nume
               const exists = localPlans.some((p) => p.id === plan.id || p.nume === plan.nume);
@@ -54,29 +54,43 @@ export const migrateLocalPlansToFirebase = async (user: User) => {
       }
     }
 
-    if (localPlans.length === 0) return;
+    if (localPlans.length === 0) {
+      // Chiar dacă nu avem planuri locale de migrat, setăm flagul pentru a preveni alte sync-uri redundante
+      localStorage.setItem('migration_completed_for_uid', user.uid);
+      return;
+    }
 
+    let allMigrated = true;
     for (const plan of localPlans) {
       if (!plan || !plan.id) continue;
       
-      const planRef = doc(db, 'users', user.uid, 'plans', plan.id);
-      const planSnap = await getDoc(planRef);
-      
-      if (!planSnap.exists()) {
-        await setDoc(planRef, {
-          ...plan,
-          isPaid: false,
-          isGeneratedFromDemo: true,
-          createdAt: plan.createdAt || new Date().toISOString(),
-          migratedAt: new Date().toISOString()
-        });
-        console.log(`Plan ${plan.id} migrated to Firebase successfully.`);
+      try {
+        const planRef = doc(db, 'users', user.uid, 'plans', plan.id);
+        const planSnap = await getDoc(planRef);
+        
+        if (!planSnap.exists()) {
+          await setDoc(planRef, {
+            ...plan,
+            isPaid: false,
+            isGeneratedFromDemo: true,
+            createdAt: plan.createdAt || new Date().toISOString(),
+            migratedAt: new Date().toISOString()
+          });
+          console.log(`Plan ${plan.id} migrated to Firebase successfully.`);
+        }
+      } catch (e) {
+        allMigrated = false;
+        console.error(`Eroare la migrarea planului ${plan.id || 'necunoscut'}:`, e);
       }
     }
 
-    // Curățăm storage-ul local după migrare completă cu succes
-    localStorage.removeItem('current_generated_plan');
-    localStorage.removeItem('demo_plans_list');
+    // Curățăm storage-ul local DOAR după migrare completă cu succes a tuturor planurilor
+    if (allMigrated) {
+      localStorage.removeItem('current_generated_plan');
+      localStorage.removeItem('demo_plans_list');
+      localStorage.setItem('migration_completed_for_uid', user.uid);
+      console.log(`Toate planurile locale au fost migrate. Flag-ul migration_completed_for_uid setat.`);
+    }
   } catch (error) {
     console.error("Eroare la migrarea planurilor din localStorage:", error);
   }

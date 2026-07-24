@@ -17,25 +17,9 @@ import { t } from '@/lib/translations';
 import dynamic from 'next/dynamic';
 import { generateDocxBlob } from '@/lib/generateDocx';
 import { generatePptx } from '@/lib/generatePptx';
+import { formatObjectNumbers, formatNumberedText } from "@/lib/utils";
 
 const BudgetPieChart = dynamic(() => import('@/components/BudgetChart').then(mod => mod.BudgetPieChart), { ssr: false });
-
-const formatNumberedText = (text: string | undefined) => {
-  if (typeof text !== 'string') return text;
-  let formatted = text;
-  formatted = formatted.replace(/^(?:În primul an:?|În următorii(?:\s*\d+(?:-\d+)?\s*ani)?:?|Obiective(?:le)?[^:]*:?|Pentru primul an:?|Pe termen scurt:?|Pe termen mediu:?)\s*/i, '');
-  formatted = formatted.replace(/\*\*/g, '');
-  formatted = formatted.replace(/^\s*\*\s*/gm, '');
-  formatted = formatted.replace(/\s*\*\s*$/gm, '');
-  formatted = formatted.replace(/\n\s*\n+/g, '\n\n');
-  formatted = formatted.replace(/\n+\s*(\d+\.)\s+/g, '\n$1 ');
-  formatted = formatted.replace(/([.!?])\s+(\d+\.)\s+/g, '$1\n$2 ');
-  formatted = formatted.replace(/^[\s,;.-]+/, '');
-  formatted = formatted.replace(/(^|\n|[.!?]\s+)([^a-zA-ZăâîșțĂÂÎȘȚ]*)([a-zăâîșț])/g, (match, p1, p2, p3) => {
-    return p1 + p2 + p3.toUpperCase();
-  });
-  return formatted;
-};
 
 export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" | "es" }) {
   const isEn = locale === "en";
@@ -59,12 +43,11 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
   const [unlockedPlans, setUnlockedPlans] = useState<string[]>([]);
   const [promoCodeUnlocked, setPromoCodeUnlocked] = useState(false);
   
-  const devBypass = typeof window !== 'undefined' && localStorage.getItem("devBypass") === "true";
-  const isAdmin = !!(user && (user.email === "adrian@ideeata.ai" || user.email === "contact@ideeata.ai"));
+  const isAdmin = !!(user && (user.email === "adrian@ideeata.ai" || user.email === "contact@ideeata.ai" || user.email === "nadiaramonaz@gmail.com"));
   const isPaid = typeof window !== 'undefined' && localStorage.getItem(`isPaid_${result?.nume}`) === "true";
 
-  const isPlanPaid = promoCodeUnlocked || isAdmin || devBypass || subscriptionActive || (result && unlockedPlans.includes(result.nume)) || isPaid;
-  const isStudioPaid = promoCodeUnlocked || isAdmin || devBypass || subscriptionActive || euFundsUnlocked || isPaid;
+  const isPlanPaid = promoCodeUnlocked || isAdmin || subscriptionActive || (result && unlockedPlans.includes(result.nume)) || isPaid;
+  const isStudioPaid = promoCodeUnlocked || isAdmin || subscriptionActive || euFundsUnlocked || isPaid;
 
   // Stări pentru editarea AI și manuală pe mobil (Bottom-Sheets)
   const [isEditingAi, setIsEditingAi] = useState(false);
@@ -468,8 +451,8 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
                     }`}
                   >
                     {(isStudioPaid || isPlanPaid)
-                      ? (locale === "en" ? "Optimize Budget with AI" : locale === "es" ? "Optimizar Presupuesto con IA" : "Optimizează Buget cu AI")
-                      : (locale === "en" ? "🔒 Optimize Budget with AI" : locale === "es" ? "🔒 Optimizar Presupuesto con IA" : "🔒 Optimizați Buget AI")
+                      ? (locale === "en" ? "Optimize Budget with Assistant" : locale === "es" ? "Optimizar Presupuesto con Asistente" : "Optimizează Buget Asistat")
+                      : (locale === "en" ? "🔒 Optimize Budget with Assistant" : locale === "es" ? "🔒 Optimizar Presupuesto con Asistente" : "🔒 Optimizați Buget Asistat")
                     }
                   </button>
                 </div>
@@ -511,7 +494,7 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
               <div className="bg-zinc-950/40 border border-zinc-800/60 rounded-xl p-4 space-y-3">
                 <div className="space-y-1">
                   <h4 className="text-xs font-bold text-zinc-200">{locale === "en" ? "Customize Presentation Tone" : locale === "es" ? "Personalizar el Tono de la Presentación" : "Personalizează Tonul Prezentării"}</h4>
-                  <p className="text-[10px] text-zinc-400">{locale === "en" ? "Automatically change the tone of the saved plan using AI." : locale === "es" ? "Cambia automáticamente el tono del plan guardado usando IA." : "Schimbă automat tonul planului salvat folosind AI-ul."}</p>
+                  <p className="text-[10px] text-zinc-400">{locale === "en" ? "Automatically change the tone of the saved plan using Assistant." : locale === "es" ? "Cambia automáticamente el tono del plan guardado usando Asistente." : "Schimbă automat tonul planului salvat folosind asistentul."}</p>
                 </div>
                 <ToneEditor
                   user={user}

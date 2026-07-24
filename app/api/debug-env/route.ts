@@ -1,7 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(req: NextRequest) {
-  // Check all Firebase-related env vars
+  // Guard de securitate pentru producție
+  if (process.env.NODE_ENV === "production") {
+    return new NextResponse("Not Found", { status: 404 });
+  }
+
   const allKeys = Object.keys(process.env).filter(k => 
     k.includes('FIREBASE') || k.includes('firebase')
   );

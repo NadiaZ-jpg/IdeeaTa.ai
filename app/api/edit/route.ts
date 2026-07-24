@@ -290,13 +290,31 @@ IMPORTANT PENTRU JSON:
     const isBigAction = action === "eu_funds_optimization" || action === "investor_ready" || action === "professional_tone";
 
     if (isBigAction) {
-       const pViziune = { viziune_strategie: result.viziune_strategie };
-       const pPiata = { analiza_pietei: result.analiza_pietei };
-       const pOperational = { plan_operational: result.plan_operational };
-       const pSwot = { analiza_swot: result.analiza_swot };
-       const pFinanciar = { plan_financiar: { strategie_financiara: result.plan_financiar?.strategie_financiara } };
+        const pViziune = { viziune_strategie: result.viziune_strategie };
+        const pPiata = { analiza_pietei: result.analiza_pietei };
+        const pOperational = { plan_operational: result.plan_operational };
+        const pSwot = { analiza_swot: result.analiza_swot };
+        const pFinanciar = { plan_financiar: { strategie_financiara: result.plan_financiar?.strategie_financiara } };
 
-       const buildPrompt = (segment: any) => isEn ? `You are an expert business consultant. 
+        const buildPrompt = (segment: any) => {
+          if (locale === "es") {
+            return `Eres un consultor de negocios experto.
+Actúa sobre el siguiente segmento del plan de negocios.
+${instruction}
+
+Segmento de plan actual:
+${JSON.stringify(segment)}
+
+Debes responder EXCLUSIVAMENTE con un JSON válido, respetando la estructura original del segmento recibido.
+Si recibiste un solo campo, devuélvelo en el mismo formato JSON.
+IMPORTANTE PARA EL JSON:
+- ¡NO utilices saltos de línea reales (unescaped newlines) dentro de los textos! Para los párrafos, usa estrictamente '\\n' (escapado).
+- DEBES escapar las comillas dobles dentro del texto usando barra invertida (\\"). Lo más seguro es usar comillas simples (') dentro del texto.
+- SIN comas al final del último elemento (no trailing commas).
+- NO agregues formato markdown, NO agregues comillas invertidas (\`\`\`), NO agregues texto adicional antes o después del JSON.`;
+          }
+          if (locale === "en") {
+            return `You are an expert business consultant. 
 Act upon the following segment of the business plan.
 ${instruction}
 
@@ -309,7 +327,9 @@ IMPORTANT FOR JSON:
 - DO NOT use real unescaped newlines inside strings! For paragraphs, strictly use '\\n' (escaped).
 - You MUST escape double quotes inside text using backslash (\\"). It is safest to use single quotes (') inside text.
 - NO trailing commas.
-- DO NOT add markdown formatting, DO NOT add backticks (\`\`\`), DO NOT add additional text before or after the JSON.` : `Ești un consultant de afaceri expert. 
+- DO NOT add markdown formatting, DO NOT add backticks (\`\`\`), DO NOT add additional text before or after the JSON.`;
+          }
+          return `Ești un consultant de afaceri expert. 
 Acționează asupra următorului segment de plan de afaceri.
 ${instruction}
 
@@ -323,6 +343,7 @@ IMPORTANT PENTRU JSON:
 - ESCAPEAZĂ obligatoriu ghilimelele duble din interiorul textului folosind backslash (\\"). Cel mai sigur este să folosești doar ghilimele simple (') în interiorul textului.
 - FĂRĂ virgule la finalul ultimului element din obiect sau array (fără trailing commas).
 - NU adăuga formatare markdown, NU adăuga backticks (\`\`\`), NU adăuga text adițional înainte sau după JSON.`;
+        };
 
        const [resViz, resPiata, resOp, resSwot, resFin] = await Promise.all([
           callGemini(buildPrompt(pViziune)),
@@ -346,12 +367,23 @@ IMPORTANT PENTRU JSON:
          const p5 = txtFin ? JSON.parse(txtFin) : {};
          parsed = { ...p1, ...p2, ...p3, ...p4, ...p5 };
        } catch (e: any) {
-         console.error("Parse error in parallel split");
-         return NextResponse.json({ error: "Eroare AI Formatare (Trunchiere pe sectiune): " + e.message + "\n\nFragmente:\n" + txtViz.substring(0, 30) + "...\n" + txtPiata.substring(0, 30) }, { status: 400 });
-       }
-    } else {
-       if (action !== "add_sections") {
-         prompt = isEn ? `You are an expert business consultant. 
+                if (locale === "es") {
+            prompt = `Eres un consultor de negocios experto.
+Actúa sobre el siguiente segmento del plan de negocios.
+${instruction}
+
+Segmento de plan actual:
+${JSON.stringify(inputData)}
+
+Debes responder EXCLUSIVAMENTE con un JSON válido, respetando la estructura original del segmento recibido.
+Si recibiste un solo campo, devuélvelo en el mismo formato JSON.
+IMPORTANTE PARA EL JSON:
+- ¡NO utilices saltos de línea reales (unescaped newlines) dentro de los textos! Para los párrafos, usa estrictamente '\\n' (escapado).
+- DEBES escapar las comillas dobles dentro del texto usando barra invertida (\\"). Lo más seguro es usar comillas simples (') dentro del texto.
+- SIN comas al final del último elemento (no trailing commas).
+- NO agregues formato markdown, NO agregues comillas invertidas (\`\`\`), NO agregues texto adicional antes o después del JSON.`;
+          } else if (locale === "en") {
+            prompt = `You are an expert business consultant. 
 Act upon the following segment of the business plan.
 ${instruction}
 
@@ -364,7 +396,9 @@ IMPORTANT FOR JSON:
 - DO NOT use real unescaped newlines inside strings! For paragraphs, strictly use '\\n' (escaped).
 - You MUST escape double quotes inside text using backslash (\\"). It is safest to use single quotes (') inside text.
 - NO trailing commas.
-- DO NOT add markdown formatting, DO NOT add backticks (\`\`\`), DO NOT add additional text before or after the JSON.` : `Ești un consultant de afaceri expert. 
+- DO NOT add markdown formatting, DO NOT add backticks (\`\`\`), DO NOT add additional text before or after the JSON.`;
+          } else {
+            prompt = `Ești un consultant de afaceri expert. 
 Acționează asupra următorului segment de plan de afaceri.
 ${instruction}
 
@@ -378,7 +412,8 @@ IMPORTANT PENTRU JSON:
 - ESCAPEAZĂ obligatoriu ghilimelele duble din interiorul textului folosind backslash (\\"). Cel mai sigur este să folosești doar ghilimele simple (') în interiorul textului.
 - FĂRĂ virgule la finalul ultimului element din obiect sau array (fără trailing commas).
 - NU adăuga formatare markdown, NU adăuga backticks (\`\`\`), NU adăuga text adițional înainte sau după JSON.`;
-       }
+          }
+        }
        
        const res = await callGemini(prompt);
        const text = cleanJsonString(res);

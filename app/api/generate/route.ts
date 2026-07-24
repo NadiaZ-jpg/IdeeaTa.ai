@@ -1,6 +1,7 @@
 import { GoogleGenAI } from "@google/genai";
 import { NextRequest, NextResponse } from "next/server";
 import { getExchangeRateRonToEur } from "@/lib/exchangeRate";
+import { adminDb, adminAuth } from "@/lib/firebase-admin";
 
 export const maxDuration = 60; // Max execution time 60s to allow for retries and long generations
 
@@ -12,6 +13,43 @@ const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 export async function POST(req: NextRequest) {
   try {
     const { skill, locale } = await req.json();
+
+    // Soft Guard: Verificăm autentificarea utilizatorului și limita de planuri server-side
+    const authHeader = req.headers.get("Authorization");
+    if (authHeader?.startsWith("Bearer ")) {
+      const token = authHeader.substring(7);
+      try {
+        const decoded = await adminAuth.verifyIdToken(token);
+        const userId = decoded.uid;
+
+        // Numărăm planurile utilizatorului din Firestore
+        const plansSnap = await adminDb
+          .collection("users")
+          .doc(userId)
+          .collection("plans")
+          .get();
+
+        const userDoc = await adminDb.collection("users").doc(userId).get();
+        const userData = userDoc.exists ? userDoc.data() : {};
+
+        const isPaid =
+          userData?.isPaid ||
+          userData?.subscriptionActive ||
+          userData?.euFundsUnlocked ||
+          userData?.promoCodeUnlocked;
+
+        // Dacă utilizatorul nu este Paid și are deja 4 sau mai multe planuri, blocăm generarea
+        if (!isPaid && plansSnap.size >= 4) {
+          return NextResponse.json(
+            { error: "LIMIT_REACHED", message: "Ai atins limita de 4 planuri gratuite. Te rugăm să faci upgrade." },
+            { status: 403 }
+          );
+        }
+      } catch (e: any) {
+        console.error("[Generate API Auth Guard Error]:", e.message);
+        // Continuăm ca guest în caz de eroare token
+      }
+    }
     let prompt = "";
     if (locale === "en") {
       prompt = `
@@ -105,48 +143,48 @@ Do not include any other text besides the JSON block. Do not format with markdow
 `;
     } else {
       prompt = `
-Generate a comprehensive business plan in Romanian based on the following skill or business idea: "${skill}".
-It must adhere to the official Romanian structural standard for accessing EU Funds / SME Eco-Tech programs in 2026.
-You must strictly follow the requirements for "Pilonul Verde" (Eco-Tech/Sustainability) and "Digitalizare" (Automation/ERP/CRM).
-Return the result strictly as a valid JSON object with the following structure:
+Generează un plan de afaceri cuprinzător în limba română bazat pe următoarea idee sau abilitate: "${skill}".
+Trebuie să respecte standardul structural oficial din România pentru accesarea Fondurilor Europene / programelor Eco-Tech pentru IMM-uri în anul 2026.
+Trebuie să urmezi cu strictețe cerințele pentru "Pilonul Verde" (Eco-Tech/Sustenabilitate) și "Digitalizare" (Automatizare/ERP/CRM).
+Returnează rezultatul strict ca un obiect JSON valid cu următoarea structură:
 {
-  "nume": "Business Name",
-  "slogan": "A catchy slogan",
+  "nume": "Numele Afacerii",
+  "slogan": "Un slogan atractiv",
   "date_generale": {
     "forma_juridica": "Ex: SRL, PFA, SRL-D",
-    "cod_caen": "Main CAEN code and description",
+    "cod_caen": "Cod CAEN principal și descriere",
     "date_contact": "Ex: Reprezentant Legal"
   },
   "viziune_strategie": {
-    "obiective_scurt": "Objectives for 1 year",
-    "obiective_mediu": "Objectives for 3-5 years",
-    "misiune_valori": "Mission and values"
+    "obiective_scurt": "Obiective pentru primul an",
+    "obiective_mediu": "Obiective pentru 3-5 ani",
+    "misiune_valori": "Misiune și valori"
   },
   "analiza_pietei": {
-    "clienti_tinta": "Who are the customers?",
-    "concurenta": "Main competitors and advantages",
-    "strategie_marketing": "Marketing and pricing strategy"
+    "clienti_tinta": "Cine sunt clienții țintă?",
+    "concurenta": "Principalii concurenți și avantajele noastre",
+    "strategie_marketing": "Strategia de marketing și prețuri"
   },
   "analiza_swot": {
-    "puncte_tari": [ { "titlu": "Strength 1", "explicatie_tehnica": "Explanation" } ],
-    "puncte_slabe": [ { "titlu": "Weakness 1", "explicatie_tehnica": "Explanation" } ],
-    "oportunitati": [ { "titlu": "Opportunity 1", "explicatie_tehnica": "Explanation" } ],
-    "amenintari": [ { "titlu": "Threat 1", "explicatie_tehnica": "Explanation" } ]
+    "puncte_tari": [ { "titlu": "Punct tare 1", "explicatie_tehnica": "Explicație tehnică" } ],
+    "puncte_slabe": [ { "titlu": "Punct slab 1", "explicatie_tehnica": "Explicație tehnică" } ],
+    "oportunitati": [ { "titlu": "Oportunitate 1", "explicatie_tehnica": "Explicație tehnică" } ],
+    "amenintari": [ { "titlu": "Amenințare 1", "explicatie_tehnica": "Explicație tehnică" } ]
   },
   "plan_operational": {
-    "descriere_flux": "Description of operations, explicitly detailing the green transition (Pilonul Verde) and digitalization (Componenta Tech).",
-    "resurse_umane": "Organigram and key roles",
-    "locatie_dotari": "Location and required equipment (emphasize energy efficiency and EV transport if applicable)"
+    "descriere_flux": "Descrierea operațiunilor, detaliind explicit tranziția verde (Pilonul Verde) și digitalizarea (Componenta Tech).",
+    "resurse_umane": "Organigramă și roluri cheie",
+    "locatie_dotari": "Locație și echipamente necesare (accentuând eficiența energetică și transportul verde, dacă este aplicabil)"
   },
   "plan_financiar": {
     "buget_investitii": [
-      { "item": "Equipment/Service", "explicatie": "Reasoning (must be realistic 2026 prices)", "cost": "15000 LEI" }
+      { "item": "Echipament/Serviciu", "explicatie": "Justificare achiziție (prețuri realiste pentru 2026)", "cost": "15000 LEI" }
     ],
-    "strategie_financiara": "Rigorous summary of the revenue model, cash-flow stability, and break-even point."
+    "strategie_financiara": "Rezumat riguros al modelului de venituri, stabilitatea fluxului de numerar și pragul de rentabilitate."
   }
 }
-Include at least 6-8 budgeted items (must include green tech and software/digitalization).
-Do not include any other text besides the JSON block. Do not format with markdown block quotes (\`\`\`json) if possible, but if you do, it will be stripped out.
+Include cel puțin 6-8 articole bugetate (care să conțină tehnologie verde și software/digitalizare).
+Nu include niciun alt text în afară de blocul JSON. Nu formata cu ghilimele de bloc markdown (\`\`\`json) dacă este posibil, dar dacă o faci, acestea vor fi eliminate la parsare.
 `;
     }
 

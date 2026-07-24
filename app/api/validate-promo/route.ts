@@ -39,18 +39,53 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Deblocăm codul promoțional în profilul utilizatorului
+    // Verificare utilizare multiplă & limite (C1 + C2)
+    const promoTier = promoData.tier || "full-access"; // implicit full-access pentru coduri vechi
+    const usedBy: string[] = promoData.usedBy || [];
+    const usageLimit = promoData.usageLimit !== undefined ? Number(promoData.usageLimit) : null;
+
+    if (usedBy.includes(userId)) {
+      return NextResponse.json(
+        { success: false, error: "Ai folosit deja acest cod promoțional pe acest cont." },
+        { status: 400 }
+      );
+    }
+
+    if (usageLimit !== null && usedBy.length >= usageLimit) {
+      return NextResponse.json(
+        { success: false, error: "Acest cod promoțional a atins limita maximă de utilizări." },
+        { status: 400 }
+      );
+    }
+
+    // Deblocăm permisiunile în funcție de tier (C2)
     const userRef = adminDb.collection("users").doc(userId);
-    await userRef.update({
+    const userUpdate: any = {
       promoCodeUnlocked: true,
-      euFundsUnlocked: true
+      promoCodeTier: promoTier
+    };
+
+    if (promoTier === "full-access") {
+      userUpdate.euFundsUnlocked = true;
+      userUpdate.subscriptionActive = true;
+    } else if (promoTier === "eu-funds") {
+      userUpdate.euFundsUnlocked = true;
+    } else if (promoTier === "standard") {
+      userUpdate.isPaid = true;
+    }
+
+    await userRef.update(userUpdate);
+
+    // Salvăm utilizatorul în lista usedBy a codului promoțional (C1)
+    await promoRef.update({
+      usedBy: [...usedBy, userId]
     });
 
-    console.log(`[Promo] User ${userId} unlocked Studio access via database code: ${actualCode}`);
+    console.log(`[Promo] User ${userId} unlocked access tier "${promoTier}" via database code: ${actualCode}`);
 
     return NextResponse.json({
       success: true,
-      tier: "full-access",
+      tier: promoTier,
       message: "Codul promoțional a fost aplicat cu succes!"
     });
   } catch (error: any) {

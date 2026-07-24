@@ -7,7 +7,7 @@ import { EditForm } from "@/components/EditForm";
 import dynamic from 'next/dynamic';
 import { auth, db } from '@/lib/firebase';
 import { signInWithPopup, GoogleAuthProvider, FacebookAuthProvider, onAuthStateChanged, User, getRedirectResult, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, sendPasswordResetEmail, sendEmailVerification } from 'firebase/auth';
-import { doc, onSnapshot, setDoc, getDoc, increment, arrayUnion } from 'firebase/firestore';
+import { doc, onSnapshot, setDoc, getDoc, increment, arrayUnion, collection, getDocs } from 'firebase/firestore';
 import { PricingModal } from '@/components/PricingModal';
 import { LanguageSwitcher } from '@/components/LanguageSwitcher';
 import { AdBanner } from '@/components/AdBanner';
@@ -17,66 +17,9 @@ import { useStudioFirebaseSync } from '@/hooks/useStudioFirebaseSync';
 import { t } from '@/lib/translations';
 import { getExamples } from '@/lib/examples';
 import { Mail } from 'lucide-react';
+import { formatObjectNumbers, formatNumberedText } from "@/lib/utils";
 
 const BudgetPieChart = dynamic(() => import('@/components/BudgetChart').then(mod => mod.BudgetPieChart), { ssr: false });
-
-const formatNumberedText = (text: string | undefined) => {
-  if (typeof text !== 'string') return text;
-  let formatted = text;
-  
-  // Remove redundant AI intro text for objectives (case insensitive)
-  formatted = formatted.replace(/^(?:În primul an:?|În următorii(?:\s*\d+(?:-\d+)?\s*ani)?:?|Obiective(?:le)?[^:]*:?|Pentru primul an:?|Pe termen scurt:?|Pe termen mediu:?)\s*/i, '');
-  
-  // Remove Markdown bold markers entirely since they render literally in the UI
-  formatted = formatted.replace(/\*\*/g, '');
-
-  // Remove stray asterisks (e.g. stranded bullet points) at the start or end of lines
-  formatted = formatted.replace(/^\s*\*\s*/gm, '');
-  formatted = formatted.replace(/\s*\*\s*$/gm, '');
-  
-  // Normalize spacing to fix inconsistent gaps
-  // 1. Collapse multiple newlines (even with spaces between them) into exactly 2 newlines
-  formatted = formatted.replace(/\n\s*\n+/g, '\n\n');
-  
-  // 2. Ensure list items have exactly ONE newline before them to keep lists compact and consistent
-  formatted = formatted.replace(/\n+\s*(\d+\.)\s+/g, '\n$1 ');
-
-  // 3. Insert newline before inline numbered items (e.g. "... text. 2. Text...")
-  formatted = formatted.replace(/([.!?])\s+(\d+\.)\s+/g, '$1\n$2 ');
-
-  // Grammatical fixes
-  // 1. Remove leading commas or punctuation left over from prefixes
-  formatted = formatted.replace(/^[\s,;.-]+/, '');
-  
-  // 2. Capitalize the first letter of every sentence or list item
-  formatted = formatted.replace(/(^|\n|[.!?]\s+)([^a-zA-ZăâîșțĂÂÎȘȚ]*)([a-zăâîșț])/g, (match, p1, p2, p3) => {
-    return p1 + p2 + p3.toUpperCase();
-  });
-
-  // 3. Lowercase letters following a semicolon (enumeration)
-  formatted = formatted.replace(/;\s+([A-ZĂÂÎȘȚ])/g, (match, letter) => {
-    return '; ' + letter.toLowerCase();
-  });
-  
-  return formatted.trim();
-};
-
-const formatObjectNumbers = (obj: any): any => {
-  if (typeof obj === 'string') {
-    return formatNumberedText(obj);
-  }
-  if (Array.isArray(obj)) {
-    return obj.map(formatObjectNumbers);
-  }
-  if (obj !== null && typeof obj === 'object') {
-    const newObj: any = {};
-    for (const key in obj) {
-      newObj[key] = formatObjectNumbers(obj[key]);
-    }
-    return newObj;
-  }
-  return obj;
-};
 
 const truncateText = (text: any, length: number) => {
   if (!text || typeof text !== 'string') return text;
@@ -213,7 +156,6 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
   const [isSharedView, setIsSharedView] = useState(false);
   const [isCheckingShared, setIsCheckingShared] = useState(true);
 
-  const devBypass = process.env.NEXT_PUBLIC_DEV_BYPASS === 'true';
   const usedIdeasRef = useRef<number[]>([]);
   const [animatedPlaceholder, setAnimatedPlaceholder] = useState("");
 
@@ -234,7 +176,23 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
   }, []);
 
   useEffect(() => {
-    const placeholders = [
+    const placeholders = locale === "en" ? [
+      "Cybersecurity Consulting...",
+      "Interior Design Studio...",
+      "Urban Microgreens Farm...",
+      "Software Development...",
+      "Specialty Coffee Shop...",
+      "Online Courses Platform...",
+      "Eco Car Wash..."
+    ] : locale === "es" ? [
+      "Consultoría en Ciberseguridad...",
+      "Estudio de Diseño de Interiores...",
+      "Granja Urbana de Microplantas...",
+      "Desarrollo de Software...",
+      "Cafetería de Especialidad...",
+      "Plataforma de Cursos Online...",
+      "Lavado de Coches Ecológico..."
+    ] : [
       "Consultanță Securitate Cibernetică...",
       "Studio de Design Interior...",
       "Fermă Urbană de Microplante...",
@@ -482,8 +440,8 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
   const [promoCodeUnlocked, setPromoCodeUnlocked] = useState(false);
   const ADMIN_EMAILS = ['contact@ideeata.ai', 'nadiaramonaz@gmail.com'];
   const isAdmin = user ? ADMIN_EMAILS.includes(user.email || '') : false;
-  const isPlanPaid = promoCodeUnlocked || isAdmin || devBypass || subscriptionActive || (result && unlockedPlans.includes(result.nume)) || isPaid;
-  const isStudioPaid = promoCodeUnlocked || isAdmin || devBypass || subscriptionActive || euFundsUnlocked || isPaid;
+  const isPlanPaid = promoCodeUnlocked || isAdmin || subscriptionActive || (result && unlockedPlans.includes(result.nume)) || isPaid;
+  const isStudioPaid = promoCodeUnlocked || isAdmin || subscriptionActive || euFundsUnlocked || isPaid;
   const isContentCopyProtected = !isPlanPaid && !isStudioPaid;
   const [isAuthLoading, setIsAuthLoading] = useState(true);
   const [authError, setAuthError] = useState<string | null>(null);
@@ -905,13 +863,24 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
         return;
       }
 
-      // LIMITATOR STUDIO — 1 generare gratuită per cont (override freeze studio - Master Plan)
+      // LIMITATOR STUDIO — Maxim 4 planuri gratuite în Dashboard (inclusiv cele migrate din Demo)
       if (user && !isPlanPaid && !isAdmin) {
-        const studioCount = parseInt(localStorage.getItem('studioGenerateCount') || '0', 10);
-        if (studioCount >= 1) {
-          setShowPricingModal(true);
-          return;
+        try {
+          const plansRef = collection(db, "users", user.uid, "plans");
+          const snap = await getDocs(plansRef);
+          if (snap.size >= 4) {
+            setShowPricingModal(true);
+            return;
+          }
+        } catch (err) {
+          console.error("Eroare verificare limită planuri Firestore:", err);
+          const studioCount = parseInt(localStorage.getItem('studioGenerateCount') || '0', 10);
+          if (studioCount >= 1) {
+            setShowPricingModal(true);
+            return;
+          }
         }
+        const studioCount = parseInt(localStorage.getItem('studioGenerateCount') || '0', 10);
         localStorage.setItem('studioGenerateCount', (studioCount + 1).toString());
       }
       setLoading(true);
@@ -957,6 +926,9 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
 
         try {
           const finalResult = JSON.parse(cleanJson);
+          const planId = finalResult.nume.replace(/[^a-zA-Z0-9]/g, '_') + "_" + Date.now();
+          finalResult.id = planId;
+
           setResult(formatObjectNumbers(finalResult));
           window.history.pushState({ view: 'idea' }, '', window.location.pathname + '?view=idea');
           setSkill(""); 
@@ -968,7 +940,6 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
           
           if (user) {
             try {
-              const planId = finalResult.nume.replace(/[^a-zA-Z0-9]/g, '_') + "_" + Date.now();
               const planRef = doc(db, "users", user.uid, "plans", planId);
               await setDoc(planRef, {
                 ...finalResult,
@@ -988,7 +959,7 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
             generate(undefined, retryCount + 1);
             return;
           }
-          alert("Sistemul AI este momentan supraîncărcat și a generat un răspuns incomplet. Te rugăm să mai încerci o dată!");
+          alert("Sistemul este momentan supraîncărcat și a generat un răspuns incomplet. Te rugăm să mai încerci o dată!");
         }
       }
     } catch (error: any) {
@@ -1897,19 +1868,25 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
                   PREVIZUALIZARE
                 </span>
               )}
+              <a 
+                href={locale === "en" ? "/en/dashboard" : locale === "es" ? "/es/dashboard" : "/dashboard"}
+                className="text-emerald-400 hover:text-emerald-300 transition-colors font-bold underline cursor-pointer"
+              >
+                {locale === "en" ? "My Plans" : locale === "es" ? "Mis Planes" : "Proiectele Mele"}
+              </a>
               {!subscriptionActive && (
                 <button 
                   onClick={() => setShowPricingModal(true)}
-                  className="text-emerald-400 hover:text-emerald-300 transition-colors font-bold underline cursor-pointer"
+                  className="text-zinc-400 hover:text-white transition-colors font-semibold cursor-pointer"
                 >
-                  Vezi Planuri
+                  {locale === "en" ? "Pricing" : locale === "es" ? "Precios" : "Tarife"}
                 </button>
               )}
               <button 
                 onClick={() => signOut(auth)}
                 className="text-zinc-500 hover:text-white transition-colors cursor-pointer"
               >
-                Ieși din cont
+                {locale === "en" ? "Log Out" : locale === "es" ? "Cerrar sesión" : "Ieși din cont"}
               </button>
             </div>
           </div>
@@ -2272,7 +2249,7 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
                   <div className="w-12 h-12 rounded-xl bg-zinc-900 border border-zinc-800 text-emerald-400 flex items-center justify-center text-2xl mb-4 group-hover:scale-125 group-hover:rotate-12 group-hover:-translate-y-1 transition-all duration-300 shadow-inner">
                     🪄
                   </div>
-                  <h4 className="text-2xl font-bold text-white mb-3">Studio AI Interactiv</h4>
+                  <h4 className="text-2xl font-bold text-white mb-3">Studio Asistat Interactiv</h4>
                   <p className="text-zinc-400 text-base md:text-lg leading-relaxed">
                     Adaptează planul din mers. Adaugă secțiuni noi, taie procente din buget sau rescrie textul cu ajutorul asistentului inteligent.
                   </p>
@@ -2701,29 +2678,43 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
               <div 
                 className="flex items-center gap-1.5 bg-zinc-900 border border-zinc-700/60 p-1 rounded-xl h-10 w-full md:w-auto overflow-x-auto md:overflow-visible"
               >
-                <button 
-                  onClick={() => downloadAction('pdf')} 
-                  disabled={isDownloading !== null}
-                  className="flex-none hover:bg-zinc-800 text-[10px] sm:text-[11px] h-full px-3 rounded-lg font-black uppercase tracking-wider transition-all flex items-center justify-center whitespace-nowrap gap-1 cursor-pointer text-zinc-300 hover:text-white"
-                >
-                  {isDownloading === 'pdf' ? "⏳..." : (locale === "en" ? "⬇ Presentation" : "⬇ Prezentare")}
-                </button>
-                <div className="w-px h-4 bg-zinc-800 flex-none" />
-                <button 
-                  onClick={() => downloadAction('pptx')} 
-                  disabled={isDownloading !== null}
-                  className="flex-none hover:bg-zinc-800 text-[10px] sm:text-[11px] h-full px-3 rounded-lg font-black uppercase tracking-wider transition-all flex items-center justify-center whitespace-nowrap gap-1 cursor-pointer text-zinc-300 hover:text-white"
-                >
-                  {isDownloading === 'pptx' ? "⏳..." : (locale === "en" ? "⬇ Brochure" : locale === "es" ? "⬇ Folleto" : "⬇ Broșură")}
-                </button>
-                <div className="w-px h-4 bg-zinc-800 flex-none" />
-                <button 
-                  onClick={() => downloadAction('word')} 
-                  disabled={isDownloading !== null}
-                  className="flex-none hover:bg-zinc-800 text-[10px] sm:text-[11px] h-full px-3 rounded-lg font-black uppercase tracking-wider transition-all flex items-center justify-center whitespace-nowrap gap-1 cursor-pointer text-zinc-300 hover:text-white"
-                >
-                  {isDownloading === 'word' ? "⏳..." : (locale === "en" ? "⬇ Document" : "⬇ Document")}
-                </button>
+                {!isPlanPaid ? (
+                  <button 
+                    onClick={() => downloadAction('pdf-summary')} 
+                    disabled={isDownloading !== null}
+                    className="flex-none bg-emerald-600 hover:bg-emerald-500 text-white text-[10px] sm:text-[12px] h-full px-5 py-2.5 rounded-lg font-black uppercase tracking-wider transition-all flex items-center justify-center whitespace-nowrap gap-2 cursor-pointer shadow-[0_0_15px_rgba(16,185,129,0.3)]"
+                  >
+                    {isDownloading === 'pdf-summary' 
+                      ? (locale === "en" ? "Downloading..." : locale === "es" ? "Descargando..." : "Se descarcă...") 
+                      : (locale === "en" ? "🎁 DOWNLOAD FREE SUMMARY" : locale === "es" ? "🎁 DESCARGAR RESUMEN GRATUITO" : "🎁 DESCARCĂ SUMAR GRATUIT")}
+                  </button>
+                ) : (
+                  <>
+                    <button 
+                      onClick={() => downloadAction('pdf')} 
+                      disabled={isDownloading !== null}
+                      className="flex-none hover:bg-zinc-800 text-[10px] sm:text-[11px] h-full px-3 rounded-lg font-black uppercase tracking-wider transition-all flex items-center justify-center whitespace-nowrap gap-1 cursor-pointer text-zinc-300 hover:text-white"
+                    >
+                      {isDownloading === 'pdf' ? "⏳..." : (locale === "en" ? "⬇ Presentation" : "⬇ Prezentare")}
+                    </button>
+                    <div className="w-px h-4 bg-zinc-800 flex-none" />
+                    <button 
+                      onClick={() => downloadAction('pptx')} 
+                      disabled={isDownloading !== null}
+                      className="flex-none hover:bg-zinc-800 text-[10px] sm:text-[11px] h-full px-3 rounded-lg font-black uppercase tracking-wider transition-all flex items-center justify-center whitespace-nowrap gap-1 cursor-pointer text-zinc-300 hover:text-white"
+                    >
+                      {isDownloading === 'pptx' ? "⏳..." : (locale === "en" ? "⬇ Brochure" : locale === "es" ? "⬇ Folleto" : "⬇ Broșură")}
+                    </button>
+                    <div className="w-px h-4 bg-zinc-800 flex-none" />
+                    <button 
+                      onClick={() => downloadAction('word')} 
+                      disabled={isDownloading !== null}
+                      className="flex-none hover:bg-zinc-800 text-[10px] sm:text-[11px] h-full px-3 rounded-lg font-black uppercase tracking-wider transition-all flex items-center justify-center whitespace-nowrap gap-1 cursor-pointer text-zinc-300 hover:text-white"
+                    >
+                      {isDownloading === 'word' ? "⏳..." : (locale === "en" ? "⬇ Document" : "⬇ Document")}
+                    </button>
+                  </>
+                )}
 
                 {!isPlanPaid && (
                   <>
@@ -3545,9 +3536,17 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
             </div>
 
             <div>
-              <h2 className="text-2xl font-black text-white mb-2">Confirmă adresa de email</h2>
+              <h2 className="text-2xl font-black text-white mb-2">
+                {locale === "en" ? "Confirm your email address" 
+                 : locale === "es" ? "Confirma tu dirección de email" 
+                 : "Confirmă adresa de email"}
+              </h2>
               <p className="text-zinc-400">
-                Pentru a genera un plan gratuit și a primi cele 3 Editări Premium, te rugăm să îți confirmi adresa de email dând click pe link-ul primit în Inbox.
+                {locale === "en" 
+                  ? "To generate a free plan and receive the 3 Premium Edits, please confirm your email address by clicking the link sent to your Inbox."
+                  : locale === "es"
+                  ? "Para generar un plan gratuito y recibir las 3 Ediciones Premium, confirme su dirección de correo electrónico haciendo clic en el enlace enviado a su bandeja de entrada."
+                  : "Pentru a genera un plan gratuit și a primi cele 3 Editări Premium, te rugăm să îți confirmi adresa de email dând click pe link-ul primit în Inbox."}
               </p>
             </div>
 
@@ -3559,7 +3558,9 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
                 }}
                 className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3.5 rounded-xl transition-all"
               >
-                Am confirmat, continuă
+                {locale === "en" ? "I confirmed, continue" 
+                 : locale === "es" ? "Lo he confirmado, continuar" 
+                 : "Am confirmat, continuă"}
               </button>
               
               <button 
@@ -3568,7 +3569,9 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
                 disabled={verificationSent}
                 className="w-full bg-zinc-800 hover:bg-zinc-700 text-white font-bold py-3.5 rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {verificationSent ? "Email trimis!" : "Trimite emailul din nou"}
+                {verificationSent 
+                  ? (locale === "en" ? "Email sent!" : locale === "es" ? "¡Correo enviado!" : "Email trimis!") 
+                  : (locale === "en" ? "Resend verification email" : locale === "es" ? "Reenviar correo de verificación" : "Trimite emailul din nou")}
               </button>
               
               <button 
@@ -3579,7 +3582,7 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
                 }}
                 className="w-full text-zinc-500 hover:text-white font-medium py-2 transition-all mt-2"
               >
-                Închide
+                {locale === "en" ? "Close" : locale === "es" ? "Cerrar" : "Închide"}
               </button>
             </div>
           </div>

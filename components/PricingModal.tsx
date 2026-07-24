@@ -113,7 +113,7 @@ export function PricingModal({ isOpen, onClose, onSuccess, onRequireLogin, userI
 
         {/* Header */}
         <div className="text-center flex flex-col items-center gap-2 relative">
-          <div className="absolute top-0 right-0 flex items-center gap-1.5 z-20">
+          <div className="absolute top-0 left-0 flex items-center gap-1.5 z-20">
             <input 
               type="text" 
               value={promoInput}

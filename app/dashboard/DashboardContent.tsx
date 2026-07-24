@@ -9,6 +9,7 @@ import { collection, query, orderBy, getDocs, doc, deleteDoc, getDoc } from 'fir
 import { Plus, FileText, Calendar, ArrowRight, Loader2, Sparkles, Mail, AlertTriangle, Trash2 } from 'lucide-react';
 import { migrateLocalPlansToFirebase } from '@/lib/migrationManager';
 import { LanguageSwitcher } from '@/components/LanguageSwitcher';
+import BuyMeACoffeeModal from '@/components/BuyMeACoffeeModal';
 
 export default function DashboardContent({ locale = "ro" }: { locale?: "ro" | "en" | "es" }) {
   const router = useRouter();
@@ -19,6 +20,7 @@ export default function DashboardContent({ locale = "ro" }: { locale?: "ro" | "e
   const [showVerificationModal, setShowVerificationModal] = useState(false);
   const [verificationSent, setVerificationSent] = useState(false);
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
+  const [showBmcModal, setShowBmcModal] = useState(false);
   
   const isEn = locale === "en";
   const isEs = locale === "es";
@@ -139,6 +141,14 @@ export default function DashboardContent({ locale = "ro" }: { locale?: "ro" | "e
         <div className="flex items-center gap-4">
           {user && (
             <div className="flex items-center gap-4">
+              <button 
+                type="button"
+                onClick={() => setShowBmcModal(true)}
+                className="bg-[#FFDD00] text-black px-3 py-1 rounded-md font-bold text-xs hover:bg-[#FFEA4D] hover:scale-105 transition-all flex items-center gap-1.5 shadow-sm cursor-pointer"
+                title={isEn ? "Support IdeeaTa.ai with a coffee" : isEs ? "Apoya a IdeeaTa.ai con un café" : "Susține IdeeaTa.ai cu o cafea"}
+              >
+                <span>☕</span> Buy me a coffee
+              </button>
               <span className="text-sm text-zinc-400 hidden sm:inline-block font-semibold">
                 {user.email}
               </span>
@@ -344,6 +354,11 @@ export default function DashboardContent({ locale = "ro" }: { locale?: "ro" | "e
           </div>
         </div>
       )}
+      <BuyMeACoffeeModal 
+        isOpen={showBmcModal} 
+        onClose={() => setShowBmcModal(false)} 
+        locale={locale} 
+      />
     </div>
   );
 }

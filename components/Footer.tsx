@@ -34,6 +34,15 @@ export function Footer() {
           <Link href={isEn ? "/en/cookies" : "/cookies"} className="hover:text-emerald-400 transition-colors">
             {t('cookiePolicy', locale)}
           </Link>
+          <a 
+            href="https://buymeacoffee.com/ideeata" 
+            target="_blank" 
+            rel="noopener noreferrer" 
+            className="hover:text-[#FFDD00] text-zinc-400 font-bold transition-colors flex items-center gap-1"
+            title="Buy me a coffee"
+          >
+            <span>☕</span> Buy me a coffee
+          </a>
         </div>
       </div>
     </footer>

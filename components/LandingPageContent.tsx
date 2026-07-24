@@ -208,7 +208,7 @@ export default function LandingPageContent({ locale = "ro" }: { locale?: "ro" | 
           {t('startFreeNow', locale)}
         </Link>
         <div className="mt-16 text-zinc-600 text-sm flex flex-col items-center gap-2">
-          <div className="flex gap-4">
+          <div className="flex gap-4 items-center flex-wrap justify-center">
             <Link href={isEn ? "/en/terms" : isEs ? "/es/terms" : "/termeni"} className="hover:text-zinc-400 transition-colors">
               {t('termsAndConditions', locale)}
             </Link>
@@ -216,6 +216,16 @@ export default function LandingPageContent({ locale = "ro" }: { locale?: "ro" | 
             <Link href={isEn ? "/en/privacy" : isEs ? "/es/privacy" : "/privacy"} className="hover:text-zinc-400 transition-colors">
               {t('privacyPolicy', locale)}
             </Link>
+            <span>&bull;</span>
+            <a 
+              href="https://buymeacoffee.com/ideeata" 
+              target="_blank" 
+              rel="noopener noreferrer" 
+              className="hover:text-[#FFDD00] text-zinc-400 font-bold transition-colors flex items-center gap-1"
+              title="Buy me a coffee"
+            >
+              <span>☕</span> Buy me a coffee
+            </a>
           </div>
           <p>&copy; {new Date().getFullYear()} IdeeaTa.ai - {t('allRightsReserved', locale)}</p>
         </div>

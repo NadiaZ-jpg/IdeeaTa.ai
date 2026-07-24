@@ -1,5 +1,6 @@
 "use client";
 import { useState, useRef, useEffect } from "react";
+import Link from 'next/link';
 import { jsPDF } from "jspdf";
 import { toPng } from "html-to-image";
 import pptxgen from "pptxgenjs";
@@ -11,6 +12,7 @@ import { doc, onSnapshot, setDoc, getDoc, increment, arrayUnion, collection, get
 import { PricingModal } from '@/components/PricingModal';
 import { LanguageSwitcher } from '@/components/LanguageSwitcher';
 import { AdBanner } from '@/components/AdBanner';
+import BuyMeACoffeeModal from '@/components/BuyMeACoffeeModal';
 import { generateDocxBlob } from '@/lib/generateDocx';
 import { generatePptx } from '@/lib/generatePptx';
 import { ConversionBanners } from '@/components/ConversionBanners';
@@ -1513,71 +1515,83 @@ export default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" | 
           onAuthClick={() => setShowAuthModal(true)}
           locale={locale}
         />
-        {!result && !user && (
-          <div className="w-full flex justify-end py-2 mb-3 print:hidden">
-            <LanguageSwitcher currentLocale={locale} />
+        <div className="w-full flex justify-between items-start sm:items-center py-2 border-b border-zinc-800/80 mb-3 print:hidden">
+          <div className="flex flex-col gap-2">
+            <span className="text-zinc-500 text-xs font-semibold">Proiectul tău de afaceri inteligent</span>
+            <button 
+              type="button"
+              onClick={() => setShowBmcModal(true)}
+              className="bg-[#FFDD00] text-black px-3 py-1 rounded-md font-bold text-xs hover:bg-[#FFEA4D] hover:scale-105 transition-all flex items-center gap-1.5 w-max shadow-sm cursor-pointer"
+              title={locale === "en" ? "Support IdeeaTa.ai with a coffee" : locale === "es" ? "Apoya a IdeeaTa.ai con un café" : "Susține IdeeaTa.ai cu o cafea"}
+            >
+              <span>☕</span> Buy me a coffee
+            </button>
           </div>
-        )}
-        {user && (
-          <div className="w-full flex justify-between items-start sm:items-center py-2 border-b border-zinc-800/80 mb-3 print:hidden">
-            <div className="flex flex-col gap-2">
-              <span className="text-zinc-500 text-xs font-semibold">Proiectul tău de afaceri inteligent</span>
-              <button 
-                type="button"
-                onClick={() => setShowBmcModal(true)}
-                className="bg-[#FFDD00] text-black px-3 py-1 rounded-md font-bold text-xs hover:bg-[#FFEA4D] hover:scale-105 transition-all flex items-center gap-1.5 w-max shadow-sm cursor-pointer"
-                title={locale === "en" ? "Support IdeeaTa.ai with a coffee" : locale === "es" ? "Apoya a IdeeaTa.ai con un café" : "Susține IdeeaTa.ai cu o cafea"}
-              >
-                <span>☕</span> Buy me a coffee
-              </button>
-            </div>
-            <div className="flex items-center gap-4 text-xs font-medium">
-              {!result && <LanguageSwitcher currentLocale={locale} />}
-              <span className="text-zinc-400">{user.email}</span>
-              {isAdmin ? (
-                <span className="bg-amber-500/20 border border-amber-500/40 text-amber-300 px-2 py-0.5 rounded-full font-black uppercase tracking-wider">
-                   ADMIN ★
-                </span>
-              ) : subscriptionActive ? (
-                <span className="bg-emerald-500/20 border border-emerald-500/40 text-emerald-400 px-2 py-0.5 rounded-full font-black uppercase tracking-wider">
-                   PRO
-                </span>
-              ) : euFundsUnlocked ? (
-                <span className="bg-amber-500/20 border border-amber-500/40 text-amber-300 px-2 py-0.5 rounded-full font-black uppercase tracking-wider">
-                  {locale === "en" ? "STUDIO & GRANTS" : locale === "es" ? "STUDIO Y BECAS" : "STUDIO & FONDURI"}
-                </span>
-              ) : isPlanPaid ? (
-                <span className="bg-blue-500/20 border border-blue-500/40 text-blue-400 px-2 py-0.5 rounded-full font-black uppercase tracking-wider">
-                  {locale === "en" ? "STANDARD UNLOCKED" : locale === "es" ? "STANDARD DESBLOQUEADO" : "STANDARD DEBLOCAT"}
-                </span>
-              ) : (
-                <span className="bg-zinc-800 border border-zinc-700 text-zinc-300 px-2 py-0.5 rounded-full font-bold">
-                  {locale === "en" ? "PREVIEW ONLY" : locale === "es" ? "SOLO VISTA PREVIA" : "PREVIZUALIZARE"}
-                </span>
-              )}
-              <a 
-                href={locale === "en" ? "/en/dashboard" : locale === "es" ? "/es/dashboard" : "/dashboard"}
-                className="text-emerald-400 hover:text-emerald-300 transition-colors font-bold underline cursor-pointer"
-              >
-                {locale === "en" ? "My Plans" : locale === "es" ? "Mis Planes" : "Proiectele Mele"}
-              </a>
-              {!subscriptionActive && (
+          <div className="flex items-center gap-4 text-xs font-medium">
+            {!result && <LanguageSwitcher currentLocale={locale} />}
+            {user ? (
+              <>
+                <span className="text-zinc-400">{user.email}</span>
+                {isAdmin ? (
+                  <span className="bg-amber-500/20 border border-amber-500/40 text-amber-300 px-2 py-0.5 rounded-full font-black uppercase tracking-wider">
+                     ADMIN ★
+                  </span>
+                ) : subscriptionActive ? (
+                  <span className="bg-emerald-500/20 border border-emerald-500/40 text-emerald-400 px-2 py-0.5 rounded-full font-black uppercase tracking-wider">
+                     PRO
+                  </span>
+                ) : euFundsUnlocked ? (
+                  <span className="bg-amber-500/20 border border-amber-500/40 text-amber-300 px-2 py-0.5 rounded-full font-black uppercase tracking-wider">
+                    {locale === "en" ? "STUDIO & GRANTS" : locale === "es" ? "STUDIO Y BECAS" : "STUDIO & FONDURI"}
+                  </span>
+                ) : isPlanPaid ? (
+                  <span className="bg-blue-500/20 border border-blue-500/40 text-blue-400 px-2 py-0.5 rounded-full font-black uppercase tracking-wider">
+                    {locale === "en" ? "STANDARD UNLOCKED" : locale === "es" ? "STANDARD DESBLOQUEADO" : "STANDARD DEBLOCAT"}
+                  </span>
+                ) : (
+                  <span className="bg-zinc-800 border border-zinc-700 text-zinc-300 px-2 py-0.5 rounded-full font-bold">
+                    {locale === "en" ? "PREVIEW ONLY" : locale === "es" ? "SOLO VISTA PREVIA" : "PREVIZUALIZARE"}
+                  </span>
+                )}
+                <a 
+                  href={locale === "en" ? "/en/dashboard" : locale === "es" ? "/es/dashboard" : "/dashboard"}
+                  className="text-emerald-400 hover:text-emerald-300 transition-colors font-bold underline cursor-pointer"
+                >
+                  {locale === "en" ? "My Plans" : locale === "es" ? "Mis Planes" : "Proiectele Mele"}
+                </a>
+                {!subscriptionActive && (
+                  <button 
+                    onClick={() => { if (!user) { setShowAuthModal(true); } else { setShowPricingModal(true); } }}
+                    className="text-zinc-400 hover:text-white transition-colors font-semibold cursor-pointer"
+                  >
+                    {locale === "en" ? "Pricing" : locale === "es" ? "Precios" : "Tarife"}
+                  </button>
+                )}
                 <button 
-                  onClick={() => { if (!user) { setShowAuthModal(true); } else { setShowPricingModal(true); } }}
+                  onClick={() => signOut(auth)}
+                  className="text-zinc-500 hover:text-white transition-colors cursor-pointer"
+                >
+                  {locale === "en" ? "Log Out" : locale === "es" ? "Cerrar sesión" : "Ieși din cont"}
+                </button>
+              </>
+            ) : (
+              <>
+                <Link 
+                  href={locale === "en" ? "/en/login" : locale === "es" ? "/es/login" : "/login"}
                   className="text-zinc-400 hover:text-white transition-colors font-semibold cursor-pointer"
                 >
-                  {locale === "en" ? "Pricing" : locale === "es" ? "Precios" : "Tarife"}
-                </button>
-              )}
-              <button 
-                onClick={() => signOut(auth)}
-                className="text-zinc-500 hover:text-white transition-colors cursor-pointer"
-              >
-                {locale === "en" ? "Log Out" : locale === "es" ? "Cerrar sesión" : "Ieși din cont"}
-              </button>
-            </div>
+                  {locale === "en" ? "Log In" : locale === "es" ? "Iniciar sesión" : "Autentificare"}
+                </Link>
+                <Link 
+                  href={locale === "en" ? "/en/demo?start=nou" : locale === "es" ? "/es/demo?start=nou" : "/demo?start=nou"}
+                  className="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-3 py-1.5 rounded-lg transition-all ml-2"
+                >
+                  {locale === "en" ? "Try Free" : locale === "es" ? "Probar Gratis" : "Testează Gratuit"}
+                </Link>
+              </>
+            )}
           </div>
-        )}
+        </div>
 
         <h1 className="text-4xl md:text-6xl lg:text-[5rem] font-black mt-4 lg:mt-12 mb-6 lg:mb-8 not-italic tracking-tighter cursor-pointer bg-gradient-to-r from-zinc-400 via-emerald-400 to-zinc-400 bg-clip-text text-transparent animate-shimmer print:hidden self-start lg:self-center" onClick={resetApp}>
           IdeeaTa.ai
@@ -3263,54 +3277,11 @@ export default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" | 
           </div>
         </div>
       )}
-      {showBmcModal && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-md z-[210] flex items-center justify-center p-4 animate-in fade-in duration-300">
-          <div className="bg-[#09090b] border border-zinc-800 rounded-3xl w-full max-w-sm shadow-2xl p-6 relative overflow-hidden flex flex-col gap-5 text-center animate-in zoom-in-95 duration-300">
-            <button 
-              onClick={() => setShowBmcModal(false)}
-              className="absolute top-4 right-4 text-zinc-500 hover:text-white transition-colors text-lg p-1 cursor-pointer"
-            >
-              ✕
-            </button>
-            
-            <div className="absolute top-0 left-0 w-full h-1 bg-amber-500"></div>
-
-            <div className="mt-2">
-              <h2 className="text-xl font-black text-white mb-1">
-                {locale === "en" ? "Buy us a coffee" : locale === "es" ? "Invítanos a un café" : "Cumpără-ne o cafea"}
-              </h2>
-              <p className="text-zinc-400 text-xs px-2">
-                {locale === "en" 
-                  ? "Scan the QR code with your phone or use the link below to support the IdeeaTa.ai project."
-                  : locale === "es"
-                  ? "Escanea el código QR con tu móvil o usa el enlace de abajo para apoyar el proyecto de IdeeaTa.ai."
-                  : "Scanează codul QR cu telefonul sau folosește linkul de mai jos pentru a susține proiectul IdeeaTa.ai."}
-              </p>
-            </div>
-
-            <div className="bg-white p-3 rounded-2xl w-48 h-48 mx-auto flex items-center justify-center shadow-lg">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img 
-                src="/bmc-qr.png" 
-                alt="Buy Me A Coffee QR Code" 
-                className="w-full h-full object-contain"
-              />
-            </div>
-
-            <div className="flex flex-col gap-2 mt-2">
-              <a 
-                href="https://buymeacoffee.com/ideeata" 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="w-full bg-[#FFDD00] hover:bg-[#FFEA4D] text-black font-black py-3 rounded-xl transition-all flex items-center justify-center gap-1.5 text-xs shadow-md shadow-amber-950/20"
-              >
-                <span>☕</span>
-                {locale === "en" ? "Go to donation page ➔" : locale === "es" ? "Ir a la página de donación ➔" : "Mergi la pagina de donație ➔"}
-              </a>
-            </div>
-          </div>
-        </div>
-      )}
+      <BuyMeACoffeeModal 
+        isOpen={showBmcModal} 
+        onClose={() => setShowBmcModal(false)} 
+        locale={locale} 
+      />
     </main>
   );
 }

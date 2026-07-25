@@ -7,6 +7,7 @@ export function CookieBanner() {
   const [isVisible, setIsVisible] = useState(false);
   const pathname = usePathname();
   const isEn = pathname?.startsWith('/en');
+  const isEs = pathname?.startsWith('/es');
 
   useEffect(() => {
     const consent = localStorage.getItem('cookie_consent');
@@ -34,6 +35,14 @@ export function CookieBanner() {
               </Link>
               .
             </>
+          ) : isEs ? (
+            <>
+              Utilizamos cookies para ofrecerle una experiencia óptima en la plataforma, incluyendo la autenticación, el procesamiento de pagos y la visualización de contenido relevante. Al continuar navegando, acepta nuestra{" "}
+              <Link href="/es/cookies" className="text-emerald-400 hover:underline">
+                Política de Cookies
+              </Link>
+              .
+            </>
           ) : (
             <>
               Utilizăm cookie-uri pentru a vă oferi o experiență optimă pe platformă, inclusiv pentru autentificare, procesarea plăților și afișarea de conținut relevant. 
@@ -51,7 +60,7 @@ export function CookieBanner() {
           onClick={acceptCookies}
           className="w-full md:w-auto px-6 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl transition-all"
         >
-          {isEn ? "I agree" : "Sunt de acord"}
+          {isEn ? "I agree" : isEs ? "Estoy de acuerdo" : "Sunt de acord"}
         </button>
       </div>
     </div>

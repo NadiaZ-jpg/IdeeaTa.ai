@@ -26,7 +26,71 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
   const ALL_EXAMPLES = getExamples(locale);
   const [skill, setSkill] = useState("");
   const [demoCount, setDemoCount] = useState(0);
-  const [result, setResult] = useState<any>(null);
+  const [resultState, setResultState] = useState<any>(null);
+  const [versions, setVersionsState] = useState<any>({});
+  const activeVersionIdRef = useRef<string>("original");
+  const [activeVersionId, _setActiveVersionId] = useState<string>("original");
+  const [showVersionDropdown, setShowVersionDropdown] = useState(false);
+
+  const setActiveVersionId = (id: string) => {
+    activeVersionIdRef.current = id;
+    _setActiveVersionId(id);
+  };
+
+  const setVersions = (valOrFn: any) => {
+     setVersionsState((prev: any) => {
+        const nextVal = typeof valOrFn === 'function' ? valOrFn(prev) : valOrFn;
+        if (typeof window !== "undefined") {
+           if (Object.keys(nextVal).length > 0) {
+             localStorage.setItem("current_versions", JSON.stringify({versions: nextVal, activeVersionId: activeVersionIdRef.current}));
+           } else {
+             localStorage.removeItem("current_versions");
+           }
+        }
+        return nextVal;
+     });
+  };
+
+  const setResult = (valOrFn: any) => {
+    setResultState((prev: any) => {
+      const nextVal = typeof valOrFn === 'function' ? valOrFn(prev) : valOrFn;
+      if (nextVal === null) {
+        setVersions({});
+        setActiveVersionId("original");
+      } else {
+        setVersions((prevVers: any) => {
+           const newVers = { ...prevVers, [activeVersionIdRef.current]: nextVal };
+           if (typeof window !== "undefined") {
+             localStorage.setItem("current_versions", JSON.stringify({versions: newVers, activeVersionId: activeVersionIdRef.current}));
+           }
+           return newVers;
+        });
+      }
+      return nextVal;
+    });
+  };
+
+  const result = resultState;
+  const renderSwotCategory = (catData: any) => {
+    if (!catData) return null;
+    if (Array.isArray(catData)) {
+      return (
+        <ul className="space-y-2 text-zinc-300 text-xs list-none">
+          {catData.map((item: any, idx: number) => {
+            const title = typeof item === 'string' ? item : (item.titlu || '');
+            const desc = item.explicatie_tehnica || '';
+            return (
+              <li key={idx} className="leading-relaxed">
+                <strong>✦ {title}</strong>
+                {desc && <span className="block pl-4 text-zinc-400 text-[11px]">{desc}</span>}
+              </li>
+            );
+          })}
+        </ul>
+      );
+    }
+    return <p className="text-zinc-300 text-xs leading-relaxed">{formatNumberedText(String(catData))}</p>;
+  };
   const [activeTab, setActiveTab] = useState<"overview" | "budget" | "marketing" | "swot">("overview");
   const [loading, setLoading] = useState(false);
   const [fxRate, setFxRate] = useState(0.201);
@@ -46,6 +110,23 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
   const [activeAiPrompt, setActiveAiPrompt] = useState<{action: string, title: string, placeholder?: string} | null>(null);
   const [aiPromptInput, setAiPromptInput] = useState("");
   const [showShareSuccess, setShowShareSuccess] = useState(false);
+  const [showHeader, setShowHeader] = useState(true);
+  const lastScrollY = useRef(0);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      if (typeof window === 'undefined') return;
+      const currentScrollY = window.scrollY;
+      if (currentScrollY > lastScrollY.current && currentScrollY > 80) {
+        setShowHeader(false);
+      } else {
+        setShowHeader(true);
+      }
+      lastScrollY.current = currentScrollY;
+    };
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   const [examplesList, setExamplesList] = useState<any[]>(ALL_EXAMPLES.slice(0, 18));
 
@@ -116,9 +197,15 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
   useEffect(() => {
     if (typeof window !== "undefined") {
       const saved = localStorage.getItem("current_generated_plan");
+      const savedVersionsStr = localStorage.getItem("current_versions");
       if (saved) {
         try {
-          setResult(formatObjectNumbers(JSON.parse(saved)));
+          if (savedVersionsStr) {
+            const {versions: v, activeVersionId: a} = JSON.parse(savedVersionsStr);
+            setVersionsState(v);
+            setActiveVersionId(a);
+          }
+          setResultState(formatObjectNumbers(JSON.parse(saved)));
         } catch (e) {
           console.error(e);
         }
@@ -164,6 +251,8 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
         if (startIndex !== -1 && endIndex !== -1) cleanJson = cleanJson.substring(startIndex, endIndex + 1);
 
         const finalResult = formatObjectNumbers(JSON.parse(cleanJson));
+        setVersionsState({});
+        setActiveVersionId("original");
         setResult(finalResult);
         localStorage.setItem("current_generated_plan", JSON.stringify(finalResult));
         
@@ -199,9 +288,7 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
           }
         }
       }
-    } catch (err) {
-      console.error(err);
-      alert("A apărut o eroare la generare. Vă rugăm să încercați din nou.");
+      alert(locale === "en" ? "An error occurred during generation. Please try again." : locale === "es" ? "Ocurrió un error al generar. Por favor, inténtelo de nuevo." : "A apărut o eroare la generare. Vă rugăm să încercați din nou.");
     } finally {
       setLoading(false);
     }
@@ -217,9 +304,10 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+          result,
           action,
-          customInput: customInput || aiPromptInput,
-          currentPlan: result
+          customStyle: customInput || aiPromptInput,
+          locale
         })
       });
 
@@ -228,12 +316,17 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
       const data = await res.json();
       if (data && data.editedPlan) {
         const parsed = formatObjectNumbers(data.editedPlan);
+        if (action === "eu_funds_optimization") {
+          setActiveVersionId("eu_funds");
+        } else if (action === "investor_ready") {
+          setActiveVersionId("investor");
+        }
         setResult(parsed);
         localStorage.setItem("current_generated_plan", JSON.stringify(parsed));
       }
     } catch (e) {
       console.error(e);
-      alert("Nu s-a putut procesa comanda AI.");
+      alert(locale === "en" ? "Could not process AI request." : locale === "es" ? "No se pudo procesar la solicitud de IA." : "Nu s-a putut procesa comanda AI.");
     } finally {
       setIsEditingAi(false);
       setAiPromptInput("");
@@ -293,7 +386,7 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-lg h-64 bg-emerald-500/10 rounded-full blur-[80px] pointer-events-none"></div>
 
       {/* Header */}
-      <header className="h-16 px-4 flex items-center justify-between border-b border-zinc-800/80 sticky top-0 bg-[#09090b]/80 backdrop-blur-md z-30">
+      <header className={`h-16 px-4 flex items-center justify-between border-b border-zinc-800/80 sticky top-0 bg-[#09090b]/80 backdrop-blur-md z-30 transition-transform duration-300 ${showHeader ? 'translate-y-0' : '-translate-y-full'}`}>
         <Link href="/" className="text-xl font-black tracking-tight">
           IdeeaTa<span className="text-emerald-500">.ai</span>
         </Link>
@@ -420,6 +513,59 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
               </div>
             )}
 
+            {/* Version History Selector Mobile */}
+            {versions && Object.keys(versions).length > 0 && (
+              <div className="relative z-20 font-sans">
+                <button 
+                  onClick={() => setShowVersionDropdown(!showVersionDropdown)}
+                  className="w-full px-4 py-3 rounded-xl bg-zinc-900/80 border border-zinc-800 hover:border-emerald-500/40 text-amber-300 hover:text-amber-200 font-bold text-xs flex items-center justify-between transition-all cursor-pointer shadow-sm"
+                >
+                  <span className="flex items-center gap-1.5">
+                    <span>📜 {locale === "en" ? "Version History" : locale === "es" ? "Historial de Versiones" : "Istoric Versiuni"} ({Object.keys(versions).length})</span>
+                  </span>
+                  <span className="flex items-center gap-2">
+                    <span className="text-[10px] text-zinc-400 font-normal">
+                      {activeVersionId === "original" ? (locale === "en" ? "Original" : locale === "es" ? "Original" : "Originală")
+                      : activeVersionId === "eu_funds" ? (locale === "en" ? "EU Funds" : locale === "es" ? "Fondos UE" : "Fonduri UE")
+                      : activeVersionId === "investor" ? (locale === "en" ? "Investors" : locale === "es" ? "Inversores" : "Investitori")
+                      : activeVersionId}
+                    </span>
+                    <span className="text-[10px] text-zinc-500">▼</span>
+                  </span>
+                </button>
+
+                {showVersionDropdown && (
+                  <div className="absolute top-full left-0 right-0 mt-1 bg-zinc-950 border border-zinc-800 rounded-2xl p-2 shadow-2xl z-30 animate-in fade-in slide-in-from-top-1 duration-150">
+                    <div className="text-[9px] uppercase font-black tracking-widest text-zinc-500 px-3 py-2 border-b border-zinc-900 flex justify-between items-center">
+                      <span>{locale === "en" ? "Saved Versions" : locale === "es" ? "Versiones Guardadas" : "Versiuni Salvate"}</span>
+                      <button onClick={() => setShowVersionDropdown(false)} className="text-zinc-500 hover:text-white text-xs">✕</button>
+                    </div>
+                    <div className="max-h-48 overflow-y-auto flex flex-col gap-1 mt-1">
+                      {Object.entries(versions).map(([vKey, vData]) => (
+                        <button
+                          key={vKey}
+                          onClick={() => {
+                            setActiveVersionId(vKey);
+                            setResultState(vData);
+                            setShowVersionDropdown(false);
+                          }}
+                          className={`w-full text-left px-3 py-2.5 rounded-xl text-xs font-semibold flex items-center justify-between transition-all cursor-pointer ${activeVersionId === vKey ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/30" : "text-zinc-400 hover:bg-zinc-900 hover:text-white"}`}
+                        >
+                          <span className="truncate">
+                            {vKey === "original" ? (locale === "en" ? "📝 Original Version" : locale === "es" ? "📝 Versión Original" : "📝 Varianta Originală")
+                            : vKey === "eu_funds" ? (locale === "en" ? "🇪🇺 EU Funds" : locale === "es" ? "🇪🇺 Fondos UE" : "🇪🇺 Optimizat Fonduri UE")
+                            : vKey === "investor" ? (locale === "en" ? "🏦 Investors Plan" : locale === "es" ? "🏦 Plan Inversores" : "🏦 Plan Investitori")
+                            : `📑 ${vKey}`}
+                          </span>
+                          {activeVersionId === vKey && <span className="text-emerald-400 text-xs">✓</span>}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
             {/* Mobile Tab bar */}
             <div className="flex bg-zinc-950 border border-zinc-800/80 rounded-xl p-1 overflow-x-auto scrollbar-none">
               <button
@@ -468,17 +614,17 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
                 <div className="space-y-5 animate-in fade-in duration-200">
                   <div className="space-y-1">
                     <h3 className="text-emerald-400 font-bold text-sm">{locale === "en" ? "Business Description" : locale === "es" ? "Descripción del Negocio" : "Descriere Afacere"}</h3>
-                    <p className="text-zinc-300 text-xs leading-relaxed">{formatNumberedText(result.descriere)}</p>
+                    <p className="text-zinc-300 text-xs leading-relaxed">{formatNumberedText(result.viziune_strategie?.misiune_valori || result.descriere)}</p>
                   </div>
                   <div className="h-px bg-zinc-800/60"></div>
                   <div className="space-y-1">
                     <h3 className="text-emerald-400 font-bold text-sm">{locale === "en" ? "Market Opportunity" : locale === "es" ? "Oportunidad de Mercado" : "Oportunitatea Pieței"}</h3>
-                    <p className="text-zinc-300 text-xs leading-relaxed">{formatNumberedText(result.oportunitate_piata)}</p>
+                    <p className="text-zinc-300 text-xs leading-relaxed">{formatNumberedText(result.analiza_pietei?.concurenta || result.oportunitate_piata)}</p>
                   </div>
                   <div className="h-px bg-zinc-800/60"></div>
                   <div className="space-y-1">
                     <h3 className="text-emerald-400 font-bold text-sm">{locale === "en" ? "Target Audience" : locale === "es" ? "Público Objetivo" : "Publicul Țintă"}</h3>
-                    <p className="text-zinc-300 text-xs leading-relaxed">{formatNumberedText(result.public_tinta)}</p>
+                    <p className="text-zinc-300 text-xs leading-relaxed">{formatNumberedText(result.analiza_pietei?.clienti_tinta || result.public_tinta)}</p>
                   </div>
                 </div>
               )}
@@ -488,12 +634,18 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
                   <div className="space-y-3">
                     <h3 className="text-emerald-400 font-bold text-sm">{locale === "en" ? "Initial Investment Budget" : locale === "es" ? "Presupuesto Inicial de Inversión" : "Buget Inițial de Investiții"}</h3>
                     <div className="space-y-2">
-                      {result.plan_financiar?.buget_investitii?.map((item: any, idx: number) => (
-                        <div key={idx} className="bg-zinc-950/40 border border-zinc-800/50 rounded-xl p-3 flex justify-between items-center text-xs">
-                          <span className="font-semibold text-zinc-300">{item.categorie}</span>
-                          <span className="font-black text-emerald-400">{item.suma_lei?.toLocaleString()} {locale === "ro" ? "LEI" : "EUR"}</span>
-                        </div>
-                      ))}
+                      {result.plan_financiar?.buget_investitii?.map((item: any, idx: number) => {
+                        const label = item.item || item.categorie || '';
+                        const price = item.cost !== undefined ? item.cost : item.suma_lei;
+                        return (
+                          <div key={idx} className="bg-zinc-950/40 border border-zinc-800/50 rounded-xl p-3 flex justify-between items-center text-xs">
+                            <span className="font-semibold text-zinc-300">{label}</span>
+                            <span className="font-black text-emerald-400">
+                              {typeof price === 'number' ? price.toLocaleString() : String(price)} {(!price?.toString().toLowerCase().includes('lei') && !price?.toString().toLowerCase().includes('eur')) ? (locale === "ro" ? "LEI" : "EUR") : ""}
+                            </span>
+                          </div>
+                        );
+                      })}
                     </div>
                   </div>
 
@@ -510,15 +662,21 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
               {activeTab === "marketing" && (
                 <div className="space-y-6 animate-in fade-in duration-200">
                   <div className="space-y-3">
-                    <h3 className="text-emerald-400 font-bold text-sm">{locale === "en" ? "Promotion Channels" : locale === "es" ? "Canales de Promoción" : "Canale de Promovare"}</h3>
-                    <div className="space-y-3">
-                      {result.strategie_marketing?.canale_promovare?.map((canal: any, idx: number) => (
-                        <div key={idx} className="bg-zinc-950/30 border border-zinc-800/60 rounded-xl p-4 space-y-1">
-                          <h4 className="font-bold text-zinc-200 text-xs">{canal.nume}</h4>
-                          <p className="text-zinc-400 text-[11px] leading-relaxed">{canal.detalii}</p>
-                        </div>
-                      ))}
-                    </div>
+                    <h3 className="text-emerald-400 font-bold text-sm">{locale === "en" ? "Promotion & Strategy" : locale === "es" ? "Promoción y Estrategia" : "Promovare & Strategie"}</h3>
+                    {result.analiza_pietei?.strategie_marketing ? (
+                      <div className="bg-zinc-950/30 border border-zinc-800/60 rounded-xl p-4">
+                        <p className="text-zinc-300 text-xs leading-relaxed">{formatNumberedText(result.analiza_pietei.strategie_marketing)}</p>
+                      </div>
+                    ) : (
+                      <div className="space-y-3">
+                        {result.strategie_marketing?.canale_promovare?.map((canal: any, idx: number) => (
+                          <div key={idx} className="bg-zinc-950/30 border border-zinc-800/60 rounded-xl p-4 space-y-1">
+                            <h4 className="font-bold text-zinc-200 text-xs">{canal.nume}</h4>
+                            <p className="text-zinc-400 text-[11px] leading-relaxed">{canal.detalii}</p>
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
 
                   {/* Tone Editor Bottom Element */}
@@ -546,19 +704,19 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
                   <div className="grid grid-cols-1 gap-3">
                     <div className="bg-emerald-950/10 border border-emerald-800/20 rounded-xl p-4">
                       <span className="text-[10px] text-emerald-400 font-black tracking-wider uppercase block mb-1">{locale === "en" ? "💪 Strengths" : locale === "es" ? "💪 Fortalezas" : "💪 Puncte Forte (Strengths)"}</span>
-                      <p className="text-zinc-300 text-xs leading-relaxed">{formatNumberedText(result.analiza_swot?.puncte_forte)}</p>
+                      {renderSwotCategory(result.analiza_swot?.puncte_tari || result.analiza_swot?.puncte_forte)}
                     </div>
                     <div className="bg-rose-950/10 border border-rose-800/20 rounded-xl p-4">
                       <span className="text-[10px] text-rose-400 font-black tracking-wider uppercase block mb-1">{locale === "en" ? "⚠️ Weaknesses" : locale === "es" ? "⚠️ Debilidades" : "⚠️ Puncte Slabe (Weaknesses)"}</span>
-                      <p className="text-zinc-300 text-xs leading-relaxed">{formatNumberedText(result.analiza_swot?.puncte_slabe)}</p>
+                      {renderSwotCategory(result.analiza_swot?.puncte_slabe)}
                     </div>
                     <div className="bg-blue-950/10 border border-blue-800/20 rounded-xl p-4">
                       <span className="text-[10px] text-blue-400 font-black tracking-wider uppercase block mb-1">{locale === "en" ? "🚀 Opportunities" : locale === "es" ? "🚀 Oportunidades" : "🚀 Oportunități (Opportunities)"}</span>
-                      <p className="text-zinc-300 text-xs leading-relaxed">{formatNumberedText(result.analiza_swot?.oportunitati)}</p>
+                      {renderSwotCategory(result.analiza_swot?.oportunitati)}
                     </div>
                     <div className="bg-amber-950/10 border border-amber-800/20 rounded-xl p-4">
                       <span className="text-[10px] text-amber-400 font-black tracking-wider uppercase block mb-1">{locale === "en" ? "☠️ Threats" : locale === "es" ? "☠️ Amenazas" : "☠️ Amenințări (Threats)"}</span>
-                      <p className="text-zinc-300 text-xs leading-relaxed">{formatNumberedText(result.analiza_swot?.amenintari)}</p>
+                      {renderSwotCategory(result.analiza_swot?.amenintari)}
                     </div>
                   </div>
                 </div>
@@ -686,7 +844,7 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
         }}
         userId={user?.uid || ""}
         userEmail={user?.email || ""}
-        currency="LEI"
+        currency={locale === "ro" ? "LEI" : "EUR"}
         planName={result?.nume || (locale === "en" ? "Business Plan" : "Plan de Afaceri")}
         locale={locale}
       />

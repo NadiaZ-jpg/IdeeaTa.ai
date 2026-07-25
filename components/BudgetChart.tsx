@@ -10,13 +10,16 @@ import {
   Cell
 } from 'recharts';
 
-export function BudgetPieChart({ budget, currency = "LEI", isPdf = false, isPptx = false }: { budget: any[], currency?: string, isPdf?: boolean, isPptx?: boolean }) {
+export function BudgetPieChart({ budget, currency = "LEI", isPdf = false, isPptx = false, locale = "ro" }: { budget: any[], currency?: string, isPdf?: boolean, isPptx?: boolean, locale?: "ro" | "en" | "es" }) {
   if (!budget || budget.length === 0) return null;
 
-  const data = budget.map((b) => ({
-    name: b.item,
-    cost: parseInt(b.cost?.toString().replace(/[^0-9]/g, '') || '0')
-  })).sort((a, b) => b.cost - a.cost);
+  const data = budget.map((b) => {
+    const name = b.item || b.categorie || b.nume || (locale === "en" ? "Investment" : locale === "es" ? "Inversión" : "Investiție");
+    const costText = b.cost !== undefined ? b.cost : b.suma_lei;
+    const cost = parseInt(costText?.toString().replace(/[^0-9]/g, '') || '0');
+    return { name, cost };
+  }).filter((item) => item.cost > 0)
+    .sort((a, b) => b.cost - a.cost);
 
   const totalCost = data.reduce((sum, item) => sum + item.cost, 0);
 

@@ -246,6 +246,18 @@ Formele acceptate de acord expres:
 
 ---
 
+## FREEZE (25 Iulie 2026 — Sprint 3: Localizare Completă Alerte, Fallbacks și Instrumente AI)
+- **components/DemoDesktop.tsx** / **components/StudioDesktop.tsx** — Localizate 100% toate dialogurile de alertă și confirmare (confirmare credite descărcare, blocare copiere, avertisment demo, erori generare/salvare). Trimis prop-ul `locale` către graficul `BudgetPieChart`. ÎNGHEȚATE.
+- **components/DemoMobile.tsx** / **components/StudioMobile.tsx** — Localizate toate alerte native (generare, erori AI edit, salvări pdf). ÎNGHEȚATE.
+- **components/BudgetChart.tsx** — Adăugat prop-ul `locale` în `BudgetPieChart` și dinamizat fallback-ul `"Investiție"` → `"Investment"` / `"Inversión"` / `"Investiție"`. ÎNGHEȚAT.
+- **lib/generateDocx.ts** / **lib/generatePptx.ts** — Localizat fallback-ul `"Investiție"` în mod dinamic pe baza parametrului `locale` în tabele, slide-uri și grafice native. ÎNGHEȚATE.
+- **app/api/edit/route.ts** —
+  - Integrat `buildMetaPrompt` în paralel în `Promise.all` pentru a traduce și localiza dinamic datele generale (nume, slogan, formă juridică localizată, CAEN) și lista completă de buget în limba selectată pe pagină.
+  - Actualizate prompturile de optimizare buget pentru a traduce articolele și justificările în limba selectată în timpul recalculării costurilor. ÎNGHEȚAT.
+- **Build verificat local:** ✅ `✓ Compiled successfully in 8.9s` — 44/44 pagini statice generate (RO, EN, ES complete).
+
+---
+
 ## RĂMÂNE DE FĂCUT
 - **DEPLOY** — `git push origin main` din local, apoi `git pull origin main` și `npm run build && pm2 restart 0` pe serverul Hetzner pentru a urca toate modificările din local.
 

@@ -61,8 +61,8 @@ Return the result strictly as a valid JSON object with the following structure:
   "nume": "Business Name",
   "slogan": "A catchy slogan",
   "date_generale": {
-    "forma_juridica": "Ex: LLC, Sole Proprietorship, Partnership",
-    "cod_caen": "Main Business Category / Industry description",
+    "forma_juridica": "Ex: LLC, Sole Proprietorship, Partnership (Use target equivalents, strictly avoid Romanian terms like SRL or PFA)",
+    "cod_caen": "Main Business Category / Industry description (Use target equivalents, strictly avoid Romanian CAEN terms or Romanian law references)",
     "date_contact": "Ex: Legal Representative"
   },
   "viziune_strategie": {
@@ -107,8 +107,8 @@ Return the result strictly as a valid JSON object with the following structure:
   "nume": "Nombre de la Empresa",
   "slogan": "Un eslogan llamativo",
   "date_generale": {
-    "forma_juridica": "Ej: S.L., Sociedad Anónima, Autónomo, Coop",
-    "cod_caen": "Categoría principal de negocio / Descripción de industria",
+    "forma_juridica": "Ej: S.L., Sociedad Anónima, Autónomo, Coop (Use equivalentes locales en español, evite términos rumanos como SRL o PFA)",
+    "cod_caen": "Categoría principal de negocio / Descripción de industria (Use explicaciones en español, evite códigos o términos estrictamente rumanos)",
     "date_contact": "Ej: Representante Legal"
   },
   "viziune_strategie": {

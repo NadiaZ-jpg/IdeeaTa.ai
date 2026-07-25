@@ -50,7 +50,7 @@ export async function POST(req: NextRequest) {
       if (action === "professional_tone") {
         instruction = `Rewrite the textual content to have a ${customStyle || 'formal, corporate and professional'} tone, keeping the exact structure. Do not change any numbers.`;
       } else if (action === "optimize_budget") {
-        instruction = `Reduce costs in 'plan_financiar.buget_investitii' by approximately ${targetSection}% and adjust explanations showing how the savings were achieved. Keep everything else untouched.`;
+        instruction = `Reduce costs in 'plan_financiar.buget_investitii' by approximately ${targetSection}%, adjust explanations showing how the savings were achieved, and translate the item name ('item') and explanations ('explicatie') to English if they are in another language. Keep everything else untouched.`;
       } else if (action === "add_sections") {
         instruction = `Generate NEW text sections for the business plan, referring strictly to the requested topics: "${targetSection || 'anything you deem necessary'}". 
         IMPORTANT:
@@ -102,7 +102,7 @@ IMPORTANT: Keep the original JSON structure, but rewrite and enrich the content 
       if (action === "professional_tone") {
         instruction = `Reescribe el contenido textual para tener un tono ${customStyle || 'formal, corporativo y profesional'}, manteniendo la estructura exacta. No cambies ningún número.`;
       } else if (action === "optimize_budget") {
-        instruction = `Reduce los costes en 'plan_financiar.buget_investitii' en aproximadamente un ${targetSection}% y ajusta las explicaciones mostrando cómo se lograron los ahorros. Mantén todo lo demás intacto.`;
+        instruction = `Reduce los costes en 'plan_financiar.buget_investitii' en aproximadamente un ${targetSection}%, ajusta las explicaciones mostrando cómo se lograron los ahorros, y traduce el nombre del artículo ('item') y las explicaciones ('explicatie') al español si están en otro idioma. Mantén todo lo demás intacto.`;
       } else if (action === "add_sections") {
         instruction = `Genera NUEVAS secciones de texto para el plan de negocios, refiriéndote estrictamente a los temas solicitados: "${targetSection || 'lo que consideres necesario'}". 
         IMPORTANTE:
@@ -154,7 +154,7 @@ IMPORTANTE: ¡Mantén la estructura JSON original, pero reescribe y enriquece el
       if (action === "professional_tone") {
         instruction = `Rescrie conținutul textual pentru a avea un ton ${customStyle || 'formal, corporativ și profesionist'}, păstrând structura exactă. Nu modifica cifrele.`;
       } else if (action === "optimize_budget") {
-        instruction = `Redu costurile din 'plan_financiar.buget_investitii' cu aproximativ ${targetSection}% și ajustează explicațiile arătând cum s-a făcut economia. Păstrează restul neatins.`;
+        instruction = `Redu costurile din 'plan_financiar.buget_investitii' cu aproximativ ${targetSection}%, ajustează explicațiile arătând cum s-a făcut economia și traduse numele articolului ('item') și explicațiile ('explicatie') în limba română dacă sunt în altă limbă. Păstrează restul neatins.`;
       } else if (action === "add_sections") {
         instruction = `Generează SECȚIUNI NOI de text pentru planul de afaceri, referitoare strict la subiectele cerute: "${targetSection || 'orice consideri necesar'}". 
         IMPORTANT:
@@ -345,12 +345,53 @@ IMPORTANT PENTRU JSON:
 - NU adăuga formatare markdown, NU adăuga backticks (\`\`\`), NU adăuga text adițional înainte sau după JSON.`;
       };
 
-      const [resViz, resPiata, resOp, resSwot, resFin] = await Promise.all([
+      const buildMetaPrompt = () => {
+        if (locale === "es") {
+          return `Eres un traductor y consultor experto. Traduce y localiza el siguiente objeto al español.
+Asegúrate de:
+1. Traducir el lema (slogan).
+2. Adaptar la forma jurídica (forma_juridica) a equivalentes en español (ej. S.L., Sociedad Anónima, Autónomo, etc.) y traducir la descripción del sector del código CAEN (cod_caen) al español.
+3. Traducir las claves "item" (denominación) y "explicatie" (justificación) de cada elemento en la lista "buget_investitii" al español. ¡NO traduzcas ni alteres los costes, monedas ni números!
+4. Mantener la estructura JSON exacta del objeto recibido.
+
+Objeto actual:
+${JSON.stringify({ nume: result.nume, slogan: result.slogan, date_generale: result.date_generale, buget_investitii: result.plan_financiar?.buget_investitii || [] })}
+
+Responde EXCLUSIVAMENTE con un JSON válido.`;
+        }
+        if (locale === "en") {
+          return `You are an expert translator and consultant. Translate and localize the following object to English.
+Ensure you:
+1. Translate the slogan.
+2. Adapt the legal form (forma_juridica) to English/international equivalents (e.g. LLC, Sole Proprietorship, Partnership, etc.) and translate the CAEN category description (cod_caen) to English.
+3. Translate the "item" and "explicatie" keys of each element in the "buget_investitii" list to English. DO NOT translate or alter costs, currencies, or numbers!
+4. Keep the exact JSON structure of the received object.
+
+Current object:
+${JSON.stringify({ nume: result.nume, slogan: result.slogan, date_generale: result.date_generale, buget_investitii: result.plan_financiar?.buget_investitii || [] })}
+
+Respond EXCLUSIVELY with a valid JSON.`;
+        }
+        return `Ești un consultant și traducător expert. Traduce și adaptează următorul obiect în limba română.
+Asigură-te că:
+1. Traduci sloganul.
+2. Adaptezi forma juridică (forma_juridica) la termeni românești (ex: SRL, PFA, SA) și traduci descrierea codului CAEN în română.
+3. Traduci cheile "item" și "explicatie" pentru fiecare element din lista "buget_investitii" în limba română. NU modifica costurile, monedele sau valorile numerice!
+4. Păstrezi structura JSON exactă a obiectului primit.
+
+Obiect curent:
+${JSON.stringify({ nume: result.nume, slogan: result.slogan, date_generale: result.date_generale, buget_investitii: result.plan_financiar?.buget_investitii || [] })}
+
+Răspunde EXCLUSIV cu un JSON valid.`;
+      };
+
+      const [resViz, resPiata, resOp, resSwot, resFin, resMeta] = await Promise.all([
         callGemini(buildPrompt(pViziune)).catch(e => { console.error("Edit segment Viz failed:", e); return ""; }),
         callGemini(buildPrompt(pPiata)).catch(e => { console.error("Edit segment Piata failed:", e); return ""; }),
         callGemini(buildPrompt(pOperational)).catch(e => { console.error("Edit segment Op failed:", e); return ""; }),
         callGemini(buildPrompt(pSwot)).catch(e => { console.error("Edit segment Swot failed:", e); return ""; }),
-        callGemini(buildPrompt(pFinanciar)).catch(e => { console.error("Edit segment Fin failed:", e); return ""; })
+        callGemini(buildPrompt(pFinanciar)).catch(e => { console.error("Edit segment Fin failed:", e); return ""; }),
+        callGemini(buildMetaPrompt()).catch(e => { console.error("Edit segment Meta failed:", e); return ""; })
       ]);
       
       const txtViz = cleanJsonString(resViz);
@@ -358,6 +399,7 @@ IMPORTANT PENTRU JSON:
       const txtOp = cleanJsonString(resOp);
       const txtSwot = cleanJsonString(resSwot);
       const txtFin = cleanJsonString(resFin);
+      const txtMeta = cleanJsonString(resMeta);
 
       let parsedViz: any = {};
       try { if (txtViz) parsedViz = JSON.parse(txtViz); } catch (e) { console.error("Error parsing Viz:", e, txtViz); }
@@ -369,16 +411,25 @@ IMPORTANT PENTRU JSON:
       try { if (txtSwot) parsedSwot = JSON.parse(txtSwot); } catch (e) { console.error("Error parsing Swot:", e, txtSwot); }
       let parsedFin: any = {};
       try { if (txtFin) parsedFin = JSON.parse(txtFin); } catch (e) { console.error("Error parsing Fin:", e, txtFin); }
+      let parsedMeta: any = {};
+      try { if (txtMeta) parsedMeta = JSON.parse(txtMeta); } catch (e) { console.error("Error parsing Meta:", e, txtMeta); }
 
       parsed = {
+        nume: parsedMeta.nume || result.nume,
+        slogan: parsedMeta.slogan || result.slogan,
+        date_generale: parsedMeta.date_generale || result.date_generale,
         viziune_strategie: Object.keys(parsedViz).length > 0 ? (parsedViz.viziune_strategie || parsedViz) : {},
         analiza_pietei: Object.keys(parsedPiata).length > 0 ? (parsedPiata.analiza_pietei || parsedPiata) : {},
         plan_operational: Object.keys(parsedOp).length > 0 ? (parsedOp.plan_operational || parsedOp) : {},
         analiza_swot: Object.keys(parsedSwot).length > 0 ? (parsedSwot.analiza_swot || parsedSwot) : {},
-        plan_financiar: Object.keys(parsedFin).length > 0 ? (parsedFin.plan_financiar || parsedFin) : {}
+        plan_financiar: {
+          ...result.plan_financiar,
+          strategie_financiara: Object.keys(parsedFin).length > 0 ? (parsedFin.plan_financiar?.strategie_financiara || parsedFin.strategie_financiara || parsedFin) : result.plan_financiar?.strategie_financiara,
+          buget_investitii: parsedMeta.buget_investitii || result.plan_financiar?.buget_investitii || []
+        }
       };
 
-      const successCount = [parsedViz, parsedPiata, parsedOp, parsedSwot, parsedFin].filter(p => Object.keys(p).length > 0).length;
+      const successCount = [parsedViz, parsedPiata, parsedOp, parsedSwot, parsedFin, parsedMeta].filter(p => Object.keys(p).length > 0).length;
       if (successCount === 0) {
         return NextResponse.json({ error: "Sistemul a returnat un răspuns nevalid sau gol. Te rugăm să încerci din nou." }, { status: 400 });
       }

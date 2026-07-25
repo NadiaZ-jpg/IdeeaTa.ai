@@ -209,7 +209,12 @@ export const generatePptx = async (
     bSlide.addText(tr.investmentBudget + (slideIdx > 0 ? ` (${tr.part} ${slideIdx + 1})` : ''), { x: 0.5, y: 0.5, w: 9, h: 0.5, fontSize: 28, bold: true, color: '10b981', fontFace: 'Times New Roman' });
     
     const chunk = budgetItems.slice(slideIdx * 4, slideIdx * 4 + 4);
-    let bText = chunk.map((b: any) => ({ text: b.item + ' - ' + formatPrice(b.cost) + '\n' + b.explicatie, options: { bullet: true, color: 'e4e4e7', breakLine: true, fontFace: 'Times New Roman' } }));
+    let bText = chunk.map((b: any) => {
+      const itemTitle = b.item || b.categorie || b.nume || (locale === "en" ? "Investment" : locale === "es" ? "Inversión" : "Investiție");
+      const itemCost = b.cost !== undefined ? b.cost : b.suma_lei;
+      const itemExplicatie = b.explicatie || b.detalii || "";
+      return { text: itemTitle + ' - ' + formatPrice(itemCost) + '\n' + itemExplicatie, options: { bullet: true, color: 'e4e4e7', breakLine: true, fontFace: 'Times New Roman' } };
+    });
     bSlide.addText(bText, { x: 0.5, y: 1.2, w: 9, h: 5.5, fontSize: 11, valign: 'top' });
   }
 
@@ -220,8 +225,11 @@ export const generatePptx = async (
     let dataChartPie = [
       {
         name: tr.budgetName,
-        labels: result.plan_financiar.buget_investitii.map((i: any) => i.item),
-        values: result.plan_financiar.buget_investitii.map((i: any) => parseInt(i.cost.toString().replace(/[^0-9]/g, "")))
+        labels: result.plan_financiar.buget_investitii.map((i: any) => i.item || i.categorie || i.nume || (locale === "en" ? "Investment" : locale === "es" ? "Inversión" : "Investiție")),
+        values: result.plan_financiar.buget_investitii.map((i: any) => {
+          const costText = i.cost !== undefined ? i.cost : i.suma_lei;
+          return parseInt(costText?.toString().replace(/[^0-9]/g, "") || "0");
+        })
       }
     ];
     cSlide.addChart(pres.ChartType.doughnut, dataChartPie, { 

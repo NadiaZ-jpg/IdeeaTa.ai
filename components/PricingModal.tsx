@@ -61,8 +61,8 @@ export function PricingModal({ isOpen, onClose, onSuccess, onRequireLogin, userI
   };
  
   const getPriceDisplay = (tier: string) => {
-    if (tier === "standard") return locale === "es" ? "8 EUR" : "39 RON";
-    if (tier === "eu-funds") return locale === "es" ? "20 EUR" : "99 RON";
+    if (tier === "standard") return (locale === "es" || locale === "en") ? "8 EUR" : "39 RON";
+    if (tier === "eu-funds") return (locale === "es" || locale === "en") ? "20 EUR" : "99 RON";
     return "";
   };
 

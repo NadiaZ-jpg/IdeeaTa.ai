@@ -271,7 +271,10 @@ export async function generateDocxBlob(
         }
 
         const colors = ['#10b981', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#14b8a6'];
-        const values = items.map((i: any) => parseInt((i.cost || i.valoare || "0").toString().replace(/[^0-9]/g, '')) || 0);
+        const values = items.map((i: any) => {
+          const costText = i.cost !== undefined ? i.cost : i.suma_lei;
+          return parseInt(costText?.toString().replace(/[^0-9]/g, '')) || 0;
+        });
         const total = values.reduce((a: number, b: number) => a + b, 0);
 
         const cx = 250;
@@ -346,7 +349,7 @@ export async function generateDocxBlob(
               ctx.textAlign = 'left';
               ctx.textBaseline = 'middle';
               
-              let label = item.item || item.nume || "Investiție";
+              let label = item.item || item.categorie || item.nume || (locale === "en" ? "Investment" : locale === "es" ? "Inversión" : "Investiție");
               if (label.length > 30) label = label.substring(0, 27) + '...';
               
               ctx.fillText(label, lx + 30, ly - 2);
@@ -544,25 +547,28 @@ export async function generateDocxBlob(
 
     const sorted = [...fin.buget_investitii].sort(
       (a: any, b: any) =>
-        parseInt(b.cost?.toString().replace(/[^0-9]/g, "") || "0") -
-        parseInt(a.cost?.toString().replace(/[^0-9]/g, "") || "0")
+        parseInt((b.cost !== undefined ? b.cost : b.suma_lei)?.toString().replace(/[^0-9]/g, "") || "0") -
+        parseInt((a.cost !== undefined ? a.cost : a.suma_lei)?.toString().replace(/[^0-9]/g, "") || "0")
     );
 
     sorted.forEach((b: any) => {
+      const itemTitle = b.item || b.categorie || b.nume || (locale === "en" ? "Investment" : locale === "es" ? "Inversión" : "Investiție");
+      const itemCost = b.cost !== undefined ? b.cost : b.suma_lei;
+      const itemExplicatie = b.explicatie || b.detalii || "";
       children.push(
         new Paragraph({
           children: [
-            new TextRun({ text: `${b.item}: `, bold: true, font: FONT, size: 24 }),
-            new TextRun({ text: formatPrice(b.cost, locale), color: COLOR_EMERALD, font: FONT, size: 24, bold: true }),
+            new TextRun({ text: `${itemTitle}: `, bold: true, font: FONT, size: 24 }),
+            new TextRun({ text: formatPrice(itemCost, locale), color: COLOR_EMERALD, font: FONT, size: 24, bold: true }),
           ],
           spacing: { after: 40 },
           bullet: { level: 0 },
         })
       );
-      if (b.explicatie) {
+      if (itemExplicatie) {
         children.push(
           new Paragraph({
-            children: [new TextRun({ text: b.explicatie, italics: true, color: COLOR_GRAY, font: FONT, size: 20 })],
+            children: [new TextRun({ text: itemExplicatie, italics: true, color: COLOR_GRAY, font: FONT, size: 20 })],
             indent: { left: 400 },
             spacing: { after: 80 },
             alignment: AlignmentType.JUSTIFIED,
@@ -572,7 +578,7 @@ export async function generateDocxBlob(
     });
 
     const total = fin.buget_investitii.reduce(
-      (sum: number, b: any) => sum + parseInt(b.cost?.toString().replace(/[^0-9]/g, "") || "0"),
+      (sum: number, b: any) => sum + parseInt((b.cost !== undefined ? b.cost : b.suma_lei)?.toString().replace(/[^0-9]/g, "") || "0"),
       0
     );
 

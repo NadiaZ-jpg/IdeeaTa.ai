@@ -6,7 +6,14 @@ import { t } from '@/lib/translations';
 export function Footer() {
   const pathname = usePathname();
   const isEn = pathname?.startsWith('/en');
-  const locale = isEn ? 'en' : 'ro';
+  const isEs = pathname?.startsWith('/es');
+  const locale = isEn ? 'en' : isEs ? 'es' : 'ro';
+
+  const getLink = (roPath: string, enPath: string, esPath: string) => {
+    if (isEn) return enPath;
+    if (isEs) return esPath;
+    return roPath;
+  };
 
   return (
     <footer className="w-full border-t border-zinc-800 bg-[#09090b] py-8 mt-auto">
@@ -19,19 +26,19 @@ export function Footer() {
         </div>
         
         <div className="flex flex-wrap justify-center gap-6 text-sm font-medium text-zinc-400">
-          <Link href={isEn ? "/en/about-us" : "/despre-noi"} className="hover:text-emerald-400 transition-colors">
+          <Link href={getLink("/despre-noi", "/en/about-us", "/es/about-us")} className="hover:text-emerald-400 transition-colors">
             {t('aboutUs', locale)}
           </Link>
-          <Link href={isEn ? "/en/contact" : "/contact"} className="hover:text-emerald-400 transition-colors">
+          <Link href={getLink("/contact", "/en/contact", "/es/contact")} className="hover:text-emerald-400 transition-colors">
             {t('contact', locale)}
           </Link>
-          <Link href={isEn ? "/en/terms" : "/termeni"} className="hover:text-emerald-400 transition-colors">
+          <Link href={getLink("/termeni", "/en/terms", "/es/terms")} className="hover:text-emerald-400 transition-colors">
             {t('termsAndConditions', locale)}
           </Link>
-          <Link href={isEn ? "/en/privacy" : "/privacy"} className="hover:text-emerald-400 transition-colors">
+          <Link href={getLink("/privacy", "/en/privacy", "/es/privacy")} className="hover:text-emerald-400 transition-colors">
             {t('privacyPolicy', locale)}
           </Link>
-          <Link href={isEn ? "/en/cookies" : "/cookies"} className="hover:text-emerald-400 transition-colors">
+          <Link href={getLink("/cookies", "/en/cookies", "/es/cookies")} className="hover:text-emerald-400 transition-colors">
             {t('cookiePolicy', locale)}
           </Link>
           <a 

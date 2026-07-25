@@ -10,6 +10,7 @@ import { Plus, FileText, Calendar, ArrowRight, Loader2, Sparkles, Mail, AlertTri
 import { migrateLocalPlansToFirebase } from '@/lib/migrationManager';
 import { LanguageSwitcher } from '@/components/LanguageSwitcher';
 import BuyMeACoffeeModal from '@/components/BuyMeACoffeeModal';
+import { PricingModal } from '@/components/PricingModal';
 
 export default function DashboardContent({ locale = "ro" }: { locale?: "ro" | "en" | "es" }) {
   const router = useRouter();
@@ -21,6 +22,7 @@ export default function DashboardContent({ locale = "ro" }: { locale?: "ro" | "e
   const [verificationSent, setVerificationSent] = useState(false);
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
   const [showBmcModal, setShowBmcModal] = useState(false);
+  const [showPricingModal, setShowPricingModal] = useState(false);
   
   const isEn = locale === "en";
   const isEs = locale === "es";
@@ -32,6 +34,8 @@ export default function DashboardContent({ locale = "ro" }: { locale?: "ro" | "e
     e.preventDefault();
     if (user && !user?.emailVerified && user.providerData[0]?.providerId === 'password') {
       setShowVerificationModal(true);
+    } else if (studioLimitUsed && !isPaidUser) {
+      setShowPricingModal(true);
     } else {
       // Curatam memoria locala ca sa fim siguri ca form-ul de Studio e curat
       if (typeof window !== "undefined") {
@@ -102,8 +106,21 @@ export default function DashboardContent({ locale = "ro" }: { locale?: "ro" | "e
         const snapshot = await getDocs(q);
         
         const fetchedPlans: any[] = [];
-        snapshot.forEach((doc) => {
-          fetchedPlans.push({ id: doc.id, ...doc.data() });
+        const seenIds = new Set<string>();
+        const seenNames = new Set<string>();
+
+        snapshot.forEach((docSnap) => {
+          const pData: any = { id: docSnap.id, ...docSnap.data() };
+          const pName = pData.nume ? pData.nume.trim().toLowerCase() : "";
+          
+          if (!seenIds.has(pData.id) && (!pName || !seenNames.has(pName))) {
+            seenIds.add(pData.id);
+            if (pName) seenNames.add(pName);
+            fetchedPlans.push(pData);
+          } else {
+            // Curățăm automat duplicatul din Firestore în fundal
+            deleteDoc(doc(db, "users", currentUser.uid, "plans", docSnap.id)).catch(console.error);
+          }
         });
         
         setPlans(fetchedPlans);
@@ -175,24 +192,42 @@ export default function DashboardContent({ locale = "ro" }: { locale?: "ro" | "e
             </p>
           </div>
           
-          <div className="flex flex-col items-end gap-1.5">
-            <button onClick={handleGenerateNew} className="bg-emerald-600 hover:bg-emerald-500 text-white px-6 py-3.5 rounded-xl font-bold uppercase tracking-wider transition-all flex items-center gap-2 shadow-[0_0_20px_rgba(16,185,129,0.2)] hover:shadow-[0_0_30px_rgba(16,185,129,0.4)] hover:-translate-y-1">
-              <Plus className="w-5 h-5" />
-              {isEn ? "Generate New Plan" : isEs ? "Generar Nuevo Plan" : "Generează Plan Nou"}
-            </button>
+          <div className="flex flex-col items-end gap-2">
+            <div className="flex items-center gap-3">
+              {!isPaidUser && (
+                <button
+                  type="button"
+                  onClick={() => setShowPricingModal(true)}
+                  className="bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-black font-black px-5 py-3.5 rounded-xl uppercase tracking-wider text-xs transition-all flex items-center gap-2 shadow-[0_0_20px_rgba(245,158,11,0.3)] hover:scale-105 cursor-pointer"
+                >
+                  <Sparkles className="w-4 h-4 fill-black" />
+                  {isEn ? "👑 View Packages & Upgrade" : isEs ? "👑 Ver Paquetes y Mejorar" : "👑 Vezi Pachete & Upgrade"}
+                </button>
+              )}
+              <button onClick={handleGenerateNew} className="bg-emerald-600 hover:bg-emerald-500 text-white px-6 py-3.5 rounded-xl font-bold uppercase tracking-wider transition-all flex items-center gap-2 shadow-[0_0_20px_rgba(16,185,129,0.2)] hover:shadow-[0_0_30px_rgba(16,185,129,0.4)] hover:-translate-y-1">
+                <Plus className="w-5 h-5" />
+                {isEn ? "Generate New Plan" : isEs ? "Generar Nuevo Plan" : "Generează Plan Nou"}
+              </button>
+            </div>
             {!isPaidUser && (
               studioLimitUsed ? (
-                <span className="text-[11px] text-amber-400 font-semibold flex items-center gap-1">
-                  ⚡ {isEn ? "Free plan limit reached — upgrade required for new plan" : isEs ? "Límite del plan gratuito alcanzado — se requiere actualización para nuevo plan" : "Planul gratuit folosit — upgrade necesar pentru plan nou"}
-                </span>
+                <button 
+                  onClick={() => setShowPricingModal(true)}
+                  className="text-[11px] text-amber-400 font-semibold flex items-center gap-1 hover:underline cursor-pointer"
+                >
+                  ⚡ {isEn ? "Free plan limit reached — click here to upgrade" : isEs ? "Límite del plan gratuito alcanzado — clic para mejorar" : "Planul gratuit folosit — dă click aici pentru upgrade"}
+                </button>
               ) : (
-                <span className="text-[11px] text-emerald-400 font-semibold flex items-center gap-1">
+                <button
+                  onClick={() => setShowPricingModal(true)}
+                  className="text-[11px] text-emerald-400 font-semibold flex items-center gap-1 hover:underline cursor-pointer"
+                >
                   🎁 {isEn 
-                    ? (4 - plans.length === 1 ? "You have 1 free plan generation remaining." : `You have ${4 - plans.length} free plan generations remaining.`) 
+                    ? (4 - plans.length === 1 ? "You have 1 free plan generation remaining. Click to view packages." : `You have ${4 - plans.length} free plan generations remaining. Click to view packages.`) 
                     : isEs 
-                    ? (4 - plans.length === 1 ? "Te queda 1 generación de plan gratuito." : `Te quedan ${4 - plans.length} generaciones de planes gratuitos.`) 
-                    : (4 - plans.length === 1 ? "Mai ai dreptul la 1 plan gratuit." : `Mai ai dreptul la ${4 - plans.length} planuri gratuite.`)}
-                </span>
+                    ? (4 - plans.length === 1 ? "Te queda 1 generación de plan gratuito. Clic para ver paquetes." : `Te quedan ${4 - plans.length} generaciones de planes gratuitos. Clic para ver paquetes.`) 
+                    : (4 - plans.length === 1 ? "Mai ai dreptul la 1 plan gratuit. Click pentru pachete." : `Mai ai dreptul la ${4 - plans.length} planuri gratuite. Click pentru pachete.`)}
+                </button>
               )
             )}
           </div>
@@ -358,6 +393,14 @@ export default function DashboardContent({ locale = "ro" }: { locale?: "ro" | "e
         isOpen={showBmcModal} 
         onClose={() => setShowBmcModal(false)} 
         locale={locale} 
+      />
+      <PricingModal
+        isOpen={showPricingModal}
+        onClose={() => setShowPricingModal(false)}
+        locale={locale}
+        userId={user?.uid || ""}
+        userEmail={user?.email || null}
+        currency="LEI"
       />
     </div>
   );

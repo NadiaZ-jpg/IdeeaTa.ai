@@ -2,6 +2,7 @@ import {
   AlignmentType,
   BorderStyle,
   Document,
+  HeadingLevel,
   ImageRun,
   Packer,
   Paragraph,
@@ -25,6 +26,7 @@ const COLOR_BLUE = "1e40af";
 
 function sectionHeading(text: string): Paragraph {
   return new Paragraph({
+    heading: HeadingLevel.HEADING_1,
     children: [
       new TextRun({
         text,
@@ -50,6 +52,7 @@ function sectionHeading(text: string): Paragraph {
 
 function subHeading(text: string): Paragraph {
   return new Paragraph({
+    heading: HeadingLevel.HEADING_2,
     children: [
       new TextRun({
         text,

@@ -19,6 +19,7 @@ import { t } from '@/lib/translations';
 import { getExamples } from '@/lib/examples';
 import { Mail } from 'lucide-react';
 import { formatObjectNumbers, formatNumberedText } from "@/lib/utils";
+import { EXPERT_TEMPLATES, ExpertTemplate } from '@/lib/templatesData';
 
 const BudgetPieChart = dynamic(() => import('@/components/BudgetChart').then(mod => mod.BudgetPieChart), { ssr: false });
 
@@ -155,8 +156,38 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
   const [showPricingModal, setShowPricingModal] = useState(false);
   const [showQrModal, setShowQrModal] = useState(false);
   const [showBmcModal, setShowBmcModal] = useState(false);
+  const [aiEditError, setAiEditError] = useState<string | null>(null);
+  const [lastEditParams, setLastEditParams] = useState<{action: string, customStyle?: string, customInput?: string} | null>(null);
   const [isSharedView, setIsSharedView] = useState(false);
   const [isCheckingShared, setIsCheckingShared] = useState(true);
+  const [showExpertDrawer, setShowExpertDrawer] = useState(false);
+  const [selectedExpertCategory, setSelectedExpertCategory] = useState("all");
+  const [showVersionDropdown, setShowVersionDropdown] = useState(false);
+
+  const syncCurrentPlanToFirestore = async (updatedResult: any, updatedVersions?: any) => {
+    if (!user) return;
+    try {
+      const searchParams = new URLSearchParams(window.location.search);
+      let planId = searchParams.get("planId");
+      if (!planId) {
+        const safeName = updatedResult?.nume?.replace(/[^a-zA-Z0-9]/g, '_') || 'Business';
+        planId = safeName + "_" + Date.now();
+      }
+      const planRef = doc(db, "users", user.uid, "plans", planId);
+      const versToSave = updatedVersions || versions;
+      const payload: any = {
+        ...updatedResult,
+        updatedAt: new Date().toISOString(),
+      };
+      if (versToSave && Object.keys(versToSave).length > 0) {
+        payload.versions = versToSave;
+      }
+      await setDoc(planRef, payload, { merge: true });
+      console.log("Plan sincronizat automat în Firestore:", planId);
+    } catch (err) {
+      console.error("Eroare la sincronizarea planului în Firestore:", err);
+    }
+  };
 
   const usedIdeasRef = useRef<number[]>([]);
   const [animatedPlaceholder, setAnimatedPlaceholder] = useState("");
@@ -321,6 +352,8 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
     } 
 
     setIsEditingAi(true);
+    setAiEditError(null);
+    setLastEditParams({ action, customStyle, customInput });
     setActiveAiPrompt(null);
     setAiPromptInput("");
     setShowToneOptions(false);
@@ -329,7 +362,7 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
         fetch("/api/edit", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ result, action, customStyle, targetSection })
+          body: JSON.stringify({ result, action, customStyle, targetSection, locale })
         }),
         new Promise(resolve => setTimeout(resolve, 2000))
       ]);
@@ -339,11 +372,11 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
           const text = await res.text();
           console.error("API Error Status:", res.status, "Body:", text);
           if (res.status === 504) {
-            alert("Timpul de răspuns a expirat. Modificarea este prea mare. Încearcă să editezi manual sau să scurtezi textul.");
+            setAiEditError(locale === "en" ? "Response timeout. The text section is too long. Please try manual edit or shorten the text." : locale === "es" ? "Tiempo de respuesta agotado. La sección es demasiado larga. Intente editar manualmente o acortar el texto." : "Timpul de răspuns a expirat. Modificarea este prea mare. Încearcă să editezi manual sau să scurtezi textul.");
             return;
           }
           
-          let errorMsg = "Eroare de server: " + res.status;
+          let errorMsg = locale === "en" ? "Server error: " + res.status : locale === "es" ? "Error del servidor: " + res.status : "Eroare de server: " + res.status;
           try {
             const errJson = JSON.parse(text);
             if (errJson.error) {
@@ -351,13 +384,13 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
             }
           } catch(e) {}
           
-          alert(errorMsg);
+          setAiEditError(errorMsg);
           return;
         }
         data = JSON.parse(await res.text());
       } catch (e) {
         console.error(e);
-        alert("Eroare de rețea. Te rugăm să mai încerci o dată.");
+        setAiEditError(locale === "en" ? "Network error. Please try again." : locale === "es" ? "Error de red. Por favor, inténtelo de nuevo." : "Eroare de rețea. Te rugăm să mai încerci o dată.");
         return;
       }
       
@@ -371,7 +404,10 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
             setActiveVersionId("investor");
           }
           
-          setResult(formatObjectNumbers(parsed));
+          const formattedResult = formatObjectNumbers(parsed);
+          setResult(formattedResult);
+          syncCurrentPlanToFirestore(formattedResult);
+          setIsEditingAi(false);
           
           setTimeout(() => {
              let targetId = "";
@@ -392,16 +428,14 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
            }, 800);
         } catch (err) {
           console.error("Failed to parse JSON:", err);
-          alert("Sistemul a returnat un format invalid. Mai încearcă o dată.");
+          setAiEditError(locale === "en" ? "The system returned an invalid format. Please try again." : locale === "es" ? "El sistema devolvió un formato no válido. Por favor, inténtelo de nuevo." : "Sistemul a returnat un format invalid. Mai încearcă o dată.");
         }
       } else if (data.error) {
-        alert(data.error);
+        setAiEditError(data.error);
       }
     } catch (e) {
       console.error(e);
-      alert("A apărut o eroare neașteptată la editare.");
-    } finally {
-      setIsEditingAi(false);
+      setAiEditError(locale === "en" ? "An unexpected error occurred during editing." : locale === "es" ? "Ocurrió un error inesperado al editar." : "A apărut o eroare neașteptată la editare.");
     }
   };
 
@@ -1215,19 +1249,37 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
                             </button>
                             <button 
                               type="button"
-                              onClick={() => handleAiEdit("professional_tone", "persuasiv, orientat spre vânzări și convingător")} 
+                              onClick={() => {
+                                if (!isPlanPaid && !isAdmin) {
+                                  setShowPricingModal(true);
+                                  return;
+                                }
+                                handleAiEdit("professional_tone", "persuasiv, orientat spre vânzări și convingător");
+                              }} 
                               disabled={isEditingAi}
-                              className="w-full text-xs text-left px-4 py-2.5 rounded-lg hover:bg-zinc-900 text-zinc-400 hover:text-white transition-all font-semibold"
+                              className="w-full text-xs text-left px-4 py-2.5 rounded-lg hover:bg-zinc-900 text-zinc-400 hover:text-white transition-all font-semibold flex items-center justify-between group"
                             >
-                              {locale === "en" ? "📈 Persuasive & Sales" : locale === "es" ? "📈 Persuasivo y Comercial" : "📈 Persuasiv & Vânzări"}
+                              <span>{locale === "en" ? "📈 Persuasive & Sales" : locale === "es" ? "📈 Persuasivo y Comercial" : "📈 Persuasiv & Vânzări"}</span>
+                              {(!isPlanPaid && !isAdmin) && (
+                                <span className="text-[9px] bg-amber-500/20 border border-amber-500/40 text-amber-300 px-1.5 py-0.5 rounded font-black uppercase">🔒 PRO</span>
+                              )}
                             </button>
                             <button 
                               type="button"
-                              onClick={() => handleAiEdit("professional_tone", "prietenos, simplu și ușor de înțeles")} 
+                              onClick={() => {
+                                if (!isPlanPaid && !isAdmin) {
+                                  setShowPricingModal(true);
+                                  return;
+                                }
+                                handleAiEdit("professional_tone", "prietenos, simplu și ușor de înțeles");
+                              }} 
                               disabled={isEditingAi}
-                              className="w-full text-xs text-left px-4 py-2.5 rounded-lg hover:bg-zinc-900 text-zinc-400 hover:text-white transition-all font-semibold"
+                              className="w-full text-xs text-left px-4 py-2.5 rounded-lg hover:bg-zinc-900 text-zinc-400 hover:text-white transition-all font-semibold flex items-center justify-between group"
                             >
-                              {locale === "en" ? "🤝 Friendly & Casual" : locale === "es" ? "🤝 Amigable y Casual" : "🤝 Prietenos & Casual"}
+                              <span>{locale === "en" ? "🤝 Friendly & Casual" : locale === "es" ? "🤝 Amigable y Casual" : "🤝 Prietenos & Casual"}</span>
+                              {(!isPlanPaid && !isAdmin) && (
+                                <span className="text-[9px] bg-amber-500/20 border border-amber-500/40 text-amber-300 px-1.5 py-0.5 rounded font-black uppercase">🔒 PRO</span>
+                              )}
                             </button>
                           </div>
                         )}
@@ -1341,42 +1393,20 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
                             setShowAuthModal(true);
                             return;
                           }
-                          // BLOCARE STRICTĂ — gratuit logat nu poate folosi Adaugă Secțiuni (override freeze studio - Master Plan)
-                          if (!isPlanPaid && !isAdmin) {
-                            setShowPricingModal(true);
-                            return;
-                          }
-                          setActiveAiPrompt(activeAiPrompt?.action === "add_sections" ? null : {
-                            action: "add_sections", 
-                            title: locale === "en" ? "Add New Sections" : locale === "es" ? "Añadir Nuevas Secciones" : "Adaugă Secțiuni Noi", 
-                            placeholder: locale === "en" ? "e.g. Marketing Plan, Risk Analysis, Competition" : locale === "es" ? "ej: Plan de Marketing, Análisis de Riesgos, Competencia" : "ex: Plan de Marketing, Analiza Riscurilor, Concurență", 
-                            desc: locale === "en" 
-                              ? "What additional information do you want to add?" 
-                              : locale === "es" 
-                              ? "¿Qué información adicional deseas añadir?" 
-                              : "Ce informații suplimentare dorești să adaugi?"
-                          });
+                          setShowExpertDrawer(true);
                         }} 
                         disabled={isEditingAi} 
-                        className={`w-full text-left flex items-center justify-between rounded-xl px-5 py-4 font-bold text-sm transition-all group disabled:opacity-50 disabled:cursor-not-allowed ${
-                          (!user || !isPlanPaid) 
-                            ? "bg-zinc-900/60 hover:bg-zinc-800/80 border border-amber-500/30 text-amber-300" 
-                            : "bg-black hover:bg-zinc-800 border border-zinc-800 text-zinc-300"
-                        }`}
+                        className="w-full text-left flex items-center justify-between rounded-xl px-5 py-4 font-bold text-sm transition-all group disabled:opacity-50 disabled:cursor-not-allowed bg-gradient-to-r from-emerald-950/40 via-zinc-900 to-black hover:from-emerald-900/40 border border-emerald-500/40 text-emerald-200 shadow-[0_0_15px_rgba(16,185,129,0.1)] cursor-pointer"
                       >
                         <span className="flex items-center gap-3">
-                          <span className="text-emerald-500 group-hover:scale-110 transition-transform">💡</span> 
+                          <span className="text-emerald-400 group-hover:scale-110 transition-transform text-lg">🏛️</span> 
                           <span>
-                            {isEditingAi 
-                              ? (locale === "en" ? "Processing..." : locale === "es" ? "Procesando..." : "Se procesează...") 
-                              : (locale === "en" ? "Add new sections" : locale === "es" ? "Añadir nuevas secciones" : "Adaugă secțiuni noi")}
+                            {locale === "en" ? "Expert Section Library" : locale === "es" ? "Biblioteca de Secciones Experta" : "Librăria de Secțiuni Experte"}
                           </span>
                         </span>
-                        {(!user || !isPlanPaid) && !isAdmin && (
-                          <span className="text-[10px] bg-amber-500/20 border border-amber-500/40 text-amber-300 px-2 py-0.5 rounded-full font-black uppercase tracking-wider whitespace-nowrap flex items-center gap-1">
-                            🔒 PRO
-                          </span>
-                        )}
+                        <span className="text-[10px] bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 px-2 py-0.5 rounded-full font-black uppercase tracking-wider whitespace-nowrap">
+                          {locale === "en" ? "30+ MODULES" : locale === "es" ? "30+ MÓDULOS" : "30+ MODULE"}
+                        </span>
                       </button>
 
                       <button type="button" onClick={() => {
@@ -1558,27 +1588,65 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
       )}
 
       {isEditingAi && (
-        <div className="fixed inset-0 bg-[#09090b]/90 backdrop-blur-sm z-[100] flex items-center justify-between px-6">
+        <div className="fixed inset-0 bg-[#09090b]/95 backdrop-blur-sm z-[100] flex items-center justify-between px-6">
           {/* Left Ad */}
           <div className="hidden lg:flex flex-col items-center justify-center w-[180px] xl:w-[220px] h-[400px] overflow-hidden shrink-0">
             <AdBanner dataAdSlot="3098389905" dataAdFormat="vertical" dataFullWidthResponsive="false" />
           </div>
 
-          {/* Center loading content */}
+          {/* Center content */}
           <div className="flex flex-col items-center justify-center flex-1 px-4">
-            <div className="w-16 h-16 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin mb-6"></div>
-            <p className="text-2xl font-bold text-white tracking-widest uppercase text-center transition-all duration-300">
-              {aiLoadingMessageIndex === 0 && (locale === "en" ? "Rewriting the document..." : locale === "es" ? "Reescribiendo el documento..." : "Se rescrie documentul...")}
-              {aiLoadingMessageIndex === 1 && (locale === "en" ? "Processing sections..." : locale === "es" ? "Procesando secciones..." : "Se procesează secțiunile...")}
-              {aiLoadingMessageIndex === 2 && (locale === "en" ? "Calculating data..." : locale === "es" ? "Calculando datos..." : "Se calculează datele...")}
-              {aiLoadingMessageIndex === 3 && (locale === "en" ? "Finalizing..." : locale === "es" ? "Finalizando..." : "Se finalizează...")}
-            </p>
-            <p className="text-emerald-400 font-medium mt-3 text-center transition-all duration-500 max-w-lg">
-              {aiLoadingMessageIndex === 0 && (locale === "en" ? "This process takes 15-20 seconds. We are analyzing the current structure of the document..." : locale === "es" ? "Este proceso tarda 15-20 segundos. Estamos analizando la estructura actual del documento..." : "Acest proces durează 15-20 de secunde. Analizăm structura actuală a documentului...")}
-              {aiLoadingMessageIndex === 1 && (locale === "en" ? "Generating sections and rewriting paragraphs for maximum quality..." : locale === "es" ? "Generando secciones y reescribiendo párrafos para máxima calidad..." : "Generăm secțiunile și rescriem paragrafele pentru o calitate maximă...")}
-              {aiLoadingMessageIndex === 2 && (locale === "en" ? "Applying financial calculations and refining the professional tone..." : locale === "es" ? "Aplicando cálculos financieros y refinando el tono profesional..." : "Aplicăm calculele financiare și rafinăm tonul profesional...")}
-              {aiLoadingMessageIndex === 3 && (locale === "en" ? "Final touches. Preparing your new business plan..." : locale === "es" ? "Toques finales. Preparando tu nuevo plan de negocios..." : "Ultimele retușuri. Pregătim noul tău plan de afaceri...")}
-            </p>
+            {aiEditError ? (
+              <div className="bg-[#121214] border border-red-500/30 rounded-[2rem] p-8 max-w-lg w-full text-center shadow-[0_0_50px_rgba(239,68,68,0.1)] ring-1 ring-white/5">
+                <div className="w-16 h-16 rounded-2xl bg-red-500/10 border border-red-500/20 text-red-500 flex items-center justify-center text-3xl mb-6 mx-auto animate-bounce">
+                  ⚠️
+                </div>
+                <h3 className="text-2xl font-bold text-white mb-4">
+                  {locale === "en" ? "AI Processing Error" : locale === "es" ? "Error de procesamiento IA" : "Eroare la procesarea AI"}
+                </h3>
+                <p className="text-zinc-400 text-base leading-relaxed mb-6 whitespace-pre-line">
+                  {aiEditError}
+                </p>
+                <div className="flex gap-4 justify-center">
+                  <button
+                    onClick={() => {
+                      setAiEditError(null);
+                      if (lastEditParams) {
+                        handleAiEdit(lastEditParams.action, lastEditParams.customStyle, lastEditParams.customInput);
+                      }
+                    }}
+                    className="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-6 py-3 rounded-xl transition-all cursor-pointer shadow-lg shadow-emerald-600/20 hover:scale-105 active:scale-95 animate-pulse"
+                  >
+                    {locale === "en" ? "🔄 Retry" : locale === "es" ? "🔄 Reintentar" : "🔄 Reîncearcă"}
+                  </button>
+                  <button
+                    onClick={() => {
+                      setAiEditError(null);
+                      setIsEditingAi(false);
+                    }}
+                    className="bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 text-zinc-300 font-bold px-6 py-3 rounded-xl transition-all cursor-pointer hover:text-white"
+                  >
+                    {locale === "en" ? "❌ Close" : locale === "es" ? "❌ Cerrar" : "❌ Închide"}
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <>
+                <div className="w-16 h-16 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin mb-6"></div>
+                <p className="text-2xl font-bold text-white tracking-widest uppercase text-center transition-all duration-300">
+                  {aiLoadingMessageIndex === 0 && (locale === "en" ? "Rewriting the document..." : locale === "es" ? "Reescribiendo el documento..." : "Se rescrie documentul...")}
+                  {aiLoadingMessageIndex === 1 && (locale === "en" ? "Processing sections..." : locale === "es" ? "Procesando secciones..." : "Se procesează secțiunile...")}
+                  {aiLoadingMessageIndex === 2 && (locale === "en" ? "Calculating data..." : locale === "es" ? "Calculando datos..." : "Se calculează datele...")}
+                  {aiLoadingMessageIndex === 3 && (locale === "en" ? "Finalizing..." : locale === "es" ? "Finalizando..." : "Se finalizează...")}
+                </p>
+                <p className="text-emerald-400 font-medium mt-3 text-center transition-all duration-500 max-w-lg">
+                  {aiLoadingMessageIndex === 0 && (locale === "en" ? "This process takes 15-20 seconds. We are analyzing the current structure of the document..." : locale === "es" ? "Este proceso tarda 15-20 segundos. Estamos analizando la estructura actual del documento..." : "Acest proces durează 15-20 de secunde. Analizăm structura actuală a documentului...")}
+                  {aiLoadingMessageIndex === 1 && (locale === "en" ? "Generating sections and rewriting paragraphs for maximum quality..." : locale === "es" ? "Generando secciones y reescribiendo párrafos para máxima calidad..." : "Generăm secțiunile și rescriem paragrafele pentru o calitate maximă...")}
+                  {aiLoadingMessageIndex === 2 && (locale === "en" ? "Applying financial calculations and refining the professional tone..." : locale === "es" ? "Aplicando cálculos financieros y refinando el tono profesional..." : "Aplicăm calculele financiare și rafinăm tonul profesional...")}
+                  {aiLoadingMessageIndex === 3 && (locale === "en" ? "Final touches. Preparing your new business plan..." : locale === "es" ? "Toques finales. Preparando tu nuevo plan de negocios..." : "Ultimele retușuri. Pregătim noul tău plan de afaceri...")}
+                </p>
+              </>
+            )}
           </div>
 
           {/* Right Ad */}
@@ -2509,12 +2577,12 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
             </div>
           </div>
 
-          {Object.keys(versions).length > 1 && !isEditing && (
-            <div className="flex flex-wrap gap-2 mb-6 border-b border-zinc-800 pb-2 w-full max-w-5xl justify-center sm:justify-start">
+          {Object.keys(versions).length > 0 && !isEditing && (
+            <div className="flex flex-wrap items-center gap-2 mb-6 border-b border-zinc-800/80 pb-3 w-full max-w-5xl justify-center sm:justify-start">
               {versions.original && (
                 <button 
                   onClick={() => { setActiveVersionId('original'); setResultState(versions.original); }} 
-                  className={`px-5 py-2.5 rounded-t-xl transition-all duration-300 font-bold text-sm tracking-wide flex items-center gap-2 ${activeVersionId === 'original' ? 'bg-[#09090b] border-t border-l border-r border-emerald-500/50 text-emerald-400 shadow-[0_-10px_20px_-10px_rgba(16,185,129,0.15)] relative z-10 translate-y-[1px]' : 'bg-zinc-900/50 border-t border-l border-r border-zinc-800 text-zinc-500 hover:text-zinc-300 hover:bg-zinc-900'}`}
+                  className={`px-4 py-2 rounded-xl transition-all duration-200 font-bold text-xs tracking-wide flex items-center gap-2 cursor-pointer ${activeVersionId === 'original' ? 'bg-emerald-950/80 border border-emerald-500/50 text-emerald-300 shadow-[0_0_15px_rgba(16,185,129,0.2)]' : 'bg-zinc-900/60 border border-zinc-800 text-zinc-400 hover:text-white hover:bg-zinc-800'}`}
                 >
                   {locale === "en" ? "📝 Original Version" : locale === "es" ? "📝 Versión Original" : "📝 Varianta Originală"}
                 </button>
@@ -2522,19 +2590,60 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
               {versions.eu_funds && (
                 <button 
                   onClick={() => { setActiveVersionId('eu_funds'); setResultState(versions.eu_funds); }} 
-                  className={`px-5 py-2.5 rounded-t-xl transition-all duration-300 font-bold text-sm tracking-wide flex items-center gap-2 ${activeVersionId === 'eu_funds' ? 'bg-[#09090b] border-t border-l border-r border-emerald-500/50 text-emerald-400 shadow-[0_-10px_20px_-10px_rgba(16,185,129,0.15)] relative z-10 translate-y-[1px]' : 'bg-zinc-900/50 border-t border-l border-r border-zinc-800 text-zinc-500 hover:text-zinc-300 hover:bg-zinc-900'}`}
+                  className={`px-4 py-2 rounded-xl transition-all duration-200 font-bold text-xs tracking-wide flex items-center gap-2 cursor-pointer ${activeVersionId === 'eu_funds' ? 'bg-emerald-950/80 border border-emerald-500/50 text-emerald-300 shadow-[0_0_15px_rgba(16,185,129,0.2)]' : 'bg-zinc-900/60 border border-zinc-800 text-zinc-400 hover:text-white hover:bg-zinc-800'}`}
                 >
-                  {locale === "en" ? "🇪🇺 EU Funds Optimized" : "🇪🇺 Optimizat Fonduri UE"}
+                  {locale === "en" ? "🇪🇺 EU Funds Optimized" : locale === "es" ? "🇪🇺 Optimizado Fondos UE" : "🇪🇺 Optimizat Fonduri UE"}
                 </button>
               )}
               {versions.investor && (
                 <button 
                   onClick={() => { setActiveVersionId('investor'); setResultState(versions.investor); }} 
-                  className={`px-5 py-2.5 rounded-t-xl transition-all duration-300 font-bold text-sm tracking-wide flex items-center gap-2 ${activeVersionId === 'investor' ? 'bg-[#09090b] border-t border-l border-r border-emerald-500/50 text-emerald-400 shadow-[0_-10px_20px_-10px_rgba(16,185,129,0.15)] relative z-10 translate-y-[1px]' : 'bg-zinc-900/50 border-t border-l border-r border-zinc-800 text-zinc-500 hover:text-zinc-300 hover:bg-zinc-900'}`}
+                  className={`px-4 py-2 rounded-xl transition-all duration-200 font-bold text-xs tracking-wide flex items-center gap-2 cursor-pointer ${activeVersionId === 'investor' ? 'bg-emerald-950/80 border border-emerald-500/50 text-emerald-300 shadow-[0_0_15px_rgba(16,185,129,0.2)]' : 'bg-zinc-900/60 border border-zinc-800 text-zinc-400 hover:text-white hover:bg-zinc-800'}`}
                 >
                   {locale === "en" ? "🏦 Investors Plan" : locale === "es" ? "🏦 Plan para Inversores" : "🏦 Plan Investitori"}
                 </button>
               )}
+
+              {/* Soluția 1 — Meniu Dropdown Istoric Versiuni */}
+              <div className="relative">
+                <button 
+                  onClick={() => setShowVersionDropdown(!showVersionDropdown)}
+                  className="px-4 py-2 rounded-xl bg-zinc-900 border border-zinc-800 hover:border-emerald-500/40 text-amber-300 hover:text-amber-200 font-bold text-xs flex items-center gap-2 transition-all cursor-pointer shadow-sm"
+                >
+                  <span>📜 {locale === "en" ? "Version History" : locale === "es" ? "Historial de Versiones" : "Istoric Versiuni"} ({Object.keys(versions).length})</span>
+                  <span className="text-[10px]">▼</span>
+                </button>
+
+                {showVersionDropdown && (
+                  <div className="absolute top-full left-0 mt-2 w-64 bg-zinc-950 border border-zinc-800 rounded-2xl p-2 shadow-2xl z-[90] animate-in fade-in duration-150">
+                    <div className="text-[10px] uppercase font-black tracking-widest text-zinc-500 px-3 py-1.5 border-b border-zinc-900 flex justify-between items-center">
+                      <span>{locale === "en" ? "Saved Versions" : locale === "es" ? "Versiones Guardadas" : "Versiuni Salvate"}</span>
+                      <button onClick={() => setShowVersionDropdown(false)} className="text-zinc-500 hover:text-white text-xs">✕</button>
+                    </div>
+                    <div className="max-h-60 overflow-y-auto flex flex-col gap-1 mt-1">
+                      {Object.entries(versions).map(([vKey, vData]) => (
+                        <button
+                          key={vKey}
+                          onClick={() => {
+                            setActiveVersionId(vKey);
+                            setResultState(vData);
+                            setShowVersionDropdown(false);
+                          }}
+                          className={`w-full text-left px-3 py-2 rounded-xl text-xs font-semibold flex items-center justify-between transition-all cursor-pointer ${activeVersionId === vKey ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/30" : "text-zinc-400 hover:bg-zinc-900 hover:text-white"}`}
+                        >
+                          <span className="truncate">
+                            {vKey === "original" ? (locale === "en" ? "📝 Original Version" : locale === "es" ? "📝 Versión Original" : "📝 Varianta Originală")
+                            : vKey === "eu_funds" ? (locale === "en" ? "🇪🇺 EU Funds" : locale === "es" ? "🇪🇺 Fondos UE" : "🇪🇺 Optimizat Fonduri UE")
+                            : vKey === "investor" ? (locale === "en" ? "🏦 Investors Plan" : locale === "es" ? "🏦 Plan Inversores" : "🏦 Plan Investitori")
+                            : `📑 ${vKey}`}
+                          </span>
+                          {activeVersionId === vKey && <span className="text-emerald-400 text-xs">✓</span>}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
           )}
 
@@ -3351,6 +3460,121 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
         onClose={() => setShowBmcModal(false)} 
         locale={locale} 
       />
+
+      {/* MODAL DRAWER — LIBRĂRIA DE SECȚIUNI EXPERTE */}
+      {showExpertDrawer && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-md z-[110] flex items-center justify-center p-4 sm:p-6 animate-in fade-in duration-200">
+          <div className="bg-[#121214] border border-zinc-800 rounded-3xl max-w-4xl w-full max-h-[85vh] flex flex-col shadow-[0_0_50px_rgba(16,185,129,0.15)] overflow-hidden">
+            {/* Header Drawer */}
+            <div className="p-6 border-b border-zinc-800 flex justify-between items-center bg-zinc-950/60">
+              <div>
+                <h3 className="text-xl font-black text-white flex items-center gap-2">
+                  <span className="text-emerald-400 text-2xl">🏛️</span>
+                  {locale === "en" ? "Expert Section Library" : locale === "es" ? "Biblioteca de Secciones Experta" : "Librăria de Secțiuni Experte"}
+                </h3>
+                <p className="text-xs text-zinc-400 mt-1">
+                  {locale === "en" ? "Select a pre-completed professional module to expand your plan instantly (0 API costs & zero lag)." : locale === "es" ? "Selecciona un módulo profesional precompletado para ampliar tu plan al instante." : "Alege un modul profesional pre-completat pentru extinderea instantanee a planului."}
+                </p>
+              </div>
+              <button 
+                onClick={() => setShowExpertDrawer(false)}
+                className="w-9 h-9 bg-zinc-800 hover:bg-zinc-700 text-zinc-400 hover:text-white rounded-full font-bold flex items-center justify-center transition-all cursor-pointer"
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Categories filter */}
+            <div className="px-6 py-3 border-b border-zinc-800/80 bg-black/30 flex gap-2 overflow-x-auto">
+              <button
+                onClick={() => setSelectedExpertCategory("all")}
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold whitespace-nowrap transition-all ${selectedExpertCategory === "all" ? "bg-emerald-600 text-white" : "bg-zinc-800/60 text-zinc-400 hover:text-white"}`}
+              >
+                {locale === "en" ? "All Modules (30+)" : locale === "es" ? "Todos los Módulos" : "Toate Modulele (30+)"}
+              </button>
+              {Array.from(new Set(EXPERT_TEMPLATES.map(t => t.category[locale] || t.category.ro))).map((cat, idx) => (
+                <button
+                  key={idx}
+                  onClick={() => setSelectedExpertCategory(cat)}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-bold whitespace-nowrap transition-all ${selectedExpertCategory === cat ? "bg-emerald-600 text-white" : "bg-zinc-800/60 text-zinc-400 hover:text-white"}`}
+                >
+                  {cat}
+                </button>
+              ))}
+            </div>
+
+            {/* Modules Grid */}
+            <div className="p-6 overflow-y-auto flex-1 grid grid-cols-1 md:grid-cols-2 gap-4">
+              {EXPERT_TEMPLATES.filter(tpl => selectedExpertCategory === "all" || (tpl.category[locale] || tpl.category.ro) === selectedExpertCategory).map((tpl) => (
+                <div 
+                  key={tpl.id}
+                  className="bg-zinc-900/60 border border-zinc-800 hover:border-emerald-500/50 rounded-2xl p-5 flex flex-col justify-between transition-all group hover:-translate-y-1 hover:shadow-lg"
+                >
+                  <div>
+                    <span className="text-[10px] uppercase font-black tracking-widest text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-md inline-block mb-3 border border-emerald-500/20">
+                      {tpl.category[locale] || tpl.category.ro}
+                    </span>
+                    <h4 className="text-base font-bold text-white mb-2 leading-snug">
+                      {tpl.title[locale] || tpl.title.ro}
+                    </h4>
+                    <p className="text-xs text-zinc-400 leading-relaxed mb-4">
+                      {tpl.desc[locale] || tpl.desc.ro}
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => {
+                      if (!user) {
+                        setShowAuthModal(true);
+                        return;
+                      }
+                      if (!isPlanPaid && !isAdmin) {
+                        setShowPricingModal(true);
+                        return;
+                      }
+                      const businessName = result?.nume || (locale === "en" ? "Your Business" : locale === "es" ? "Tu Empresa" : "Compania Ta");
+                      const rawContent = tpl.content[locale] || tpl.content.ro;
+                      const formattedContent = rawContent.replace(/{NUME_AFACERE}/g, businessName);
+
+                      const newSection = {
+                        titlu: tpl.title[locale] || tpl.title.ro,
+                        continut: formattedContent
+                      };
+
+                      const currentSecs = result?.sectiuni_aditionale || [];
+                      const newIndex = currentSecs.length;
+                      const updated = {
+                        ...result,
+                        sectiuni_aditionale: [...currentSecs, newSection]
+                      };
+
+                      setResult(updated);
+                      syncCurrentPlanToFirestore(updated);
+                      setShowExpertDrawer(false);
+
+                      if (typeof window !== "undefined") {
+                        localStorage.setItem("current_generated_plan", JSON.stringify(updated));
+                      }
+
+                      setTimeout(() => {
+                        const el = document.getElementById(`custom-section-${newIndex}`) || document.getElementById("section-custom");
+                        if (el) {
+                          el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        }
+                      }, 400);
+                    }}
+                    className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2.5 rounded-xl text-xs transition-all flex items-center justify-center gap-2 cursor-pointer shadow-[0_0_15px_rgba(16,185,129,0.2)]"
+                  >
+                    <span>➕ {locale === "en" ? "Add to Plan" : locale === "es" ? "Añadir al Plan" : "Adaugă în Plan"}</span>
+                    {(!isPlanPaid && !isAdmin) && (
+                      <span className="text-[10px] bg-amber-500/30 text-amber-300 px-1.5 py-0.5 rounded font-black">🔒 PRO</span>
+                    )}
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
     </main>
   );
 }

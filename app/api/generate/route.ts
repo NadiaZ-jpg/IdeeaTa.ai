@@ -94,6 +94,7 @@ Return the result strictly as a valid JSON object with the following structure:
   }
 }
 Include at least 6-8 budgeted items (must include green tech and software/digitalization).
+CRITICAL: The entire generated content (including item names, slogans, CAEN explanations, SWOT titles, etc.) MUST be strictly in English. Even if the user provided the idea or skill in Romanian or Spanish, translate it and write the plan in English. Do not write any Romanian words.
 Do not include any other text besides the JSON block. Do not format with markdown block quotes (\`\`\`json) if possible, but if you do, it will be stripped out.
 `;
     } else if (locale === "es") {
@@ -139,6 +140,7 @@ Return the result strictly as a valid JSON object with the following structure:
   }
 }
 Include at least 6-8 budgeted items (must include green tech and software/digitalization).
+CRITICAL: The entire generated content (including item names, slogans, CAEN explanations, SWOT titles, etc.) MUST be strictly in Spanish. Even if the user provided the idea or skill in Romanian or English, translate it and write the plan in Spanish. Do not write any Romanian or English words.
 Do not include any other text besides the JSON block. Do not format with markdown block quotes (\`\`\`json) if possible, but if you do, it will be stripped out.
 `;
     } else {
@@ -184,6 +186,7 @@ Returnează rezultatul strict ca un obiect JSON valid cu următoarea structură:
   }
 }
 Include cel puțin 6-8 articole bugetate (care să conțină tehnologie verde și software/digitalizare).
+CRITICAL: The entire generated content (including item names, slogans, CAEN explanations, SWOT titles, etc.) MUST be strictly in Romanian. Do not write any English words.
 Nu include niciun alt text în afară de blocul JSON. Nu formata cu ghilimele de bloc markdown (\`\`\`json) dacă este posibil, dar dacă o faci, acestea vor fi eliminate la parsare.
 `;
     }

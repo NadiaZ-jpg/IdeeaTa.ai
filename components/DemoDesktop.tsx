@@ -20,6 +20,7 @@ import { migrateLocalPlansToFirebase } from '@/lib/migrationManager';
 import { getExamples } from '@/lib/examples';
 import { t } from '@/lib/translations';
 import { formatObjectNumbers, formatNumberedText } from "@/lib/utils";
+import { EXPERT_TEMPLATES, ExpertTemplate } from '@/lib/templatesData';
 
 const BudgetPieChart = dynamic(() => import('@/components/BudgetChart').then(mod => mod.BudgetPieChart), { ssr: false });
 
@@ -164,8 +165,12 @@ export default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" | 
   const [showPricingModal, setShowPricingModal] = useState(false);
   const [showQrModal, setShowQrModal] = useState(false);
   const [showBmcModal, setShowBmcModal] = useState(false);
+  const [aiEditError, setAiEditError] = useState<string | null>(null);
+  const [lastEditParams, setLastEditParams] = useState<{action: string, customStyle?: string, customInput?: string} | null>(null);
   const [isSharedView, setIsSharedView] = useState(false);
   const [isCheckingShared, setIsCheckingShared] = useState(true);
+  const [showExpertDrawer, setShowExpertDrawer] = useState(false);
+  const [selectedExpertCategory, setSelectedExpertCategory] = useState("all");
 
   const usedIdeasRef = useRef<number[]>([]);
   const [animatedPlaceholder, setAnimatedPlaceholder] = useState("");
@@ -332,6 +337,8 @@ export default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" | 
     } 
 
     setIsEditingAi(true);
+    setAiEditError(null);
+    setLastEditParams({ action, customStyle, customInput });
     setActiveAiPrompt(null);
     setAiPromptInput("");
     setShowToneOptions(false);
@@ -340,7 +347,7 @@ export default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" | 
         fetch("/api/edit", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ result, action, customStyle, targetSection })
+          body: JSON.stringify({ result, action, customStyle, targetSection, locale })
         }),
         new Promise(resolve => setTimeout(resolve, 2000))
       ]);
@@ -350,11 +357,11 @@ export default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" | 
           const text = await res.text();
           console.error("API Error Status:", res.status, "Body:", text);
           if (res.status === 504) {
-            alert("Timpul de răspuns a expirat. Modificarea este prea mare. Încearcă să editezi manual sau să scurtezi textul.");
+            setAiEditError(locale === "en" ? "Response timeout. The text section is too long. Please try manual edit or shorten the text." : locale === "es" ? "Tiempo de respuesta agotado. La sección es demasiado larga. Intente editar manualmente o acortar el texto." : "Timpul de răspuns a expirat. Modificarea este prea mare. Încearcă să editezi manual sau să scurtezi textul.");
             return;
           }
           
-          let errorMsg = "Eroare de server: " + res.status;
+          let errorMsg = locale === "en" ? "Server error: " + res.status : locale === "es" ? "Error del servidor: " + res.status : "Eroare de server: " + res.status;
           try {
             const errJson = JSON.parse(text);
             if (errJson.error) {
@@ -362,13 +369,13 @@ export default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" | 
             }
           } catch(e) {}
           
-          alert(errorMsg);
+          setAiEditError(errorMsg);
           return;
         }
         data = JSON.parse(await res.text());
       } catch (e) {
         console.error(e);
-        alert("Eroare de rețea. Te rugăm să mai încerci o dată.");
+        setAiEditError(locale === "en" ? "Network error. Please try again." : locale === "es" ? "Error de red. Por favor, inténtelo de nuevo." : "Eroare de rețea. Te rugăm să mai încerci o dată.");
         return;
       }
       
@@ -383,6 +390,7 @@ export default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" | 
           }
           
           setResult(formatObjectNumbers(parsed));
+          setIsEditingAi(false);
           
           setTimeout(() => {
              let targetId = "";
@@ -403,16 +411,14 @@ export default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" | 
            }, 800);
         } catch (err) {
           console.error("Failed to parse JSON:", err);
-          alert("Sistemul a returnat un format invalid. Mai încearcă o dată.");
+          setAiEditError(locale === "en" ? "The system returned an invalid format. Please try again." : locale === "es" ? "El sistema devolvió un formato no válido. Por favor, inténtelo de nuevo." : "Sistemul a returnat un format invalid. Mai încearcă o dată.");
         }
       } else if (data.error) {
-        alert(data.error);
+        setAiEditError(data.error);
       }
     } catch (e) {
       console.error(e);
-      alert("A apărut o eroare neașteptată la editare.");
-    } finally {
-      setIsEditingAi(false);
+      setAiEditError(locale === "en" ? "An unexpected error occurred during editing." : locale === "es" ? "Ocurrió un error inesperado al editar." : "A apărut o eroare neașteptată la editare.");
     }
   };
 
@@ -1296,19 +1302,37 @@ export default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" | 
                           </button>
                           <button 
                             type="button"
-                            onClick={() => handleAiEdit("professional_tone", "persuasiv, orientat spre vânzări și convingător")} 
+                            onClick={() => {
+                              if (!isPlanPaid && !isAdmin) {
+                                setShowPricingModal(true);
+                                return;
+                              }
+                              handleAiEdit("professional_tone", "persuasiv, orientat spre vânzări și convingător");
+                            }} 
                             disabled={isEditingAi}
-                            className="w-full text-xs text-left px-4 py-2.5 rounded-lg hover:bg-zinc-900 text-zinc-400 hover:text-white transition-all font-semibold"
+                            className="w-full text-xs text-left px-4 py-2.5 rounded-lg hover:bg-zinc-900 text-zinc-400 hover:text-white transition-all font-semibold flex items-center justify-between group"
                           >
-                            Comercial & Persuasiv
+                            <span>Comercial & Persuasiv</span>
+                            {(!isPlanPaid && !isAdmin) && (
+                              <span className="text-[9px] bg-amber-500/20 border border-amber-500/40 text-amber-300 px-1.5 py-0.5 rounded font-black uppercase">🔒 PRO</span>
+                            )}
                           </button>
                           <button 
                             type="button"
-                            onClick={() => handleAiEdit("professional_tone", "prietenos, simplu și ușor de înțeles")} 
+                            onClick={() => {
+                              if (!isPlanPaid && !isAdmin) {
+                                setShowPricingModal(true);
+                                return;
+                              }
+                              handleAiEdit("professional_tone", "prietenos, simplu și ușor de înțeles");
+                            }} 
                             disabled={isEditingAi}
-                            className="w-full text-xs text-left px-4 py-2.5 rounded-lg hover:bg-zinc-900 text-zinc-400 hover:text-white transition-all font-semibold"
+                            className="w-full text-xs text-left px-4 py-2.5 rounded-lg hover:bg-zinc-900 text-zinc-400 hover:text-white transition-all font-semibold flex items-center justify-between group"
                           >
-                            Simplu & Prietenos
+                            <span>Simplu & Prietenos</span>
+                            {(!isPlanPaid && !isAdmin) && (
+                              <span className="text-[9px] bg-amber-500/20 border border-amber-500/40 text-amber-300 px-1.5 py-0.5 rounded font-black uppercase">🔒 PRO</span>
+                            )}
                           </button>
                         </div>
                       )}
@@ -1341,17 +1365,17 @@ export default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" | 
                         type="button" 
                         onClick={() => {
                           if (!user) { setShowAuthModal(true); return; }
-                          setActiveAiPrompt(activeAiPrompt?.action === "add_sections" ? null : {action: "add_sections", title: "Adaugă Secțiuni Noi", placeholder: "ex: Analiză de risc, Strategie de HR...", desc: "Ce secțiuni vrei să mai adaugi în plan?"});
+                          setShowExpertDrawer(true);
                         }} 
                         disabled={isEditingAi} 
-                        className="w-full bg-black hover:bg-zinc-800 border border-amber-500/20 rounded-xl px-5 py-4 font-bold text-sm text-amber-100 transition-all text-left flex items-center justify-between group disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="w-full text-left flex items-center justify-between rounded-xl px-5 py-4 font-bold text-sm transition-all group disabled:opacity-50 disabled:cursor-not-allowed bg-gradient-to-r from-emerald-950/40 via-zinc-900 to-black hover:from-emerald-900/40 border border-emerald-500/40 text-emerald-200 shadow-[0_0_15px_rgba(16,185,129,0.1)] cursor-pointer"
                       >
                         <span className="flex items-center gap-3">
-                          <span className="text-emerald-500 group-hover:scale-110 transition-transform">💡</span> 
-                          <span>{isEditingAi ? "Se procesează..." : "Adaugă secțiuni noi"}</span>
+                          <span className="text-emerald-400 group-hover:scale-110 transition-transform text-lg">🏛️</span> 
+                          <span>Librăria de Secțiuni Experte</span>
                         </span>
-                        <span className="text-[10px] bg-amber-500/20 border border-amber-500/40 text-amber-300 px-2 py-0.5 rounded-full font-black uppercase tracking-wider whitespace-nowrap">
-                          🔒 PRO
+                        <span className="text-[10px] bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 px-2 py-0.5 rounded-full font-black uppercase tracking-wider whitespace-nowrap">
+                          30+ MODULE
                         </span>
                       </button>
                     </div>
@@ -1466,37 +1490,79 @@ export default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" | 
           <div className="flex flex-col items-center justify-center flex-1 px-4">
             <div className="w-16 h-16 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin mb-6"></div>
             <p className="text-2xl font-bold text-white tracking-widest uppercase text-center">
-              {isDownloading === 'pptx' ? 'Se generează broșură de prezentare...' : isDownloading === 'pdf' ? 'Se generează prezentarea...' : 'Se generează document...'}
+              {isDownloading === 'pptx' 
+                ? (locale === "en" ? 'Generating presentation brochure...' : locale === "es" ? 'Generando folleto de presentación...' : 'Se generează broșură de prezentare...') 
+                : isDownloading === 'pdf' 
+                  ? (locale === "en" ? 'Generating presentation...' : locale === "es" ? 'Generando presentación...' : 'Se generează prezentarea...') 
+                  : (locale === "en" ? 'Generating document...' : locale === "es" ? 'Generando documento...' : 'Se generează document...')}
             </p>
             <p className="text-emerald-400 font-medium mt-3 text-center">
-              Acest proces durează câteva momente pentru a asigura calitatea maximă.
+              {locale === "en" ? "This process takes a few moments to ensure maximum quality." : locale === "es" ? "Este proceso tarda unos momentos para garantizar la máxima calidad." : "Acest proces durează câteva momente pentru a asigura calitatea maximă."}
             </p>
           </div>
         </div>
       )}
 
       {isEditingAi && (
-        <div className="fixed inset-0 bg-[#09090b]/90 backdrop-blur-sm z-[100] flex items-center justify-between px-6">
+        <div className="fixed inset-0 bg-[#09090b]/95 backdrop-blur-sm z-[100] flex items-center justify-between px-6">
           {/* Left Ad */}
           <div className="hidden lg:flex flex-col items-center justify-center w-[180px] xl:w-[220px] h-[400px] overflow-hidden shrink-0">
             <AdBanner dataAdSlot="3098389905" dataAdFormat="vertical" dataFullWidthResponsive="false" />
           </div>
 
-          {/* Center loading content */}
+          {/* Center content */}
           <div className="flex flex-col items-center justify-center flex-1 px-4">
-            <div className="w-16 h-16 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin mb-6"></div>
-            <p className="text-2xl font-bold text-white tracking-widest uppercase text-center transition-all duration-300">
-              {aiLoadingMessageIndex === 0 && "Se rescrie documentul..."}
-              {aiLoadingMessageIndex === 1 && "Se procesează secțiunile..."}
-              {aiLoadingMessageIndex === 2 && "Se calculează datele..."}
-              {aiLoadingMessageIndex === 3 && "Se finalizează..."}
-            </p>
-            <p className="text-emerald-400 font-medium mt-3 text-center transition-all duration-500 max-w-lg">
-              {aiLoadingMessageIndex === 0 && "Acest proces durează 15-20 de secunde. Analizăm structura actuală a documentului..."}
-              {aiLoadingMessageIndex === 1 && "Generăm secțiunile și rescriem paragrafele pentru o calitate maximă..."}
-              {aiLoadingMessageIndex === 2 && "Aplicăm calculele financiare și rafinăm tonul profesional..."}
-              {aiLoadingMessageIndex === 3 && "Ultimele retușuri. Pregătim noul tău plan de afaceri..."}
-            </p>
+            {aiEditError ? (
+              <div className="bg-[#121214] border border-red-500/30 rounded-[2rem] p-8 max-w-lg w-full text-center shadow-[0_0_50px_rgba(239,68,68,0.1)] ring-1 ring-white/5">
+                <div className="w-16 h-16 rounded-2xl bg-red-500/10 border border-red-500/20 text-red-500 flex items-center justify-center text-3xl mb-6 mx-auto animate-bounce">
+                  ⚠️
+                </div>
+                <h3 className="text-2xl font-bold text-white mb-4">
+                  {locale === "en" ? "AI Processing Error" : locale === "es" ? "Error de procesamiento IA" : "Eroare la procesarea AI"}
+                </h3>
+                <p className="text-zinc-400 text-base leading-relaxed mb-6 whitespace-pre-line">
+                  {aiEditError}
+                </p>
+                <div className="flex gap-4 justify-center">
+                  <button
+                    onClick={() => {
+                      setAiEditError(null);
+                      if (lastEditParams) {
+                        handleAiEdit(lastEditParams.action, lastEditParams.customStyle, lastEditParams.customInput);
+                      }
+                    }}
+                    className="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-6 py-3 rounded-xl transition-all cursor-pointer shadow-lg shadow-emerald-600/20 hover:scale-105 active:scale-95 animate-pulse"
+                  >
+                    {locale === "en" ? "🔄 Retry" : locale === "es" ? "🔄 Reintentar" : "🔄 Reîncearcă"}
+                  </button>
+                  <button
+                    onClick={() => {
+                      setAiEditError(null);
+                      setIsEditingAi(false);
+                    }}
+                    className="bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 text-zinc-300 font-bold px-6 py-3 rounded-xl transition-all cursor-pointer hover:text-white"
+                  >
+                    {locale === "en" ? "❌ Close" : locale === "es" ? "❌ Cerrar" : "❌ Închide"}
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <>
+                <div className="w-16 h-16 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin mb-6"></div>
+                <p className="text-2xl font-bold text-white tracking-widest uppercase text-center transition-all duration-300">
+                  {aiLoadingMessageIndex === 0 && (locale === "en" ? "Rewriting the document..." : locale === "es" ? "Reescribiendo el documento..." : "Se rescrie documentul...")}
+                  {aiLoadingMessageIndex === 1 && (locale === "en" ? "Processing sections..." : locale === "es" ? "Procesando secciones..." : "Se procesează secțiunile...")}
+                  {aiLoadingMessageIndex === 2 && (locale === "en" ? "Calculating data..." : locale === "es" ? "Calculando datos..." : "Se calculează datele...")}
+                  {aiLoadingMessageIndex === 3 && (locale === "en" ? "Finalizing..." : locale === "es" ? "Finalizando..." : "Se finalizează...")}
+                </p>
+                <p className="text-emerald-400 font-medium mt-3 text-center transition-all duration-500 max-w-lg">
+                  {aiLoadingMessageIndex === 0 && (locale === "en" ? "This process takes 15-20 seconds. We are analyzing the current structure of the document..." : locale === "es" ? "Este proceso tarda 15-20 segundos. Estamos analizando la estructura actual del documento..." : "Acest proces durează 15-20 de secunde. Analizăm structura actuală a documentului...")}
+                  {aiLoadingMessageIndex === 1 && (locale === "en" ? "Generating sections and rewriting paragraphs for maximum quality..." : locale === "es" ? "Generando secciones y reescribiendo párrafos para máxima calidad..." : "Generăm secțiunile și rescriem paragrafele pentru o calitate maximă...")}
+                  {aiLoadingMessageIndex === 2 && (locale === "en" ? "Applying financial calculations and refining the professional tone..." : locale === "es" ? "Aplicando cálculos financieros y refinando el tono profesional..." : "Aplicăm calculele financiare și rafinăm tonul profesional...")}
+                  {aiLoadingMessageIndex === 3 && (locale === "en" ? "Final touches. Preparing your new business plan..." : locale === "es" ? "Toques finales. Preparando tu nuevo plan de negocios..." : "Ultimele retușuri. Pregătim noul tău plan de afaceri...")}
+                </p>
+              </>
+            )}
           </div>
 
           {/* Right Ad */}
@@ -1517,7 +1583,7 @@ export default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" | 
         />
         <div className="w-full flex justify-between items-start sm:items-center py-2 border-b border-zinc-800/80 mb-3 print:hidden">
           <div className="flex flex-col gap-2">
-            <span className="text-zinc-500 text-xs font-semibold">Proiectul tău de afaceri inteligent</span>
+            <span className="text-zinc-500 text-xs font-semibold">{t('intelligentBusinessProject', locale)}</span>
             <button 
               type="button"
               onClick={() => setShowBmcModal(true)}
@@ -1863,7 +1929,7 @@ export default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" | 
         {/* Grid de Beneficii / Ce conține planul */}
         <div className="mt-10 w-full max-w-5xl relative z-10">
           <h3 className="text-2xl md:text-3xl font-black mb-10 tracking-tighter bg-gradient-to-r from-zinc-400 via-emerald-400 to-zinc-400 bg-clip-text text-transparent animate-shimmer text-center">
-            Ce conține planul tău de afaceri?
+            {t('whatPlanContains', locale)}
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 md:gap-12 text-left">
             <div className="relative w-full h-full group">
@@ -1881,9 +1947,9 @@ export default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" | 
                   <div className="w-12 h-12 rounded-xl bg-zinc-900 border border-zinc-800 text-emerald-400 flex items-center justify-center text-2xl mb-4 group-hover:scale-125 group-hover:rotate-12 group-hover:-translate-y-1 transition-all duration-300 shadow-inner">
                     🧠
                   </div>
-                  <h4 className="text-2xl font-bold text-white mb-3">Analiză SWOT Completă</h4>
+                  <h4 className="text-2xl font-bold text-white mb-3">{t('swotCardTitle', locale)}</h4>
                   <p className="text-zinc-400 text-base md:text-lg leading-relaxed">
-                    Puncte tari, slăbiciuni, oportunități și amenințări detaliate cu explicații tehnice adaptate domeniului ales.
+                    {t('swotCardDesc', locale)}
                   </p>
                 </div>
               </div>
@@ -1903,9 +1969,9 @@ export default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" | 
                   <div className="w-12 h-12 rounded-xl bg-zinc-900 border border-zinc-800 text-emerald-400 flex items-center justify-center text-2xl mb-4 group-hover:scale-125 group-hover:rotate-12 group-hover:-translate-y-1 transition-all duration-300 shadow-inner">
                     💸
                   </div>
-                  <h4 className="text-2xl font-bold text-white mb-3">Bugetare Detaliată</h4>
+                  <h4 className="text-2xl font-bold text-white mb-3">{t('budgetCardTitle', locale)}</h4>
                   <p className="text-zinc-400 text-base md:text-lg leading-relaxed">
-                    Distribuția automată a costurilor de pornire și justificare clară pentru fiecare cheltuială estimată.
+                    {t('budgetCardDesc', locale)}
                   </p>
                 </div>
               </div>
@@ -1925,9 +1991,9 @@ export default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" | 
                   <div className="w-12 h-12 rounded-xl bg-zinc-900 border border-zinc-800 text-emerald-400 flex items-center justify-center text-2xl mb-4 group-hover:scale-125 group-hover:rotate-12 group-hover:-translate-y-1 transition-all duration-300 shadow-inner">
                     🌟
                   </div>
-                  <h4 className="text-2xl font-bold text-white mb-3">Optimizat Fonduri</h4>
+                  <h4 className="text-2xl font-bold text-white mb-3">{t('fundsCardTitle', locale)}</h4>
                   <p className="text-zinc-400 text-base md:text-lg leading-relaxed">
-                    Structură și jargon specifice ghidurilor de finanțare pentru a-ți crește șansele de a obține granturi nerambursabile.
+                    {t('fundsCardDesc', locale)}
                   </p>
                 </div>
               </div>
@@ -1947,9 +2013,9 @@ export default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" | 
                   <div className="w-12 h-12 rounded-xl bg-zinc-900 border border-zinc-800 text-emerald-400 flex items-center justify-center text-2xl mb-4 group-hover:scale-125 group-hover:rotate-12 group-hover:-translate-y-1 transition-all duration-300 shadow-inner">
                     🏦
                   </div>
-                  <h4 className="text-2xl font-bold text-white mb-3">Plan Profesionist</h4>
+                  <h4 className="text-2xl font-bold text-white mb-3">{t('proPlanCardTitle', locale)}</h4>
                   <p className="text-zinc-400 text-base md:text-lg leading-relaxed">
-                    Rescrie complet planul pentru a atrage investitori și bănci. Include limbaj corporativ, metrici financiare (CAC/LTV) și strategii de mitigare a riscului.
+                    {t('proPlanCardDesc', locale)}
                   </p>
                 </div>
               </div>
@@ -1969,9 +2035,9 @@ export default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" | 
                   <div className="w-12 h-12 rounded-xl bg-zinc-900 border border-zinc-800 text-emerald-400 flex items-center justify-center text-2xl mb-4 group-hover:scale-125 group-hover:rotate-12 group-hover:-translate-y-1 transition-all duration-300 shadow-inner">
                     🪄
                   </div>
-                  <h4 className="text-2xl font-bold text-white mb-3">Studio Asistat Interactiv</h4>
+                  <h4 className="text-2xl font-bold text-white mb-3">{t('studioCardTitle', locale)}</h4>
                   <p className="text-zinc-400 text-base md:text-lg leading-relaxed">
-                    Adaptează planul din mers. Adaugă secțiuni noi, taie procente din buget sau rescrie textul cu ajutorul asistentului inteligent.
+                    {t('studioCardDesc', locale)}
                   </p>
                 </div>
               </div>
@@ -1991,9 +2057,9 @@ export default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" | 
                   <div className="w-12 h-12 rounded-xl bg-zinc-900 border border-zinc-800 text-emerald-400 flex items-center justify-center text-2xl mb-4 group-hover:scale-125 group-hover:rotate-12 group-hover:-translate-y-1 transition-all duration-300 shadow-inner">
                     🚀
                   </div>
-                  <h4 className="text-2xl font-bold text-white mb-3">Export Corporate</h4>
+                  <h4 className="text-2xl font-bold text-white mb-3">{t('exportCardTitle', locale)}</h4>
                   <p className="text-zinc-400 text-base md:text-lg leading-relaxed">
-                    Descarcă broșura de prezentare PowerPoint (.pptx), raportul PDF sau documentul editabil Word (.doc).
+                    {t('exportCardDesc', locale)}
                   </p>
                 </div>
               </div>

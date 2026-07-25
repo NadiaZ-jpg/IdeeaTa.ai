@@ -64,7 +64,11 @@ export const useStudioFirebaseSync = ({
       if (snap.exists()) {
         const data = formatObjectNumbers(snap.data());
         setResultState(data);
-        setVersionsState({ original: data });
+        if (data.versions && typeof data.versions === 'object' && Object.keys(data.versions).length > 0) {
+          setVersionsState(data.versions);
+        } else {
+          setVersionsState({ original: data });
+        }
         setActiveVersionId("original");
         window.history.replaceState({ view: 'idea' }, '', window.location.pathname + '?view=idea');
       } else {

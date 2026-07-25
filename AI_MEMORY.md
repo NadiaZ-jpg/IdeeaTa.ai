@@ -229,8 +229,26 @@ Formele acceptate de acord expres:
 
 ---
 
+## FREEZE (25 Iulie 2026 — Sprint 1: Localizare, Erori & Timeouts)
+## FREEZE (25 Iulie 2026 — Sprint 2: Librăria Experților, Salvare Firestore, Istoric Variante & Localizare)
+- **lib/templatesData.ts** — Fișier NOU creat cu 30+ module de secțiuni experte pre-completate de consultanți, traduse nativ în RO, EN, ES, cu înlocuitor dinamic `{NUME_AFACERE}`. ÎNGHEȚAT.
+- **hooks/useStudioFirebaseSync.ts** — Restaurat obiectul complet `data.versions` din Firestore la încărcarea dintr-un `planId`. ÎNGHEȚAT.
+- **components/StudioDesktop.tsx** — 
+  - Adăugată **Soluția 1 (Bara Hibridă de Variante + Meniu `📜 Istoric Versiuni`)** cu comutare instantanee și persistență a variantelor.
+  - Implementată funcția `syncCurrentPlanToFirestore` pentru salvarea automată în timp real din Studio în Dashboard.
+  - Corectat derularea fluentă (`scrollIntoView`) exact pe ID-ul noii secțiuni adăugate `#custom-section-${newIndex}`.
+  - Localizate 100% toate etichetele de variante, tooltip-urile și textele din interfață în EN și ES. ÎNGHEȚAT.
+- **components/DemoDesktop.tsx** — Integrat sertarul modal **Librăria de Secțiuni Experte**, blocat tonurile 3 & 4 (Comercial & Prietenos) cu insignă 🔒 PRO și modal de prețuri, localizat 100% interfața în EN și ES. ÎNGHEȚAT.
+- **app/dashboard/DashboardContent.tsx** — Adăugat butonul `👑 Vezi Pachete & Upgrade` în header, integrat `PricingModal` și algoritmul de deduplicare automată a planurilor în Firestore. ÎNGHEȚAT.
+- **lib/generateDocx.ts** — Adăugat `HeadingLevel.HEADING_1` și `HeadingLevel.HEADING_2` pe titluri pentru navigarea pe capitole în Microsoft Word Navigation Pane, traduse în RO, EN, ES. ÎNGHEȚAT.
+- **Build verificat local:** ✅ `✓ Compiled successfully in 6.8s` — 44/44 pagini statice generate (RO, EN, ES complete).
+- **Checkpoint Git realizat:** `Checkpoint-25-Iulie-2026-Sprint2-LibrariaExpertilor-IstoricVariante-SyncFirestore`
+
+---
+
 ## RĂMÂNE DE FĂCUT
 - **DEPLOY** — `git push origin main` din local, apoi `git pull origin main` și `npm run build && pm2 restart 0` pe serverul Hetzner pentru a urca toate modificările din local.
+
 
 
 

@@ -290,15 +290,15 @@ IMPORTANT PENTRU JSON:
     const isBigAction = action === "eu_funds_optimization" || action === "investor_ready" || action === "professional_tone";
 
     if (isBigAction) {
-        const pViziune = { viziune_strategie: result.viziune_strategie };
-        const pPiata = { analiza_pietei: result.analiza_pietei };
-        const pOperational = { plan_operational: result.plan_operational };
-        const pSwot = { analiza_swot: result.analiza_swot };
-        const pFinanciar = { plan_financiar: { strategie_financiara: result.plan_financiar?.strategie_financiara } };
+      const pViziune = { viziune_strategie: result.viziune_strategie };
+      const pPiata = { analiza_pietei: result.analiza_pietei };
+      const pOperational = { plan_operational: result.plan_operational };
+      const pSwot = { analiza_swot: result.analiza_swot };
+      const pFinanciar = { plan_financiar: { strategie_financiara: result.plan_financiar?.strategie_financiara } };
 
-        const buildPrompt = (segment: any) => {
-          if (locale === "es") {
-            return `Eres un consultor de negocios experto.
+      const buildPrompt = (segment: any) => {
+        if (locale === "es") {
+          return `Eres un consultor de negocios experto.
 Actúa sobre el siguiente segmento del plan de negocios.
 ${instruction}
 
@@ -309,137 +309,105 @@ Debes responder EXCLUSIVAMENTE con un JSON válido, respetando la estructura ori
 Si recibiste un solo campo, devuélvelo en el mismo formato JSON.
 IMPORTANTE PARA EL JSON:
 - ¡NO utilices saltos de línea reales (unescaped newlines) dentro de los textos! Para los párrafos, usa estrictamente '\\n' (escapado).
-- DEBES escapar las comillas dobles dentro del texto usando barra invertida (\\"). Lo más seguro es usar comillas simples (') dentro del texto.
+- IMPORTANTE: Si necesitas usar comillas en los textos generados, usa estrictamente comillas simples ('). NO uses comillas dobles (") dentro de los textos bajo ninguna circunstancia, ya que romperán la estructura JSON.
 - SIN comas al final del último elemento (no trailing commas).
 - NO agregues formato markdown, NO agregues comillas invertidas (\`\`\`), NO agregues texto adicional antes o después del JSON.`;
-          }
-          if (locale === "en") {
-            return `You are an expert business consultant. 
-Act upon the following segment of the business plan.
-${instruction}
-
-Current plan segment:
-${JSON.stringify(segment)}
-
-You must respond EXCLUSIVELY with a valid JSON, respecting the original structure of the received segment.
-If you received a single field, return it in the same JSON format.
-IMPORTANT FOR JSON: 
-- DO NOT use real unescaped newlines inside strings! For paragraphs, strictly use '\\n' (escaped).
-- You MUST escape double quotes inside text using backslash (\\"). It is safest to use single quotes (') inside text.
-- NO trailing commas.
-- DO NOT add markdown formatting, DO NOT add backticks (\`\`\`), DO NOT add additional text before or after the JSON.`;
-          }
-          return `Ești un consultant de afaceri expert. 
-Acționează asupra următorului segment de plan de afaceri.
-${instruction}
-
-Plan curent:
-${JSON.stringify(segment)}
-
-Trebuie să răspunzi EXCLUSIV cu un JSON valid, respectând structura originală a segmentului primit.
-Dacă ai primit un singur câmp, returnează-l în același format JSON.
-IMPORTANT PENTRU JSON: 
-- NU folosi rânduri noi reale (unescaped newlines) în interiorul string-urilor! Pentru paragrafe, folosește strict '\\n' (escapat).
-- ESCAPEAZĂ obligatoriu ghilimelele duble din interiorul textului folosind backslash (\\"). Cel mai sigur este să folosești doar ghilimele simple (') în interiorul textului.
-- FĂRĂ virgule la finalul ultimului element din obiect sau array (fără trailing commas).
-- NU adăuga formatare markdown, NU adăuga backticks (\`\`\`), NU adăuga text adițional înainte sau după JSON.`;
-        };
-
-       const [resViz, resPiata, resOp, resSwot, resFin] = await Promise.all([
-          callGemini(buildPrompt(pViziune)),
-          callGemini(buildPrompt(pPiata)),
-          callGemini(buildPrompt(pOperational)),
-          callGemini(buildPrompt(pSwot)),
-          callGemini(buildPrompt(pFinanciar))
-       ]);
-       
-       const txtViz = cleanJsonString(resViz);
-       const txtPiata = cleanJsonString(resPiata);
-       const txtOp = cleanJsonString(resOp);
-       const txtSwot = cleanJsonString(resSwot);
-       const txtFin = cleanJsonString(resFin);
-
-       try {
-         const p1 = txtViz ? JSON.parse(txtViz) : {};
-         const p2 = txtPiata ? JSON.parse(txtPiata) : {};
-         const p3 = txtOp ? JSON.parse(txtOp) : {};
-         const p4 = txtSwot ? JSON.parse(txtSwot) : {};
-         const p5 = txtFin ? JSON.parse(txtFin) : {};
-         parsed = { ...p1, ...p2, ...p3, ...p4, ...p5 };
-       } catch (e: any) {
-                if (locale === "es") {
-            prompt = `Eres un consultor de negocios experto.
-Actúa sobre el siguiente segmento del plan de negocios.
-${instruction}
-
-Segmento de plan actual:
-${JSON.stringify(inputData)}
-
-Debes responder EXCLUSIVAMENTE con un JSON válido, respetando la estructura original del segmento recibido.
-Si recibiste un solo campo, devuélvelo en el mismo formato JSON.
-IMPORTANTE PARA EL JSON:
-- ¡NO utilices saltos de línea reales (unescaped newlines) dentro de los textos! Para los párrafos, usa estrictamente '\\n' (escapado).
-- DEBES escapar las comillas dobles dentro del texto usando barra invertida (\\"). Lo más seguro es usar comillas simples (') dentro del texto.
-- SIN comas al final del último elemento (no trailing commas).
-- NO agregues formato markdown, NO agregues comillas invertidas (\`\`\`), NO agregues texto adicional antes o después del JSON.`;
-          } else if (locale === "en") {
-            prompt = `You are an expert business consultant. 
-Act upon the following segment of the business plan.
-${instruction}
-
-Current plan segment:
-${JSON.stringify(inputData)}
-
-You must respond EXCLUSIVELY with a valid JSON, respecting the original structure of the received segment.
-If you received a single field, return it in the same JSON format.
-IMPORTANT FOR JSON: 
-- DO NOT use real unescaped newlines inside strings! For paragraphs, strictly use '\\n' (escaped).
-- You MUST escape double quotes inside text using backslash (\\"). It is safest to use single quotes (') inside text.
-- NO trailing commas.
-- DO NOT add markdown formatting, DO NOT add backticks (\`\`\`), DO NOT add additional text before or after the JSON.`;
-          } else {
-            prompt = `Ești un consultant de afaceri expert. 
-Acționează asupra următorului segment de plan de afaceri.
-${instruction}
-
-Plan curent:
-${JSON.stringify(inputData)}
-
-Trebuie să răspunzi EXCLUSIV cu un JSON valid, respectând structura originală a segmentului primit.
-Dacă ai primit un singur câmp, returnează-l în același format JSON.
-IMPORTANT PENTRU JSON: 
-- NU folosi rânduri noi reale (unescaped newlines) în interiorul string-urilor! Pentru paragrafe, folosește strict '\\n' (escapat).
-- ESCAPEAZĂ obligatoriu ghilimelele duble din interiorul textului folosind backslash (\\"). Cel mai sigur este să folosești doar ghilimele simple (') în interiorul textului.
-- FĂRĂ virgule la finalul ultimului element din obiect sau array (fără trailing commas).
-- NU adăuga formatare markdown, NU adăuga backticks (\`\`\`), NU adăuga text adițional înainte sau după JSON.`;
-          }
         }
-       
-       const res = await callGemini(prompt);
-       const text = cleanJsonString(res);
-       
-       try {
-         parsed = JSON.parse(text);
-       } catch (parseErr: any) {
-         if (parseErr.message.includes('Unexpected non-whitespace character') || parseErr.message.includes('Unexpected token')) {
-           try {
-             const arrayFixed = '[' + text.replace(/\}\s*\{/g, '},{').replace(/\]\s*\[/g, '],[') + ']';
-             const parsedArray = JSON.parse(arrayFixed);
-             if (Array.isArray(parsedArray) && parsedArray.length > 0) {
-               parsed = parsedArray[0];
-             } else {
-               throw parseErr;
-             }
-           } catch {
-             console.error("JSON PARSE ERROR:", parseErr, text);
-             return NextResponse.json({ error: "Eroare AI Formatare: " + parseErr.message + "\n\nFragment primit: " + text.substring(0, 150) }, { status: 400 });
-           }
-         } else {
-           console.error("JSON PARSE ERROR:", parseErr, text);
-           return NextResponse.json({ error: "Eroare AI Formatare: " + parseErr.message + "\n\nFragment primit: " + text.substring(0, 150) }, { status: 400 });
-         }
-       }
-       
+        if (locale === "en") {
+          return `You are an expert business consultant. 
+Act upon the following segment of the business plan.
+${instruction}
+
+Current plan segment:
+${JSON.stringify(segment)}
+
+You must respond EXCLUSIVELY with a valid JSON, respecting the original structure of the received segment.
+If you received a single field, return it in the same JSON format.
+IMPORTANT FOR JSON: 
+- DO NOT use real unescaped newlines inside strings! For paragraphs, strictly use '\\n' (escaped).
+- IMPORTANT: If you need to use quotes inside the generated texts, strictly use single quotes ('). DO NOT use double quotes (") inside the text values under any circumstances, as they break the JSON structure.
+- NO trailing commas.
+- DO NOT add markdown formatting, DO NOT add backticks (\`\`\`), DO NOT add additional text before or after the JSON.`;
+        }
+        return `Ești un consultant de afaceri expert. 
+Acționează asupra următorului segment de plan de afaceri.
+${instruction}
+
+Plan curent:
+${JSON.stringify(segment)}
+
+Trebuie să răspunzi EXCLUSIV cu un JSON valid, respectând structura originală a segmentului primit.
+Dacă ai primit un singur câmp, returnează-l în același format JSON.
+IMPORTANT PENTRU JSON: 
+- NU folosi rânduri noi reale (unescaped newlines) în interiorul string-urilor! Pentru paragrafe, folosește strict '\\n' (escapat).
+- IMPORTANT: Dacă ai nevoie să folosești ghilimele în textele generate, folosește strict ghilimele simple ('). NU folosi ghilimele duble (") în interiorul textelor sub nicio formă, deoarece vor strica structura JSON-ului.
+- FĂRĂ virgule la finalul ultimului element din obiect sau array (fără trailing commas).
+- NU adăuga formatare markdown, NU adăuga backticks (\`\`\`), NU adăuga text adițional înainte sau după JSON.`;
+      };
+
+      const [resViz, resPiata, resOp, resSwot, resFin] = await Promise.all([
+        callGemini(buildPrompt(pViziune)).catch(e => { console.error("Edit segment Viz failed:", e); return ""; }),
+        callGemini(buildPrompt(pPiata)).catch(e => { console.error("Edit segment Piata failed:", e); return ""; }),
+        callGemini(buildPrompt(pOperational)).catch(e => { console.error("Edit segment Op failed:", e); return ""; }),
+        callGemini(buildPrompt(pSwot)).catch(e => { console.error("Edit segment Swot failed:", e); return ""; }),
+        callGemini(buildPrompt(pFinanciar)).catch(e => { console.error("Edit segment Fin failed:", e); return ""; })
+      ]);
+      
+      const txtViz = cleanJsonString(resViz);
+      const txtPiata = cleanJsonString(resPiata);
+      const txtOp = cleanJsonString(resOp);
+      const txtSwot = cleanJsonString(resSwot);
+      const txtFin = cleanJsonString(resFin);
+
+      let parsedViz: any = {};
+      try { if (txtViz) parsedViz = JSON.parse(txtViz); } catch (e) { console.error("Error parsing Viz:", e, txtViz); }
+      let parsedPiata: any = {};
+      try { if (txtPiata) parsedPiata = JSON.parse(txtPiata); } catch (e) { console.error("Error parsing Piata:", e, txtPiata); }
+      let parsedOp: any = {};
+      try { if (txtOp) parsedOp = JSON.parse(txtOp); } catch (e) { console.error("Error parsing Op:", e, txtOp); }
+      let parsedSwot: any = {};
+      try { if (txtSwot) parsedSwot = JSON.parse(txtSwot); } catch (e) { console.error("Error parsing Swot:", e, txtSwot); }
+      let parsedFin: any = {};
+      try { if (txtFin) parsedFin = JSON.parse(txtFin); } catch (e) { console.error("Error parsing Fin:", e, txtFin); }
+
+      parsed = {
+        viziune_strategie: Object.keys(parsedViz).length > 0 ? (parsedViz.viziune_strategie || parsedViz) : {},
+        analiza_pietei: Object.keys(parsedPiata).length > 0 ? (parsedPiata.analiza_pietei || parsedPiata) : {},
+        plan_operational: Object.keys(parsedOp).length > 0 ? (parsedOp.plan_operational || parsedOp) : {},
+        analiza_swot: Object.keys(parsedSwot).length > 0 ? (parsedSwot.analiza_swot || parsedSwot) : {},
+        plan_financiar: Object.keys(parsedFin).length > 0 ? (parsedFin.plan_financiar || parsedFin) : {}
+      };
+
+      const successCount = [parsedViz, parsedPiata, parsedOp, parsedSwot, parsedFin].filter(p => Object.keys(p).length > 0).length;
+      if (successCount === 0) {
+        return NextResponse.json({ error: "Sistemul a returnat un răspuns nevalid sau gol. Te rugăm să încerci din nou." }, { status: 400 });
+      }
+    } else {
+      const res = await callGemini(prompt);
+      const text = cleanJsonString(res);
+      
+      try {
+        parsed = JSON.parse(text);
+      } catch (parseErr: any) {
+        if (parseErr.message.includes('Unexpected non-whitespace character') || parseErr.message.includes('Unexpected token')) {
+          try {
+            const arrayFixed = '[' + text.replace(/\}\s*\{/g, '},{').replace(/\]\s*\[/g, '],[') + ']';
+            const parsedArray = JSON.parse(arrayFixed);
+            if (Array.isArray(parsedArray) && parsedArray.length > 0) {
+              parsed = parsedArray[0];
+            } else {
+              throw parseErr;
+            }
+          } catch {
+            console.error("JSON PARSE ERROR:", parseErr, text);
+            return NextResponse.json({ error: "Eroare AI Formatare: " + parseErr.message + "\n\nFragment primit: " + text.substring(0, 150) }, { status: 400 });
+          }
+        } else {
+          console.error("JSON PARSE ERROR:", parseErr, text);
+          return NextResponse.json({ error: "Eroare AI Formatare: " + parseErr.message + "\n\nFragment primit: " + text.substring(0, 150) }, { status: 400 });
+        }
+      }
+      
       // Safety checks for add_sections in case Gemini returns an array or raw object
       if (action === "add_sections") {
         if (Array.isArray(parsed)) {

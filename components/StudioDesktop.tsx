@@ -86,6 +86,7 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
   const [versions, setVersionsState] = useState<{ [key: string]: any }>({});
   const activeVersionIdRef = useRef<string>("original");
   const [activeVersionId, _setActiveVersionId] = useState<string>("original");
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
   const setActiveVersionId = (id: string) => {
     activeVersionIdRef.current = id;
@@ -281,6 +282,20 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
     return () => clearInterval(interval);
   }, [isEditingAi]);
 
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setShowVersionDropdown(false);
+      }
+    }
+    if (showVersionDropdown) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [showVersionDropdown]);
+
   const startEditing = () => {
     setBackupResult(JSON.parse(JSON.stringify(result)));
     window.history.pushState({ isEditing: true }, '', window.location.pathname + '?edit=true');
@@ -297,6 +312,20 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
 
   const saveEditing = () => {
     setIsEditing(false);
+    
+    // Update versions object with the new result for the active version
+    const nextVersions = {
+      ...versions,
+      [activeVersionId]: result
+    };
+    setVersionsState(nextVersions);
+    
+    syncCurrentPlanToFirestore(result, nextVersions);
+    
+    if (typeof window !== "undefined") {
+      localStorage.setItem("current_generated_plan", JSON.stringify(result));
+    }
+    
     if (typeof window !== "undefined" && window.location.search.includes('edit=true')) {
       window.history.replaceState({}, document.title, window.location.pathname + '?view=idea');
     }
@@ -313,7 +342,7 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
   const [showVerificationModal, setShowVerificationModal] = useState(false);
   const [verificationSent, setVerificationSent] = useState(false);
 
-  const handleAiEdit = async (action: string, customStyle?: string, customInput?: string) => {
+  const handleAiEdit = async (action: string, customStyle?: string, customInput?: string, isRetry?: boolean) => {
     if (isEditingAi) return;
 
     if (!user) {
@@ -322,7 +351,7 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
     }
 
     // LIMITATOR TON — 2 editări gratuite pentru utilizatori gratuiți (override freeze studio - Master Plan)
-    if (action === 'professional_tone' && user && !isPlanPaid && !isAdmin) {
+    if (action === 'professional_tone' && user && !hasStandardAccess && !isAdmin) {
       const toneCount = parseInt(localStorage.getItem('studioToneCount') || '0', 10);
       if (toneCount >= 2) {
         setShowPricingModal(true);
@@ -332,7 +361,7 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
     }
 
     const isActionFree = action === "professional_tone";
-    if (!isActionFree && !isAdmin && !isPlanPaid && !subscriptionActive && !euFundsUnlocked) {
+    if (!isActionFree && !isAdmin && !hasProAccess) {
       setShowPricingModal(true);
       return;
     }
@@ -358,11 +387,12 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
     setAiPromptInput("");
     setShowToneOptions(false);
     try {
+      const baseSource = versions.original || result;
       const [res] = await Promise.all([
         fetch("/api/edit", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ result, action, customStyle, targetSection, locale })
+          body: JSON.stringify({ result: baseSource, action, customStyle, targetSection, locale, isRetry })
         }),
         new Promise(resolve => setTimeout(resolve, 2000))
       ]);
@@ -398,15 +428,31 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
         try {
           const parsed = JSON.parse(data.updatedResult);
           
-          if (action === "eu_funds_optimization") {
-            setActiveVersionId("eu_funds");
-          } else if (action === "investor_ready") {
-            setActiveVersionId("investor");
-          }
+          const vKey = 
+            action === "eu_funds_optimization" ? "eu_funds" :
+            action === "investor_ready" ? "investor" :
+            action === "professional_tone" ? "ton_edit" :
+            action === "optimize_budget" ? "budget_edit" :
+            action === "add_sections" ? "expert_sections" :
+            "custom";
           
           const formattedResult = formatObjectNumbers(parsed);
+          
+          const nextVersions = {
+            ...versions,
+            [vKey]: formattedResult
+          };
+          
+          setVersionsState(nextVersions);
+          setActiveVersionId(vKey);
           setResult(formattedResult);
-          syncCurrentPlanToFirestore(formattedResult);
+          
+          syncCurrentPlanToFirestore(formattedResult, nextVersions);
+          
+          if (typeof window !== "undefined") {
+            localStorage.setItem("current_generated_plan", JSON.stringify(formattedResult));
+          }
+          
           setIsEditingAi(false);
           
           setTimeout(() => {
@@ -418,12 +464,12 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
              else if (action === "professional_tone" || action === "eu_funds_optimization" || action === "investor_ready") targetId = "section-general";
              
              if (targetId) {
-               const el = document.getElementById(targetId);
-               if (action === "add_sections" && el && el.lastElementChild) {
-                 el.lastElementChild.scrollIntoView({ behavior: 'smooth', block: 'center' });
-               } else if (el) {
-                 el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-               }
+                const el = document.getElementById(targetId);
+                if (action === "add_sections" && el && el.lastElementChild) {
+                  el.lastElementChild.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                } else if (el) {
+                  el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
              }
            }, 800);
         } catch (err) {
@@ -478,7 +524,9 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
   const isAdmin = user ? ADMIN_EMAILS.includes(user.email || '') : false;
   const isPlanPaid = promoCodeUnlocked || isAdmin || subscriptionActive || (result && unlockedPlans.includes(result.nume)) || isPaid;
   const isStudioPaid = promoCodeUnlocked || isAdmin || subscriptionActive || euFundsUnlocked || isPaid;
-  const isContentCopyProtected = !isPlanPaid && !isStudioPaid;
+  const hasStandardAccess = isPaid || promoCodeUnlocked || isAdmin || subscriptionActive || isPlanPaid || isStudioPaid;
+  const hasProAccess = isAdmin || subscriptionActive || euFundsUnlocked;
+  const isContentCopyProtected = !hasStandardAccess;
   const [isAuthLoading, setIsAuthLoading] = useState(true);
   const [authError, setAuthError] = useState<string | null>(null);
   const [email, setEmail] = useState("");
@@ -1207,12 +1255,6 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
                               setShowAuthModal(true);
                               return;
                             }
-                            const toneCount = typeof window !== "undefined" ? parseInt(localStorage.getItem("studioToneCount") || "0", 10) : 0;
-                            const isToneLocked = !isAdmin && !isPlanPaid && toneCount >= 2;
-                            if (isToneLocked) {
-                              setShowPricingModal(true);
-                              return;
-                            }
                             setShowToneOptions(!showToneOptions);
                           }} 
                           disabled={isEditingAi} 
@@ -1223,13 +1265,7 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
                             <span>{locale === "en" ? "Rewrite tone" : locale === "es" ? "Reescribir tono" : "Rescrie tonul"}</span>
                           </span>
                           <span className="flex items-center gap-2">
-                            {(!user || (!isAdmin && !isPlanPaid && (typeof window !== "undefined" ? parseInt(localStorage.getItem("studioToneCount") || "0", 10) >= 2 : false))) ? (
-                              <span className="text-[10px] bg-amber-500/20 border border-amber-500/40 text-amber-300 px-2 py-0.5 rounded-full font-black uppercase tracking-wider whitespace-nowrap flex items-center gap-1">
-                                🔒 PRO
-                              </span>
-                            ) : (
-                              <span className="text-xs text-zinc-500">{showToneOptions ? "▲" : "▼"}</span>
-                            )}
+                            <span className="text-xs text-zinc-500">{showToneOptions ? "▲" : "▼"}</span>
                           </span>
                         </button>
                         
@@ -1254,7 +1290,7 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
                             <button 
                               type="button"
                               onClick={() => {
-                                if (!isPlanPaid && !isAdmin) {
+                                if (!hasStandardAccess && !isAdmin) {
                                   setShowPricingModal(true);
                                   return;
                                 }
@@ -1264,14 +1300,14 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
                               className="w-full text-xs text-left px-4 py-2.5 rounded-lg hover:bg-zinc-900 text-zinc-400 hover:text-white transition-all font-semibold flex items-center justify-between group"
                             >
                               <span>{locale === "en" ? "📈 Persuasive & Sales" : locale === "es" ? "📈 Persuasivo y Comercial" : "📈 Persuasiv & Vânzări"}</span>
-                              {(!isPlanPaid && !isAdmin) && (
+                              {(!hasStandardAccess && !isAdmin) && (
                                 <span className="text-[9px] bg-amber-500/20 border border-amber-500/40 text-amber-300 px-1.5 py-0.5 rounded font-black uppercase">🔒 PRO</span>
                               )}
                             </button>
                             <button 
                               type="button"
                               onClick={() => {
-                                if (!isPlanPaid && !isAdmin) {
+                                if (!hasStandardAccess && !isAdmin) {
                                   setShowPricingModal(true);
                                   return;
                                 }
@@ -1281,7 +1317,7 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
                               className="w-full text-xs text-left px-4 py-2.5 rounded-lg hover:bg-zinc-900 text-zinc-400 hover:text-white transition-all font-semibold flex items-center justify-between group"
                             >
                               <span>{locale === "en" ? "🤝 Friendly & Casual" : locale === "es" ? "🤝 Amigable y Casual" : "🤝 Prietenos & Casual"}</span>
-                              {(!isPlanPaid && !isAdmin) && (
+                              {(!hasStandardAccess && !isAdmin) && (
                                 <span className="text-[9px] bg-amber-500/20 border border-amber-500/40 text-amber-300 px-1.5 py-0.5 rounded font-black uppercase">🔒 PRO</span>
                               )}
                             </button>
@@ -1296,7 +1332,7 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
                             setShowAuthModal(true);
                             return;
                           }
-                          if (!isStudioPaid) {
+                          if (!hasProAccess) {
                             setShowPricingModal(true);
                           } else {
                             setActiveAiPrompt(activeAiPrompt?.action === "eu_funds_optimization" ? null : {
@@ -1313,7 +1349,7 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
                         }} 
                         disabled={isEditingAi} 
                         className={`w-full text-left flex items-center justify-between rounded-xl px-5 py-4 font-bold text-sm transition-all group disabled:opacity-50 disabled:cursor-not-allowed ${
-                          !isStudioPaid 
+                          !hasProAccess 
                             ? "bg-zinc-900/60 hover:bg-zinc-800/80 border border-amber-500/30 text-amber-300" 
                             : "bg-black hover:bg-zinc-800 border border-zinc-800 text-zinc-300"
                         }`}
@@ -1326,7 +1362,7 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
                               : (locale === "en" ? "Optimized for EU Grants" : locale === "es" ? "Optimizado para Subvenciones de la UE" : "Optimizat pentru Fonduri Europene")}
                           </span>
                         </span>
-                        {!isStudioPaid && (
+                        {!hasProAccess && (
                           <span className="text-[10px] bg-amber-500/20 border border-amber-500/40 text-amber-300 px-2 py-0.5 rounded-full font-black uppercase tracking-wider whitespace-nowrap flex items-center gap-1">
                             🔒 PRO
                           </span>
@@ -1341,7 +1377,7 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
                             return;
                           }
                           // BLOCARE STRICTĂ — gratuit logat nu poate folosi Optimizează Bugetul (override freeze studio - Master Plan)
-                          if (!isPlanPaid && !isAdmin) {
+                          if (!hasProAccess) {
                             setShowPricingModal(true);
                             return;
                           }
@@ -1358,7 +1394,7 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
                         }} 
                         disabled={isEditingAi} 
                         className={`w-full text-left flex items-center justify-between rounded-xl px-5 py-4 font-bold text-sm transition-all group disabled:opacity-50 disabled:cursor-not-allowed ${
-                          (!user || !isPlanPaid) 
+                          !hasProAccess 
                             ? "bg-zinc-900/60 hover:bg-zinc-800/80 border border-amber-500/30 text-amber-300" 
                             : "bg-black hover:bg-zinc-800 border border-zinc-800 text-zinc-300"
                         }`}
@@ -1383,7 +1419,7 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
                             )}
                           </span>
                         </span>
-                        {(!user || !isPlanPaid) && !isAdmin && (
+                        {!hasProAccess && (
                           <span className="text-[10px] bg-amber-500/20 border border-amber-500/40 text-amber-300 px-2 py-0.5 rounded-full font-black uppercase tracking-wider whitespace-nowrap flex items-center gap-1">
                             🔒 PRO
                           </span>
@@ -1424,7 +1460,7 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
                           document.getElementById(`custom-section-${isAlreadyAdded}`)?.scrollIntoView({ behavior: "smooth", block: "center" });
                           return;
                         }
-                        if (!isStudioPaid) {
+                        if (!hasProAccess) {
                           setShowPricingModal(true);
                           return;
                         }
@@ -1438,12 +1474,12 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
                             ? "Se generará lo siguiente:\n1. Resumen Ejecutivo\n2. Matriz de Diferenciación\n3. Estrategia 'Go-To-Market'\n4. Análisis de Riesgos\n5. Escenarios Financieros"
                             : "Se va genera:\n1. Rezumat Executiv\n2. Matrice Diferențiere\n3. Strategie 'Go-To-Market'\n4. Analiză Risc\n5. Scenarii Financiare"
                         });
-                      }} disabled={isEditingAi} className="w-full bg-zinc-900/80 hover:bg-zinc-800 border border-emerald-500/30 rounded-xl px-5 py-4 font-bold text-sm text-emerald-100 transition-all text-left flex items-center justify-between group disabled:opacity-50 disabled:cursor-not-allowed shadow-[0_0_15px_rgba(16,185,129,0.1)]">
+                      }} disabled={isEditingAi} className={`w-full rounded-xl px-5 py-4 font-bold text-sm transition-all text-left flex items-center justify-between group disabled:opacity-50 disabled:cursor-not-allowed ${!hasProAccess ? 'bg-zinc-900/60 hover:bg-zinc-800/80 border border-amber-500/30 text-amber-300' : 'bg-zinc-900/80 hover:bg-zinc-800 border border-emerald-500/30 text-emerald-100 shadow-[0_0_15px_rgba(16,185,129,0.1)]'}`}>
                         <span className="flex items-center gap-3">
-                          <span className="text-emerald-400 group-hover:scale-110 transition-transform text-lg">🏦</span> 
+                          <span className={`${!hasProAccess ? 'text-amber-500' : 'text-emerald-400'} group-hover:scale-110 transition-transform text-lg`}>🏦</span> 
                           <span>{isEditingAi ? (locale === "en" ? "Processing..." : locale === "es" ? "Procesando..." : "Se procesează...") : (locale === "en" ? "Professional Plan (Investors/Banks)" : locale === "es" ? "Plan Profesional (Inversores/Bancos)" : "Plan Profesionist (Investitori/Bănci)")}</span>
                         </span>
-                        {!isStudioPaid && (
+                        {!hasProAccess && (
                           <span className="text-xs font-black bg-amber-500/20 text-amber-400 px-2.5 py-1 rounded-md border border-amber-500/20 group-hover:bg-amber-500/30 transition-colors flex items-center gap-1.5 shadow-[0_0_10px_rgba(245,158,11,0.2)]">
                             🔒 PRO
                           </span>
@@ -1606,7 +1642,7 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
                   ⚠️
                 </div>
                 <h3 className="text-2xl font-bold text-white mb-4">
-                  {locale === "en" ? "AI Processing Error" : locale === "es" ? "Error de procesamiento IA" : "Eroare la procesarea AI"}
+                  {locale === "en" ? "Processing Error" : locale === "es" ? "Error de procesamiento" : "Eroare la procesare"}
                 </h3>
                 <p className="text-zinc-400 text-base leading-relaxed mb-6 whitespace-pre-line">
                   {aiEditError}
@@ -1616,7 +1652,7 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
                     onClick={() => {
                       setAiEditError(null);
                       if (lastEditParams) {
-                        handleAiEdit(lastEditParams.action, lastEditParams.customStyle, lastEditParams.customInput);
+                        handleAiEdit(lastEditParams.action, lastEditParams.customStyle, lastEditParams.customInput, true);
                       }
                     }}
                     className="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-6 py-3 rounded-xl transition-all cursor-pointer shadow-lg shadow-emerald-600/20 hover:scale-105 active:scale-95 animate-pulse"
@@ -2609,7 +2645,7 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
               )}
 
               {/* Soluția 1 — Meniu Dropdown Istoric Versiuni */}
-              <div className="relative">
+              <div className="relative" ref={dropdownRef}>
                 <button 
                   onClick={() => setShowVersionDropdown(!showVersionDropdown)}
                   className="px-4 py-2 rounded-xl bg-zinc-900 border border-zinc-800 hover:border-emerald-500/40 text-amber-300 hover:text-amber-200 font-bold text-xs flex items-center gap-2 transition-all cursor-pointer shadow-sm"
@@ -3516,7 +3552,7 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
             </div>
 
             {/* Categories filter */}
-            <div className="px-6 py-3 border-b border-zinc-800/80 bg-black/30 flex gap-2 overflow-x-auto">
+            <div className="px-6 py-3 border-b border-zinc-800/80 bg-black/30 flex gap-2 overflow-x-auto no-scrollbar">
               <button
                 onClick={() => setSelectedExpertCategory("all")}
                 className={`px-3 py-1.5 rounded-lg text-xs font-bold whitespace-nowrap transition-all ${selectedExpertCategory === "all" ? "bg-emerald-600 text-white" : "bg-zinc-800/60 text-zinc-400 hover:text-white"}`}
@@ -3558,7 +3594,7 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
                         setShowAuthModal(true);
                         return;
                       }
-                      if (!isPlanPaid && !isAdmin) {
+                      if (!hasProAccess && !isAdmin) {
                         setShowPricingModal(true);
                         return;
                       }
@@ -3596,7 +3632,7 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
                     className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2.5 rounded-xl text-xs transition-all flex items-center justify-center gap-2 cursor-pointer shadow-[0_0_15px_rgba(16,185,129,0.2)]"
                   >
                     <span>➕ {locale === "en" ? "Add to Plan" : locale === "es" ? "Añadir al Plan" : "Adaugă în Plan"}</span>
-                    {(!isPlanPaid && !isAdmin) && (
+                    {(!hasProAccess && !isAdmin) && (
                       <span className="text-[10px] bg-amber-500/30 text-amber-300 px-1.5 py-0.5 rounded font-black">🔒 PRO</span>
                     )}
                   </button>

@@ -43,7 +43,7 @@ function extractRelevantSection(result: any, action: string) {
 
 export async function POST(req: NextRequest) {
   try {
-    const { result, action, customStyle, targetSection, locale } = await req.json();
+    const { result, action, customStyle, targetSection, locale, isRetry } = await req.json();
     const isEn = locale === "en" || locale === "es";
     let instruction = "";
     if (locale === "en") {
@@ -201,6 +201,16 @@ IMPORTANTE: ¡Mantén la estructura JSON original, pero reescribe y enriquece el
         instruction = "Scurtează și sintetizează drastic textul (analiza pieței, planul operațional, SWOT, strategia financiară). Menține esența dar folosește fraze scurte. Redu volumul la jumătate pentru slide-uri.";
       } else {
         instruction = "Operează mici îmbunătățiri de corectură și fluență pe text.";
+      }
+    }
+
+    if (isRetry) {
+      if (locale === "en") {
+        instruction += "\nCRITICAL RETRY LIMIT: Minimize information density. For each section, write only 1 short paragraph (max 2 sentences). Do not generate detailed bullet points or long structural narratives. Keep it ultra-condensed to process instantly.";
+      } else if (locale === "es") {
+        instruction += "\nLÍMITE CRÍTICO DE REINTENTO: Minimice la densidad de información. Para cada sección, escriba solo 1 párrafo corto (máx. 2 oraciones). No genere explicaciones detalladas. Manténgalo ultra condensado para procesarlo al instante.";
+      } else {
+        instruction += "\nLIMITARE CRITICĂ REÎNCEARCARE: Minimizează densitatea de informații. Pentru fiecare secțiune, scrie doar 1 singur paragraf scurt (maximum 2 propoziții). Nu genera liste detaliate sau narațiuni lungi. Păstrează conținutul ultra-concis pentru procesare instantanee.";
       }
     }
 

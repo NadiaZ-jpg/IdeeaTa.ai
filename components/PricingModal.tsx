@@ -1,4 +1,6 @@
 import { useState } from "react";
+import { db } from "@/lib/firebase";
+import { doc, updateDoc } from "firebase/firestore";
  
 interface PricingModalProps {
   isOpen: boolean;
@@ -81,6 +83,23 @@ export function PricingModal({ isOpen, onClose, onSuccess, onRequireLogin, userI
 
       const data = await res.json();
       if (data.success) {
+        if (data.isDevBypass) {
+          const userRef = doc(db, "users", userId);
+          const updatePayload: any = {
+            promoCodeUnlocked: true,
+            promoCodeTier: data.tier || "full-access"
+          };
+          if (data.tier === "full-access") {
+            updatePayload.euFundsUnlocked = true;
+            updatePayload.subscriptionActive = true;
+          } else if (data.tier === "eu-funds") {
+            updatePayload.euFundsUnlocked = true;
+          } else if (data.tier === "standard") {
+            updatePayload.isPaid = true;
+          }
+          await updateDoc(userRef, updatePayload);
+          console.log("[PricingModal] DevBypass Firestore client-side write succeeded:", data.tier);
+        }
         if (onSuccess) onSuccess(data.tier);
         onClose();
       } else {

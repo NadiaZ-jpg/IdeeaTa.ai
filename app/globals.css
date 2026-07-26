@@ -52,3 +52,39 @@
 .animate-float-number {
   animation: float-number 1.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
+
+/* Custom premium scrollbars globale (aplicate pe orice element derulabil) */
+*, *::before, *::after {
+  scrollbar-width: thin;
+  scrollbar-color: #27272a #09090b;
+}
+
+*::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+*::-webkit-scrollbar-track {
+  background: #09090b;
+}
+
+*::-webkit-scrollbar-thumb {
+  background: #27272a;
+  border-radius: 9999px;
+  border: 1px solid #09090b;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background: #3f3f46;
+}
+
+/* Ascundere completă scrollbar pentru liste orizontale / categorii */
+.no-scrollbar::-webkit-scrollbar,
+.no-scrollbar *::-webkit-scrollbar {
+  display: none !important;
+}
+
+.no-scrollbar {
+  -ms-overflow-style: none !important;
+  scrollbar-width: none !important;
+}

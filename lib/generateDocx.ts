@@ -252,8 +252,8 @@ export async function generateDocxBlob(
   const children: (Paragraph | Table)[] = [];
 
   // Generate a pure canvas pie chart if budget exists
-  let finalChartDataUrl = chartDataUrl;
-  if (!finalChartDataUrl && result?.plan_financiar?.buget_investitii?.length > 0 && typeof document !== 'undefined') {
+  let finalChartDataUrl = null;
+  if (result?.plan_financiar?.buget_investitii?.length > 0 && typeof document !== 'undefined') {
     try {
       const items = result.plan_financiar.buget_investitii;
       const canvas = document.createElement('canvas');

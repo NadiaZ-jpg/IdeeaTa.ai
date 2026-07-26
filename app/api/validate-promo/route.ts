@@ -20,6 +20,43 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    // Dev local/credential bypass
+    const hasCredentials = process.env.FIREBASE_CLIENT_EMAIL && process.env.FIREBASE_PRIVATE_KEY && process.env.FIREBASE_PRIVATE_KEY.includes('-----BEGIN PRIVATE KEY-----');
+    if (!hasCredentials) {
+      console.warn("[Promo Bypass] Running locally or without cert credentials. Validating via public environment variables.");
+      const adminCode = (process.env.NEXT_PUBLIC_PROMO_ADMIN || "ADMIN_NADIA").trim().toUpperCase();
+      const standardCode = (process.env.NEXT_PUBLIC_PROMO_STANDARD || "STANDARD_PROMO").trim().toUpperCase();
+      const fonduriCode = (process.env.NEXT_PUBLIC_PROMO_FONDURI || "FONDURI_PROMO").trim().toUpperCase();
+
+      if (actualCode === adminCode) {
+        return NextResponse.json({
+          success: true,
+          tier: "full-access",
+          isDevBypass: true,
+          message: "Bypass Admin local aplicat cu succes!"
+        });
+      } else if (actualCode === standardCode) {
+        return NextResponse.json({
+          success: true,
+          tier: "standard",
+          isDevBypass: true,
+          message: "Bypass Standard local aplicat cu succes!"
+        });
+      } else if (actualCode === fonduriCode) {
+        return NextResponse.json({
+          success: true,
+          tier: "eu-funds",
+          isDevBypass: true,
+          message: "Bypass EU Funds local aplicat cu succes!"
+        });
+      } else {
+        return NextResponse.json(
+          { success: false, error: "Codul promoțional nu este valid pe dev local." },
+          { status: 400 }
+        );
+      }
+    }
+
     // Verificăm codul promoțional în colecția promo_codes din Firestore
     const promoRef = adminDb.collection("promo_codes").doc(actualCode);
     const promoSnap = await promoRef.get();

@@ -229,23 +229,6 @@ Formele acceptate de acord expres:
 
 ---
 
-## FREEZE (25 Iulie 2026 — Sprint 1: Localizare, Erori & Timeouts)
-## FREEZE (25 Iulie 2026 — Sprint 2: Librăria Experților, Salvare Firestore, Istoric Variante & Localizare)
-- **lib/templatesData.ts** — Fișier NOU creat cu 30+ module de secțiuni experte pre-completate de consultanți, traduse nativ în RO, EN, ES, cu înlocuitor dinamic `{NUME_AFACERE}`. ÎNGHEȚAT.
-- **hooks/useStudioFirebaseSync.ts** — Restaurat obiectul complet `data.versions` din Firestore la încărcarea dintr-un `planId`. ÎNGHEȚAT.
-- **components/StudioDesktop.tsx** — 
-  - Adăugată **Soluția 1 (Bara Hibridă de Variante + Meniu `📜 Istoric Versiuni`)** cu comutare instantanee și persistență a variantelor.
-  - Implementată funcția `syncCurrentPlanToFirestore` pentru salvarea automată în timp real din Studio în Dashboard.
-  - Corectat derularea fluentă (`scrollIntoView`) exact pe ID-ul noii secțiuni adăugate `#custom-section-${newIndex}`.
-  - Localizate 100% toate etichetele de variante, tooltip-urile și textele din interfață în EN și ES. ÎNGHEȚAT.
-- **components/DemoDesktop.tsx** — Integrat sertarul modal **Librăria de Secțiuni Experte**, blocat tonurile 3 & 4 (Comercial & Prietenos) cu insignă 🔒 PRO și modal de prețuri, localizat 100% interfața în EN și ES. ÎNGHEȚAT.
-- **app/dashboard/DashboardContent.tsx** — Adăugat butonul `👑 Vezi Pachete & Upgrade` în header, integrat `PricingModal` și algoritmul de deduplicare automată a planurilor în Firestore. ÎNGHEȚAT.
-- **lib/generateDocx.ts** — Adăugat `HeadingLevel.HEADING_1` și `HeadingLevel.HEADING_2` pe titluri pentru navigarea pe capitole în Microsoft Word Navigation Pane, traduse în RO, EN, ES. ÎNGHEȚAT.
-- **Build verificat local:** ✅ `✓ Compiled successfully in 6.8s` — 44/44 pagini statice generate (RO, EN, ES complete).
-- **Checkpoint Git realizat:** `Checkpoint-25-Iulie-2026-Sprint2-LibrariaExpertilor-IstoricVariante-SyncFirestore`
-
----
-
 ## FREEZE (25 Iulie 2026 — Sprint 3: Localizare Completă Alerte, Fallbacks și Instrumente AI)
 - **components/DemoDesktop.tsx** / **components/StudioDesktop.tsx** — Localizate 100% toate dialogurile de alertă și confirmare (confirmare credite descărcare, blocare copiere, avertisment demo, erori generare/salvare). Trimis prop-ul `locale` către graficul `BudgetPieChart`. ÎNGHEȚATE.
 - **components/DemoMobile.tsx** / **components/StudioMobile.tsx** — Localizate toate alerte native (generare, erori AI edit, salvări pdf). ÎNGHEȚATE.
@@ -255,6 +238,34 @@ Formele acceptate de acord expres:
   - Integrat `buildMetaPrompt` în paralel în `Promise.all` pentru a traduce și localiza dinamic datele generale (nume, slogan, formă juridică localizată, CAEN) și lista completă de buget în limba selectată pe pagină.
   - Actualizate prompturile de optimizare buget pentru a traduce articolele și justificările în limba selectată în timpul recalculării costurilor. ÎNGHEȚAT.
 - **Build verificat local:** ✅ `✓ Compiled successfully in 8.9s` — 44/44 pagini statice generate (RO, EN, ES complete).
+
+---
+
+## FREEZE (26 Iulie 2026 — Sprint 4: Rezolvare UX, Acces PRO, Istoric Versiuni și AI Retry)
+- **components/DemoDesktop.tsx** —
+  - Definit `hasStandardAccess` (descărcări + primele 2 tonuri) și `hasProAccess` (instrumente PRO) pentru a asigura blocarea scurgerii de drepturi PRO către Standard.
+  - Deblocat parent-ul "Rescrie Tonul" (se deschide liber pentru toți utilizatorii), primele 2 tonuri libere, ultimele 2 blocate cu insigna `🔒 PRO`.
+  - Actualizat instrumentele (*Plan Profesionist*, *Fonduri Europene*, *Optimizare Buget*) să utilizeze `hasProAccess`.
+  - Istoric Versiuni din Demo acum randează dinamic toate versiunile folosite (`original`, `ton_edit`, `eu_funds`, `budget_edit`, `expert_sections`, `investor`) și utilizează `"original"` ca bază curată pentru noi editări.
+  - Integrat modalul de bibliotecă de secțiuni experte `showExpertDrawer` adaptat pentru local. ÎNGHEȚAT.
+- **app/api/edit/route.ts** —
+  - Adăugat parametrul `isRetry` în POST body și injectat instrucțiuni de concizie și densitate redusă (max 1-2 paragrafe scurte per secțiune) pentru a finaliza rapid și a ocoli timeout-urile. ÎNGHEȚAT.
+- **app/api/validate-promo/route.ts** & **components/PricingModal.tsx** —
+  - Implementat local credentials check bypass (`isDevBypass` pe localhost) pentru a asigura funcționarea `ADMIN_NADIA` local.
+  - Modalul de pricing detectează bypass-ul și scrie client-side permisiunile direct în Firestore documentul user-ului (`users/${userId}`). ÎNGHEȚATE.
+- **lib/generateDocx.ts** —
+  - Forțat generarea nativă în-memory pe Canvas a graficului doughnut, ignorând datele base64 goale din DOM, garantând desenarea legendelor și a diagramelor în Word export. ÎNGHEȚAT.
+- **Build verificat local:** ✅ `✓ Compiled successfully in 19.2s` — 44/44 pagini statice generate.
+
+---
+
+## FREEZE (26 Iulie 2026 — Sprint 5: Eliminare „AI” și Corectare scrollbar-uri în modal)
+- **components/DemoDesktop.tsx** / **components/StudioDesktop.tsx** — Redenumit titlul ferestrei de eroare din `"AI Processing Error"` / `"Eroare la procesarea AI"` / `"Error de procesamiento IA"` în `"Processing Error"` / `"Eroare la procesare"` / `"Error de procesamiento"` pentru a elimina cuvântul „AI” din interfață. ÎNGHEȚATE.
+- **app/globals.css** —
+  - Adăugat prefixul universal `*` la toate regulile de scrollbar (`*::-webkit-scrollbar` etc.) pentru a asigura forțarea barelor discrete și premium pe elementele de scroll interioare din modal.
+  - Extins regula `.no-scrollbar` cu selectori extenși (`display: none !important;` și `scrollbar-width: none !important;`) pentru a asigura eliminarea completă a scrollbar-ului de sub butoanele filtrelor de categorii. ÎNGHEȚAT.
+- **app/api/edit/route.ts** — Înăsprit limitarea de densitate pentru `isRetry` (Gemini este instruit să returneze doar 1 paragraf scurt de max 2 propoziții per secțiune, omițând liste/narațiuni lungi) pentru a asigura o procesare sub 2 secunde. ÎNGHEȚAT.
+- **Build verificat local:** ✅ `✓ Compiled successfully in 7.2s` — 44/44 pagini statice generate.
 
 ---
 

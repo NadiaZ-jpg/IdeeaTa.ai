@@ -295,12 +295,12 @@ export default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" | 
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [showStudioExportModal, setShowStudioExportModal] = useState(false);
 
-  const handleAiEdit = async (action: string, customStyle?: string, customInput?: string) => {
+  const handleAiEdit = async (action: string, customStyle?: string, customInput?: string, isRetry?: boolean) => {
     if (isEditingAi) return;
 
     const isActionFree = action === "professional_tone";
 
-    if (!isActionFree && !isAdmin && !isPlanPaid && !subscriptionActive && !euFundsUnlocked) {
+    if (!isActionFree && !isAdmin && !hasProAccess) {
       if (!user) {
         setShowAuthModal(true);
       } else {
@@ -309,7 +309,7 @@ export default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" | 
       return;
     }
 
-    if (isActionFree && !isAdmin && !isPlanPaid && !subscriptionActive) {
+    if (isActionFree && !isAdmin && !hasStandardAccess) {
        const toneCount = parseInt(localStorage.getItem("demoToneEditCount") || "0", 10);
        if (toneCount >= 3) {
          if (!user) {
@@ -343,11 +343,12 @@ export default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" | 
     setAiPromptInput("");
     setShowToneOptions(false);
     try {
+      const baseSource = versions.original || result;
       const [res] = await Promise.all([
         fetch("/api/edit", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ result, action, customStyle, targetSection, locale })
+          body: JSON.stringify({ result: baseSource, action, customStyle, targetSection, locale, isRetry })
         }),
         new Promise(resolve => setTimeout(resolve, 2000))
       ]);
@@ -383,13 +384,29 @@ export default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" | 
         try {
           const parsed = JSON.parse(data.updatedResult);
           
-          if (action === "eu_funds_optimization") {
-            setActiveVersionId("eu_funds");
-          } else if (action === "investor_ready") {
-            setActiveVersionId("investor");
+          const vKey = 
+            action === "eu_funds_optimization" ? "eu_funds" :
+            action === "investor_ready" ? "investor" :
+            action === "professional_tone" ? "ton_edit" :
+            action === "optimize_budget" ? "budget_edit" :
+            action === "add_sections" ? "expert_sections" :
+            "custom";
+          
+          const formattedResult = formatObjectNumbers(parsed);
+          
+          const nextVersions = {
+            ...versions,
+            [vKey]: formattedResult
+          };
+          
+          setVersions(nextVersions);
+          setActiveVersionId(vKey);
+          setResult(formattedResult);
+          
+          if (typeof window !== "undefined") {
+            localStorage.setItem("current_generated_plan", JSON.stringify(formattedResult));
           }
           
-          setResult(formatObjectNumbers(parsed));
           setIsEditingAi(false);
           
           setTimeout(() => {
@@ -401,12 +418,12 @@ export default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" | 
              else if (action === "professional_tone" || action === "eu_funds_optimization" || action === "investor_ready") targetId = "section-general";
              
              if (targetId) {
-               const el = document.getElementById(targetId);
-               if (action === "add_sections" && el && el.lastElementChild) {
-                 el.lastElementChild.scrollIntoView({ behavior: 'smooth', block: 'center' });
-               } else if (el) {
-                 el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-               }
+                const el = document.getElementById(targetId);
+                if (action === "add_sections" && el && el.lastElementChild) {
+                  el.lastElementChild.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                } else if (el) {
+                  el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
              }
            }, 800);
         } catch (err) {
@@ -461,7 +478,9 @@ export default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" | 
   const isAdmin = user ? ADMIN_EMAILS.includes(user.email || '') : false;
   const isPlanPaid = promoCodeUnlocked || isAdmin || subscriptionActive || (result && unlockedPlans.includes(result.nume)) || isPaid;
   const isStudioPaid = promoCodeUnlocked || isAdmin || subscriptionActive || euFundsUnlocked || isPaid;
-  const isContentCopyProtected = !isPlanPaid && !isStudioPaid;
+  const hasStandardAccess = isPaid || promoCodeUnlocked || isAdmin || subscriptionActive || isPlanPaid || isStudioPaid;
+  const hasProAccess = isAdmin || subscriptionActive || euFundsUnlocked;
+  const isContentCopyProtected = !hasStandardAccess;
   const [isAuthLoading, setIsAuthLoading] = useState(true);
   const [authError, setAuthError] = useState<string | null>(null);
   const [email, setEmail] = useState("");
@@ -1197,18 +1216,18 @@ export default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" | 
                           document.getElementById(`custom-section-${isAlreadyAdded}`)?.scrollIntoView({ behavior: "smooth", block: "center" });
                           return;
                         }
-                        if (!isStudioPaid) {
+                        if (!hasProAccess) {
                           setShowPricingModal(true);
                           return;
                         }
                         setActiveAiPrompt(activeAiPrompt?.action === "investor_ready" ? null : {action: "investor_ready", title: "Plan Profesionist", isConfirm: true, desc: "Se va genera:\n1. Rezumat Executiv\n2. Matrice Diferențiere\n3. Strategie 'Go-To-Market'\n4. Analiză Risc\n5. Scenarii Financiare"});
-                      }} disabled={isEditingAi} className="w-full bg-zinc-900/80 hover:bg-zinc-800 border border-emerald-500/30 rounded-xl px-5 py-4 font-bold text-sm text-emerald-100 transition-all text-left flex items-center justify-between group disabled:opacity-50 disabled:cursor-not-allowed shadow-[0_0_15px_rgba(16,185,129,0.1)]">
+                      }} disabled={isEditingAi} className={`w-full rounded-xl px-5 py-4 font-bold text-sm transition-all text-left flex items-center justify-between group disabled:opacity-50 disabled:cursor-not-allowed ${!hasProAccess ? 'bg-zinc-900/60 hover:bg-zinc-800/80 border border-amber-500/30 text-amber-300' : 'bg-zinc-900/80 hover:bg-zinc-800 border border-emerald-500/30 text-emerald-100 shadow-[0_0_15px_rgba(16,185,129,0.1)]'}`}>
                         <span className="flex items-center gap-3">
-                          <span className="text-emerald-400 group-hover:scale-110 transition-transform text-lg">🏦</span> 
+                          <span className={`${!hasProAccess ? 'text-amber-500' : 'text-emerald-400'} group-hover:scale-110 transition-transform text-lg`}>🏦</span> 
                           <span>{isEditingAi ? "Se procesează..." : "Plan Profesionist (Investitori/Bănci)"}</span>
                         </span>
-                        {!isStudioPaid && (
-                          <span className="text-[10px] bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 px-2 py-0.5 rounded-full font-black uppercase tracking-wider whitespace-nowrap flex items-center gap-1">
+                        {!hasProAccess && (
+                          <span className="text-[10px] bg-amber-500/20 border border-amber-500/40 text-amber-300 px-2 py-0.5 rounded-full font-black uppercase tracking-wider whitespace-nowrap flex items-center gap-1">
                             🔒 PRO
                           </span>
                         )}
@@ -1227,7 +1246,7 @@ export default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" | 
                             document.getElementById(`custom-section-${isAlreadyAdded}`)?.scrollIntoView({ behavior: "smooth", block: "center" });
                             return;
                           }
-                          if (!isStudioPaid) {
+                          if (!hasProAccess) {
                             setShowPricingModal(true);
                             return;
                           }
@@ -1238,16 +1257,16 @@ export default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" | 
                           }
                         }} 
                         disabled={isEditingAi} 
-                        className="w-full bg-zinc-900/80 hover:bg-zinc-800 border border-emerald-500/30 rounded-xl px-5 py-4 font-bold text-sm text-emerald-100 transition-all text-left flex items-center justify-between group disabled:opacity-50 disabled:cursor-not-allowed shadow-[0_0_15px_rgba(16,185,129,0.1)]"
+                        className={`w-full rounded-xl px-5 py-4 font-bold text-sm transition-all text-left flex items-center justify-between group disabled:opacity-50 disabled:cursor-not-allowed ${!hasProAccess ? 'bg-zinc-900/60 hover:bg-zinc-800/80 border border-amber-500/30 text-amber-300' : 'bg-zinc-900/80 hover:bg-zinc-800 border border-emerald-500/30 text-emerald-100 shadow-[0_0_15px_rgba(16,185,129,0.1)]'}`}
                       >
                         <span className="flex items-center gap-3">
-                          <span className="text-emerald-400 group-hover:scale-110 transition-transform">🇪🇺</span>
+                          <span className={`${!hasProAccess ? 'text-amber-500' : 'text-emerald-400'} group-hover:scale-110 transition-transform text-lg`}>🇪🇺</span>
                           <span>
                             {isEditingAi ? "Se procesează..." : "Optimizat pentru Fonduri Europene"}
                           </span>
                         </span>
-                        {!isStudioPaid && (
-                          <span className="text-[10px] bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 px-2 py-0.5 rounded-full font-black uppercase tracking-wider whitespace-nowrap flex items-center gap-1">
+                        {!hasProAccess && (
+                          <span className="text-[10px] bg-amber-500/20 border border-amber-500/40 text-amber-300 px-2 py-0.5 rounded-full font-black uppercase tracking-wider whitespace-nowrap flex items-center gap-1">
                             🔒 PRO
                           </span>
                         )}
@@ -1260,29 +1279,17 @@ export default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" | 
                         type="button"
                         onClick={() => {
                           if (!user) { setShowAuthModal(true); return; }
-                          const toneCount = typeof window !== "undefined" ? parseInt(localStorage.getItem("demoToneEditCount") || "0", 10) : 0;
-                          const isToneLocked = !isAdmin && !isPlanPaid && !subscriptionActive && toneCount >= 3;
-                          if (isToneLocked) {
-                            setShowPricingModal(true);
-                            return;
-                          }
                           setShowToneOptions(!showToneOptions);
                         }} 
                         disabled={isEditingAi} 
-                        className="w-full bg-black hover:bg-zinc-800 border border-amber-500/20 rounded-xl px-5 py-4 font-bold text-sm text-amber-100 transition-all text-left flex items-center justify-between group disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="w-full bg-black hover:bg-zinc-800 border border-zinc-800 rounded-xl px-5 py-4 font-bold text-sm text-zinc-300 transition-all text-left flex items-center justify-between group disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         <span className="flex items-center gap-3">
-                          <span className="text-amber-500 group-hover:scale-110 transition-transform">🪄</span>
+                          <span className="text-emerald-500 group-hover:scale-110 transition-transform">🪄</span>
                           <span>Rescrie tonul</span>
                         </span>
                         <span className="flex items-center gap-2">
-                          {(!user || (!isAdmin && !isPlanPaid && !subscriptionActive && (typeof window !== "undefined" ? parseInt(localStorage.getItem("demoToneEditCount") || "0", 10) >= 3 : false))) ? (
-                            <span className="text-[10px] bg-amber-500/20 border border-amber-500/40 text-amber-300 px-2 py-0.5 rounded-full font-black uppercase tracking-wider whitespace-nowrap">
-                              🔒 PRO
-                            </span>
-                          ) : (
-                            <span className="text-zinc-500 text-xs">{showToneOptions ? "▲" : "▼"}</span>
-                          )}
+                          <span className="text-zinc-500 text-xs">{showToneOptions ? "▲" : "▼"}</span>
                         </span>
                       </button>
                       
@@ -1307,7 +1314,7 @@ export default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" | 
                           <button 
                             type="button"
                             onClick={() => {
-                              if (!isPlanPaid && !isAdmin) {
+                              if (!hasStandardAccess && !isAdmin) {
                                 setShowPricingModal(true);
                                 return;
                               }
@@ -1317,29 +1324,29 @@ export default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" | 
                             className="w-full text-xs text-left px-4 py-2.5 rounded-lg hover:bg-zinc-900 text-zinc-400 hover:text-white transition-all font-semibold flex items-center justify-between group"
                           >
                             <span>Comercial & Persuasiv</span>
-                            {(!isPlanPaid && !isAdmin) && (
+                            {(!hasStandardAccess && !isAdmin) && (
                               <span className="text-[9px] bg-amber-500/20 border border-amber-500/40 text-amber-300 px-1.5 py-0.5 rounded font-black uppercase">🔒 PRO</span>
                             )}
                           </button>
                           <button 
                             type="button"
                             onClick={() => {
-                              if (!isPlanPaid && !isAdmin) {
+                              if (!hasStandardAccess && !isAdmin) {
                                 setShowPricingModal(true);
-                                return;
-                              }
-                              handleAiEdit("professional_tone", "prietenos, simplu și ușor de înțeles");
-                            }} 
-                            disabled={isEditingAi}
-                            className="w-full text-xs text-left px-4 py-2.5 rounded-lg hover:bg-zinc-900 text-zinc-400 hover:text-white transition-all font-semibold flex items-center justify-between group"
-                          >
-                            <span>Simplu & Prietenos</span>
-                            {(!isPlanPaid && !isAdmin) && (
-                              <span className="text-[9px] bg-amber-500/20 border border-amber-500/40 text-amber-300 px-1.5 py-0.5 rounded font-black uppercase">🔒 PRO</span>
-                            )}
-                          </button>
-                        </div>
-                      )}
+                                  return;
+                                }
+                                handleAiEdit("professional_tone", "prietenos, simplu și ușor de înțeles");
+                              }} 
+                              disabled={isEditingAi}
+                              className="w-full text-xs text-left px-4 py-2.5 rounded-lg hover:bg-zinc-900 text-zinc-400 hover:text-white transition-all font-semibold flex items-center justify-between group"
+                            >
+                              <span>Simplu & Prietenos</span>
+                              {(!hasStandardAccess && !isAdmin) && (
+                                <span className="text-[9px] bg-amber-500/20 border border-amber-500/40 text-amber-300 px-1.5 py-0.5 rounded font-black uppercase">🔒 PRO</span>
+                              )}
+                            </button>
+                          </div>
+                        )}
 
                       <button 
                         type="button" 
@@ -1522,7 +1529,7 @@ export default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" | 
                   ⚠️
                 </div>
                 <h3 className="text-2xl font-bold text-white mb-4">
-                  {locale === "en" ? "AI Processing Error" : locale === "es" ? "Error de procesamiento IA" : "Eroare la procesarea AI"}
+                  {locale === "en" ? "Processing Error" : locale === "es" ? "Error de procesamiento" : "Eroare la procesare"}
                 </h3>
                 <p className="text-zinc-400 text-base leading-relaxed mb-6 whitespace-pre-line">
                   {aiEditError}
@@ -1532,7 +1539,7 @@ export default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" | 
                     onClick={() => {
                       setAiEditError(null);
                       if (lastEditParams) {
-                        handleAiEdit(lastEditParams.action, lastEditParams.customStyle, lastEditParams.customInput);
+                        handleAiEdit(lastEditParams.action, lastEditParams.customStyle, lastEditParams.customInput, true);
                       }
                     }}
                     className="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-6 py-3 rounded-xl transition-all cursor-pointer shadow-lg shadow-emerald-600/20 hover:scale-105 active:scale-95 animate-pulse"
@@ -2542,30 +2549,25 @@ export default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" | 
 
           {Object.keys(versions).length > 1 && !isEditing && (
             <div className="flex flex-wrap gap-2 mb-6 border-b border-zinc-800 pb-2 w-full max-w-5xl justify-center sm:justify-start">
-              {versions.original && (
-                <button 
-                  onClick={() => { setActiveVersionId('original'); setResultState(versions.original); }} 
-                  className={`px-5 py-2.5 rounded-t-xl transition-all duration-300 font-bold text-sm tracking-wide flex items-center gap-2 ${activeVersionId === 'original' ? 'bg-[#09090b] border-t border-l border-r border-emerald-500/50 text-emerald-400 shadow-[0_-10px_20px_-10px_rgba(16,185,129,0.15)] relative z-10 translate-y-[1px]' : 'bg-zinc-900/50 border-t border-l border-r border-zinc-800 text-zinc-500 hover:text-zinc-300 hover:bg-zinc-900'}`}
-                >
-                  {locale === "en" ? "📝 Original Version" : locale === "es" ? "📝 Versión Original" : "📝 Varianta Originală"}
-                </button>
-              )}
-              {versions.eu_funds && (
-                <button 
-                  onClick={() => { setActiveVersionId('eu_funds'); setResultState(versions.eu_funds); }} 
-                  className={`px-5 py-2.5 rounded-t-xl transition-all duration-300 font-bold text-sm tracking-wide flex items-center gap-2 ${activeVersionId === 'eu_funds' ? 'bg-[#09090b] border-t border-l border-r border-emerald-500/50 text-emerald-400 shadow-[0_-10px_20px_-10px_rgba(16,185,129,0.15)] relative z-10 translate-y-[1px]' : 'bg-zinc-900/50 border-t border-l border-r border-zinc-800 text-zinc-500 hover:text-zinc-300 hover:bg-zinc-900'}`}
-                >
-                  {locale === "en" ? "🇪🇺 EU Funds Optimized" : locale === "es" ? "🇪🇺 Optimizado para Fondos UE" : "🇪🇺 Optimizat Fonduri UE"}
-                </button>
-              )}
-              {versions.investor && (
-                <button 
-                  onClick={() => { setActiveVersionId('investor'); setResultState(versions.investor); }} 
-                  className={`px-5 py-2.5 rounded-t-xl transition-all duration-300 font-bold text-sm tracking-wide flex items-center gap-2 ${activeVersionId === 'investor' ? 'bg-[#09090b] border-t border-l border-r border-emerald-500/50 text-emerald-400 shadow-[0_-10px_20px_-10px_rgba(16,185,129,0.15)] relative z-10 translate-y-[1px]' : 'bg-zinc-900/50 border-t border-l border-r border-zinc-800 text-zinc-500 hover:text-zinc-300 hover:bg-zinc-900'}`}
-                >
-                  {locale === "en" ? "🏦 Investors Plan" : locale === "es" ? "🏦 Plan para Inversores" : "🏦 Plan Investitori"}
-                </button>
-              )}
+              {Object.entries(versions).map(([vKey, vData]) => {
+                const title = 
+                  vKey === "original" ? (locale === "en" ? "📝 Original Version" : locale === "es" ? "📝 Versión Original" : "📝 Varianta Originală") :
+                  vKey === "ton_edit" ? (locale === "en" ? "🪄 Rewrite Tone" : locale === "es" ? "🪄 Tono Reescrito" : "🪄 Rescrie Tonul") :
+                  vKey === "eu_funds" ? (locale === "en" ? "🇪🇺 EU Funds Optimized" : locale === "es" ? "🇪🇺 Fondos UE" : "🇪🇺 Optimizat Fonduri UE") :
+                  vKey === "budget_edit" ? (locale === "en" ? "📉 Budget Optimized" : locale === "es" ? "📉 Presupuesto Optimizado" : "📉 Buget Optimizat") :
+                  vKey === "expert_sections" ? (locale === "en" ? "🏛️ Expert Sections" : locale === "es" ? "🏛️ Secciones Expertas" : "🏛️ Secțiuni Expert") :
+                  vKey === "investor" ? (locale === "en" ? "🏦 Investors Plan" : locale === "es" ? "🏦 Plan para Inversores" : "🏦 Plan Investitori") :
+                  `📑 ${vKey}`;
+                return (
+                  <button 
+                    key={vKey}
+                    onClick={() => { setActiveVersionId(vKey); setResultState(vData); }} 
+                    className={`px-5 py-2.5 rounded-t-xl transition-all duration-300 font-bold text-sm tracking-wide flex items-center gap-2 ${activeVersionId === vKey ? 'bg-[#09090b] border-t border-l border-r border-emerald-500/50 text-emerald-400 shadow-[0_-10px_20px_-10px_rgba(16,185,129,0.15)] relative z-10 translate-y-[1px]' : 'bg-zinc-900/50 border-t border-l border-r border-zinc-800 text-zinc-500 hover:text-zinc-300 hover:bg-zinc-900'}`}
+                  >
+                    {title}
+                  </button>
+                );
+              })}
             </div>
           )}
 
@@ -3349,6 +3351,118 @@ export default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" | 
             >
               {locale === "en" ? "Maybe later" : locale === "es" ? "Quizás más tarde" : "Mai târziu"}
             </button>
+          </div>
+        </div>
+      )}
+      {showExpertDrawer && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-md z-[110] flex items-center justify-center p-4 sm:p-6 animate-in fade-in duration-200">
+          <div className="bg-[#121214] border border-zinc-800 rounded-3xl max-w-4xl w-full max-h-[85vh] flex flex-col shadow-[0_0_50px_rgba(16,185,129,0.15)] overflow-hidden">
+            {/* Header Drawer */}
+            <div className="p-6 border-b border-zinc-800 flex justify-between items-center bg-zinc-950/60">
+              <div>
+                <h3 className="text-xl font-black text-white flex items-center gap-2">
+                  <span className="text-emerald-400 text-2xl">🏛️</span>
+                  {locale === "en" ? "Expert Section Library" : locale === "es" ? "Biblioteca de Secciones Experta" : "Librăria de Secțiuni Experte"}
+                </h3>
+                <p className="text-xs text-zinc-400 mt-1">
+                  {locale === "en" ? "Select a pre-completed professional module to expand your plan instantly (0 API costs & zero lag)." : locale === "es" ? "Selecciona un módulo profesional precompletado para ampliar tu plan al instante." : "Alege un modul profesional pre-completat pentru extinderea instantanee a planului."}
+                </p>
+              </div>
+              <button 
+                onClick={() => setShowExpertDrawer(false)}
+                className="w-9 h-9 bg-zinc-800 hover:bg-zinc-700 text-zinc-400 hover:text-white rounded-full font-bold flex items-center justify-center transition-all cursor-pointer"
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Categories filter */}
+            <div className="px-6 py-3 border-b border-zinc-800/80 bg-black/30 flex gap-2 overflow-x-auto no-scrollbar">
+              <button
+                onClick={() => setSelectedExpertCategory("all")}
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold whitespace-nowrap transition-all ${selectedExpertCategory === "all" ? "bg-emerald-600 text-white" : "bg-zinc-800/60 text-zinc-400 hover:text-white"}`}
+              >
+                {locale === "en" ? "All Modules (30+)" : locale === "es" ? "Todos los Módulos" : "Toate Modulele (30+)"}
+              </button>
+              {Array.from(new Set(EXPERT_TEMPLATES.map(t => t.category[locale] || t.category.ro))).map((cat, idx) => (
+                <button
+                  key={idx}
+                  onClick={() => setSelectedExpertCategory(cat)}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-bold whitespace-nowrap transition-all ${selectedExpertCategory === cat ? "bg-emerald-600 text-white" : "bg-zinc-800/60 text-zinc-400 hover:text-white"}`}
+                >
+                  {cat}
+                </button>
+              ))}
+            </div>
+
+            {/* Modules Grid */}
+            <div className="p-6 overflow-y-auto flex-1 grid grid-cols-1 md:grid-cols-2 gap-4">
+              {EXPERT_TEMPLATES.filter(tpl => selectedExpertCategory === "all" || (tpl.category[locale] || tpl.category.ro) === selectedExpertCategory).map((tpl) => (
+                <div 
+                  key={tpl.id}
+                  className="bg-zinc-900/60 border border-zinc-800 hover:border-emerald-500/50 rounded-2xl p-5 flex flex-col justify-between transition-all group hover:-translate-y-1 hover:shadow-lg"
+                >
+                  <div>
+                    <span className="text-[10px] uppercase font-black tracking-widest text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-md inline-block mb-3 border border-emerald-500/20">
+                      {tpl.category[locale] || tpl.category.ro}
+                    </span>
+                    <h4 className="text-base font-bold text-white mb-2 leading-snug">
+                      {tpl.title[locale] || tpl.title.ro}
+                    </h4>
+                    <p className="text-xs text-zinc-400 leading-relaxed mb-4">
+                      {tpl.desc[locale] || tpl.desc.ro}
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => {
+                      if (!user) {
+                        setShowAuthModal(true);
+                        return;
+                      }
+                      if (!hasProAccess && !isAdmin) {
+                        setShowPricingModal(true);
+                        return;
+                      }
+                      const businessName = result?.nume || (locale === "en" ? "Your Business" : locale === "es" ? "Tu Empresa" : "Compania Ta");
+                      const rawContent = tpl.content[locale] || tpl.content.ro;
+                      const formattedContent = rawContent.replace(/{NUME_AFACERE}/g, businessName);
+
+                      const newSection = {
+                        titlu: tpl.title[locale] || tpl.title.ro,
+                        continut: formattedContent
+                      };
+
+                      const currentSecs = result?.sectiuni_aditionale || [];
+                      const newIndex = currentSecs.length;
+                      const updated = {
+                        ...result,
+                        sectiuni_aditionale: [...currentSecs, newSection]
+                      };
+
+                      setResult(updated);
+                      setShowExpertDrawer(false);
+
+                      if (typeof window !== "undefined") {
+                        localStorage.setItem("current_generated_plan", JSON.stringify(updated));
+                      }
+
+                      setTimeout(() => {
+                        const el = document.getElementById(`custom-section-${newIndex}`) || document.getElementById("section-custom");
+                        if (el) {
+                          el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        }
+                      }, 400);
+                    }}
+                    className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2.5 rounded-xl text-xs transition-all flex items-center justify-center gap-2 cursor-pointer shadow-[0_0_15px_rgba(16,185,129,0.2)]"
+                  >
+                    <span>➕ {locale === "en" ? "Add to Plan" : locale === "es" ? "Añadir al Plan" : "Adaugă în Plan"}</span>
+                    {(!hasProAccess && !isAdmin) && (
+                      <span className="text-[10px] bg-amber-500/30 text-amber-300 px-1.5 py-0.5 rounded font-black">🔒 PRO</span>
+                    )}
+                  </button>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       )}

@@ -820,7 +820,16 @@ export default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" | 
       if (isLoginMode) {
         await signInWithEmailAndPassword(auth, email, password);
       } else {
-        await createUserWithEmailAndPassword(auth, email, password);
+        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+        try {
+          await fetch('/api/auth/send-verification', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email: userCredential.user.email, locale }),
+          });
+        } catch (err) {
+          console.error("Eroare trimitere email activare:", err);
+        }
       }
       // If successful, onAuthStateChanged will handle the redirect/state update
     } catch (error: any) {

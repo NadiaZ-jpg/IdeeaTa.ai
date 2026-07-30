@@ -240,3 +240,87 @@ Orice agent care primește o instrucțiune ambiguă trebuie să CEARĂ CONFIRMAR
 | Fișier | Motivul Freeze |
 |---|---|
 | `components/ActionBar.tsx` | Bara de acțiuni (Reset, Edit, Currency, Download) comună pentru StudioDesktop și DemoDesktop |
+
+### Checkpoint-30-Iulie-2026-Refactorizare-Sesiunea5-MockupPreview
+- Creat `components/MockupPreview.tsx` cu 227 linii.
+- Extrase tab-urile statice (Rezumat, SWOT, Buget, Strategie), graficele animate, secțiunea typing live și Before/After din ambele pagini (StudioDesktop și DemoDesktop).
+- **Câștig net: -249 linii** din fișierele monolitice.
+- TypeScript check: ✅ zero erori (`npx tsc --noEmit`).
+- Git commit: `refactor: extras MockupPreview.tsx cu exemplul static animat (Sesiunea 5)`.
+- **Status refactorizare:** ✅ Sesiunea 5 completă.
+
+### Fișiere ÎNGHEȚATE suplimentar (Sesiunea 5 Refactorizare):
+| Fișier | Motivul Freeze |
+|---|---|
+| `components/MockupPreview.tsx` | Componentă izolată pentru vizualizarea inițială a planului Demo static |
+
+### Checkpoint-30-Iulie-2026-Refactorizare-Sesiunea6-VersionHistory
+- Creat `components/VersionHistoryDropdown.tsx` with 130 linii.
+- Extrase logicile de navigare între versiuni (dropdown pentru Studio, tab-uri pentru Demo).
+- **Câștig net: -90 linii** din fișierele monolitice.
+- TypeScript check: ✅ zero erori (`npx tsc --noEmit`).
+- Git commit: `refactor: extras VersionHistoryDropdown.tsx (Sesiunea 6)`.
+- **Status refactorizare:** ✅ Sesiunea 6 completă.
+
+### Fișiere ÎNGHEȚATE suplimentar (Sesiunea 6 Refactorizare):
+| Fișier | Motivul Freeze |
+|---|---|
+| `components/VersionHistoryDropdown.tsx` | Componentă izolată pentru meniul de versiuni (Original, EU Funds, Investitor) |
+
+### Checkpoint-30-Iulie-2026-Refactorizare-Sesiunea7-ExportActions
+- Creat hook-ul pur `hooks/useExportActions.ts`.
+- Extrasă logica masivă de descărcare (PDF, PPTX, Word) din `StudioDesktop.tsx` și `DemoDesktop.tsx`.
+- **Câștig net: -140 linii per fișier** din monoliți.
+- TypeScript check: ✅ zero erori (`npx tsc --noEmit`).
+- Git commit: `refactor: extras logica de export în hooks/useExportActions.ts (Sesiunea 7)`.
+- **Status refactorizare:** ✅ Sesiunea 7 completă.
+
+### Fișiere ÎNGHEȚATE suplimentar (Sesiunea 7 Refactorizare):
+| Fișier | Motivul Freeze |
+|---|---|
+| `hooks/useExportActions.ts` | Hook pur pentru gestionarea descărcărilor documentelor generate |
+
+### Checkpoint-30-Iulie-2026-Refactorizare-Modulara-Completa
+- Eliminat complet codul mort (`jspdf`, `html-to-image`, funcțiile de export duplicate) din cele 2 fișiere Desktop.
+- **Rulare `npm run build` completă cu 0 erori TypeScript și 100% succes pe paginile statice.**
+- **Sesiunea 8 (Testare și Consolidare Finală) — COMPLETĂ.**
+- Refactorizarea arhitecturală s-a încheiat cu succes! Structura a fost decuplată, monoliții Desktop sunt mai ușor de mentenat, iar funcționalitatea UI/UX este neatinsă.
+
+### Checkpoint-30-Iulie-2026-Securitate-Gitignore
+- Rezolvat incident de securitate semnalat de GitHub (Scurgere de chei Firebase/Google și Stripe în `.env`).
+- Adăugat `.env` și `.env.local` în `.gitignore` și făcut commit `chore: eliminare .env din repozitoriu pentru securitate`.
+- Cheia Firebase "Browser key" a fost rotită manual din Google Cloud Console și pusă sub restricții HTTP Referrer (`*ideeata.ai/*` și `http://localhost:*`).
+
+### Checkpoint-30-Iulie-2026-UX-Instrumente-Si-Localizare
+- Corectat bug-ul de UX în `DemoLeftSidebar` și `StudioLeftSidebar`: săgeata de dropdown (▲/▼) de la asistentul "Rescrie Tonul" a fost ascunsă pentru utilizatorii neautentificați, prevenind inducerea în eroare (deoarece acțiunea deschide modalul de login, nu un dropdown).
+- Eliminat "hardcoding-ul" în limba română din `DemoLeftSidebar` pentru denumirile instrumentelor AI (ex. *Rescrie Tonul, Formal & Academic, Optimizează Bugetul*).
+- Legat toate etichetele instrumentelor la obiectul de traduceri `uiStrings` pentru o experiență perfect nativă în RO, EN și ES.
+- Git commit efectuat cu succes, iar build-ul Next.js a trecut în 8.5 secunde (0 erori TypeScript).
+
+### Fișiere ÎNGHEȚATE suplimentar (UX & Localizare Sidebars):
+| Fișier | Motivul Freeze |
+|---|---|
+| `components/sidebars/DemoLeftSidebar.tsx` | Localizare completă, texte dinamice prin `uiStrings`, eliminare săgeată dropdown pentru vizitatori. |
+| `components/sidebars/StudioLeftSidebar.tsx` | Eliminare săgeată dropdown pentru conturi nelogate. |
+
+### Checkpoint-30-Iulie-2026-UX-ExpertDrawer-Responsiv
+- Implementată soluție UX hibridă pentru `ExpertSectionsDrawer.tsx`.
+- Pe telefoane (mobil, sub `md`), categoriile rămân cu swipe orizontal (`overflow-x-auto no-scrollbar`) pentru a salva spațiu vertical.
+- Pe desktop/tablete mari (peste `md`), categoriile folosesc `flex-wrap` automat, fiind expuse pe 1-2 rânduri, asigurând vizibilitate 100% și eliminând necesitatea de a folosi scroll orizontal ciudat cu mouse-ul.
+- Build validat 100% cu succes în Next.js.
+
+### Fișiere ÎNGHEȚATE suplimentar (Expert Drawer):
+| Fișier | Motivul Freeze |
+|---|---|
+| `components/modals/ExpertSectionsDrawer.tsx` | Optimizare responsivă categorii (flex-wrap desktop, carusel swipe mobil). |
+
+### Checkpoint-30-Iulie-2026-Bugfix-JSON-Keys-Buget
+- Corectat un bug critic în `app/api/edit/route.ts` unde acțiunile de "Optimizare Buget" și "Plan Profesionist" (prin `buildMetaPrompt`) instruiau modelul LLM să traducă cheile JSON (`item` și `explicatie`) în loc de conținutul lor.
+- S-a aplicat fix-ul pentru toate cele 3 limbi (RO, EN, ES) stipulând: "ESTE STRICT INTERZIS să modifici numele cheilor JSON (ele trebuie să rămână 'item' și 'explicatie')".
+- Această remediere asigură compatibilitatea cu `EditForm.tsx` (care se așteaptă la cheile exacte `item` și `explicatie` pentru randarea input-urilor).
+- Build validat 100% cu succes în Next.js.
+
+### Fișiere ÎNGHEȚATE suplimentar (API Edit):
+| Fișier | Motivul Freeze |
+|---|---|
+| `app/api/edit/route.ts` | Instrucțiuni stricte (DO NOT RENAME KEYS) adăugate pentru `optimize_budget` și `buildMetaPrompt` (RO/EN/ES). |

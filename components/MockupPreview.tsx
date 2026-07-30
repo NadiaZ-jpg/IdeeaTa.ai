@@ -36,7 +36,7 @@ export function MockupPreview({
               <div className="w-2.5 h-2.5 rounded-full bg-zinc-700"></div>
               <div className="w-2.5 h-2.5 rounded-full bg-zinc-700"></div>
             </div>
-            {['Rezumat', 'SWOT', 'Buget', 'Strategie'].map((t) => (
+            {[ui.mockupSummary, ui.mockupSwot, ui.mockupBudget, ui.mockupStrategy].map((t) => (
               <div
                 key={t}
                 onClick={() => setInnerMockupTab(t)}
@@ -54,62 +54,58 @@ export function MockupPreview({
           {/* Content */}
           <div className="p-8 md:p-12 animate-in fade-in duration-300">
             <div className="mb-8">
-              <div className="text-emerald-500 font-bold text-sm tracking-wider uppercase mb-2">Exemplu generat</div>
-              <h4 className="text-2xl font-black text-white">Cafenea de Specialitate &quot;Urban Beans&quot;</h4>
+              <div className="text-emerald-500 font-bold text-sm tracking-wider uppercase mb-2">{ui.generatedExample}</div>
+              <h4 className="text-2xl font-black text-white">{ui.coffeeShopName}</h4>
             </div>
 
-            {innerMockupTab === 'Rezumat' && (
+            {innerMockupTab === ui.mockupSummary && (
               <div className="text-zinc-400 leading-relaxed text-lg animate-in slide-in-from-bottom-2">
                 <p className="mb-4">
-                  <strong>Urban Beans</strong> este o cafenea de specialitate modernă, situată în inima centrului istoric.
-                  Ne propunem să oferim nu doar cafea de origine prăjită local, ci și o experiență senzorială completă,
-                  într-un mediu cu un design industrial minimalist.
-                </p>
+                  <strong>Urban Beans</strong> {ui.mockupSummaryP1}</p>
                 <p>
-                  Misiunea noastră este să educăm consumatorii despre procesul de la bob la ceașcă,
-                  sprijinind fermierii independenți prin comerț echitabil (Fairtrade).
+                  {ui.mockupSummaryP2}
                 </p>
               </div>
             )}
 
-            {innerMockupTab === 'SWOT' && (
+            {innerMockupTab === ui.mockupSwot && (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 animate-in slide-in-from-bottom-2">
                 <div className="cursor-pointer hover:scale-[1.02] transition-transform p-6 rounded-2xl border border-emerald-500/40 bg-emerald-500/10 hover:border-emerald-400/60">
-                  <h5 className="font-bold text-emerald-400 mb-3 text-lg">Puncte Tari</h5>
+                  <h5 className="font-bold text-emerald-400 mb-3 text-lg">{ui.mockupSwotS_Title}</h5>
                   <ul className="text-zinc-300 space-y-2 text-sm">
-                    <li>• Locație premium cu trafic pietonal intens</li>
-                    <li>• Baristi certificați SCA (Specialty Coffee Association)</li>
-                    <li>• Exclusivitate pentru un prăjitor local renumit</li>
+                    <li>• {ui.mockupSwotS_1}</li>
+                    <li>• {ui.mockupSwotS_2}</li>
+                    <li>• {ui.mockupSwotS_3}</li>
                   </ul>
                 </div>
                 <div className="cursor-pointer hover:scale-[1.02] transition-transform p-6 rounded-2xl border border-red-500/30 bg-red-500/10 hover:border-red-400/60">
-                  <h5 className="font-bold text-red-400 mb-3 text-lg">Puncte Slabe</h5>
+                  <h5 className="font-bold text-red-400 mb-3 text-lg">{ui.mockupSwotW_Title}</h5>
                   <ul className="text-zinc-300 space-y-2 text-sm">
-                    <li>• Costuri mari de chirie în zona centrală</li>
-                    <li>• Lipsa unei istorii/notorietăți pe piață (brand nou)</li>
-                    <li>• Prețuri mai mari față de lanțurile comerciale</li>
+                    <li>• {ui.mockupSwotW_1}</li>
+                    <li>• {ui.mockupSwotW_2}</li>
+                    <li>• {ui.mockupSwotW_3}</li>
                   </ul>
                 </div>
                 <div className="cursor-pointer hover:scale-[1.02] transition-transform p-6 rounded-2xl border border-blue-500/30 bg-blue-500/10 hover:border-blue-400/60">
-                  <h5 className="font-bold text-blue-400 mb-3 text-lg">Oportunități</h5>
+                  <h5 className="font-bold text-blue-400 mb-3 text-lg">{ui.mockupSwotO_Title}</h5>
                   <ul className="text-zinc-300 space-y-2 text-sm">
-                    <li>• Creșterea cererii pentru cafea de specialitate</li>
-                    <li>• Parteneriate B2B cu birourile din zonă</li>
-                    <li>• Lansarea unui abonament lunar pentru boabe de cafea</li>
+                    <li>• {ui.mockupSwotO_1}</li>
+                    <li>• {ui.mockupSwotO_2}</li>
+                    <li>• {ui.mockupSwotO_3}</li>
                   </ul>
                 </div>
                 <div className="cursor-pointer hover:scale-[1.02] transition-transform p-6 rounded-2xl border border-orange-500/30 bg-orange-500/10 hover:border-orange-400/60">
-                  <h5 className="font-bold text-orange-400 mb-3 text-lg">Amenințări</h5>
+                  <h5 className="font-bold text-orange-400 mb-3 text-lg">{ui.mockupSwotT_Title}</h5>
                   <ul className="text-zinc-300 space-y-2 text-sm">
-                    <li>• Fluctuația prețului cafelei verzi pe bursa globală</li>
-                    <li>• Deschiderea unei noi francize majore în apropiere</li>
-                    <li>• Reticența clienților tradiționaliști la cafeaua acidă/fructată</li>
+                    <li>• {ui.mockupSwotT_1}</li>
+                    <li>• {ui.mockupSwotT_2}</li>
+                    <li>• {ui.mockupSwotT_3}</li>
                   </ul>
                 </div>
               </div>
             )}
 
-            {innerMockupTab === 'Buget' && (
+            {innerMockupTab === ui.mockupBudget && (
               <div className="animate-in slide-in-from-bottom-2 bg-zinc-900/50 rounded-2xl p-6 border border-zinc-800">
                 <h5 className="font-bold text-emerald-400 mb-6 text-lg">Buget de Investiții Inițiale</h5>
                 <div className="space-y-4">
@@ -133,19 +129,19 @@ export function MockupPreview({
               </div>
             )}
 
-            {innerMockupTab === 'Strategie' && (
+            {innerMockupTab === ui.mockupStrategy && (
               <div className="animate-in slide-in-from-bottom-2 text-zinc-400 space-y-6">
                 <div className="flex gap-4 items-start">
                   <div className="w-8 h-8 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center font-bold shrink-0">1</div>
                   <div>
-                    <h6 className="text-white font-bold mb-1">Pre-lansare &amp; Teasing</h6>
+                    <h6 className="text-white font-bold mb-1">{ui.mockupStrategy1_Title}</h6>
                     <p className="text-sm">Campanie Social Media axată pe procesul de amenajare, prezentarea echipei de baristi și dezvăluirea prăjitorului partener.</p>
                   </div>
                 </div>
                 <div className="flex gap-4 items-start">
                   <div className="w-8 h-8 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center font-bold shrink-0">2</div>
                   <div>
-                    <h6 className="text-white font-bold mb-1">Soft Opening</h6>
+                    <h6 className="text-white font-bold mb-1">{ui.mockupStrategy2_Title}</h6>
                     <p className="text-sm">O săptămână dedicată exclusiv comunității locale și influencerilor din nișa culinară, cu un meniu limitat la 50% reducere.</p>
                   </div>
                 </div>
@@ -197,10 +193,10 @@ export function MockupPreview({
                 <div className="flex-1 bg-zinc-900/50 rounded-2xl border border-zinc-800 p-6">
                   <h5 className="text-orange-400 font-bold mb-4 text-sm uppercase tracking-wider">Distribuție Costuri</h5>
                   {[
-                    { label: 'Salarii', w: 85, color: 'bg-orange-500' },
+                    { label: ui.mockupChartSalaries, w: 85, color: 'bg-orange-500' },
                     { label: 'Chirie & Utilități', w: 60, color: 'bg-orange-400/80' },
                     { label: 'Stoc Marfă', w: 45, color: 'bg-orange-300/60' },
-                    { label: 'Marketing', w: 25, color: 'bg-orange-200/40' },
+                    { label: ui.mockupChartMarketing, w: 25, color: 'bg-orange-200/40' },
                   ].map((item, i) => (
                     <div key={i} className="flex items-center gap-4 mb-3 last:mb-0 group cursor-pointer">
                       <div className="w-28 text-xs font-semibold text-zinc-400 group-hover:text-zinc-200 transition-colors truncate">{item.label}</div>
@@ -232,26 +228,26 @@ export function MockupPreview({
       {mockupTab === 2 && (
         <div className="relative border border-zinc-800/60 rounded-[2.5rem] bg-[#09090b] overflow-hidden shadow-2xl ring-1 ring-white/5 p-8 md:p-12 min-h-[420px] font-mono animate-in fade-in duration-300">
           <div className="text-sm leading-loose">
-            <div className="text-emerald-400 mb-2"># Plan de Afaceri — Cafenea de Specialitate &quot;Urban Beans&quot;</div>
-            <div className="text-zinc-400">{'>'} Generând proiecții financiare (în LEI)...</div>
+            <div className="text-emerald-400 mb-2">{ui.mockupLiveTitle}</div>
+            <div className="text-zinc-400">{ui.mockupLiveGen}</div>
             <div className="text-zinc-300 mt-4 pl-4 border-l-2 border-emerald-500/50 animate-in slide-in-from-left-2 duration-500">
-              <div className="text-emerald-400 mb-1">## Venituri Estimate</div>
-              <div className="text-zinc-400">— Trimestrul 1: 150.000 lei (creștere organică)</div>
-              <div className="text-zinc-400">— Trimestrul 2: 275.000 lei (sezon cald)</div>
-              <div className="text-zinc-400">— Trimestrul 3: 400.000 lei (B2B stabilizat)<span className="animate-pulse">█</span></div>
+              <div className="text-emerald-400 mb-1">{ui.mockupLiveRev}</div>
+              <div className="text-zinc-400">{ui.mockupLiveRev1}</div>
+              <div className="text-zinc-400">{ui.mockupLiveRev2}</div>
+              <div className="text-zinc-400">{ui.mockupLiveRev3}<span className="animate-pulse">_</span></div>
             </div>
             <div className="mt-4 pl-4 border-l-2 border-red-500/40 animate-in slide-in-from-left-2 duration-700 delay-150">
-              <div className="text-red-400 mb-1">## Costuri Operaționale</div>
-              <div className="text-zinc-500">— Salarii: 35.000 lei / lună</div>
-              <div className="text-zinc-500">— Chirie: 15.000 lei / lună</div>
+              <div className="text-red-400 mb-1">{ui.mockupLiveCosts}</div>
+              <div className="text-zinc-500">{ui.mockupLiveCosts1}</div>
+              <div className="text-zinc-500">{ui.mockupLiveCosts2}</div>
             </div>
             <div className="mt-4 pl-4 border-l-2 border-blue-500/40 animate-in slide-in-from-left-2 duration-1000 delay-300">
-              <div className="text-blue-400 mb-1">## Stadiu Generare</div>
+              <div className="text-blue-400 mb-1">{ui.mockupLiveStatus}</div>
               <div className="flex flex-col gap-3 mt-4">
                 {[
-                  { label: 'Analiză Competiție', w: 100, color: 'bg-emerald-500', text: 'Complet', textColor: 'text-emerald-400' },
-                  { label: 'Strategie Prețuri', w: 70, color: 'bg-yellow-500', text: '70%', textColor: 'text-yellow-400' },
-                  { label: 'Calcul ROI', w: 40, color: 'bg-blue-500', text: '40%', textColor: 'text-blue-400', pulse: true },
+                  { label: ui.mockupLiveStat1, w: 100, color: 'bg-emerald-500', text: ui.mockupLiveComplete, textColor: 'text-emerald-400' },
+                  { label: ui.mockupLiveStat2, w: 70, color: 'bg-yellow-500', text: '70%', textColor: 'text-yellow-400' },
+                  { label: ui.mockupLiveStat3, w: 40, color: 'bg-blue-500', text: '40%', textColor: 'text-blue-400', pulse: true },
                 ].map((item, i) => (
                   <div key={i} className="flex items-center gap-4 text-xs font-mono">
                     <div className="w-36 text-zinc-400">{item.label}</div>

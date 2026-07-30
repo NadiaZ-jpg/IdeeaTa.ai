@@ -1643,17 +1643,17 @@ export default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" | 
         {/* Previzualizare Plan / Mockup - 5 Taburi */}
         <div className="mt-24 w-full max-w-5xl relative z-10">
           <h3 className="text-2xl md:text-3xl font-black mb-4 tracking-tighter bg-gradient-to-r from-zinc-400 via-emerald-400 to-zinc-400 bg-clip-text text-transparent animate-shimmer text-center">
-            Cum arată un plan generat?
+            {ui.howItLooks}
           </h3>
-          <p className="text-xl lg:text-2xl font-medium text-zinc-400 text-center mb-10">Perspectivă</p>
+          <p className="text-xl lg:text-2xl font-medium text-zinc-400 text-center mb-10">{ui.perspective}</p>
 
           {/* Tab buttons */}
           <div className="flex flex-wrap justify-center gap-2 mb-8">
             {[
-              { id: 0, label: '🎬 Preview cu tabs' },
-              { id: 1, label: '📊 Grafice animate' },
-              { id: 2, label: '🖥️ Typing live' },
-              { id: 4, label: '✨ Înainte & După' },
+              { id: 0, label: `👀 ${ui.previewTabs}` },
+              { id: 1, label: `📈 ${ui.animatedCharts}` },
+              { id: 2, label: `💻 ${ui.typingLive}` },
+              { id: 4, label: `✨ ${ui.beforeAfter}` },
             ].map((tab) => (
               <button
                 key={tab.id}

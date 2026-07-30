@@ -1,0 +1,13 @@
+with open(r"d:\APLICATII\IdeeaTa-latest_17072026\IdeeaTa-latest\.agents\AGENTS.md", "a", encoding="utf-8") as f:
+    f.write('\n### Checkpoint-30-Iulie-2026-Localizare-Mockup-Complet\n')
+    f.write('- Remediere eroare de mixare a limbilor (RO peste EN/ES) pe paginile Demo si Studio.\n')
+    f.write('- Extins `lib/uiStrings.ts` cu peste 40 de chei noi de traducere pentru continutul complet al exemplului "Cafenea de Specialitate Urban Beans".\n')
+    f.write('- Refactorizat `components/MockupPreview.tsx` pentru a folosi exclusiv textele dinamice din `uiStrings.ts`.\n')
+    f.write('- Curatat `components/DemoDesktop.tsx` de texte hardcodate in romana ("Cum arata un plan generat?").\n')
+    f.write('- Build validat 100% cu succes in Next.js, fara erori TypeScript.\n\n')
+    f.write('### Fisiere ÎNGHEȚATE suplimentar (Localizare Mockup):\n')
+    f.write('| Fisier | Motivul Freeze |\n')
+    f.write('|---|---|\n')
+    f.write('| `components/MockupPreview.tsx` | Complet localizat si legat la `uiStrings.ts`. Text hardcodat eliminat complet. |\n')
+    f.write('| `components/DemoDesktop.tsx` | Referinte la `uiStrings.ts` pentru titluri deasupra mockup-ului. |\n')
+    f.write('| `lib/uiStrings.ts` | Extins cu forma completa a mock-ului pentru RO, EN, ES. |\n')

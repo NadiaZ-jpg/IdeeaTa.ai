@@ -520,12 +520,27 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
   useStudioFirebaseSync({ user, setResultState, setVersionsState, setActiveVersionId });
 
   const handleResendVerification = async () => {
-    if (user) {
+    if (user && user.email) {
       try {
-        await sendEmailVerification(user);
+        const res = await fetch('/api/auth/send-verification', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: user.email, locale }),
+        });
+        
+        if (!res.ok) {
+          throw new Error(`API failed with status ${res.status}`);
+        }
         setVerificationSent(true);
       } catch (error) {
-        console.error("Eroare trimitere email:", error);
+        console.warn("Eroare trimitere email personalizat, folosim fallback:", error);
+        try {
+          auth.languageCode = locale;
+          await sendEmailVerification(user);
+          setVerificationSent(true);
+        } catch (fallbackError) {
+          console.error("Eroare fallback trimitere email:", fallbackError);
+        }
       }
     }
   };

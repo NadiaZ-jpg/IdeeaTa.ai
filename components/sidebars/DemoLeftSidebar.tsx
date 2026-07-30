@@ -25,8 +25,8 @@ export function DemoLeftSidebar({
       <div className="w-full lg:w-2/5 xl:w-1/3 flex flex-col gap-6 sticky top-8 print:hidden">
       
                   <div className="bg-zinc-900 border border-zinc-800 rounded-[2rem] p-8 shadow-xl sticky top-8">
-                   <h3 className="text-2xl font-black text-white mb-4 flex items-center gap-3"><span className="text-emerald-500">✨</span> Instrumente</h3>
-                   <p className="text-zinc-400 text-sm mb-6 leading-relaxed">Aici poți folosi asistentul inteligent pentru a adăuga mai multe informații și detalii planului tău.</p>
+                   <h3 className="text-2xl font-black text-white mb-4 flex items-center gap-3"><span className="text-emerald-500">✨</span> {ui.toolsTitle}</h3>
+                   <p className="text-zinc-400 text-sm mb-6 leading-relaxed">{ui.toolsDesc}</p>
                    
                       <div className="flex flex-col gap-3">
                       {/* BLOC PREMIUM (VERDE) */}
@@ -111,10 +111,10 @@ export function DemoLeftSidebar({
                       >
                         <span className="flex items-center gap-3">
                           <span className="text-emerald-500 group-hover:scale-110 transition-transform">🪄</span>
-                          <span>Rescrie tonul</span>
+                          <span>{ui.rewriteTone}</span>
                         </span>
                         <span className="flex items-center gap-2">
-                          <span className="text-zinc-500 text-xs">{showToneOptions ? "▲" : "▼"}</span>
+                          {user && <span className="text-zinc-500 text-xs">{showToneOptions ? "▲" : "▼"}</span>}
                         </span>
                       </button>
                       
@@ -126,7 +126,7 @@ export function DemoLeftSidebar({
                             disabled={isEditingAi}
                             className="w-full text-xs text-left px-4 py-2.5 rounded-lg hover:bg-zinc-900 text-zinc-400 hover:text-white transition-all font-semibold"
                           >
-                            Formal & Academic
+                            {ui.toneProfessional}
                           </button>
                           <button 
                             type="button"
@@ -134,7 +134,7 @@ export function DemoLeftSidebar({
                             disabled={isEditingAi}
                             className="w-full text-xs text-left px-4 py-2.5 rounded-lg hover:bg-zinc-900 text-zinc-400 hover:text-white transition-all font-semibold"
                           >
-                            Creativ & Entuziast
+                            {ui.toneCreative}
                           </button>
                           <button 
                             type="button"
@@ -148,7 +148,7 @@ export function DemoLeftSidebar({
                             disabled={isEditingAi}
                             className="w-full text-xs text-left px-4 py-2.5 rounded-lg hover:bg-zinc-900 text-zinc-400 hover:text-white transition-all font-semibold flex items-center justify-between group"
                           >
-                            <span>Comercial & Persuasiv</span>
+                            <span>{ui.tonePersuasive}</span>
                             {(!hasStandardAccess && !isAdmin) && (
                               <span className="text-[9px] bg-amber-500/20 border border-amber-500/40 text-amber-300 px-1.5 py-0.5 rounded font-black uppercase">🔒 PRO</span>
                             )}
@@ -165,7 +165,7 @@ export function DemoLeftSidebar({
                               disabled={isEditingAi}
                               className="w-full text-xs text-left px-4 py-2.5 rounded-lg hover:bg-zinc-900 text-zinc-400 hover:text-white transition-all font-semibold flex items-center justify-between group"
                             >
-                              <span>Simplu & Prietenos</span>
+                              <span>{ui.toneFriendly}</span>
                               {(!hasStandardAccess && !isAdmin) && (
                                 <span className="text-[9px] bg-amber-500/20 border border-amber-500/40 text-amber-300 px-1.5 py-0.5 rounded font-black uppercase">🔒 PRO</span>
                               )}
@@ -185,9 +185,9 @@ export function DemoLeftSidebar({
                         <span className="flex items-center gap-3">
                           <span className="text-amber-500 group-hover:scale-110 transition-transform">📉</span>
                           <span>
-                            {isEditingAi ? "Se procesează..." : (
+                            {isEditingAi ? (locale === "en" ? "Processing..." : locale === "es" ? "Procesando..." : "Se procesează...") : (
                               <>
-                                Optimizează Bugetul <span className="whitespace-nowrap">(Personalizat)</span>
+                                {ui.optimizeBudgetCustom}
                               </>
                             )}
                           </span>
@@ -208,7 +208,7 @@ export function DemoLeftSidebar({
                       >
                         <span className="flex items-center gap-3">
                           <span className="text-emerald-400 group-hover:scale-110 transition-transform text-lg">🏛️</span> 
-                          <span>Librăria de Secțiuni Experte</span>
+                          <span>{ui.expertSectionLibrary}</span>
                         </span>
                         <span className="text-[10px] bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 px-2 py-0.5 rounded-full font-black uppercase tracking-wider whitespace-nowrap">
                           30+ MODULE

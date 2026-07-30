@@ -49,7 +49,7 @@ export function StudioLeftSidebar({
                             <span>{ui.rewriteTone}</span>
                           </span>
                           <span className="flex items-center gap-2">
-                            <span className="text-xs text-zinc-500">{showToneOptions ? "▲" : "▼"}</span>
+                            {user && <span className="text-xs text-zinc-500">{showToneOptions ? "▲" : "▼"}</span>}
                           </span>
                         </button>
                         

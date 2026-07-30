@@ -350,3 +350,15 @@ Orice agent care primește o instrucțiune ambiguă trebuie să CEARĂ CONFIRMAR
 | `components/MockupPreview.tsx` | Complet localizat si legat la `uiStrings.ts`. Text hardcodat eliminat complet. |
 | `components/DemoDesktop.tsx` | Referinte la `uiStrings.ts` pentru titluri deasupra mockup-ului. |
 | `lib/uiStrings.ts` | Extins cu forma completa a mock-ului pentru RO, EN, ES. |
+
+### Checkpoint-30-Iulie-2026-Remediere-UX-Localizare-Editare
+- Aplicata Regula de Aur a Localizarii in \components/DemoDesktop.tsx\ si \components/StudioDesktop.tsx\ (modul isEditing).
+- Eliminate textele hardcodate in romana ('Studio Editare', 'Anuleaza', 'Confirma').
+- Condiționat afisarea selectorului LEI/EUR in ActionBar doar cand \locale === "ro"
+- Build validat 100% cu succes in Next.js (44/44 pagini statice generate).
+
+### Checkpoint-30-Iulie-2026-Remediere-Denumiri-Documente-Descarcate
+- Adaugat fileBrochure in uiStrings.ts pentru a traduce numele fisierului PPTX.
+- Inlocuit string-urile hardcodate din hooks/useExportActions.ts si lib/generatePptx.ts cu variabilele din dictionar (t.filePresentation, t.fileSummaryFree, etc.).
+- Fisierele salvate pe calculatorul utilizatorului isi preiau acum dinamic numele in limba corespunzatoare (RO, EN, ES).
+- Build validat 100% cu succes in Next.js (44/44 pagini statice generate).

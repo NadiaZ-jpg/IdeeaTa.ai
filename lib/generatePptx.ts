@@ -5,7 +5,8 @@ export const generatePptx = async (
   safeName: string,
   currency: string,
   fxRate: number,
-  locale: "ro" | "en" | "es" = "ro"
+  locale: "ro" | "en" | "es" = "ro",
+  fileBrochure: string = "Brosura"
 ) => {
   const pres = new pptxgen();
   pres.layout = 'LAYOUT_16x9';
@@ -259,5 +260,5 @@ export const generatePptx = async (
     });
   });
 
-  await pres.writeFile({ fileName: `IdeeaTa_Brosura_${safeName}.pptx` });
+  await pres.writeFile({ fileName: `IdeeaTa_${fileBrochure}_${safeName}.pptx` });
 };

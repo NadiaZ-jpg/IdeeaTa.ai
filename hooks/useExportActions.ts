@@ -100,7 +100,7 @@ export function useExportActions({
       const safeName = result?.nume?.replace(/[^a-zA-Z0-9]/g, '_') || 'Business';
 
       if (mode === 'pptx') {
-        await generatePptx(result, safeName, currency || (locale === "es" || locale === "en" ? "EUR" : "RON"), 0.201, locale);
+        await generatePptx(result, safeName, currency || (locale === "es" || locale === "en" ? "EUR" : "RON"), 0.201, locale, t.fileBrochure || "Brosura");
       } else if (mode === 'pdf' || mode === 'pdf-summary') {
         let slidesArray = Array.from(document.querySelectorAll('.pdf-presentation-slide'));
         if (slidesArray.length === 0) {
@@ -155,8 +155,8 @@ export function useExportActions({
           pdf.link(300, 680, 680, 40, { url: pdfUrl });
         }
         
-        const suffix = mode === 'pdf-summary' ? '_Sumar_Gratuit' : '';
-        pdf.save(`IdeeaTa_Prezentare_${safeName}${suffix}.pdf`);
+        const suffix = mode === 'pdf-summary' ? `_${t.fileSummaryFree || "Sumar_Gratuit"}` : '';
+        pdf.save(`IdeeaTa_${t.filePresentation || "Prezentare"}_${safeName}${suffix}.pdf`);
       } else if (mode === 'word') {
           const chartElement = document.getElementById("docx-export-chart-hidden");
           let chartDataUrl = null;
@@ -169,7 +169,7 @@ export function useExportActions({
           const link = document.createElement('a');
           link.href = URL.createObjectURL(blob);
           const safeName2 = result?.nume?.replace(/[^a-zA-Z0-9]/g, '_') || 'Business';
-          link.download = `IdeeaTa_Document_${safeName2}.docx`;
+          link.download = `IdeeaTa_${t.fileDocument || "Document"}_${safeName2}.docx`;
           document.body.appendChild(link);
           link.click();
           document.body.removeChild(link);

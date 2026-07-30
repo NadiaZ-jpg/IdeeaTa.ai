@@ -1,7 +1,5 @@
 "use client";
 import { useState, useRef, useEffect } from "react";
-import { jsPDF } from "jspdf";
-import { toPng } from "html-to-image";
 import pptxgen from "pptxgenjs";
 import { EditForm } from "@/components/EditForm";
 import dynamic from 'next/dynamic';
@@ -12,8 +10,6 @@ import { PricingModal } from '@/components/PricingModal';
 import { LanguageSwitcher } from '@/components/LanguageSwitcher';
 import { AdBanner } from '@/components/AdBanner';
 import BuyMeACoffeeModal from '@/components/BuyMeACoffeeModal';
-import { generateDocxBlob } from '@/lib/generateDocx';
-import { generatePptx } from '@/lib/generatePptx';
 import { useStudioFirebaseSync } from '@/hooks/useStudioFirebaseSync';
 import { t } from '@/lib/translations';
 import { UI_STRINGS } from '@/lib/uiStrings';

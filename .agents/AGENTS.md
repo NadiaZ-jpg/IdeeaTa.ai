@@ -223,3 +223,20 @@ Orice agent care primește o instrucțiune ambiguă trebuie să CEARĂ CONFIRMAR
 |---|---|
 | `hooks/useUIState.ts` | Starea pură UI (modale, dropdown-uri, tab-uri) comune pentru StudioDesktop și DemoDesktop |
 
+### Checkpoint-30-Iulie-2026-Refactorizare-Sesiunea4-ActionBar
+- Creat `components/ActionBar.tsx` (175 linii) cu bara completă de acțiuni: Reset, Edit + Tooltip, Currency Toggle, Download Buttons (free + premium) + Tooltip, buton upgrade 🔒.
+- Eliminate din `components/StudioDesktop.tsx`: 114 linii JSX înlocuite cu `<ActionBar mode="studio" ... />`.
+- Eliminate din `components/DemoDesktop.tsx`: 114 linii JSX înlocuite cu `<ActionBar mode="demo" ... />`.
+- Componenta acceptă prop `mode: "demo" | "studio"` pentru a condiționa `onShowExportModal` (specific Demo) vs `onDownloadAction` direct (specific Studio).
+- Prop `showCurrencyToggle={locale === "ro"}` — toggle-ul LEI/EUR ascuns pentru EN/ES.
+- Corecție TypeScript: `onDownloadAction` tipizat cu union exact `'pdf-summary' | 'pdf' | 'pptx' | 'word'`.
+- **Constatare importantă (Sesiunile 4-8 revizuite):** Planul utilizatorului este randat exclusiv prin `EditForm.tsx` (deja izolat). Nu există blocuri inline de plan în Desktop. Sesiunile 4-8 au fost reorientate: ActionBar ✅, MockupPreview, VersionHistoryDropdown, useExportActions.
+- TypeScript check: ✅ zero erori (`npx tsc --noEmit`).
+- Git commit: `refactor: extras ActionBar.tsx din StudioDesktop si DemoDesktop (Sesiunea 4)`.
+- **Câștig net: -228 linii** din fișierele monolitice.
+- **Status refactorizare:** ✅ Sesiunea 4 completă. Urmează Sesiunea 5 (MockupPreview.tsx — risc zero).
+
+### Fișiere ÎNGHEȚATE suplimentar (Sesiunea 4 Refactorizare):
+| Fișier | Motivul Freeze |
+|---|---|
+| `components/ActionBar.tsx` | Bara de acțiuni (Reset, Edit, Currency, Download) comună pentru StudioDesktop și DemoDesktop |

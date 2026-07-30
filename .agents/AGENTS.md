@@ -324,3 +324,15 @@ Orice agent care primește o instrucțiune ambiguă trebuie să CEARĂ CONFIRMAR
 | Fișier | Motivul Freeze |
 |---|---|
 | `app/api/edit/route.ts` | Instrucțiuni stricte (DO NOT RENAME KEYS) adăugate pentru `optimize_budget` și `buildMetaPrompt` (RO/EN/ES). |
+
+### Checkpoint-30-Iulie-2026-Bugfix-Investitor-Si-Butoane-Verzi
+- Remediere critică a butoanelor verzi "Start" de pe paginile statice (About Us, Contact, Cookies, Privacy, Terms) în toate limbile (RO, EN, ES). A fost adăugat parametrul `?start=nou` pentru a curăța `localStorage` la click.
+- Remediere critică a bug-ului "Buget Gol" în instrumentele de rescriere de ton (Plan Profesionist, Fonduri UE, etc.). Apelul paralel la `buildMetaPrompt` a fost dezactivat pentru aceste acțiuni (evitând consumul inutil de tokeni și erorile de tip "empty array" ale AI-ului pe traduceri circulare).
+- Adăugat mecanism de protecție (fallback robust) în `app/api/edit/route.ts` astfel încât dacă `parsedMeta.buget_investitii` nu este un array valid, sistemul să preia obligatoriu bugetul din planul curent original (`result.plan_financiar.buget_investitii`).
+- Build validat 100% cu succes în Next.js, fără erori TypeScript.
+
+### Fișiere ÎNGHEȚATE suplimentar (Statice & API Edit):
+| Fișier | Motivul Freeze |
+|---|---|
+| Paginile Statice (RO/EN/ES) | `contact`, `cookies`, `despre-noi`, `privacy`, `termeni` — butoanele verzi folosesc STRICT ruta `?start=nou`. |
+| `app/api/edit/route.ts` | Optimizat pentru a nu traduce meta-date la acțiunile mari (isBigAction). Logica de fallback a bugetului (`Array.isArray`) este ÎNGHEȚATĂ. |

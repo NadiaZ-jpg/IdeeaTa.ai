@@ -5,7 +5,7 @@ import pptxgen from "pptxgenjs";
 import { EditForm } from "@/components/EditForm";
 import dynamic from 'next/dynamic';
 import { auth, db } from '@/lib/firebase';
-import { signInWithPopup, GoogleAuthProvider, FacebookAuthProvider, onAuthStateChanged, User, getRedirectResult, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, sendPasswordResetEmail } from 'firebase/auth';
+import { signInWithPopup, GoogleAuthProvider, FacebookAuthProvider, onAuthStateChanged, User, getRedirectResult, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, sendPasswordResetEmail, sendEmailVerification } from 'firebase/auth';
 import { doc, onSnapshot, setDoc, getDoc, increment, arrayUnion, collection, getDocs } from 'firebase/firestore';
 import { PricingModal } from '@/components/PricingModal';
 import { LanguageSwitcher } from '@/components/LanguageSwitcher';
@@ -761,13 +761,20 @@ export default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" | 
       } else {
         const userCredential = await createUserWithEmailAndPassword(auth, email, password);
         try {
-          await fetch('/api/auth/send-verification', {
+          const res = await fetch('/api/auth/send-verification', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ email: userCredential.user.email, locale }),
           });
-        } catch (err) {
-          console.error("Eroare trimitere email activare:", err);
+          if (!res.ok) throw new Error("API fallback");
+        } catch (apiError) {
+          console.warn("Eroare API la trimitere email initial, folosim fallback:", apiError);
+          try {
+            auth.languageCode = locale;
+            await sendEmailVerification(userCredential.user);
+          } catch (fallbackError) {
+            console.error("Eroare fallback trimitere email initial:", fallbackError);
+          }
         }
       }
       // If successful, onAuthStateChanged will handle the redirect/state update

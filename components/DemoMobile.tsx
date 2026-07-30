@@ -4,7 +4,7 @@ import { jsPDF } from "jspdf";
 import { toPng } from "html-to-image";
 import pptxgen from "pptxgenjs";
 import { auth, db } from '@/lib/firebase';
-import { signInWithPopup, GoogleAuthProvider, FacebookAuthProvider, onAuthStateChanged, User, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, sendPasswordResetEmail } from 'firebase/auth';
+import { signInWithPopup, GoogleAuthProvider, FacebookAuthProvider, onAuthStateChanged, User, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, sendPasswordResetEmail, sendEmailVerification } from 'firebase/auth';
 import { doc, setDoc, getDoc, increment, arrayUnion } from 'firebase/firestore';
 import { PricingModal } from '@/components/PricingModal';
 import { LanguageSwitcher } from '@/components/LanguageSwitcher';
@@ -355,13 +355,20 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
       } else {
         const userCredential = await createUserWithEmailAndPassword(auth, email, password);
         try {
-          await fetch('/api/auth/send-verification', {
+          const res = await fetch('/api/auth/send-verification', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ email: userCredential.user.email, locale }),
           });
-        } catch (err) {
-          console.error("Eroare trimitere email activare:", err);
+          if (!res.ok) throw new Error("API fallback");
+        } catch (apiError) {
+          console.warn("Eroare API la trimitere email initial, folosim fallback:", apiError);
+          try {
+            auth.languageCode = locale;
+            await sendEmailVerification(userCredential.user);
+          } catch (fallbackError) {
+            console.error("Eroare fallback trimitere email initial:", fallbackError);
+          }
         }
       }
       setShowAuthModal(false);

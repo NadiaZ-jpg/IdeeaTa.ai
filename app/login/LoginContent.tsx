@@ -107,12 +107,22 @@ export default function LoginContent({ locale = "ro" }: { locale?: "ro" | "en" |
         const userCredential = await createUserWithEmailAndPassword(auth, email, password);
         
         // Trimitem email-ul de activare multilingv și personalizat prin API-ul nostru backend
-        await fetch('/api/auth/send-verification', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email: userCredential.user.email, locale }),
-        });
-        // onAuthStateChanged va redirectiona automat la /dashboard
+        try {
+          const res = await fetch('/api/auth/send-verification', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email: userCredential.user.email, locale }),
+          });
+          if (!res.ok) throw new Error("API fallback");
+        } catch (apiError) {
+          console.warn("Eroare API la trimitere email initial, folosim fallback:", apiError);
+          try {
+            auth.languageCode = locale;
+            await sendEmailVerification(userCredential.user);
+          } catch (fallbackError) {
+            console.error("Eroare fallback trimitere email initial:", fallbackError);
+          }
+        }
       }
       // Daca are succes, onAuthStateChanged va redirectiona automat
     } catch (error: any) {

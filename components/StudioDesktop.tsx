@@ -6,7 +6,7 @@ import pptxgen from "pptxgenjs";
 import { EditForm } from "@/components/EditForm";
 import dynamic from 'next/dynamic';
 import { auth, db } from '@/lib/firebase';
-import { signInWithPopup, GoogleAuthProvider, FacebookAuthProvider, onAuthStateChanged, User, getRedirectResult, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, sendPasswordResetEmail, sendEmailVerification } from 'firebase/auth';
+import { signInWithPopup, GoogleAuthProvider, FacebookAuthProvider, onAuthStateChanged, User, getRedirectResult, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, sendPasswordResetEmail, sendEmailVerification, getAuth } from 'firebase/auth';
 import { doc, onSnapshot, setDoc, getDoc, increment, arrayUnion, collection, getDocs } from 'firebase/firestore';
 import { PricingModal } from '@/components/PricingModal';
 import { LanguageSwitcher } from '@/components/LanguageSwitcher';
@@ -21,6 +21,9 @@ import { getExamples } from '@/lib/examples';
 import { Mail } from 'lucide-react';
 import { formatObjectNumbers, formatNumberedText } from "@/lib/utils";
 import { EXPERT_TEMPLATES, ExpertTemplate } from '@/lib/templatesData';
+import { AuthWallModal } from '@/components/modals/AuthWallModal';
+import { EmailVerificationModal } from '@/components/modals/EmailVerificationModal';
+import { ExpertSectionsDrawer } from '@/components/modals/ExpertSectionsDrawer';
 
 const BudgetPieChart = dynamic(() => import('@/components/BudgetChart').then(mod => mod.BudgetPieChart), { ssr: false });
 
@@ -163,10 +166,14 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
   const [isSharedView, setIsSharedView] = useState(false);
   const [isCheckingShared, setIsCheckingShared] = useState(true);
   const [showExpertDrawer, setShowExpertDrawer] = useState(false);
-  const [selectedExpertCategory, setSelectedExpertCategory] = useState("all");
   const [showVersionDropdown, setShowVersionDropdown] = useState(false);
+  const [showAuthModal, setShowAuthModal] = useState(false);
+  const [showVerificationModal, setShowVerificationModal] = useState(false);
+  const [verificationSent, setVerificationSent] = useState(false);
 
   const syncCurrentPlanToFirestore = async (updatedResult: any, updatedVersions?: any) => {
+    const auth = getAuth();
+    const user = auth.currentUser;
     if (!user) return;
     try {
       const searchParams = new URLSearchParams(window.location.search);
@@ -341,10 +348,6 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
       alert(t("alertCopyProtected", locale));
     }
   };
-
-  const [showAuthModal, setShowAuthModal] = useState(false);
-  const [showVerificationModal, setShowVerificationModal] = useState(false);
-  const [verificationSent, setVerificationSent] = useState(false);
 
   const handleAiEdit = async (action: string, customStyle?: string, customInput?: string, isRetry?: boolean) => {
     if (isEditingAi) return;
@@ -3419,111 +3422,26 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
         locale={locale}
       />
       {showAuthModal && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[200] flex items-center justify-center p-4">
-          <div className="bg-zinc-900 border border-zinc-800 rounded-3xl p-8 max-w-md w-full flex flex-col shadow-2xl relative overflow-hidden animate-in fade-in zoom-in-95 duration-200">
-            <div className="absolute -top-12 -left-12 w-40 h-40 rounded-full bg-emerald-500/10 blur-3xl pointer-events-none"></div>
-            <div className="absolute -bottom-12 -right-12 w-40 h-40 rounded-full bg-amber-500/10 blur-3xl pointer-events-none"></div>
-            
-            <div className="flex justify-between items-start mb-6 relative z-10">
-              <span className="text-4xl">✨</span>
-              <button 
-                type="button" 
-                onClick={() => setShowAuthModal(false)} 
-                className="text-zinc-500 hover:text-white transition-colors"
-              >
-                ✕
-              </button>
-            </div>
-            
-            <h3 className="text-2xl font-black text-white mb-3 relative z-10">Creează-ți un cont gratuit</h3>
-            <p className="text-zinc-400 mb-6 text-sm leading-relaxed relative z-10 font-sans">
-              Creează-ți un cont gratuit pentru a folosi instrumentele noastre avansate și a personaliza planul tău de afaceri.
-            </p>
-            
-            <button 
-              type="button"
-              onClick={() => {
-                setShowAuthModal(false);
-                window.history.pushState({ login: true }, '', window.location.pathname + '?login=true');
-                setIsSharedView(false);
-              }}
-              className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 px-4 rounded-xl transition-all shadow-lg shadow-emerald-900/30 flex items-center justify-center gap-2"
-            >
-              <span>Conectare / Înregistrare</span>
-              <span>➔</span>
-            </button>
-            
-            <button
-              type="button"
-              onClick={() => setShowAuthModal(false)}
-              className="mt-3 w-full bg-zinc-800/80 hover:bg-zinc-800 text-zinc-400 hover:text-white font-bold py-3 px-4 rounded-xl transition-all text-sm"
-            >
-              Mai târziu
-            </button>
-          </div>
-        </div>
+        <AuthWallModal 
+          locale={locale} 
+          onClose={() => setShowAuthModal(false)} 
+          onLoginClick={() => {
+            setShowAuthModal(false);
+            window.history.pushState({ login: true }, '', window.location.pathname + '?login=true');
+            setIsSharedView(false);
+          }} 
+        />
       )}
       {showVerificationModal && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-md z-[210] flex items-center justify-center p-4 animate-in fade-in duration-300">
-          <div className="bg-[#09090b] border border-zinc-800 rounded-3xl w-full max-w-md shadow-2xl p-8 relative overflow-hidden flex flex-col gap-6 text-center animate-in zoom-in-95 duration-300">
-            <div className="absolute top-0 left-0 w-full h-1 bg-amber-500"></div>
-            
-            <div className="w-16 h-16 bg-amber-500/10 text-amber-500 rounded-full flex items-center justify-center mx-auto mt-2">
-              <Mail className="w-8 h-8" />
-            </div>
-
-            <div>
-              <h2 className="text-2xl font-black text-white mb-2">
-                {locale === "en" ? "Confirm your email address" 
-                 : locale === "es" ? "Confirma tu dirección de email" 
-                 : "Confirmă adresa de email"}
-              </h2>
-              <p className="text-zinc-400">
-                {locale === "en" 
-                  ? "To generate a free plan and receive the 3 Premium Edits, please confirm your email address by clicking the link sent to your Inbox."
-                  : locale === "es"
-                  ? "Para generar un plan gratuito y recibir las 3 Ediciones Premium, confirme su dirección de correo electrónico haciendo clic en el enlace enviado a su bandeja de entrada."
-                  : "Pentru a genera un plan gratuit și a primi cele 3 Editări Premium, te rugăm să îți confirmi adresa de email dând click pe link-ul primit în Inbox."}
-              </p>
-            </div>
-
-            <div className="flex flex-col gap-3 mt-4">
-              <button 
-                type="button"
-                onClick={() => {
-                  window.location.reload(); // Reincarca pentru a verifica starea noua
-                }}
-                className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3.5 rounded-xl transition-all"
-              >
-                {locale === "en" ? "I confirmed, continue" 
-                 : locale === "es" ? "Lo he confirmado, continuar" 
-                 : "Am confirmat, continuă"}
-              </button>
-              
-              <button 
-                type="button"
-                onClick={handleResendVerification}
-                disabled={verificationSent}
-                className="w-full bg-zinc-800 hover:bg-zinc-700 text-white font-bold py-3.5 rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {verificationSent 
-                  ? (locale === "en" ? "Email sent!" : locale === "es" ? "¡Correo enviado!" : "Email trimis!") 
-                  : (locale === "en" ? "Resend verification email" : locale === "es" ? "Reenviar correo de verificación" : "Trimite emailul din nou")}
-              </button>
-              
-              <button 
-                type="button"
-                onClick={() => {
-                  setShowVerificationModal(false);
-                  window.location.href = "/dashboard";
-                }}
-                className="w-full text-zinc-500 hover:text-white font-medium py-2 transition-all mt-2"
-              >
-                {locale === "en" ? "Close" : locale === "es" ? "Cerrar" : "Închide"}
-              </button>
-            </div>
-          </div>
-        </div>
+        <EmailVerificationModal
+          locale={locale}
+          verificationSent={verificationSent}
+          onResendVerification={handleResendVerification}
+          onClose={() => {
+            setShowVerificationModal(false);
+            window.location.href = "/dashboard";
+          }}
+        />
       )}
       <BuyMeACoffeeModal 
         isOpen={showBmcModal} 
@@ -3533,117 +3451,35 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
 
       {/* MODAL DRAWER — LIBRĂRIA DE SECȚIUNI EXPERTE */}
       {showExpertDrawer && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-md z-[110] flex items-center justify-center p-4 sm:p-6 animate-in fade-in duration-200">
-          <div className="bg-[#121214] border border-zinc-800 rounded-3xl max-w-4xl w-full max-h-[85vh] flex flex-col shadow-[0_0_50px_rgba(16,185,129,0.15)] overflow-hidden">
-            {/* Header Drawer */}
-            <div className="p-6 border-b border-zinc-800 flex justify-between items-center bg-zinc-950/60">
-              <div>
-                <h3 className="text-xl font-black text-white flex items-center gap-2">
-                  <span className="text-emerald-400 text-2xl">🏛️</span>
-                  {locale === "en" ? "Expert Section Library" : locale === "es" ? "Biblioteca de Secciones Experta" : "Librăria de Secțiuni Experte"}
-                </h3>
-                <p className="text-xs text-zinc-400 mt-1">
-                  {locale === "en" ? "Select a pre-completed professional module to expand your plan instantly (0 API costs & zero lag)." : locale === "es" ? "Selecciona un módulo profesional precompletado para ampliar tu plan al instante." : "Alege un modul profesional pre-completat pentru extinderea instantanee a planului."}
-                </p>
-              </div>
-              <button 
-                onClick={() => setShowExpertDrawer(false)}
-                className="w-9 h-9 bg-zinc-800 hover:bg-zinc-700 text-zinc-400 hover:text-white rounded-full font-bold flex items-center justify-center transition-all cursor-pointer"
-              >
-                ✕
-              </button>
-            </div>
-
-            {/* Categories filter */}
-            <div className="px-6 py-3 border-b border-zinc-800/80 bg-black/30 flex gap-2 overflow-x-auto no-scrollbar">
-              <button
-                onClick={() => setSelectedExpertCategory("all")}
-                className={`px-3 py-1.5 rounded-lg text-xs font-bold whitespace-nowrap transition-all ${selectedExpertCategory === "all" ? "bg-emerald-600 text-white" : "bg-zinc-800/60 text-zinc-400 hover:text-white"}`}
-              >
-                {locale === "en" ? "All Modules (30+)" : locale === "es" ? "Todos los Módulos" : "Toate Modulele (30+)"}
-              </button>
-              {Array.from(new Set(EXPERT_TEMPLATES.map(t => t.category[locale] || t.category.ro))).map((cat, idx) => (
-                <button
-                  key={idx}
-                  onClick={() => setSelectedExpertCategory(cat)}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-bold whitespace-nowrap transition-all ${selectedExpertCategory === cat ? "bg-emerald-600 text-white" : "bg-zinc-800/60 text-zinc-400 hover:text-white"}`}
-                >
-                  {cat}
-                </button>
-              ))}
-            </div>
-
-            {/* Modules Grid */}
-            <div className="p-6 overflow-y-auto flex-1 grid grid-cols-1 md:grid-cols-2 gap-4">
-              {EXPERT_TEMPLATES.filter(tpl => selectedExpertCategory === "all" || (tpl.category[locale] || tpl.category.ro) === selectedExpertCategory).map((tpl) => (
-                <div 
-                  key={tpl.id}
-                  className="bg-zinc-900/60 border border-zinc-800 hover:border-emerald-500/50 rounded-2xl p-5 flex flex-col justify-between transition-all group hover:-translate-y-1 hover:shadow-lg"
-                >
-                  <div>
-                    <span className="text-[10px] uppercase font-black tracking-widest text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-md inline-block mb-3 border border-emerald-500/20">
-                      {tpl.category[locale] || tpl.category.ro}
-                    </span>
-                    <h4 className="text-base font-bold text-white mb-2 leading-snug">
-                      {tpl.title[locale] || tpl.title.ro}
-                    </h4>
-                    <p className="text-xs text-zinc-400 leading-relaxed mb-4">
-                      {tpl.desc[locale] || tpl.desc.ro}
-                    </p>
-                  </div>
-                  <button
-                    onClick={() => {
-                      if (!user) {
-                        setShowAuthModal(true);
-                        return;
-                      }
-                      if (!hasProAccess && !isAdmin) {
-                        setShowPricingModal(true);
-                        return;
-                      }
-                      const businessName = result?.nume || (locale === "en" ? "Your Business" : locale === "es" ? "Tu Empresa" : "Compania Ta");
-                      const rawContent = tpl.content[locale] || tpl.content.ro;
-                      const formattedContent = rawContent.replace(/{NUME_AFACERE}/g, businessName);
-
-                      const newSection = {
-                        titlu: tpl.title[locale] || tpl.title.ro,
-                        continut: formattedContent
-                      };
-
-                      const currentSecs = result?.sectiuni_aditionale || [];
-                      const newIndex = currentSecs.length;
-                      const updated = {
-                        ...result,
-                        sectiuni_aditionale: [...currentSecs, newSection]
-                      };
-
-                      setResult(updated);
-                      syncCurrentPlanToFirestore(updated);
-                      setShowExpertDrawer(false);
-
-                      if (typeof window !== "undefined") {
-                        localStorage.setItem("current_generated_plan", JSON.stringify(updated));
-                      }
-
-                      setTimeout(() => {
-                        const el = document.getElementById(`custom-section-${newIndex}`) || document.getElementById("section-custom");
-                        if (el) {
-                          el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                        }
-                      }, 400);
-                    }}
-                    className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2.5 rounded-xl text-xs transition-all flex items-center justify-center gap-2 cursor-pointer shadow-[0_0_15px_rgba(16,185,129,0.2)]"
-                  >
-                    <span>➕ {locale === "en" ? "Add to Plan" : locale === "es" ? "Añadir al Plan" : "Adaugă în Plan"}</span>
-                    {(!hasProAccess && !isAdmin) && (
-                      <span className="text-[10px] bg-amber-500/30 text-amber-300 px-1.5 py-0.5 rounded font-black">🔒 PRO</span>
-                    )}
-                  </button>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
+        <ExpertSectionsDrawer
+          locale={locale}
+          user={user}
+          hasProAccess={hasProAccess}
+          isAdmin={isAdmin}
+          businessName={result?.nume || (locale === "en" ? "Your Business" : locale === "es" ? "Tu Empresa" : "Compania Ta")}
+          onRequireAuth={() => setShowAuthModal(true)}
+          onRequirePro={() => setShowPricingModal(true)}
+          onAddSection={(newSection) => {
+            const currentSecs = result?.sectiuni_aditionale || [];
+            const newIndex = currentSecs.length;
+            const updated = {
+              ...result,
+              sectiuni_aditionale: [...currentSecs, newSection]
+            };
+            setResult(updated);
+            syncCurrentPlanToFirestore(updated);
+            if (typeof window !== "undefined") {
+              localStorage.setItem("current_generated_plan", JSON.stringify(updated));
+            }
+            setTimeout(() => {
+              const el = document.getElementById(`custom-section-${newIndex}`) || document.getElementById("section-custom");
+              if (el) {
+                el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+              }
+            }, 400);
+          }}
+          onClose={() => setShowExpertDrawer(false)}
+        />
       )}
     </main>
   );

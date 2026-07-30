@@ -22,6 +22,9 @@ import { t } from '@/lib/translations';
 import { UI_STRINGS } from '@/lib/uiStrings';
 import { formatObjectNumbers, formatNumberedText } from "@/lib/utils";
 import { EXPERT_TEMPLATES, ExpertTemplate } from '@/lib/templatesData';
+import { StudioExportModal } from '@/components/modals/StudioExportModal';
+import { AuthWallModal } from '@/components/modals/AuthWallModal';
+import { ExpertSectionsDrawer } from '@/components/modals/ExpertSectionsDrawer';
 
 const BudgetPieChart = dynamic(() => import('@/components/BudgetChart').then(mod => mod.BudgetPieChart), { ssr: false });
 
@@ -158,20 +161,20 @@ export default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" | 
   const [isPaid, setIsPaid] = useState(false);
   const [showPaywall, setShowPaywall] = useState(false);
   const [isPaying, setIsPaying] = useState(false);
-  const [pendingDownloadMode, setPendingDownloadMode] = useState<'pdf' | 'pptx' | 'word' | null>(null);
+  const [showPricingModal, setShowPricingModal] = useState(false);
+  const [showAuthModal, setShowAuthModal] = useState(false);
+  const [showExpertDrawer, setShowExpertDrawer] = useState(false);
+  const [pendingDownloadMode, setPendingDownloadMode] = useState<"PDF" | "DOCX" | "PPTX" | null>(null);
   const [credits, setCredits] = useState(0);
   const [euFundsUnlocked, setEuFundsUnlocked] = useState(false);
   const [subscriptionActive, setSubscriptionActive] = useState(false);
   const [unlockedPlans, setUnlockedPlans] = useState<string[]>([]);
-  const [showPricingModal, setShowPricingModal] = useState(false);
   const [showQrModal, setShowQrModal] = useState(false);
   const [showBmcModal, setShowBmcModal] = useState(false);
   const [aiEditError, setAiEditError] = useState<string | null>(null);
   const [lastEditParams, setLastEditParams] = useState<{action: string, customStyle?: string, customInput?: string} | null>(null);
   const [isSharedView, setIsSharedView] = useState(false);
   const [isCheckingShared, setIsCheckingShared] = useState(true);
-  const [showExpertDrawer, setShowExpertDrawer] = useState(false);
-  const [selectedExpertCategory, setSelectedExpertCategory] = useState("all");
 
   const usedIdeasRef = useRef<number[]>([]);
   const [animatedPlaceholder, setAnimatedPlaceholder] = useState("");
@@ -296,7 +299,6 @@ export default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" | 
     }
   };
 
-  const [showAuthModal, setShowAuthModal] = useState(false);
   const [showStudioExportModal, setShowStudioExportModal] = useState(false);
 
   const handleAiEdit = async (action: string, customStyle?: string, customInput?: string, isRetry?: boolean) => {
@@ -3262,38 +3264,7 @@ export default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" | 
 
       {/* Studio Export Modal */}
       {showStudioExportModal && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="bg-zinc-950 border border-emerald-500/30 w-full max-w-md rounded-2xl p-8 shadow-[0_0_40px_rgba(16,185,129,0.15)] flex flex-col items-center text-center">
-            <div className="w-16 h-16 bg-emerald-500/20 rounded-full flex items-center justify-center mb-6 border border-emerald-500/50 shadow-[0_0_15px_rgba(16,185,129,0.3)]">
-              <span className="text-3xl">✨</span>
-            </div>
-            <h2 className="text-2xl font-black text-white mb-4">{locale === "en" ? "Your plan looks great!" : locale === "es" ? "¡Tu plan está quedando increíble!" : "Planul tău arată grozav!"}</h2>
-            <p className="text-zinc-400 mb-8 leading-relaxed">
-              {locale === "en" 
-                ? "Create a free account to download it completely in PDF, DOCX, or PPTX format and to save all your changes!"
-                : locale === "es"
-                ? "¡Crea una cuenta gratuita para descargarlo completamente en formato PDF, DOCX o PPTX y guardar todos tus cambios!"
-                : "Creează-ți un cont gratuit pentru a-l descărca complet în format PDF, DOCX sau PPTX și pentru a-ți salva toate modificările!"}
-            </p>
-            <div className="flex flex-col gap-3 w-full">
-              <button 
-                onClick={() => {
-                  setShowStudioExportModal(false);
-                  window.location.href = locale === "en" ? '/en/login' : locale === "es" ? '/es/login' : '/login';
-                }}
-                className="w-full py-3.5 bg-emerald-500 hover:bg-emerald-400 text-white rounded-xl font-bold transition-all shadow-[0_0_20px_rgba(16,185,129,0.3)]"
-              >
-                {locale === "en" ? "Create free account" : locale === "es" ? "Crear cuenta gratuita" : "Creează cont gratuit"}
-              </button>
-              <button 
-                onClick={() => setShowStudioExportModal(false)}
-                className="w-full py-3.5 bg-transparent hover:bg-zinc-900 text-zinc-400 rounded-xl font-bold transition-all"
-              >
-                {locale === "en" ? "Back to editing" : locale === "es" ? "Volver a editar" : "Înapoi la editare"}
-              </button>
-            </div>
-          </div>
-        </div>
+        <StudioExportModal locale={locale} onClose={() => setShowStudioExportModal(false)} />
       )}
 
       <PricingModal
@@ -3314,163 +3285,43 @@ export default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" | 
         locale={locale}
       />
       {showAuthModal && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[200] flex items-center justify-center p-4">
-          <div className="bg-zinc-900 border border-zinc-800 rounded-3xl p-8 max-w-md w-full flex flex-col shadow-2xl relative overflow-hidden animate-in fade-in zoom-in-95 duration-200">
-            <div className="absolute -top-12 -left-12 w-40 h-40 rounded-full bg-emerald-500/10 blur-3xl pointer-events-none"></div>
-            <div className="absolute -bottom-12 -right-12 w-40 h-40 rounded-full bg-amber-500/10 blur-3xl pointer-events-none"></div>
-            
-            <div className="flex justify-between items-start mb-6 relative z-10">
-              <span className="text-4xl">✨</span>
-              <button 
-                type="button" 
-                onClick={() => setShowAuthModal(false)} 
-                className="text-zinc-500 hover:text-white transition-colors"
-              >
-                ✕
-              </button>
-            </div>
-            
-            <h3 className="text-2xl font-black text-white mb-3 relative z-10">{locale === "en" ? "Create a free account" : "Creează-ți un cont gratuit"}</h3>
-            <p className="text-zinc-400 mb-6 text-sm leading-relaxed relative z-10 font-sans">
-              {locale === "en" 
-                ? "Create a free account to use our advanced tools and customize your business plan."
-                : locale === "es"
-                ? "Crea tu cuenta gratuita para usar nuestras herramientas avanzadas y personalizar tu plan de negocios."
-                : "Creează-ți un cont gratuit pentru a folosi instrumentele noastre avansate și a personaliza planul tău de afaceri."}
-            </p>
-            
-            <button 
-              type="button"
-              onClick={() => {
-                window.location.href = locale === "en" ? '/en/login' : locale === "es" ? '/es/login' : '/login';
-              }}
-              className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 px-4 rounded-xl transition-all shadow-lg shadow-emerald-900/30 flex items-center justify-center gap-2"
-            >
-              <span>{locale === "en" ? "Login / Register" : locale === "es" ? "Iniciar sesión / Registrarse" : "Conectare / Înregistrare"}</span>
-              <span>➔</span>
-            </button>
-            
-            <button
-              type="button"
-              onClick={() => setShowAuthModal(false)}
-              className="mt-3 w-full bg-zinc-800/80 hover:bg-zinc-800 text-zinc-400 hover:text-white font-bold py-3 px-4 rounded-xl transition-all text-sm"
-            >
-              {locale === "en" ? "Maybe later" : locale === "es" ? "Quizás más tarde" : "Mai târziu"}
-            </button>
-          </div>
-        </div>
+        <AuthWallModal 
+          locale={locale} 
+          onClose={() => setShowAuthModal(false)} 
+          onLoginClick={() => {
+            window.location.href = locale === "en" ? '/en/login' : locale === "es" ? '/es/login' : '/login';
+          }} 
+        />
       )}
       {showExpertDrawer && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-md z-[110] flex items-center justify-center p-4 sm:p-6 animate-in fade-in duration-200">
-          <div className="bg-[#121214] border border-zinc-800 rounded-3xl max-w-4xl w-full max-h-[85vh] flex flex-col shadow-[0_0_50px_rgba(16,185,129,0.15)] overflow-hidden">
-            {/* Header Drawer */}
-            <div className="p-6 border-b border-zinc-800 flex justify-between items-center bg-zinc-950/60">
-              <div>
-                <h3 className="text-xl font-black text-white flex items-center gap-2">
-                  <span className="text-emerald-400 text-2xl">🏛️</span>
-                  {locale === "en" ? "Expert Section Library" : locale === "es" ? "Biblioteca de Secciones Experta" : "Librăria de Secțiuni Experte"}
-                </h3>
-                <p className="text-xs text-zinc-400 mt-1">
-                  {locale === "en" ? "Select a pre-completed professional module to expand your plan instantly (0 API costs & zero lag)." : locale === "es" ? "Selecciona un módulo profesional precompletado para ampliar tu plan al instante." : "Alege un modul profesional pre-completat pentru extinderea instantanee a planului."}
-                </p>
-              </div>
-              <button 
-                onClick={() => setShowExpertDrawer(false)}
-                className="w-9 h-9 bg-zinc-800 hover:bg-zinc-700 text-zinc-400 hover:text-white rounded-full font-bold flex items-center justify-center transition-all cursor-pointer"
-              >
-                ✕
-              </button>
-            </div>
-
-            {/* Categories filter */}
-            <div className="px-6 py-3 border-b border-zinc-800/80 bg-black/30 flex gap-2 overflow-x-auto no-scrollbar">
-              <button
-                onClick={() => setSelectedExpertCategory("all")}
-                className={`px-3 py-1.5 rounded-lg text-xs font-bold whitespace-nowrap transition-all ${selectedExpertCategory === "all" ? "bg-emerald-600 text-white" : "bg-zinc-800/60 text-zinc-400 hover:text-white"}`}
-              >
-                {locale === "en" ? "All Modules (30+)" : locale === "es" ? "Todos los Módulos" : "Toate Modulele (30+)"}
-              </button>
-              {Array.from(new Set(EXPERT_TEMPLATES.map(t => t.category[locale] || t.category.ro))).map((cat, idx) => (
-                <button
-                  key={idx}
-                  onClick={() => setSelectedExpertCategory(cat)}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-bold whitespace-nowrap transition-all ${selectedExpertCategory === cat ? "bg-emerald-600 text-white" : "bg-zinc-800/60 text-zinc-400 hover:text-white"}`}
-                >
-                  {cat}
-                </button>
-              ))}
-            </div>
-
-            {/* Modules Grid */}
-            <div className="p-6 overflow-y-auto flex-1 grid grid-cols-1 md:grid-cols-2 gap-4">
-              {EXPERT_TEMPLATES.filter(tpl => selectedExpertCategory === "all" || (tpl.category[locale] || tpl.category.ro) === selectedExpertCategory).map((tpl) => (
-                <div 
-                  key={tpl.id}
-                  className="bg-zinc-900/60 border border-zinc-800 hover:border-emerald-500/50 rounded-2xl p-5 flex flex-col justify-between transition-all group hover:-translate-y-1 hover:shadow-lg"
-                >
-                  <div>
-                    <span className="text-[10px] uppercase font-black tracking-widest text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-md inline-block mb-3 border border-emerald-500/20">
-                      {tpl.category[locale] || tpl.category.ro}
-                    </span>
-                    <h4 className="text-base font-bold text-white mb-2 leading-snug">
-                      {tpl.title[locale] || tpl.title.ro}
-                    </h4>
-                    <p className="text-xs text-zinc-400 leading-relaxed mb-4">
-                      {tpl.desc[locale] || tpl.desc.ro}
-                    </p>
-                  </div>
-                  <button
-                    onClick={() => {
-                      if (!user) {
-                        setShowAuthModal(true);
-                        return;
-                      }
-                      if (!hasProAccess && !isAdmin) {
-                        setShowPricingModal(true);
-                        return;
-                      }
-                      const businessName = result?.nume || (locale === "en" ? "Your Business" : locale === "es" ? "Tu Empresa" : "Compania Ta");
-                      const rawContent = tpl.content[locale] || tpl.content.ro;
-                      const formattedContent = rawContent.replace(/{NUME_AFACERE}/g, businessName);
-
-                      const newSection = {
-                        titlu: tpl.title[locale] || tpl.title.ro,
-                        continut: formattedContent
-                      };
-
-                      const currentSecs = result?.sectiuni_aditionale || [];
-                      const newIndex = currentSecs.length;
-                      const updated = {
-                        ...result,
-                        sectiuni_aditionale: [...currentSecs, newSection]
-                      };
-
-                      setResult(updated);
-                      setShowExpertDrawer(false);
-
-                      if (typeof window !== "undefined") {
-                        localStorage.setItem("current_generated_plan", JSON.stringify(updated));
-                      }
-
-                      setTimeout(() => {
-                        const el = document.getElementById(`custom-section-${newIndex}`) || document.getElementById("section-custom");
-                        if (el) {
-                          el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                        }
-                      }, 400);
-                    }}
-                    className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2.5 rounded-xl text-xs transition-all flex items-center justify-center gap-2 cursor-pointer shadow-[0_0_15px_rgba(16,185,129,0.2)]"
-                  >
-                    <span>➕ {locale === "en" ? "Add to Plan" : locale === "es" ? "Añadir al Plan" : "Adaugă în Plan"}</span>
-                    {(!hasProAccess && !isAdmin) && (
-                      <span className="text-[10px] bg-amber-500/30 text-amber-300 px-1.5 py-0.5 rounded font-black">🔒 PRO</span>
-                    )}
-                  </button>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
+        <ExpertSectionsDrawer
+          locale={locale}
+          user={user}
+          hasProAccess={hasProAccess}
+          isAdmin={isAdmin}
+          businessName={result?.nume || (locale === "en" ? "Your Business" : locale === "es" ? "Tu Empresa" : "Compania Ta")}
+          onRequireAuth={() => setShowAuthModal(true)}
+          onRequirePro={() => setShowPricingModal(true)}
+          onAddSection={(newSection) => {
+            const currentSecs = result?.sectiuni_aditionale || [];
+            const newIndex = currentSecs.length;
+            const updated = {
+              ...result,
+              sectiuni_aditionale: [...currentSecs, newSection]
+            };
+            setResult(updated);
+            if (typeof window !== "undefined") {
+              localStorage.setItem("current_generated_plan", JSON.stringify(updated));
+            }
+            setTimeout(() => {
+              const el = document.getElementById(`custom-section-${newIndex}`) || document.getElementById("section-custom");
+              if (el) {
+                el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+              }
+            }, 400);
+          }}
+          onClose={() => setShowExpertDrawer(false)}
+        />
       )}
       <BuyMeACoffeeModal 
         isOpen={showBmcModal} 

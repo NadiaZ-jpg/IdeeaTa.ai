@@ -34,6 +34,7 @@ import { truncateText, splitTextIntoSlides, getDynamicTextSize } from '@/lib/pla
 import { useUIState } from '@/hooks/useUIState';
 import { ActionBar } from '@/components/ActionBar';
 import { MockupPreview } from '@/components/MockupPreview';
+import { VersionHistoryDropdown } from '@/components/VersionHistoryDropdown';
 
 const BudgetPieChart = dynamic(() => import('@/components/BudgetChart').then(mod => mod.BudgetPieChart), { ssr: false });
 
@@ -1860,28 +1861,17 @@ export default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" | 
             showCurrencyToggle={locale === "ro"}
           />
 
-          {Object.keys(versions).length > 1 && !isEditing && (
-            <div className="flex flex-wrap gap-2 mb-6 border-b border-zinc-800 pb-2 w-full max-w-5xl justify-center sm:justify-start">
-              {Object.entries(versions).map(([vKey, vData]) => {
-                const title = 
-                  vKey === "original" ? `📝 ${ui.versionOriginal}` :
-                  vKey === "ton_edit" ? `🪄 ${ui.versionTone}` :
-                  vKey === "eu_funds" ? `🇪🇺 ${ui.versionEuFunds}` :
-                  vKey === "budget_edit" ? `📉 ${ui.versionBudget}` :
-                  vKey === "expert_sections" ? `🏛️ ${ui.versionExpert}` :
-                  vKey === "investor" ? `🏦 ${ui.versionInvestor}` :
-                  `📑 ${vKey}`;
-                return (
-                  <button 
-                    key={vKey}
-                    onClick={() => { setActiveVersionId(vKey); setResultState(vData); }} 
-                    className={`px-5 py-2.5 rounded-t-xl transition-all duration-300 font-bold text-sm tracking-wide flex items-center gap-2 ${activeVersionId === vKey ? 'bg-[#09090b] border-t border-l border-r border-emerald-500/50 text-emerald-400 shadow-[0_-10px_20px_-10px_rgba(16,185,129,0.15)] relative z-10 translate-y-[1px]' : 'bg-zinc-900/50 border-t border-l border-r border-zinc-800 text-zinc-500 hover:text-zinc-300 hover:bg-zinc-900'}`}
-                  >
-                    {title}
-                  </button>
-                );
-              })}
-            </div>
+          {!isEditing && (
+            <VersionHistoryDropdown
+              mode="demo"
+              versions={versions}
+              activeVersionId={activeVersionId}
+              onSelectVersion={(vKey, vData) => {
+                setActiveVersionId(vKey);
+                setResultState(vData);
+              }}
+              ui={ui}
+            />
           )}
           {!isEditing && (
             <DemoBrochurePreview 

@@ -33,6 +33,7 @@ import { truncateText, splitTextIntoSlides, getDynamicTextSize } from '@/lib/pla
 import { useUIState } from '@/hooks/useUIState';
 import { ActionBar } from '@/components/ActionBar';
 import { MockupPreview } from '@/components/MockupPreview';
+import { VersionHistoryDropdown } from '@/components/VersionHistoryDropdown';
 const BudgetPieChart = dynamic(() => import('@/components/BudgetChart').then(mod => mod.BudgetPieChart), { ssr: false });
 
 export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" | "es" }) {
@@ -1853,74 +1854,20 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
             showCurrencyToggle={locale === "ro"}
           />
 
-          {Object.keys(versions).length > 0 && !isEditing && (
-            <div className="flex flex-wrap items-center gap-2 mb-6 border-b border-zinc-800/80 pb-3 w-full max-w-5xl justify-center sm:justify-start">
-              {versions.original && (
-                <button 
-                  onClick={() => { setActiveVersionId('original'); setResultState(versions.original); }} 
-                  className={`px-4 py-2 rounded-xl transition-all duration-200 font-bold text-xs tracking-wide flex items-center gap-2 cursor-pointer ${activeVersionId === 'original' ? 'bg-emerald-950/80 border border-emerald-500/50 text-emerald-300 shadow-[0_0_15px_rgba(16,185,129,0.2)]' : 'bg-zinc-900/60 border border-zinc-800 text-zinc-400 hover:text-white hover:bg-zinc-800'}`}
-                >
-                  {ui.originalVersion}
-                </button>
-              )}
-              {versions.eu_funds && (
-                <button 
-                  onClick={() => { setActiveVersionId('eu_funds'); setResultState(versions.eu_funds); }} 
-                  className={`px-4 py-2 rounded-xl transition-all duration-200 font-bold text-xs tracking-wide flex items-center gap-2 cursor-pointer ${activeVersionId === 'eu_funds' ? 'bg-emerald-950/80 border border-emerald-500/50 text-emerald-300 shadow-[0_0_15px_rgba(16,185,129,0.2)]' : 'bg-zinc-900/60 border border-zinc-800 text-zinc-400 hover:text-white hover:bg-zinc-800'}`}
-                >
-                  {ui.euFundsOptimized}
-                </button>
-              )}
-              {versions.investor && (
-                <button 
-                  onClick={() => { setActiveVersionId('investor'); setResultState(versions.investor); }} 
-                  className={`px-4 py-2 rounded-xl transition-all duration-200 font-bold text-xs tracking-wide flex items-center gap-2 cursor-pointer ${activeVersionId === 'investor' ? 'bg-emerald-950/80 border border-emerald-500/50 text-emerald-300 shadow-[0_0_15px_rgba(16,185,129,0.2)]' : 'bg-zinc-900/60 border border-zinc-800 text-zinc-400 hover:text-white hover:bg-zinc-800'}`}
-                >
-                  {ui.investorsPlan}
-                </button>
-              )}
-
-              {/* Soluția 1 — Meniu Dropdown Istoric Versiuni */}
-              <div className="relative" ref={dropdownRef}>
-                <button 
-                  onClick={() => setShowVersionDropdown(!showVersionDropdown)}
-                  className="px-4 py-2 rounded-xl bg-zinc-900 border border-zinc-800 hover:border-emerald-500/40 text-amber-300 hover:text-amber-200 font-bold text-xs flex items-center gap-2 transition-all cursor-pointer shadow-sm"
-                >
-                  <span>📜 {ui.versionHistory || "Istoric Versiuni"} ({Object.keys(versions).length})</span>
-                  <span className="text-[10px]">▼</span>
-                </button>
-
-                {showVersionDropdown && (
-                  <div className="absolute top-full left-0 mt-2 w-64 bg-zinc-950 border border-zinc-800 rounded-2xl p-2 shadow-2xl z-[90] animate-in fade-in duration-150">
-                    <div className="text-[10px] uppercase font-black tracking-widest text-zinc-500 px-3 py-1.5 border-b border-zinc-900 flex justify-between items-center">
-                      <span>{ui.savedVersions || "Versiuni Salvate"}</span>
-                      <button onClick={() => setShowVersionDropdown(false)} className="text-zinc-500 hover:text-white text-xs">✕</button>
-                    </div>
-                    <div className="max-h-60 overflow-y-auto flex flex-col gap-1 mt-1">
-                      {Object.entries(versions).map(([vKey, vData]) => (
-                        <button
-                          key={vKey}
-                          onClick={() => {
-                            setActiveVersionId(vKey);
-                            setResultState(vData);
-                            setShowVersionDropdown(false);
-                          }}
-                          className={`w-full text-left px-3 py-2 rounded-xl text-xs font-semibold flex items-center justify-between transition-all cursor-pointer ${activeVersionId === vKey ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/30" : "text-zinc-400 hover:bg-zinc-900 hover:text-white"}`}
-                        >
-                          <span className="truncate">
-                            {vKey === "original" ? (ui.originalVersion)
-                            : vKey === "eu_funds" ? ui.euFundsOptimized
-                            : vKey === "investor" ? ui.investorsPlan
-                            : `📑 ${vKey}`}
-                          </span>
-                          {activeVersionId === vKey && <span className="text-emerald-400 text-xs">✓</span>}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
+          {!isEditing && (
+            <VersionHistoryDropdown
+              mode="studio"
+              versions={versions}
+              activeVersionId={activeVersionId}
+              onSelectVersion={(vKey, vData) => {
+                setActiveVersionId(vKey);
+                setResultState(vData);
+              }}
+              showVersionDropdown={showVersionDropdown}
+              setShowVersionDropdown={setShowVersionDropdown}
+              ui={ui}
+              dropdownRef={dropdownRef}
+            />
           )}
 
           {!isEditing && (

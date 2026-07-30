@@ -50,7 +50,7 @@ export async function POST(req: NextRequest) {
       if (action === "professional_tone") {
         instruction = `Rewrite the textual content to have a ${customStyle || 'formal, corporate and professional'} tone, keeping the exact structure. Do not change any numbers.`;
       } else if (action === "optimize_budget") {
-        instruction = `Reduce costs in 'plan_financiar.buget_investitii' by approximately ${targetSection}%, adjust explanations showing how the savings were achieved, and translate the item name ('item') and explanations ('explicatie') to English if they are in another language. Keep everything else untouched.`;
+        instruction = `Reduce costs in 'plan_financiar.buget_investitii' by approximately ${targetSection}%, adjust explanations showing how the savings were achieved, and translate the text inside the 'item' and 'explicatie' properties to English if they are in another language. IMPORTANT: DO NOT rename the JSON keys 'item' and 'explicatie' themselves. Keep everything else untouched.`;
       } else if (action === "add_sections") {
         instruction = `Generate NEW text sections for the business plan, referring strictly to the requested topics: "${targetSection || 'anything you deem necessary'}". 
         IMPORTANT:
@@ -102,7 +102,7 @@ IMPORTANT: Keep the original JSON structure, but rewrite and enrich the content 
       if (action === "professional_tone") {
         instruction = `Reescribe el contenido textual para tener un tono ${customStyle || 'formal, corporativo y profesional'}, manteniendo la estructura exacta. No cambies ningún número.`;
       } else if (action === "optimize_budget") {
-        instruction = `Reduce los costes en 'plan_financiar.buget_investitii' en aproximadamente un ${targetSection}%, ajusta las explicaciones mostrando cómo se lograron los ahorros, y traduce el nombre del artículo ('item') y las explicaciones ('explicatie') al español si están en otro idioma. Mantén todo lo demás intacto.`;
+        instruction = `Reduce los costes en 'plan_financiar.buget_investitii' en aproximadamente un ${targetSection}%, ajusta las explicaciones mostrando cómo se lograron los ahorros, y traduce el texto dentro de las propiedades 'item' y 'explicatie' al español. IMPORTANTE: NO cambies los nombres de las claves JSON 'item' y 'explicatie' bajo ninguna circunstancia. Mantén todo lo demás intacto.`;
       } else if (action === "add_sections") {
         instruction = `Genera NUEVAS secciones de texto para el plan de negocios, refiriéndote estrictamente a los temas solicitados: "${targetSection || 'lo que consideres necesario'}". 
         IMPORTANTE:
@@ -154,7 +154,7 @@ IMPORTANTE: ¡Mantén la estructura JSON original, pero reescribe y enriquece el
       if (action === "professional_tone") {
         instruction = `Rescrie conținutul textual pentru a avea un ton ${customStyle || 'formal, corporativ și profesionist'}, păstrând structura exactă. Nu modifica cifrele.`;
       } else if (action === "optimize_budget") {
-        instruction = `Redu costurile din 'plan_financiar.buget_investitii' cu aproximativ ${targetSection}%, ajustează explicațiile arătând cum s-a făcut economia și traduse numele articolului ('item') și explicațiile ('explicatie') în limba română dacă sunt în altă limbă. Păstrează restul neatins.`;
+        instruction = `Redu costurile din 'plan_financiar.buget_investitii' cu aproximativ ${targetSection}%, ajustează explicațiile arătând cum s-a făcut economia și tradu conținutul text din proprietățile 'item' și 'explicatie' în limba română dacă sunt în altă limbă. IMPORTANT: ESTE STRICT INTERZIS să schimbi numele cheilor JSON (ele trebuie să rămână 'item' și 'explicatie'). Păstrează restul neatins.`;
       } else if (action === "add_sections") {
         instruction = `Generează SECȚIUNI NOI de text pentru planul de afaceri, referitoare strict la subiectele cerute: "${targetSection || 'orice consideri necesar'}". 
         IMPORTANT:
@@ -361,7 +361,7 @@ IMPORTANT PENTRU JSON:
 Asegúrate de:
 1. Traducir el lema (slogan).
 2. Adaptar la forma jurídica (forma_juridica) a equivalentes en español (ej. S.L., Sociedad Anónima, Autónomo, etc.) y traducir la descripción del sector del código CAEN (cod_caen) al español.
-3. Traducir las claves "item" (denominación) y "explicatie" (justificación) de cada elemento en la lista "buget_investitii" al español. ¡NO traduzcas ni alteres los costes, monedas ni números!
+3. Traduce el texto contenido dentro de las propiedades "item" y "explicatie" de cada elemento en la lista "buget_investitii" al español. ¡NO alteres los nombres de las claves JSON (deben seguir siendo "item" y "explicatie") y NO traduzcas ni alteres los costes, monedas ni números!
 4. Mantener la estructura JSON exacta del objeto recibido.
 
 Objeto actual:
@@ -374,7 +374,7 @@ Responde EXCLUSIVAMENTE con un JSON válido.`;
 Ensure you:
 1. Translate the slogan.
 2. Adapt the legal form (forma_juridica) to English/international equivalents (e.g. LLC, Sole Proprietorship, Partnership, etc.) and translate the CAEN category description (cod_caen) to English.
-3. Translate the "item" and "explicatie" keys of each element in the "buget_investitii" list to English. DO NOT translate or alter costs, currencies, or numbers!
+3. Translate the text inside the "item" and "explicatie" properties of each element in the "buget_investitii" list to English. DO NOT change the JSON key names (they must remain exactly "item" and "explicatie") and DO NOT translate or alter costs, currencies, or numbers!
 4. Keep the exact JSON structure of the received object.
 
 Current object:
@@ -386,7 +386,7 @@ Respond EXCLUSIVELY with a valid JSON.`;
 Asigură-te că:
 1. Traduci sloganul.
 2. Adaptezi forma juridică (forma_juridica) la termeni românești (ex: SRL, PFA, SA) și traduci descrierea codului CAEN în română.
-3. Traduci cheile "item" și "explicatie" pentru fiecare element din lista "buget_investitii" în limba română. NU modifica costurile, monedele sau valorile numerice!
+3. Tradu textul din interiorul proprietăților "item" și "explicatie" pentru fiecare element din lista "buget_investitii" în limba română. ESTE STRICT INTERZIS să modifici numele cheilor JSON (ele trebuie să rămână "item" și "explicatie") și NU modifica costurile, monedele sau valorile numerice!
 4. Păstrezi structura JSON exactă a obiectului primit.
 
 Obiect curent:

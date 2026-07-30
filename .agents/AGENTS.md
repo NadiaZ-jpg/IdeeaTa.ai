@@ -200,13 +200,26 @@ Orice agent care primește o instrucțiune ambiguă trebuie să CEARĂ CONFIRMAR
 - TypeScript check: ✅ zero erori (`npx tsc --noEmit`).
 - Git commit: `refactor: extrageți funcțiile helper duplicate în lib/planHelpers.ts (Sesiunea 1)`.
 - **Câștig net: -110 linii** din fișierele monolitice.
-- **Status refactorizare:** ✅ Sesiunea 1 completă. Urmează Sesiunea 2 (hooks/useUIState.ts).
+- **Status refactorizare:** ✅ Sesiunea 1 completă.
 
 ### Fișiere ÎNGHEȚATE suplimentar (Sesiunea 1 Refactorizare):
 | Fișier | Motivul Freeze |
 |---|---|
 | `lib/planHelpers.ts` | Funcții helper pure comune pentru StudioDesktop și DemoDesktop |
 
+### Checkpoint-30-Iulie-2026-Refactorizare-Sesiunea2-useUIState
+- Creat `hooks/useUIState.ts` cu 14 variabile de stare UI izolate: modale, dropdown-uri, tab-uri de navigare.
+- Eliminate din `components/StudioDesktop.tsx`: 10 declarații `useState` înlocuite cu import hook.
+- Eliminate din `components/DemoDesktop.tsx`: 7 declarații `useState` + 1 declarație duplicată ștearsă.
+- **Variabile izolate:** `showPricingModal`, `showQrModal`, `showBmcModal`, `showAuthModal`, `showPaywall`, `showExpertDrawer`, `showVerificationModal`, `verificationSent`, `showVersionDropdown`, `showStudioExportModal`, `showExamples`, `mockupTab`, `innerMockupTab`.
+- **Variabile de business PĂSTRATE în componentă (risc ridicat):** `result`, `versions`, `user`, `credits`, `isPaid`, `loading`, `isDownloading`, `isEditing` — toate conectate la listeners Firebase sau fluxuri async AI.
+- TypeScript check: ✅ zero erori (`npx tsc --noEmit`).
+- Git commit: `refactor: izolat starea UI in hooks/useUIState.ts (Sesiunea 2)`.
+- **Câștig net: -18 linii** din fișierele monolitice (valoarea reală = izolarea semantică pentru debugging rapid).
+- **Status refactorizare:** ✅ Sesiunea 2 completă. Urmează Sesiunea 3 (RISC RIDICAT — hooks/usePlanState.ts).
 
-
+### Fișiere ÎNGHEȚATE suplimentar (Sesiunea 2 Refactorizare):
+| Fișier | Motivul Freeze |
+|---|---|
+| `hooks/useUIState.ts` | Starea pură UI (modale, dropdown-uri, tab-uri) comune pentru StudioDesktop și DemoDesktop |
 

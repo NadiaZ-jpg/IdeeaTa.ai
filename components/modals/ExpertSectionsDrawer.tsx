@@ -51,7 +51,7 @@ export const ExpertSectionsDrawer: React.FC<ExpertSectionsDrawerProps> = ({
         </div>
 
         {/* Categories filter */}
-        <div className="px-6 py-3 border-b border-zinc-800/80 bg-black/30 flex gap-2 overflow-x-auto no-scrollbar">
+        <div className="px-6 py-3 border-b border-zinc-800/80 bg-black/30 flex gap-2 overflow-x-auto no-scrollbar md:flex-wrap md:overflow-visible">
           <button
             onClick={() => setSelectedExpertCategory("all")}
             className={`px-3 py-1.5 rounded-lg text-xs font-bold whitespace-nowrap transition-all ${selectedExpertCategory === "all" ? "bg-emerald-600 text-white" : "bg-zinc-800/60 text-zinc-400 hover:text-white"}`}

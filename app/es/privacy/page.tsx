@@ -55,7 +55,7 @@ export default function PrivacyPageEs() {
         <p>Para ejercer tus derechos GDPR o para otras dudas sobre privacidad, puedes contactarnos en: <a href="mailto:contact@ideeata.ai" className="text-emerald-400">contact@ideeata.ai</a>.</p>
         
         <div className="flex justify-center mt-12 mb-12">
-          <Link href="/es/demo" className="bg-emerald-600 hover:bg-emerald-500 text-white px-8 py-4 rounded-xl font-bold transition-all shadow-lg shadow-emerald-900/30 no-underline">
+          <Link href="/es/demo?start=nou" className="bg-emerald-600 hover:bg-emerald-500 text-white px-8 py-4 rounded-xl font-bold transition-all shadow-lg shadow-emerald-900/30 no-underline">
             Valida tu idea ahora mismo
           </Link>
         </div>

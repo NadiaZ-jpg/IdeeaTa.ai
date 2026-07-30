@@ -28,7 +28,7 @@ export default function AboutUsPage() {
         <p>We want to become the #1 digital partner for start-ups in Europe. We believe that no good idea should be lost just because the founder doesn't know how to write a business plan.</p>
         
         <div className="flex justify-center mt-12">
-          <Link href="/en/demo" className="bg-emerald-600 hover:bg-emerald-500 text-white px-8 py-4 rounded-xl font-bold transition-all shadow-lg shadow-emerald-900/30 no-underline">
+          <Link href="/en/demo?start=nou" className="bg-emerald-600 hover:bg-emerald-500 text-white px-8 py-4 rounded-xl font-bold transition-all shadow-lg shadow-emerald-900/30 no-underline">
             Validate your idea right now
           </Link>
         </div>

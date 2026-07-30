@@ -395,14 +395,14 @@ ${JSON.stringify({ nume: result.nume, slogan: result.slogan, date_generale: resu
 Răspunde EXCLUSIV cu un JSON valid.`;
       };
 
-      const [resViz, resPiata, resOp, resSwot, resFin, resMeta] = await Promise.all([
+      const [resViz, resPiata, resOp, resSwot, resFin] = await Promise.all([
         callGemini(buildPrompt(pViziune)).catch(e => { console.error("Edit segment Viz failed:", e); return ""; }),
         callGemini(buildPrompt(pPiata)).catch(e => { console.error("Edit segment Piata failed:", e); return ""; }),
         callGemini(buildPrompt(pOperational)).catch(e => { console.error("Edit segment Op failed:", e); return ""; }),
         callGemini(buildPrompt(pSwot)).catch(e => { console.error("Edit segment Swot failed:", e); return ""; }),
-        callGemini(buildPrompt(pFinanciar)).catch(e => { console.error("Edit segment Fin failed:", e); return ""; }),
-        callGemini(buildMetaPrompt()).catch(e => { console.error("Edit segment Meta failed:", e); return ""; })
+        callGemini(buildPrompt(pFinanciar)).catch(e => { console.error("Edit segment Fin failed:", e); return ""; })
       ]);
+      const resMeta = ""; // We no longer call buildMetaPrompt for tone rewrites to save tokens and prevent budget loss
       
       const txtViz = cleanJsonString(resViz);
       const txtPiata = cleanJsonString(resPiata);
@@ -435,7 +435,7 @@ Răspunde EXCLUSIV cu un JSON valid.`;
         plan_financiar: {
           ...result.plan_financiar,
           strategie_financiara: Object.keys(parsedFin).length > 0 ? (parsedFin.plan_financiar?.strategie_financiara || parsedFin.strategie_financiara || parsedFin) : result.plan_financiar?.strategie_financiara,
-          buget_investitii: parsedMeta.buget_investitii || result.plan_financiar?.buget_investitii || []
+          buget_investitii: (Array.isArray(parsedMeta.buget_investitii) && parsedMeta.buget_investitii.length > 0) ? parsedMeta.buget_investitii : (result.plan_financiar?.buget_investitii || [])
         }
       };
 

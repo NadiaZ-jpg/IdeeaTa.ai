@@ -3,19 +3,20 @@ import { adminDb } from "@/lib/firebase-admin";
 
 export async function POST(req: NextRequest) {
   try {
-    const { code, promoCode, userId } = await req.json();
+    const { code, promoCode, userId, locale = "ro" } = await req.json();
+    const getErrorMsg = (ro: string, en: string, es: string) => locale === "en" ? en : locale === "es" ? es : ro;
 
     const actualCode = (code || promoCode || "").trim().toUpperCase();
     if (!actualCode) {
       return NextResponse.json(
-        { success: false, error: "Codul lipsește" },
+        { success: false, error: getErrorMsg("Codul lipsește", "Code is missing", "Falta el código") },
         { status: 400 }
       );
     }
 
     if (!userId) {
       return NextResponse.json(
-        { success: false, error: "Trebuie să fii autentificat pentru a aplica un cod promoțional." },
+        { success: false, error: getErrorMsg("Trebuie să fii autentificat pentru a aplica un cod promoțional.", "You must be logged in to apply a promo code.", "Debes iniciar sesión para aplicar un código promocional.") },
         { status: 400 }
       );
     }
@@ -51,7 +52,7 @@ export async function POST(req: NextRequest) {
         });
       } else {
         return NextResponse.json(
-          { success: false, error: "Codul promoțional nu este valid pe dev local." },
+          { success: false, error: getErrorMsg("Codul promoțional nu este valid pe dev local.", "Promo code invalid on local dev.", "Código promocional no válido en desarrollo local.") },
           { status: 400 }
         );
       }
@@ -63,7 +64,7 @@ export async function POST(req: NextRequest) {
 
     if (!promoSnap.exists) {
       return NextResponse.json(
-        { success: false, error: "Codul promoțional nu este valid." },
+        { success: false, error: getErrorMsg("Codul promoțional nu este valid.", "Invalid promo code.", "Código promocional inválido.") },
         { status: 400 }
       );
     }
@@ -71,7 +72,7 @@ export async function POST(req: NextRequest) {
     const promoData = promoSnap.data() || {};
     if (promoData.active !== true) {
       return NextResponse.json(
-        { success: false, error: "Codul promoțional a expirat sau este inactiv." },
+        { success: false, error: getErrorMsg("Codul promoțional a expirat sau este inactiv.", "Promo code expired or inactive.", "El código promocional ha expirado o está inactivo.") },
         { status: 400 }
       );
     }
@@ -83,14 +84,14 @@ export async function POST(req: NextRequest) {
 
     if (usedBy.includes(userId)) {
       return NextResponse.json(
-        { success: false, error: "Ai folosit deja acest cod promoțional pe acest cont." },
+        { success: false, error: getErrorMsg("Ai folosit deja acest cod promoțional pe acest cont.", "You have already used this promo code on this account.", "Ya has usado este código promocional en esta cuenta.") },
         { status: 400 }
       );
     }
 
     if (usageLimit !== null && usedBy.length >= usageLimit) {
       return NextResponse.json(
-        { success: false, error: "Acest cod promoțional a atins limita maximă de utilizări." },
+        { success: false, error: getErrorMsg("Acest cod promoțional a atins limita maximă de utilizări.", "This promo code has reached its maximum usage limit.", "Este código promocional ha alcanzado su límite máximo de uso.") },
         { status: 400 }
       );
     }
@@ -123,7 +124,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({
       success: true,
       tier: promoTier,
-      message: "Codul promoțional a fost aplicat cu succes!"
+      message: getErrorMsg("Codul promoțional a fost aplicat cu succes!", "Promo code applied successfully!", "¡Código promocional aplicado con éxito!")
     });
   } catch (error: any) {
     console.error("Error validating promo code:", error);

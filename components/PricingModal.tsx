@@ -78,7 +78,7 @@ export function PricingModal({ isOpen, onClose, onSuccess, onRequireLogin, userI
       const res = await fetch("/api/validate-promo", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ code: val, userId })
+        body: JSON.stringify({ code: val, userId, locale })
       });
 
       const data = await res.json();

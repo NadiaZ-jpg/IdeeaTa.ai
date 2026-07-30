@@ -22,12 +22,12 @@ export const EmailVerificationModal: React.FC<EmailVerificationModalProps> = ({ 
         </div>
 
         <div>
-          <h2 className="text-2xl font-black text-white mb-2">
+          <h2 key={`h2-${locale}`} className="text-2xl font-black text-white mb-2">
             {locale === "en" ? "Confirm your email address" 
              : locale === "es" ? "Confirma tu dirección de email" 
              : "Confirmă adresa de email"}
           </h2>
-          <p className="text-zinc-400">
+          <p key={`p-${locale}`} className="text-zinc-400">
             {locale === "en" 
               ? "To generate a free plan and receive the 3 Premium Edits, please confirm your email address by clicking the link sent to your Inbox."
               : locale === "es"
@@ -38,6 +38,7 @@ export const EmailVerificationModal: React.FC<EmailVerificationModalProps> = ({ 
 
         <div className="flex flex-col gap-3 mt-4">
           <button 
+            key={`btn1-${locale}`}
             type="button"
             onClick={() => {
               window.location.reload(); // Reincarca pentru a verifica starea noua
@@ -50,6 +51,7 @@ export const EmailVerificationModal: React.FC<EmailVerificationModalProps> = ({ 
           </button>
           
           <button 
+            key={`btn2-${locale}-${verificationSent}`}
             type="button"
             onClick={onResendVerification}
             disabled={verificationSent}
@@ -61,6 +63,7 @@ export const EmailVerificationModal: React.FC<EmailVerificationModalProps> = ({ 
           </button>
           
           <button 
+            key={`btn3-${locale}`}
             type="button"
             onClick={onClose}
             className="w-full text-zinc-500 hover:text-white font-medium py-2 transition-all mt-2"

@@ -27,10 +27,10 @@ export const AuthWallModal: React.FC<AuthWallModalProps> = ({ locale, onClose, o
           </button>
         </div>
         
-        <h3 className="text-2xl font-black text-white mb-3 relative z-10">
+        <h3 key={`title-${locale}`} className="text-2xl font-black text-white mb-3 relative z-10">
           {locale === "en" ? "Create a free account" : locale === "es" ? "Crea una cuenta gratis" : "Creează-ți un cont gratuit"}
         </h3>
-        <p className="text-zinc-400 mb-6 text-sm leading-relaxed relative z-10 font-sans">
+        <p key={`desc-${locale}`} className="text-zinc-400 mb-6 text-sm leading-relaxed relative z-10 font-sans">
           {locale === "en" 
             ? "Create a free account to use our advanced tools and customize your business plan."
             : locale === "es"
@@ -43,11 +43,12 @@ export const AuthWallModal: React.FC<AuthWallModalProps> = ({ locale, onClose, o
           onClick={onLoginClick}
           className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 px-4 rounded-xl transition-all shadow-lg shadow-emerald-900/30 flex items-center justify-center gap-2"
         >
-          <span>{locale === "en" ? "Login / Register" : locale === "es" ? "Iniciar sesión / Registrarse" : "Conectare / Înregistrare"}</span>
+          <span key={`btn-${locale}`}>{locale === "en" ? "Login / Register" : locale === "es" ? "Iniciar sesión / Registrarse" : "Conectare / Înregistrare"}</span>
           <span>➔</span>
         </button>
         
         <button
+          key={`later-${locale}`}
           type="button"
           onClick={onClose}
           className="mt-3 w-full bg-zinc-800/80 hover:bg-zinc-800 text-zinc-400 hover:text-white font-bold py-3 px-4 rounded-xl transition-all text-sm"

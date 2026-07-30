@@ -141,6 +141,12 @@ export function VersionHistoryDropdown({
                       ? ui.euFundsOptimized
                       : vKey === "investor"
                       ? ui.investorsPlan
+                      : vKey === "ton_edit"
+                      ? `🪄 ${ui.versionTone}`
+                      : vKey === "budget_edit"
+                      ? `📉 ${ui.versionBudget}`
+                      : vKey === "expert_sections"
+                      ? `🏛️ ${ui.versionExpert}`
                       : `📑 ${vKey}`}
                   </span>
                   {activeVersionId === vKey && <span className="text-emerald-400 text-xs">✓</span>}

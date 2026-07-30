@@ -326,10 +326,7 @@ export default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" | 
           const vKey = 
             action === "eu_funds_optimization" ? "eu_funds" :
             action === "investor_ready" ? "investor" :
-            action === "professional_tone" ? "ton_edit" :
-            action === "optimize_budget" ? "budget_edit" :
-            action === "add_sections" ? "expert_sections" :
-            "custom";
+            activeVersionId;
           
           const formattedResult = formatObjectNumbers(parsed);
           

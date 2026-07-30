@@ -17,8 +17,9 @@ import { generatePptx } from '@/lib/generatePptx';
 import { useStudioFirebaseSync } from '@/hooks/useStudioFirebaseSync';
 import { t } from '@/lib/translations';
 import { UI_STRINGS } from '@/lib/uiStrings';
+import { formatPriceLocalized } from '@/lib/priceHelper';
 import { getExamples } from '@/lib/examples';
-import { Mail } from 'lucide-react';
+
 import { formatObjectNumbers, formatNumberedText } from "@/lib/utils";
 import { EXPERT_TEMPLATES, ExpertTemplate } from '@/lib/templatesData';
 import { AuthWallModal } from '@/components/modals/AuthWallModal';
@@ -1024,17 +1025,6 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
     }
   };
 
-  const formatPrice = (priceText: any) => {
-    if (!priceText) return "";
-    const numericValue = parseInt(priceText.toString().replace(/[^0-9]/g, ""));
-    if (isNaN(numericValue)) return priceText;
-
-    if (currency === "EUR") {
-      const eurValue = Math.round(numericValue * fxRate);
-      return `${eurValue} EUR`;
-    }
-    return `${numericValue.toLocaleString('ro-RO')} LEI`;
-  };
 
   const resetApp = () => {
     if (!user) {
@@ -1371,7 +1361,7 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
         {user && (
           <div className="w-full flex justify-between items-start sm:items-center py-2 border-b border-zinc-800/80 mb-3 print:hidden">
             <div className="flex flex-col gap-2">
-              <span className="text-zinc-500 text-xs font-semibold">Proiectul tău de afaceri inteligent</span>
+              <span className="text-zinc-500 text-xs font-semibold">{ui.studioHeaderSubtitle}</span>
               <button 
                 type="button"
                 onClick={() => setShowBmcModal(true)}
@@ -1402,7 +1392,7 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
                 </span>
               ) : (
                 <span className="bg-zinc-800 border border-zinc-700 text-zinc-300 px-2 py-0.5 rounded-full font-bold">
-                  PREVIZUALIZARE
+                  {ui.badgePreviewOnly}
                 </span>
               )}
               <a 
@@ -2364,7 +2354,7 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
               ui={ui}
               locale={locale}
               currency={currency}
-              formatPrice={formatPrice}
+              formatPrice={(val: any) => formatPriceLocalized(val, locale, currency, fxRate)}
               formatNumberedText={formatNumberedText}
               isContentCopyProtected={isContentCopyProtected}
               handleContextMenu={handleContextMenu}
@@ -2381,7 +2371,7 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
           ui={ui}
           locale={locale}
           currency={currency}
-          formatPrice={formatPrice}
+          formatPrice={(val: any) => formatPriceLocalized(val, locale, currency, fxRate)}
           truncateText={truncateText}
           splitTextIntoSlides={splitTextIntoSlides}
           formatNumberedText={formatNumberedText}
@@ -2408,7 +2398,7 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
               ui={ui} 
               locale={locale} 
               currency={currency} 
-              formatPrice={formatPrice} 
+              formatPrice={(val: any) => formatPriceLocalized(val, locale, currency, fxRate)} 
               truncateText={truncateText} 
               splitTextIntoSlides={splitTextIntoSlides} 
               formatNumberedText={formatNumberedText} 

@@ -76,7 +76,7 @@ export function StudioPresentationSlides({
                       <div className="grid grid-cols-2 gap-x-12 gap-y-6 flex-1">
                         {result.analiza_swot?.puncte_tari?.slice(0, 8).map((item: any, idx: number) => (
                           <div key={idx} className="flex flex-col gap-2">
-                            <h4 className="text-2xl font-bold text-emerald-400 leading-snug">✦ {item.titlu || item}</h4>
+                            <h4 className="text-2xl font-bold text-emerald-400 leading-snug">✦ {item.titlu || (typeof item === 'string' ? item : Object.values(item)[0])}</h4>
                             <p className="text-lg text-zinc-300 leading-relaxed max-w-lg text-left">{item.explicatie_tehnica}</p>
                           </div>
                         ))}
@@ -95,7 +95,7 @@ export function StudioPresentationSlides({
                       <div className="grid grid-cols-2 gap-x-12 gap-y-6 flex-1">
                         {result.analiza_swot?.puncte_slabe?.slice(0, 8).map((item: any, idx: number) => (
                           <div key={idx} className="flex flex-col gap-2">
-                            <h4 className="text-2xl font-bold text-[#ff4d6d] leading-snug">✦ {item.titlu || item}</h4>
+                            <h4 className="text-2xl font-bold text-[#ff4d6d] leading-snug">✦ {item.titlu || (typeof item === 'string' ? item : Object.values(item)[0])}</h4>
                             <p className="text-lg text-zinc-300 leading-relaxed max-w-lg">{item.explicatie_tehnica}</p>
                           </div>
                         ))}
@@ -114,7 +114,7 @@ export function StudioPresentationSlides({
                       <div className="grid grid-cols-2 gap-x-12 gap-y-6 flex-1">
                         {result.analiza_swot?.oportunitati?.slice(0, 8).map((item: any, idx: number) => (
                           <div key={idx} className="flex flex-col gap-2">
-                            <h4 className="text-2xl font-bold text-blue-400 leading-snug">✦ {item.titlu || item}</h4>
+                            <h4 className="text-2xl font-bold text-blue-400 leading-snug">✦ {item.titlu || (typeof item === 'string' ? item : Object.values(item)[0])}</h4>
                             <p className="text-lg text-zinc-300 leading-relaxed max-w-lg text-left">{item.explicatie_tehnica}</p>
                           </div>
                         ))}
@@ -133,7 +133,7 @@ export function StudioPresentationSlides({
                       <div className="grid grid-cols-2 gap-x-12 gap-y-6 flex-1">
                         {result.analiza_swot?.amenintari?.slice(0, 8).map((item: any, idx: number) => (
                           <div key={idx} className="flex flex-col gap-2">
-                            <h4 className="text-2xl font-bold text-orange-400 leading-snug">✦ {item.titlu || item}</h4>
+                            <h4 className="text-2xl font-bold text-orange-400 leading-snug">✦ {item.titlu || (typeof item === 'string' ? item : Object.values(item)[0])}</h4>
                             <p className="text-lg text-zinc-300 leading-relaxed max-w-lg text-left">{item.explicatie_tehnica}</p>
                           </div>
                         ))}
@@ -206,7 +206,7 @@ export function StudioPresentationSlides({
                   <div className="presentation-slide w-[1280px] h-[720px] bg-[#09090b] flex flex-col p-24 border-[12px] border-zinc-900 box-border relative">
                     <div className="flex items-center gap-6 mb-12 shrink-0">
                       <div className="w-16 h-2 bg-emerald-500"></div>
-                      <h2 className="text-5xl font-black font-sans uppercase tracking-widest text-emerald-400">Distribuția Costurilor</h2>
+                      <h2 className="text-5xl font-black font-sans uppercase tracking-widest text-emerald-400">{ui.costDistribution}</h2>
                     </div>
                     <div className="flex-1 w-full bg-zinc-900/50 p-8 rounded-3xl border border-zinc-800">
                         <BudgetPieChart budget={result.plan_financiar?.buget_investitii} currency={currency} locale={locale} />

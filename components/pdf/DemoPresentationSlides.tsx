@@ -76,7 +76,7 @@ export function DemoPresentationSlides({
                       <div className="grid grid-cols-2 gap-x-12 gap-y-6 flex-1">
                         {result.analiza_swot?.puncte_tari?.slice(0, 8).map((item: any, idx: number) => (
                           <div key={idx} className="flex flex-col gap-2">
-                            <h4 className="text-2xl font-bold text-emerald-400 leading-snug">✦ {item.titlu || item}</h4>
+                            <h4 className="text-2xl font-bold text-emerald-400 leading-snug">✦ {item.titlu || (typeof item === 'string' ? item : Object.values(item)[0])}</h4>
                             <p className="text-lg text-zinc-300 leading-relaxed max-w-lg text-left">{item.explicatie_tehnica}</p>
                           </div>
                         ))}
@@ -95,7 +95,7 @@ export function DemoPresentationSlides({
                       <div className="grid grid-cols-2 gap-x-12 gap-y-6 flex-1">
                         {result.analiza_swot?.puncte_slabe?.slice(0, 8).map((item: any, idx: number) => (
                           <div key={idx} className="flex flex-col gap-2">
-                            <h4 className="text-2xl font-bold text-[#ff4d6d] leading-snug">✦ {item.titlu || item}</h4>
+                            <h4 className="text-2xl font-bold text-[#ff4d6d] leading-snug">✦ {item.titlu || (typeof item === 'string' ? item : Object.values(item)[0])}</h4>
                             <p className="text-lg text-zinc-300 leading-relaxed max-w-lg">{item.explicatie_tehnica}</p>
                           </div>
                         ))}
@@ -114,7 +114,7 @@ export function DemoPresentationSlides({
                       <div className="grid grid-cols-2 gap-x-12 gap-y-6 flex-1">
                         {result.analiza_swot?.oportunitati?.slice(0, 8).map((item: any, idx: number) => (
                           <div key={idx} className="flex flex-col gap-2">
-                            <h4 className="text-2xl font-bold text-blue-400 leading-snug">✦ {item.titlu || item}</h4>
+                            <h4 className="text-2xl font-bold text-blue-400 leading-snug">✦ {item.titlu || (typeof item === 'string' ? item : Object.values(item)[0])}</h4>
                             <p className="text-lg text-zinc-300 leading-relaxed max-w-lg text-left">{item.explicatie_tehnica}</p>
                           </div>
                         ))}
@@ -133,7 +133,7 @@ export function DemoPresentationSlides({
                       <div className="grid grid-cols-2 gap-x-12 gap-y-6 flex-1">
                         {result.analiza_swot?.amenintari?.slice(0, 8).map((item: any, idx: number) => (
                           <div key={idx} className="flex flex-col gap-2">
-                            <h4 className="text-2xl font-bold text-orange-400 leading-snug">✦ {item.titlu || item}</h4>
+                            <h4 className="text-2xl font-bold text-orange-400 leading-snug">✦ {item.titlu || (typeof item === 'string' ? item : Object.values(item)[0])}</h4>
                             <p className="text-lg text-zinc-300 leading-relaxed max-w-lg text-left">{item.explicatie_tehnica}</p>
                           </div>
                         ))}

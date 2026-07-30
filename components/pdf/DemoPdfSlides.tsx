@@ -86,7 +86,7 @@ export function DemoPdfSlides({ result, ui, locale, currency, formatPrice, trunc
           <div className="grid grid-cols-2 gap-x-12 gap-y-6 overflow-hidden content-start flex-1">
             {result.analiza_swot?.puncte_tari?.slice(0, 8).map((item: any, idx: number) => (
               <div key={idx} className="flex flex-col gap-2">
-                <h4 className="text-lg font-bold text-emerald-700 leading-snug">✦ {item.titlu || item}</h4>
+                <h4 className="text-lg font-bold text-emerald-700 leading-snug">✦ {item.titlu || (typeof item === 'string' ? item : Object.values(item)[0])}</h4>
                 <p className="text-lg text-gray-600 leading-relaxed max-w-lg text-left">{item.explicatie_tehnica}</p>
               </div>
             ))}
@@ -105,7 +105,7 @@ export function DemoPdfSlides({ result, ui, locale, currency, formatPrice, trunc
           <div className="grid grid-cols-2 gap-x-12 gap-y-6 overflow-hidden content-start flex-1">
             {result.analiza_swot?.puncte_slabe?.slice(0, 8).map((item: any, idx: number) => (
               <div key={idx} className="flex flex-col gap-2">
-                <h4 className="text-lg font-bold text-[#ff4d6d] leading-snug">✦ {item.titlu || item}</h4>
+                <h4 className="text-lg font-bold text-[#ff4d6d] leading-snug">✦ {item.titlu || (typeof item === 'string' ? item : Object.values(item)[0])}</h4>
                 <p className="text-lg text-gray-600 leading-relaxed max-w-lg text-left">{item.explicatie_tehnica}</p>
               </div>
             ))}
@@ -124,7 +124,7 @@ export function DemoPdfSlides({ result, ui, locale, currency, formatPrice, trunc
           <div className="grid grid-cols-2 gap-x-12 gap-y-6 overflow-hidden content-start flex-1">
             {result.analiza_swot?.oportunitati?.slice(0, 8).map((item: any, idx: number) => (
               <div key={idx} className="flex flex-col gap-2">
-                <h4 className="text-lg font-bold text-blue-600 leading-snug">✦ {item.titlu || item}</h4>
+                <h4 className="text-lg font-bold text-blue-600 leading-snug">✦ {item.titlu || (typeof item === 'string' ? item : Object.values(item)[0])}</h4>
                 <p className="text-lg text-gray-600 leading-relaxed max-w-lg text-left">{item.explicatie_tehnica}</p>
               </div>
             ))}
@@ -143,7 +143,7 @@ export function DemoPdfSlides({ result, ui, locale, currency, formatPrice, trunc
           <div className="grid grid-cols-2 gap-x-12 gap-y-6 overflow-hidden content-start flex-1">
             {result.analiza_swot?.amenintari?.slice(0, 8).map((item: any, idx: number) => (
               <div key={idx} className="flex flex-col gap-2">
-                <h4 className="text-lg font-bold text-orange-600 leading-snug">✦ {item.titlu || item}</h4>
+                <h4 className="text-lg font-bold text-orange-600 leading-snug">✦ {item.titlu || (typeof item === 'string' ? item : Object.values(item)[0])}</h4>
                 <p className="text-lg text-gray-600 leading-relaxed max-w-lg text-left">{item.explicatie_tehnica}</p>
               </div>
             ))}
@@ -268,7 +268,7 @@ export function DemoPdfSlides({ result, ui, locale, currency, formatPrice, trunc
 
       {/* CTA Slide (For PDF Summary) */}
       <div className="pdf-cta-slide w-[1280px] h-[720px] bg-emerald-950 flex flex-col justify-center items-center p-24 border-[12px] border-emerald-900 box-border relative text-center">
-        <h2 className="text-6xl font-black text-white mb-8">Acesta a fost doar un scurt rezumat.</h2>
+        <h2 className="text-6xl font-black text-white mb-8">{ui.paywallTitle}</h2>
         <p className="text-lg text-emerald-200 mb-12 max-w-4xl leading-relaxed">
           Pentru a obține <strong>Analiza SWOT detaliată, Bugetul de investiții, Strategia de Piață completă și Planul Operațional</strong>, creează-ți un cont gratuit!
         </p>

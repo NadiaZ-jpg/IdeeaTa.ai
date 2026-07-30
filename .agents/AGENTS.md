@@ -184,6 +184,15 @@ Orice agent care primește o instrucțiune ambiguă trebuie să CEARĂ CONFIRMAR
   - Faza 2: eliminat devBypass din toate cele 4 ecrane, localizat modal e-mail și placeholders, buton dedicat promo pe mobil, confirmări inline în Dashboard, protecții hydration în dispatchere pentru a opri flash-ul visual, unificat formatObjectNumbers centralizat.
 - Proiect compilat local cu succes: ✅ `✓ Compiled successfully in 19.2s` (44/44 pagini statice generate).
 
+### Checkpoint-30-Iulie-2026-Remediere-Traduceri-Si-Crash-EditForm
+- Implementat logica centralizată de prețuri în `lib/priceHelper.ts` și eliminat funcțiile redundante din componente.
+- Actualizat `lib/uiStrings.ts` cu chei pentru paywall, subtitluri și exporturi, aplicate în DemoDesktop, StudioDesktop și PDF-uri.
+- Ascuns complet toggle-ul de valută pentru limbile internaționale (EN/ES rulează strict pe Euro), păstrând conversia doar pe RO.
+- Injectat funcția de protecție `safeString` în `EditForm.tsx` pentru a curăța output-ul AI (obiecte vs string-uri) și a preveni blocajele / crash-urile React (Eroarea #31).
+- Curățat documentele PDF (StudioPdfSlides, StudioPresentationSlides) de string-uri hardcodate în română (ex. "Distribuția Costurilor").
+- Proiect compilat local cu succes: ✅ `✓ Compiled successfully in 6.4s` (44/44 pagini statice generate).
+
+
 
 
 

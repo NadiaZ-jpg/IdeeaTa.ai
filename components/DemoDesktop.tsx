@@ -20,6 +20,7 @@ import { migrateLocalPlansToFirebase } from '@/lib/migrationManager';
 import { getExamples } from '@/lib/examples';
 import { t } from '@/lib/translations';
 import { UI_STRINGS } from '@/lib/uiStrings';
+import { formatPriceLocalized } from '@/lib/priceHelper';
 import { formatObjectNumbers, formatNumberedText } from "@/lib/utils";
 import { EXPERT_TEMPLATES, ExpertTemplate } from '@/lib/templatesData';
 import { StudioExportModal } from '@/components/modals/StudioExportModal';
@@ -1020,17 +1021,6 @@ export default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" | 
     }
   };
 
-  const formatPrice = (priceText: any) => {
-    if (!priceText) return "";
-    const numericValue = parseInt(priceText.toString().replace(/[^0-9]/g, ""));
-    if (isNaN(numericValue)) return priceText;
-
-    if (currency === "EUR") {
-      const eurValue = Math.round(numericValue * fxRate);
-      return `${eurValue} EUR`;
-    }
-    return `${numericValue.toLocaleString('ro-RO')} LEI`;
-  };
 
   const resetApp = () => {
     setResult(null);
@@ -1149,7 +1139,7 @@ export default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" | 
           // Stamp footer on every page
           pdf.setTextColor(150, 150, 150); // Gray color
           pdf.setFontSize(14);
-          pdf.text("Plan generat inteligent de IdeeaTa.ai", 640, 700, { align: 'center' });
+          pdf.text(ui.planGeneratedSmartly, 640, 700, { align: 'center' });
           
           // Add invisible link covering the footer area on every page
           pdf.link(300, 680, 680, 40, { url: pdfUrl });
@@ -2316,7 +2306,7 @@ export default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" | 
               ui={ui}
               locale={locale}
               currency={currency}
-              formatPrice={formatPrice}
+              formatPrice={(val: any) => formatPriceLocalized(val, locale, currency, fxRate)}
               formatNumberedText={formatNumberedText}
               isContentCopyProtected={isContentCopyProtected}
               handleContextMenu={handleContextMenu}
@@ -2333,7 +2323,7 @@ export default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" | 
           ui={ui}
           locale={locale}
           currency={currency}
-          formatPrice={formatPrice}
+          formatPrice={(val: any) => formatPriceLocalized(val, locale, currency, fxRate)}
           truncateText={truncateText}
           splitTextIntoSlides={splitTextIntoSlides}
           formatNumberedText={formatNumberedText}
@@ -2360,7 +2350,7 @@ export default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" | 
               ui={ui} 
               locale={locale} 
               currency={currency} 
-              formatPrice={formatPrice} 
+              formatPrice={(val: any) => formatPriceLocalized(val, locale, currency, fxRate)} 
               truncateText={truncateText} 
               splitTextIntoSlides={splitTextIntoSlides} 
               formatNumberedText={formatNumberedText} 

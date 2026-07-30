@@ -94,7 +94,7 @@ Return the result strictly as a valid JSON object with the following structure:
   }
 }
 Include at least 6-8 budgeted items (must include green tech and software/digitalization).
-CRITICAL: The entire generated content (including item names, slogans, CAEN explanations, SWOT titles, etc.) MUST be strictly in English. Even if the user provided the idea or skill in Romanian or Spanish, translate it and write the plan in English. Do not write any Romanian words.
+CRITICAL PENALTY AVOIDANCE: The entire generated content (including item names, slogans, CAEN explanations, detailed SWOT technical explanations, etc.) MUST be strictly in English. Even if the user provided the idea or skill in colloquial Romanian, you MUST completely translate and explain everything in English. Do NOT write any Romanian words. Failure to do so will break the application.
 Do not include any other text besides the JSON block. Do not format with markdown block quotes (\`\`\`json) if possible, but if you do, it will be stripped out.
 `;
     } else if (locale === "es") {
@@ -140,7 +140,7 @@ Return the result strictly as a valid JSON object with the following structure:
   }
 }
 Include at least 6-8 budgeted items (must include green tech and software/digitalization).
-CRITICAL: The entire generated content (including item names, slogans, CAEN explanations, SWOT titles, etc.) MUST be strictly in Spanish. Even if the user provided the idea or skill in Romanian or English, translate it and write the plan in Spanish. Do not write any Romanian or English words.
+CRITICAL PENALTY AVOIDANCE: The entire generated content (including item names, slogans, CAEN explanations, detailed SWOT technical explanations, etc.) MUST be strictly in Spanish. Even if the user provided the idea or skill in colloquial Romanian, you MUST completely translate and explain everything in Spanish. Do NOT write any Romanian words. Failure to do so will break the application.
 Do not include any other text besides the JSON block. Do not format with markdown block quotes (\`\`\`json) if possible, but if you do, it will be stripped out.
 `;
     } else {

@@ -31,6 +31,7 @@ import { DemoLeftSidebar } from "@/components/sidebars/DemoLeftSidebar";
 import { DemoBrochurePreview } from "@/components/pdf/DemoBrochurePreview";
 import { DemoPresentationSlides } from "@/components/pdf/DemoPresentationSlides";
 import { truncateText, splitTextIntoSlides, getDynamicTextSize } from '@/lib/planHelpers';
+import { useUIState } from '@/hooks/useUIState';
 
 const BudgetPieChart = dynamic(() => import('@/components/BudgetChart').then(mod => mod.BudgetPieChart), { ssr: false });
 
@@ -110,22 +111,27 @@ export default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" | 
     }
   }, [activeAiPrompt]);
   const [isPaid, setIsPaid] = useState(false);
-  const [showPaywall, setShowPaywall] = useState(false);
   const [isPaying, setIsPaying] = useState(false);
-  const [showPricingModal, setShowPricingModal] = useState(false);
-  const [showAuthModal, setShowAuthModal] = useState(false);
-  const [showExpertDrawer, setShowExpertDrawer] = useState(false);
   const [pendingDownloadMode, setPendingDownloadMode] = useState<"PDF" | "DOCX" | "PPTX" | null>(null);
   const [credits, setCredits] = useState(0);
   const [euFundsUnlocked, setEuFundsUnlocked] = useState(false);
   const [subscriptionActive, setSubscriptionActive] = useState(false);
   const [unlockedPlans, setUnlockedPlans] = useState<string[]>([]);
-  const [showQrModal, setShowQrModal] = useState(false);
-  const [showBmcModal, setShowBmcModal] = useState(false);
   const [aiEditError, setAiEditError] = useState<string | null>(null);
   const [lastEditParams, setLastEditParams] = useState<{action: string, customStyle?: string, customInput?: string} | null>(null);
   const [isSharedView, setIsSharedView] = useState(false);
   const [isCheckingShared, setIsCheckingShared] = useState(true);
+
+  // UI State (modale, dropdown-uri) — gestionate centralizat în useUIState
+  const {
+    showPricingModal, setShowPricingModal,
+    showQrModal, setShowQrModal,
+    showBmcModal, setShowBmcModal,
+    showAuthModal, setShowAuthModal,
+    showPaywall, setShowPaywall,
+    showExpertDrawer, setShowExpertDrawer,
+    showStudioExportModal, setShowStudioExportModal,
+  } = useUIState();
 
   const usedIdeasRef = useRef<number[]>([]);
   const [animatedPlaceholder, setAnimatedPlaceholder] = useState("");
@@ -226,7 +232,7 @@ export default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" | 
     }
   };
 
-  const [showStudioExportModal, setShowStudioExportModal] = useState(false);
+
 
   const handleAiEdit = async (action: string, customStyle?: string, customInput?: string, isRetry?: boolean) => {
     if (isEditingAi) return;

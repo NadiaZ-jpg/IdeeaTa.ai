@@ -30,6 +30,7 @@ import { StudioLeftSidebar } from "@/components/sidebars/StudioLeftSidebar";
 import { StudioBrochurePreview } from "@/components/pdf/StudioBrochurePreview";
 import { StudioPresentationSlides } from "@/components/pdf/StudioPresentationSlides";
 import { truncateText, splitTextIntoSlides, getDynamicTextSize } from '@/lib/planHelpers';
+import { useUIState } from '@/hooks/useUIState';
 const BudgetPieChart = dynamic(() => import('@/components/BudgetChart').then(mod => mod.BudgetPieChart), { ssr: false });
 
 export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" | "es" }) {
@@ -101,25 +102,29 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
     }
   }, [activeAiPrompt]);
   const [isPaid, setIsPaid] = useState(false);
-  const [showPaywall, setShowPaywall] = useState(false);
   const [isPaying, setIsPaying] = useState(false);
   const [pendingDownloadMode, setPendingDownloadMode] = useState<'pdf' | 'pptx' | 'word' | null>(null);
   const [credits, setCredits] = useState(0);
   const [euFundsUnlocked, setEuFundsUnlocked] = useState(false);
   const [subscriptionActive, setSubscriptionActive] = useState(false);
   const [unlockedPlans, setUnlockedPlans] = useState<string[]>([]);
-  const [showPricingModal, setShowPricingModal] = useState(false);
-  const [showQrModal, setShowQrModal] = useState(false);
-  const [showBmcModal, setShowBmcModal] = useState(false);
   const [aiEditError, setAiEditError] = useState<string | null>(null);
   const [lastEditParams, setLastEditParams] = useState<{action: string, customStyle?: string, customInput?: string} | null>(null);
   const [isSharedView, setIsSharedView] = useState(false);
   const [isCheckingShared, setIsCheckingShared] = useState(true);
-  const [showExpertDrawer, setShowExpertDrawer] = useState(false);
-  const [showVersionDropdown, setShowVersionDropdown] = useState(false);
-  const [showAuthModal, setShowAuthModal] = useState(false);
-  const [showVerificationModal, setShowVerificationModal] = useState(false);
-  const [verificationSent, setVerificationSent] = useState(false);
+
+  // UI State (modale, dropdown-uri, tab-uri) — gestionate centralizat în useUIState
+  const {
+    showPricingModal, setShowPricingModal,
+    showQrModal, setShowQrModal,
+    showBmcModal, setShowBmcModal,
+    showAuthModal, setShowAuthModal,
+    showPaywall, setShowPaywall,
+    showExpertDrawer, setShowExpertDrawer,
+    showVerificationModal, setShowVerificationModal,
+    verificationSent, setVerificationSent,
+    showVersionDropdown, setShowVersionDropdown,
+  } = useUIState();
 
   const syncCurrentPlanToFirestore = async (updatedResult: any, updatedVersions?: any) => {
     const auth = getAuth();

@@ -64,6 +64,23 @@ type UIStringsShape = {
   // MISC
   currencyNotice: string; shareBtn: string; shareCopied: string;
   printBtn: string; resetBtn: string; newPlan: string; confirmUnlockPlan: string;
+  placeholdersArray: string[]; paymentConfirmedEU: string; loadingMessagesArray: string[];
+  routes: { login: string; dashboard: string; demoNew: string };
+  copyingDisabled: string; investmentBudget: string; estimatedTotal: string; additionalSection: string; part: string;
+  strategicObjectives: string; marketCompetition: string; promotion: string; businessPlan: string; yourBusiness: string;
+  alertUnlimitedPro: string; rewriteTone: string; toneProfessional: string; toneCreative: string; tonePersuasive: string; toneFriendly: string;
+  euGrantsOpt: string; optimizedForEUGrants: string; optimizeBudget: string; optimizeBudgetPlaceholder: string; expertSectionLibrary: string;
+  modules30: string; confirm: string; apply: string; cancel: string; contentProtected: string; animatedPlaceholder: string;
+  inspireMeSparkles: string; businessExamplesSparkles: string; afterSparkles: string; swotFull: string; budget12m: string;
+  marketStrategy: string; euFundsEligibility: string; exportPdfPptx: string; editingStudio: string; cancelCross: string;
+  confirmSaveCheck: string; anotherIdea: string; directEditing: string; allTools: string; grantOpt: string;
+  downloadingAlt: string; downloadFreeSummaryBtn: string; presentationBtn: string; brochureBtn: string; documentBtn: string;
+  unlockDownloads: string; standardPackageBtn: string; pdfPresentation: string; pptxBrochure: string; wordDocument: string;
+  originalVersion: string; euFundsOptimized: string; investorsPlan: string; versionHistory: string; savedVersions: string;
+  objectives1y: string; objectives3y: string; missionValues: string; targetCustomers: string; competition: string;
+  marketingStrategy: string; swotTitle: string; strengths: string; weaknesses: string; opportunities: string; threats: string;
+  operationalPlan: string; workflowDesc: string; humanResources: string; locationFacilities: string;
+  optimizeBudgetCustom: string; editorTip: string;
 };
 
 export const UI_STRINGS: Record<Locale, UIStringsShape> = {
@@ -149,6 +166,33 @@ export const UI_STRINGS: Record<Locale, UIStringsShape> = {
     shareBtn: "Partajeaza", shareCopied: "Link copiat!", printBtn: "Printeaza",
     resetBtn: "Plan Nou", newPlan: "Plan Nou",
     confirmUnlockPlan: "Folosesti 1 credit pentru a debloca descarcarea completa a planului",
+    placeholdersArray: ["Consultanță Securitate Cibernetică...", "Studio de Design Interior...", "Fermă Urbană de Microplante...", "Dezvoltare Soluții...", "Cafenea de Specialitate...", "Platformă de Cursuri Online...", "Spălătorie Auto Ecologică..."],
+    paymentConfirmedEU: "Plată confirmată! Planul \"{plan}\" a fost deblocat pentru descărcare.",
+    loadingMessagesArray: ["Se analizează ideea...", "Se structurează capitolele...", "Se generează previziunile financiare...", "Se definitivează detaliile..."],
+    routes: { login: "/login", dashboard: "/dashboard", demoNew: "/demo?start=nou" },
+    copyingDisabled: "Copierea textului este dezactivată în varianta Demo. Apasă pe 🎁 DESCARCĂ SUMAR GRATUIT pentru a obține planul.",
+    investmentBudget: "Buget Investiții", estimatedTotal: "Total Estimat:", additionalSection: "Secțiune Adițională", part: "Partea",
+    strategicObjectives: "Obiective Strategice", marketCompetition: "Piața și Concurența", promotion: "Promovare", businessPlan: "Plan de Afaceri", yourBusiness: "Compania Ta",
+    alertUnlimitedPro: "Plată confirmată! Abonamentul tău Pro Nelimitat a fost activat.",
+    rewriteTone: "Rescrie tonul", toneProfessional: "💼 Profesional & Corporativ", toneCreative: "🎨 Entuziast & Creativ", tonePersuasive: "📈 Persuasiv & Vânzări", toneFriendly: "🤝 Prietenos & Casual",
+    euGrantsOpt: "Optimizare Fonduri Europene", optimizedForEUGrants: "Optimizat pentru Fonduri Europene",
+    optimizeBudget: "Optimizează Bugetul", optimizeBudgetPlaceholder: "ex: 10, 20, 30", expertSectionLibrary: "Librăria de Secțiuni Experte",
+    modules30: "30+ MODULE", confirm: "Confirmă", apply: "Aplică", cancel: "Anulează",
+    contentProtected: "Conținutul este protejat. Pentru a obține documentul, utilizați funcția de descărcare din aplicație.",
+    animatedPlaceholder: "Crează un plan pentru... (ex: Consultanță securitate)",
+    inspireMeSparkles: "✨ Inspiră-mă", businessExamplesSparkles: "💡 Exemple de Afaceri", afterSparkles: "După ✨",
+    swotFull: "📊 Analiză SWOT completă", budget12m: "💰 Buget detaliat pe 12 luni", marketStrategy: "🎯 Strategie de piață",
+    euFundsEligibility: "🇪🇺 Eligibilitate fonduri UE", exportPdfPptx: "📄 Export PDF + PPTX",
+    editingStudio: "Studio Editare", cancelCross: "❌ Anulează", confirmSaveCheck: "✅ Confirmă și Salvează",
+    anotherIdea: "🔄 Altă idee", directEditing: "Editare directă în browser", allTools: "Toate instrumentele incluse", grantOpt: "Optimizare fonduri europene 🇪🇺",
+    downloadingAlt: "Se descarcă...", downloadFreeSummaryBtn: "🎁 DESCARCĂ SUMAR GRATUIT", presentationBtn: "⬇ Prezentare", brochureBtn: "⬇ Broșură", documentBtn: "⬇ Document",
+    unlockDownloads: "Deblochează Descărcările Complete (Pachet Standard)", standardPackageBtn: "Pachet Standard", pdfPresentation: "Prezentare PDF", pptxBrochure: "Broșură PPTX", wordDocument: "Document Word",
+    originalVersion: "📝 Varianta Originală", euFundsOptimized: "🇪🇺 Optimizat Fonduri UE", investorsPlan: "🏦 Plan Investitori", versionHistory: "Istoric Versiuni", savedVersions: "Versiuni Salvate",
+    objectives1y: "Obiective (1 an)", objectives3y: "Obiective (3-5 ani)", missionValues: "Misiune și Valori", targetCustomers: "Clienții Țintă", competition: "Concurența",
+    marketingStrategy: "Strategia de Marketing", swotTitle: "Analiză Strategica SWOT", strengths: "Puncte Tari", weaknesses: "Slăbiciuni", opportunities: "Oportunități", threats: "Amenințări",
+    operationalPlan: "Planul Operațional", workflowDesc: "1. Descriere Flux (Sustenabilitate / Verde)", humanResources: "2. Resurse Umane", locationFacilities: "3. Locație și Dotări",
+    optimizeBudgetCustom: "Optimizează Bugetul (Personalizat)",
+    editorTip: "<strong>Sfat:</strong> Aici editezi textul documentului. Pentru a adăuga <strong class='text-white'>imagini</strong>, logo sau a schimba aranjarea în pagină, apasă <em>Confirmă și Salvează</em>, apoi descarcă documentele.",
   },
   en: {
     pricing: "Pricing", logOut: "Log Out", logIn: "Log In", tryFree: "Try Free",
@@ -232,6 +276,33 @@ export const UI_STRINGS: Record<Locale, UIStringsShape> = {
     shareBtn: "Share", shareCopied: "Link copied!", printBtn: "Print",
     resetBtn: "New Plan", newPlan: "New Plan",
     confirmUnlockPlan: "You will use 1 credit to unlock the full download of this plan",
+    placeholdersArray: ["Cybersecurity Consulting...", "Interior Design Studio...", "Urban Microgreens Farm...", "Software Development...", "Specialty Coffee Shop...", "Online Courses Platform...", "Eco Car Wash..."],
+    paymentConfirmedEU: "Payment confirmed! The plan \"{plan}\" has been unlocked for download.",
+    loadingMessagesArray: ["Analyzing idea...", "Structuring chapters...", "Generating financial forecasts...", "Finalizing details..."],
+    routes: { login: "/en/login", dashboard: "/en/dashboard", demoNew: "/en/demo?start=nou" },
+    copyingDisabled: "Copying text is disabled in the Demo version. Click on 🎁 DOWNLOAD FREE SUMMARY to get the plan.",
+    investmentBudget: "Investment Budget", estimatedTotal: "Estimated Total:", additionalSection: "Additional Section", part: "Part",
+    strategicObjectives: "Strategic Objectives", marketCompetition: "Market & Competition", promotion: "Promotion", businessPlan: "Business Plan", yourBusiness: "Your Business",
+    alertUnlimitedPro: "Payment confirmed! Your Unlimited Pro subscription has been activated.",
+    rewriteTone: "Rewrite tone", toneProfessional: "💼 Professional & Corporate", toneCreative: "🎨 Enthusiastic & Creative", tonePersuasive: "📈 Persuasive & Sales", toneFriendly: "🤝 Friendly & Casual",
+    euGrantsOpt: "EU Grants Optimization", optimizedForEUGrants: "Optimized for EU Grants",
+    optimizeBudget: "Optimize Budget", optimizeBudgetPlaceholder: "e.g. 10, 20, 30", expertSectionLibrary: "Expert Section Library",
+    modules30: "30+ MODULES", confirm: "Confirm", apply: "Apply", cancel: "Cancel",
+    contentProtected: "Content is protected. To obtain the document, use the download function inside the application.",
+    animatedPlaceholder: "Create a plan for... (e.g. Cybersecurity consulting)",
+    inspireMeSparkles: "✨ Inspire me", businessExamplesSparkles: "💡 Business Examples", afterSparkles: "After ✨",
+    swotFull: "📊 Full SWOT Analysis", budget12m: "💰 12-month detailed budget", marketStrategy: "🎯 Market strategy",
+    euFundsEligibility: "🇪🇺 EU Funds Eligibility", exportPdfPptx: "📄 Export PDF + PPTX",
+    editingStudio: "Editing Studio", cancelCross: "❌ Cancel", confirmSaveCheck: "✅ Confirm & Save",
+    anotherIdea: "🔄 Another idea", directEditing: "Direct editing in browser", allTools: "All tools included", grantOpt: "Grant optimization 🇪🇺",
+    downloadingAlt: "Downloading...", downloadFreeSummaryBtn: "🎁 DOWNLOAD FREE SUMMARY", presentationBtn: "⬇ Presentation", brochureBtn: "⬇ Brochure", documentBtn: "⬇ Document",
+    unlockDownloads: "Unlock Full Downloads (Standard Package)", standardPackageBtn: "Standard Package", pdfPresentation: "PDF Presentation", pptxBrochure: "PPTX Brochure", wordDocument: "Word Document",
+    originalVersion: "📝 Original Version", euFundsOptimized: "🇪🇺 EU Funds Optimized", investorsPlan: "🏦 Investors Plan", versionHistory: "Version History", savedVersions: "Saved Versions",
+    objectives1y: "Objectives (1 year)", objectives3y: "Objectives (3-5 years)", missionValues: "Mission & Values", targetCustomers: "Target Customers", competition: "Competition",
+    marketingStrategy: "Marketing Strategy", swotTitle: "SWOT STRATEGIC ANALYSIS", strengths: "Strengths", weaknesses: "Weaknesses", opportunities: "Opportunities", threats: "Threats",
+    operationalPlan: "Operational Plan", workflowDesc: "1. Workflow Description (Sustainability / Green)", humanResources: "2. Human Resources", locationFacilities: "3. Location & Facilities",
+    optimizeBudgetCustom: "Optimize Budget (Custom)",
+    editorTip: "<strong>Tip:</strong> Here you edit the document text. To add <strong class='text-white'>images</strong>, logo or change the layout, press <em>Confirm & Save</em>, then download the documents.",
   },
   es: {
     pricing: "Precios", logOut: "Cerrar sesion", logIn: "Iniciar sesion", tryFree: "Probar Gratis",
@@ -314,6 +385,33 @@ export const UI_STRINGS: Record<Locale, UIStringsShape> = {
     currencyNotice: "Las cantidades son estimadas y pueden variar segun el mercado.",
     shareBtn: "Compartir", shareCopied: "Enlace copiado!", printBtn: "Imprimir",
     resetBtn: "Nuevo Plan", newPlan: "Nuevo Plan",
-    confirmUnlockPlan: "Usaras 1 credito para desbloquear la descarga completa del plan",
-  },
+    confirmUnlockPlan: "Usaras 1 credito para desbloquear la descarga completa de este plan",
+    placeholdersArray: ["Consultoría en Ciberseguridad...", "Estudio de Diseño de Interiores...", "Granja Urbana de Microplantas...", "Desarrollo de Software...", "Cafetería de Especialidad...", "Plataforma de Cursos Online...", "Lavado de Coches Ecológico..."],
+    paymentConfirmedEU: "¡Pago confirmado! El plan \"{plan}\" ha sido desbloqueado para descargar.",
+    loadingMessagesArray: ["Analizando idea...", "Estructurando capítulos...", "Generando previsiones financieras...", "Finalizando detalles..."],
+    routes: { login: "/es/login", dashboard: "/es/dashboard", demoNew: "/es/demo?start=nou" },
+    copyingDisabled: "Copiar texto está desactivado en la versión Demo. Haz clic en 🎁 DESCARGAR RESUMEN GRATUITO para obtener el plan.",
+    investmentBudget: "Presupuesto de Inversión", estimatedTotal: "Total Estimado:", additionalSection: "Sección Adicional", part: "Parte",
+    strategicObjectives: "Objetivos Estratégicos", marketCompetition: "Mercado y Competencia", promotion: "Promoción", businessPlan: "Plan de Negocios", yourBusiness: "Tu Empresa",
+    alertUnlimitedPro: "¡Pago confirmado! Su suscripción Pro Ilimitada ha sido activada.",
+    rewriteTone: "Reescribir tono", toneProfessional: "💼 Profesional y Corporativo", toneCreative: "🎨 Entusiasta y Creativo", tonePersuasive: "📈 Persuasivo y Comercial", toneFriendly: "🤝 Amigable y Casual",
+    euGrantsOpt: "Optimización de Subvenciones de la UE", optimizedForEUGrants: "Optimizado para Subvenciones de la UE",
+    optimizeBudget: "Optimizar Presupuesto", optimizeBudgetPlaceholder: "ej: 10, 20, 30", expertSectionLibrary: "Biblioteca de Secciones Experta",
+    modules30: "30+ MÓDULOS", confirm: "Confirmar", apply: "Aplicar", cancel: "Cancelar",
+    contentProtected: "El contenido está protegido. Para obtener el documento, utiliza la función de descarga dentro de la aplicación.",
+    animatedPlaceholder: "Crea un plan para... (ej. Consultoría en ciberseguridad)",
+    inspireMeSparkles: "✨ Inspírame", businessExamplesSparkles: "💡 Ejemplos de Negocios", afterSparkles: "Después ✨",
+    swotFull: "📊 Análisis SWOT completo", budget12m: "💰 Presupuesto detallado a 12 meses", marketStrategy: "🎯 Estrategia de mercado",
+    euFundsEligibility: "🇪🇺 Elegibilidad de fondos UE", exportPdfPptx: "📄 Exportar PDF + PPTX",
+    editingStudio: "Studio de Edición", cancelCross: "❌ Cancelar", confirmSaveCheck: "✅ Confirmar y Guardar",
+    anotherIdea: "🔄 Otra idea", directEditing: "Edición directa en el navegador", allTools: "Todas las herramientas incluidas", grantOpt: "Optimización de fondos europeos 🇪🇺",
+    downloadingAlt: "Descargando...", downloadFreeSummaryBtn: "🎁 DESCARGAR RESUMEN GRATUITO", presentationBtn: "⬇ Presentación", brochureBtn: "⬇ Folleto", documentBtn: "⬇ Documento",
+    unlockDownloads: "Desbloquear Descargas Completas (Paquete Estándar)", standardPackageBtn: "Paquete Estándar", pdfPresentation: "Presentación PDF", pptxBrochure: "Folleto PPTX", wordDocument: "Documento Word",
+    originalVersion: "📝 Versión Original", euFundsOptimized: "🇪🇺 Optimizado Fondos UE", investorsPlan: "🏦 Plan para Inversores", versionHistory: "Historial de Versiones", savedVersions: "Versiones Guardadas",
+    objectives1y: "Objetivos (1 año)", objectives3y: "Objetivos (3-5 años)", missionValues: "Misión y Valores", targetCustomers: "Clientes Objetivo", competition: "Competencia",
+    marketingStrategy: "Estrategia de Marketing", swotTitle: "ANÁLISIS ESTRATÉGICO FODA / DAFO", strengths: "Fortalezas", weaknesses: "Debilidades", opportunities: "Oportunidades", threats: "Amenazas",
+    operationalPlan: "Plan Operativo", workflowDesc: "1. Descripción del Flujo (Sostenibilidad / Verde)", humanResources: "2. Recursos Humanos", locationFacilities: "3. Ubicación e Instalaciones",
+    optimizeBudgetCustom: "Optimizar Presupuesto (Personalizado)",
+    editorTip: "<strong>Consejo:</strong> Aquí puedes editar el texto del documento. Para agregar <strong class='text-white'>imágenes</strong>, logo o cambiar el diseño, presiona <em>Confirmar y Guardar</em>, luego descarga los documentos.",
+  }
 };

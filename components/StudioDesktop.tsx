@@ -218,31 +218,7 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
   }, []);
 
   useEffect(() => {
-    const placeholders = locale === "en" ? [
-      "Cybersecurity Consulting...",
-      "Interior Design Studio...",
-      "Urban Microgreens Farm...",
-      "Software Development...",
-      "Specialty Coffee Shop...",
-      "Online Courses Platform...",
-      "Eco Car Wash..."
-    ] : locale === "es" ? [
-      "Consultoría en Ciberseguridad...",
-      "Estudio de Diseño de Interiores...",
-      "Granja Urbana de Microplantas...",
-      "Desarrollo de Software...",
-      "Cafetería de Especialidad...",
-      "Plataforma de Cursos Online...",
-      "Lavado de Coches Ecológico..."
-    ] : [
-      "Consultanță Securitate Cibernetică...",
-      "Studio de Design Interior...",
-      "Fermă Urbană de Microplante...",
-      "Dezvoltare Soluții...",
-      "Cafenea de Specialitate...",
-      "Platformă de Cursuri Online...",
-      "Spălătorie Auto Ecologică..."
-    ];
+    const placeholders = ui.placeholdersArray;
     let currentIdx = 0;
     let currentCharIdx = 0;
     let isDeleting = false;
@@ -545,7 +521,7 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
         setResult(null);
         if (typeof window !== "undefined") {
           localStorage.removeItem("current_generated_plan");
-          window.location.href = locale === "en" ? "/en" : locale === "es" ? "/es" : "/";
+          window.location.href = ui.routes.login.replace("/login", "") || "/";
         }
       }
     });
@@ -622,7 +598,7 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
                   unlockedPlans: arrayUnion(planToUnlock),
                   processedSessions: arrayUnion(sessionId)
                 }, { merge: true });
-                alert(locale === "en" ? `Payment confirmed! The plan "${planToUnlock}" has been unlocked for download.` : locale === "es" ? `¡Pago confirmado! El plan "${planToUnlock}" ha sido desbloqueado para descargar.` : `Plată confirmată! Planul "${planToUnlock}" a fost deblocat pentru descărcare.`);
+                alert(ui.paymentConfirmedEU.replace("{plan}", planToUnlock));
               } else if (tier === "eu-funds") {
                 await setDoc(userRef, {
                   euFundsUnlocked: true,
@@ -634,7 +610,7 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
                   subscriptionActive: true,
                   processedSessions: arrayUnion(sessionId)
                 }, { merge: true });
-                alert(locale === "en" ? "Payment confirmed! Your Unlimited Pro subscription has been activated." : locale === "es" ? "¡Pago confirmado! Su suscripción Pro Ilimitada ha sido activada." : "Plată confirmată! Abonamentul tău Pro Nelimitat a fost activat.");
+                alert(ui.alertUnlimitedPro);
               }
             }
             window.history.replaceState({}, document.title, window.location.pathname);
@@ -904,31 +880,7 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
 
   const randomIdeas = ALL_EXAMPLES;
 
-  const loadingMessages = locale === "en" ? [
-    "Initiating market analysis...",
-    "Calculating financial requirements...",
-    "Structuring the operational plan...",
-    "Fetching the updated currency exchange rate...",
-    "Finalizing the S.W.O.T. strategy...",
-    "Polishing the smart document...",
-    "Almost ready..."
-  ] : locale === "es" ? [
-    "Iniciando el análisis de mercado...",
-    "Calculando los requerimientos financieros...",
-    "Estructurando el plan operativo...",
-    "Obteniendo la tasa de cambio de moneda actualizada...",
-    "Finalizando la estrategia F.O.D.A...",
-    "Puliendo el documento inteligente...",
-    "Casi listo..."
-  ] : [
-    "Se inițiază analiza de piață...",
-    "Se calculează necesarul financiar...",
-    "Se structurează planul operațional...",
-    "Se preia cursul valutar actualizat...",
-    "Se definitivează strategia S.W.O.T...",
-    "Se finisează documentul inteligent...",
-    "Aproape gata..."
-  ];
+  const loadingMessages = ui.loadingMessagesArray;
   const [messageIndex, setMessageIndex] = useState(0);
 
   useEffect(() => {
@@ -1268,7 +1220,7 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
                         >
                           <span className="flex items-center gap-3">
                             <span className="text-emerald-500 group-hover:scale-110 transition-transform">🪄</span>
-                            <span>{locale === "en" ? "Rewrite tone" : locale === "es" ? "Reescribir tono" : "Rescrie tonul"}</span>
+                            <span>{ui.rewriteTone}</span>
                           </span>
                           <span className="flex items-center gap-2">
                             <span className="text-xs text-zinc-500">{showToneOptions ? "▲" : "▼"}</span>
@@ -1283,7 +1235,7 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
                               disabled={isEditingAi}
                               className="w-full text-xs text-left px-4 py-2.5 rounded-lg hover:bg-zinc-900 text-zinc-400 hover:text-white transition-all font-semibold"
                             >
-                              {locale === "en" ? "💼 Professional & Corporate" : locale === "es" ? "💼 Profesional y Corporativo" : "💼 Profesional & Corporativ"}
+                              {ui.toneProfessional}
                             </button>
                             <button 
                               type="button"
@@ -1291,7 +1243,7 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
                               disabled={isEditingAi}
                               className="w-full text-xs text-left px-4 py-2.5 rounded-lg hover:bg-zinc-900 text-zinc-400 hover:text-white transition-all font-semibold"
                             >
-                              {locale === "en" ? "🎨 Enthusiastic & Creative" : locale === "es" ? "🎨 Entusiasta y Creativo" : "🎨 Entuziast & Creativ"}
+                              {ui.toneCreative}
                             </button>
                             <button 
                               type="button"
@@ -1305,7 +1257,7 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
                               disabled={isEditingAi}
                               className="w-full text-xs text-left px-4 py-2.5 rounded-lg hover:bg-zinc-900 text-zinc-400 hover:text-white transition-all font-semibold flex items-center justify-between group"
                             >
-                              <span>{locale === "en" ? "📈 Persuasive & Sales" : locale === "es" ? "📈 Persuasivo y Comercial" : "📈 Persuasiv & Vânzări"}</span>
+                              <span>{ui.tonePersuasive}</span>
                               {(!hasStandardAccess && !isAdmin) && (
                                 <span className="text-[9px] bg-amber-500/20 border border-amber-500/40 text-amber-300 px-1.5 py-0.5 rounded font-black uppercase">🔒 PRO</span>
                               )}
@@ -1322,7 +1274,7 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
                               disabled={isEditingAi}
                               className="w-full text-xs text-left px-4 py-2.5 rounded-lg hover:bg-zinc-900 text-zinc-400 hover:text-white transition-all font-semibold flex items-center justify-between group"
                             >
-                              <span>{locale === "en" ? "🤝 Friendly & Casual" : locale === "es" ? "🤝 Amigable y Casual" : "🤝 Prietenos & Casual"}</span>
+                              <span>{ui.toneFriendly}</span>
                               {(!hasStandardAccess && !isAdmin) && (
                                 <span className="text-[9px] bg-amber-500/20 border border-amber-500/40 text-amber-300 px-1.5 py-0.5 rounded font-black uppercase">🔒 PRO</span>
                               )}
@@ -1343,7 +1295,7 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
                           } else {
                             setActiveAiPrompt(activeAiPrompt?.action === "eu_funds_optimization" ? null : {
                               action: "eu_funds_optimization", 
-                              title: locale === "en" ? "EU Grants Optimization" : locale === "es" ? "Optimización de Subvenciones de la UE" : "Optimizare Fonduri Europene", 
+                              title: ui.euGrantsOpt, 
                               isConfirm: true, 
                               desc: locale === "en" 
                                 ? "The plan will be adapted for EU grants:\n1. Key concepts: digitization, sustainability.\n2. Renaming purchases to be eligible.\n\nAre you ready?" 
@@ -1364,8 +1316,7 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
                           <span className="text-amber-500 group-hover:scale-110 transition-transform">🇪🇺</span>
                           <span>
                             {isEditingAi 
-                              ? (locale === "en" ? "Processing..." : locale === "es" ? "Procesando..." : "Se procesează...") 
-                              : (locale === "en" ? "Optimized for EU Grants" : locale === "es" ? "Optimizado para Subvenciones de la UE" : "Optimizat pentru Fonduri Europene")}
+                              ? (ui.processing) : (ui.optimizedForEUGrants)}
                           </span>
                         </span>
                         {!hasProAccess && (
@@ -1389,8 +1340,8 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
                           }
                           setActiveAiPrompt(activeAiPrompt?.action === "optimize_budget" ? null : {
                             action: "optimize_budget", 
-                            title: locale === "en" ? "Optimize Budget" : locale === "es" ? "Optimizar Presupuesto" : "Optimizează Bugetul", 
-                            placeholder: locale === "en" ? "e.g. 10, 20, 30" : locale === "es" ? "ej: 10, 20, 30" : "ex: 10, 20, 30", 
+                            title: ui.optimizeBudget, 
+                            placeholder: ui.optimizeBudgetPlaceholder, 
                             desc: locale === "en" 
                               ? "By what percentage do you want to reduce the budgeted costs?" 
                               : locale === "es" 
@@ -1408,20 +1359,8 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
                         <span className="flex items-center gap-3">
                           <span className="text-emerald-500 group-hover:scale-110 transition-transform">📉</span>
                           <span>
-                            {isEditingAi ? (locale === "en" ? "Processing..." : locale === "es" ? "Procesando..." : "Se procesează...") : (
-                              locale === "en" ? (
-                                <>
-                                  Optimize Budget <span className="whitespace-nowrap">(Custom)</span>
-                                </>
-                              ) : locale === "es" ? (
-                                <>
-                                  Optimizar Presupuesto <span className="whitespace-nowrap">(Personalizado)</span>
-                                </>
-                              ) : (
-                                <>
-                                  Optimizează Bugetul <span className="whitespace-nowrap">(Personalizat)</span>
-                                </>
-                              )
+                            {isEditingAi ? ui.processing : (
+                              <span dangerouslySetInnerHTML={{ __html: ui.optimizeBudgetCustom.replace('(Personalizado)', '<span class="whitespace-nowrap">(Personalizado)</span>').replace('(Custom)', '<span class="whitespace-nowrap">(Custom)</span>').replace('(Personalizat)', '<span class="whitespace-nowrap">(Personalizat)</span>') }}></span>
                             )}
                           </span>
                         </span>
@@ -1447,11 +1386,11 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
                         <span className="flex items-center gap-3">
                           <span className="text-emerald-400 group-hover:scale-110 transition-transform text-lg">🏛️</span> 
                           <span>
-                            {locale === "en" ? "Expert Section Library" : locale === "es" ? "Biblioteca de Secciones Experta" : "Librăria de Secțiuni Experte"}
+                            {ui.expertSectionLibrary}
                           </span>
                         </span>
                         <span className="text-[10px] bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 px-2 py-0.5 rounded-full font-black uppercase tracking-wider whitespace-nowrap">
-                          {locale === "en" ? "30+ MODULES" : locale === "es" ? "30+ MÓDULOS" : "30+ MODULE"}
+                          {ui.modules30}
                         </span>
                       </button>
 
@@ -1472,7 +1411,7 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
                         }
                         setActiveAiPrompt(activeAiPrompt?.action === "investor_ready" ? null : {
                           action: "investor_ready", 
-                          title: locale === "en" ? "Professional Plan" : locale === "es" ? "Plan Profesional" : "Plan Profesionist", 
+                          title: ui.investorPlanBtn, 
                           isConfirm: true, 
                           desc: locale === "en" 
                             ? "The following will be generated:\n1. Executive Summary\n2. Differentiation Matrix\n3. 'Go-To-Market' Strategy\n4. Risk Analysis\n5. Financial Scenarios" 
@@ -1525,15 +1464,14 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
                             className="flex-1 bg-emerald-600 hover:bg-emerald-500 disabled:bg-zinc-800 disabled:text-zinc-500 text-white font-bold text-xs py-2 rounded-lg transition-colors"
                           >
                             {activeAiPrompt.isConfirm 
-                              ? (locale === "en" ? "Confirm" : locale === "es" ? "Confirmar" : "Confirmă") 
-                              : (locale === "en" ? "Apply" : locale === "es" ? "Aplicar" : "Aplică")}
+                              ? (ui.confirm) : (ui.apply)}
                           </button>
                           <button 
                             type="button"
                             onClick={() => { setActiveAiPrompt(null); setAiPromptInput(""); }}
                             className="flex-1 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 font-bold text-xs py-2 rounded-lg transition-colors"
                           >
-                            {locale === "en" ? "Cancel" : locale === "es" ? "Cancelar" : "Anulează"}
+                            {ui.cancel}
                           </button>
                         </div>
                       </div>
@@ -1544,15 +1482,7 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
             <div className="mt-6 flex items-start gap-2 bg-emerald-500/10 border border-emerald-500/20 p-4 rounded-2xl w-full">
               <span className="text-emerald-400 mt-0.5 text-lg">💡</span>
               <p className="text-[13px] text-emerald-100/70 leading-relaxed">
-                {locale === "en" ? (
-                  <>
-                    <strong>Tip:</strong> Here you edit the document text. To add <strong className="text-white">images</strong>, logo or change the layout, press <em>Confirm & Save</em>, then download the documents.
-                  </>
-                ) : (
-                  <>
-                    <strong>Sfat:</strong> Aici editezi textul documentului. Pentru a adăuga <strong className="text-white">imagini</strong>, logo sau a schimba aranjarea în pagină, apasă <em>Confirmă și Salvează</em>, apoi descarcă documentele.
-                  </>
-                )}
+                <span dangerouslySetInnerHTML={{ __html: ui.editorTip }}></span>
               </p>
             </div>
     </div>
@@ -1580,7 +1510,7 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
       onContextMenu={(e) => e.preventDefault()}
     >
       <div className="hidden print:block w-full h-full bg-white text-black text-center p-20 text-3xl font-bold">
-        {locale === "en" ? "Content is protected. To obtain the document, use the download function inside the application." : locale === "es" ? "El contenido está protegido. Para obtener el documento, utiliza la función de descarga dentro de la aplicación." : "Conținutul este protejat. Pentru a obține documentul, utilizați funcția de descărcare din aplicație."}
+        {ui.contentProtected}
       </div>
       {/* Background glow orbs */}
       <div className="absolute top-[10%] left-[-15%] w-[600px] h-[600px] rounded-full bg-emerald-500/5 blur-[120px] pointer-events-none animate-pulse duration-[8000ms] z-0"></div>
@@ -1711,7 +1641,7 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
                 type="button"
                 onClick={() => setShowBmcModal(true)}
                 className="bg-[#FFDD00] text-black px-3 py-1 rounded-md font-bold text-xs hover:bg-[#FFEA4D] hover:scale-105 transition-all flex items-center gap-1.5 w-max shadow-sm cursor-pointer"
-                title={locale === "en" ? "Support IdeeaTa.ai with a coffee" : locale === "es" ? "Apoya a IdeeaTa.ai con un café" : "Susține IdeeaTa.ai cu o cafea"}
+                title={ui.supportCoffeeTitle}
               >
                 <span>☕</span> Buy me a coffee
               </button>
@@ -1741,24 +1671,24 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
                 </span>
               )}
               <a 
-                href={locale === "en" ? "/en/dashboard" : locale === "es" ? "/es/dashboard" : "/dashboard"}
+                href={ui.routes.dashboard}
                 className="text-emerald-400 hover:text-emerald-300 transition-colors font-bold underline cursor-pointer"
               >
-                {locale === "en" ? "My Plans" : locale === "es" ? "Mis Planes" : "Proiectele Mele"}
+                {ui.myPlans}
               </a>
               {!subscriptionActive && (
                 <button 
                   onClick={() => setShowPricingModal(true)}
                   className="text-zinc-400 hover:text-white transition-colors font-semibold cursor-pointer"
                 >
-                  {locale === "en" ? "Pricing" : locale === "es" ? "Precios" : "Tarife"}
+                  {ui.pricing}
                 </button>
               )}
               <button 
                 onClick={() => signOut(auth)}
                 className="text-zinc-500 hover:text-white transition-colors cursor-pointer"
               >
-                {locale === "en" ? "Log Out" : locale === "es" ? "Cerrar sesión" : "Ieși din cont"}
+                {ui.logOut}
               </button>
             </div>
           </div>
@@ -1941,7 +1871,7 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
                     onChange={(e) => setSkill(e.target.value)}
                     onKeyDown={handleKeyDown}
                     disabled={loading}
-                    placeholder={animatedPlaceholder || (locale === "en" ? "Create a plan for... (e.g. Cybersecurity consulting)" : locale === "es" ? "Crea un plan para... (ej. Consultoría en ciberseguridad)" : "Crează un plan pentru... (ex: Consultanță securitate)")}
+                    placeholder={animatedPlaceholder || (ui.animatedPlaceholder)}
                     className="relative w-full h-32 p-6 rounded-2xl bg-[#09090b] border border-zinc-700 outline-none focus:border-emerald-500 transition-all text-xl shadow-inner resize-none placeholder:text-zinc-600 font-medium text-white"
                   />
                 </div>
@@ -1964,11 +1894,11 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
                     }}
                     className="whitespace-nowrap flex-shrink-0 text-zinc-400 font-bold text-lg px-6 py-4 rounded-xl transition-all duration-300 hover:bg-zinc-800/50 hover:text-emerald-400 flex items-center gap-2 w-full sm:w-auto justify-center border border-transparent hover:border-zinc-700/50"
                   >
-                    {locale === "en" ? "✨ Inspire me" : locale === "es" ? "✨ Inspírame" : "✨ Inspiră-mă"}
+                    {ui.inspireMeSparkles}
                   </button>
 
                   <button type="submit" disabled={loading} className="w-full sm:w-auto bg-white text-black px-8 py-4 rounded-xl font-black text-lg hover:bg-zinc-200 transition-all shadow-[0_0_20px_rgba(255,255,255,0.2)] flex items-center justify-center gap-2">
-                    {loading ? loadingMessages[messageIndex] : (locale === "en" ? "Generate the Plan" : locale === "es" ? "Generar el Plan" : "Generează Planul")}
+                    {loading ? loadingMessages[messageIndex] : ui.generatePlan}
                     {!loading && <span>&rarr;</span>}
                   </button>
                 </div>
@@ -1986,7 +1916,7 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
                   <div className="w-3 h-3 rounded-full bg-zinc-700"></div>
                 </div>
                 <h3 className="text-xl font-bold tracking-tight text-white">
-                  {locale === "en" ? "💡 Business Examples" : locale === "es" ? "💡 Ejemplos de Negocios" : "💡 Exemple de Afaceri"}
+                  {ui.businessExamplesSparkles}
                 </h3>
                 <div className="w-8"></div>
               </div>
@@ -2453,14 +2383,14 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
                 </div>
                 {/* După */}
                 <div className="p-8 opacity-50">
-                  <div className="text-emerald-400 text-xs font-bold uppercase tracking-widest mb-4">{locale === "en" ? "After ✨" : locale === "es" ? "Después ✨" : "După ✨"}</div>
+                  <div className="text-emerald-400 text-xs font-bold uppercase tracking-widest mb-4">{ui.afterSparkles}</div>
                   <div className="flex flex-col gap-2">
                     {[
-                      locale === "en" ? '📊 Full SWOT Analysis' : locale === "es" ? '📊 Análisis SWOT completo' : '📊 Analiză SWOT completă',
-                      locale === "en" ? '💰 12-month detailed budget' : locale === "es" ? '💰 Presupuesto detallado a 12 meses' : '💰 Buget detaliat pe 12 luni',
-                      locale === "en" ? '🎯 Market strategy' : locale === "es" ? '🎯 Estrategia de mercado' : '🎯 Strategie de piață',
-                      locale === "en" ? '🇪🇺 EU Funds Eligibility' : locale === "es" ? '🇪🇺 Elegibilidad de fondos UE' : '🇪🇺 Eligibilitate fonduri UE',
-                      locale === "en" ? '📄 Export PDF + PPTX' : locale === "es" ? '📄 Exportar PDF + PPTX' : '📄 Export PDF + PPTX'
+                      ui.swotFull,
+                      ui.budget12m,
+                      ui.marketStrategy,
+                      ui.euFundsEligibility,
+                      ui.exportPdfPptx
                     ].map((item) => (
                       <div key={item} className="flex items-center gap-2 bg-emerald-500/10 border border-emerald-500/20 rounded-lg px-3 py-2 text-xs text-emerald-300 font-medium">{item}</div>
                     ))}
@@ -2481,15 +2411,15 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
           <div className="flex flex-col md:flex-row justify-between items-center gap-4 w-full mb-8 pb-8 border-b border-zinc-800">
             <div className="flex flex-col gap-3">
               <h1 className="text-3xl font-black text-emerald-400 flex items-center gap-3">
-                <span>✏️</span> {locale === "en" ? "Editing Studio" : "Studio Editare"}
+                <span>✏️</span> {ui.editingStudio}
               </h1>
             </div>
             <div className="flex gap-4 shrink-0">
               <button onClick={cancelEditing} className="px-6 py-2 bg-zinc-800 hover:bg-zinc-700 text-white rounded-xl font-bold transition-all shadow-xl">
-                 ❌ {locale === "en" ? "Cancel" : locale === "es" ? "Cancelar" : "Anulează"}
+                 ❌ {ui.cancel}
               </button>
               <button onClick={saveEditing} className="px-6 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl font-bold transition-all shadow-xl border border-emerald-500">
-                 ✅ {locale === "en" ? "Confirm & Save" : locale === "es" ? "Confirmar y Guardar" : "Confirmă și Salvează"}
+                 ✅ {ui.confirmSaveCheck.replace("✅ ", "")}
               </button>
             </div>
           </div>
@@ -2511,14 +2441,14 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
         <div className="w-full max-w-6xl flex flex-col gap-6 animate-in fade-in slide-in-from-bottom-10">
           <div className="flex flex-col md:flex-row justify-between items-center gap-4 w-full">
             <button onClick={resetApp} className="w-full md:flex-1 h-10 bg-zinc-800 hover:bg-zinc-700 text-white px-4 rounded-xl font-bold transition-all shadow-xl border border-zinc-700 flex items-center justify-center gap-2 text-xs whitespace-nowrap">
-               🔄 {locale === "en" ? "Another idea" : locale === "es" ? "Otra idea" : "Altă idee"}
+               🔄 {ui.anotherIdea.replace("🔄 ", "")}
             </button>
             <div className="relative group w-full md:flex-1">
               <button 
                 onClick={startEditing} 
                 className="w-full h-10 bg-zinc-900 hover:bg-zinc-800 text-zinc-300 hover:text-white px-4 rounded-xl font-bold transition-all shadow-xl border border-zinc-700/60 flex items-center justify-center gap-2 text-xs whitespace-nowrap cursor-pointer"
               >
-                 ✏️ {locale === "en" ? "Editing Studio" : locale === "es" ? "Studio de Edición" : "Studio Editare"}
+                 ✏️ {ui.editingStudio}
               </button>
               {/* Tooltip Studio Editare */}
               <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-3 w-60 pointer-events-none opacity-0 group-hover:opacity-100 transition-all duration-250 scale-95 group-hover:scale-100 z-50">
@@ -2526,12 +2456,12 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
                   <div className="rounded-xl bg-zinc-950 px-4 py-3" style={{boxShadow: '0 0 24px 2px rgba(16,185,129,0.13)'}}>
                     <div className="flex items-center gap-2 mb-2">
                       <span className="text-emerald-400 text-sm">✏️</span>
-                      <span className="text-emerald-300 text-[11px] font-black uppercase tracking-widest">{locale === "en" ? "Editing Studio" : "Studio Editare"}</span>
+                      <span className="text-emerald-300 text-[11px] font-black uppercase tracking-widest">{ui.editingStudio}</span>
                     </div>
                     <div className="flex flex-col gap-1">
-                      <div className="flex items-center gap-1.5 text-zinc-400 text-[10px]"><span className="text-emerald-500">▸</span> {locale === "en" ? "Direct editing in browser" : locale === "es" ? "Edición directa en el navegador" : "Editare directă în browser"}</div>
-                      <div className="flex items-center gap-1.5 text-zinc-400 text-[10px]"><span className="text-emerald-500">▸</span> {locale === "en" ? "All tools included" : locale === "es" ? "Todas las herramientas incluidas" : "Toate instrumentele incluse"}</div>
-                      <div className="flex items-center gap-1.5 text-zinc-400 text-[10px]"><span className="text-emerald-500">▸</span> {locale === "en" ? "Grant optimization 🇪🇺" : locale === "es" ? "Optimización de fondos europeos 🇪🇺" : "Optimizare fonduri europene 🇪🇺"}</div>
+                      <div className="flex items-center gap-1.5 text-zinc-400 text-[10px]"><span className="text-emerald-500">▸</span> {ui.directEditing}</div>
+                      <div className="flex items-center gap-1.5 text-zinc-400 text-[10px]"><span className="text-emerald-500">▸</span> {ui.allTools}</div>
+                      <div className="flex items-center gap-1.5 text-zinc-400 text-[10px]"><span className="text-emerald-500">▸</span> {ui.grantOpt}</div>
                     </div>
                   </div>
                 </div>
@@ -2557,8 +2487,8 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
                     className="flex-none bg-emerald-600 hover:bg-emerald-500 text-white text-[10px] sm:text-[12px] h-full px-5 py-2.5 rounded-lg font-black uppercase tracking-wider transition-all flex items-center justify-center whitespace-nowrap gap-2 cursor-pointer shadow-[0_0_15px_rgba(16,185,129,0.3)]"
                   >
                     {isDownloading === 'pdf-summary' 
-                      ? (locale === "en" ? "Downloading..." : locale === "es" ? "Descargando..." : "Se descarcă...") 
-                      : (locale === "en" ? "🎁 DOWNLOAD FREE SUMMARY" : locale === "es" ? "🎁 DESCARGAR RESUMEN GRATUITO" : "🎁 DESCARCĂ SUMAR GRATUIT")}
+                      ? ui.downloadingAlt || "Se descarcă..." 
+                      : ui.downloadFreeSummaryBtn}
                   </button>
                 ) : (
                   <>
@@ -2567,7 +2497,7 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
                       disabled={isDownloading !== null}
                       className="flex-none hover:bg-zinc-800 text-[10px] sm:text-[11px] h-full px-3 rounded-lg font-black uppercase tracking-wider transition-all flex items-center justify-center whitespace-nowrap gap-1 cursor-pointer text-zinc-300 hover:text-white"
                     >
-                      {isDownloading === 'pdf' ? "⏳..." : (locale === "en" ? "⬇ Presentation" : "⬇ Prezentare")}
+                      {isDownloading === 'pdf' ? "⏳..." : ui.presentationBtn || "⬇ Prezentare"}
                     </button>
                     <div className="w-px h-4 bg-zinc-800 flex-none" />
                     <button 
@@ -2575,7 +2505,7 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
                       disabled={isDownloading !== null}
                       className="flex-none hover:bg-zinc-800 text-[10px] sm:text-[11px] h-full px-3 rounded-lg font-black uppercase tracking-wider transition-all flex items-center justify-center whitespace-nowrap gap-1 cursor-pointer text-zinc-300 hover:text-white"
                     >
-                      {isDownloading === 'pptx' ? "⏳..." : (locale === "en" ? "⬇ Brochure" : locale === "es" ? "⬇ Folleto" : "⬇ Broșură")}
+                      {isDownloading === 'pptx' ? "⏳..." : ui.brochureBtn || "⬇ Broșură"}
                     </button>
                     <div className="w-px h-4 bg-zinc-800 flex-none" />
                     <button 
@@ -2583,7 +2513,7 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
                       disabled={isDownloading !== null}
                       className="flex-none hover:bg-zinc-800 text-[10px] sm:text-[11px] h-full px-3 rounded-lg font-black uppercase tracking-wider transition-all flex items-center justify-center whitespace-nowrap gap-1 cursor-pointer text-zinc-300 hover:text-white"
                     >
-                      {isDownloading === 'word' ? "⏳..." : (locale === "en" ? "⬇ Document" : "⬇ Document")}
+                      {isDownloading === 'word' ? "⏳..." : ui.documentBtn || "⬇ Document"}
                     </button>
                   </>
                 )}
@@ -2595,7 +2525,7 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
                       type="button" 
                       onClick={() => setShowPricingModal(true)}
                       className="flex-none text-xs text-amber-500 hover:text-amber-400 cursor-pointer px-3 h-full rounded-lg flex items-center justify-center hover:bg-zinc-800/50 hover:scale-110 transition-all"
-                      title={locale === "en" ? "Unlock Full Downloads (Standard Package)" : locale === "es" ? "Desbloquear Descargas Completas (Paquete Estándar)" : "Deblochează Descărcările Complete (Pachet Standard)"}
+                      title={ui.unlockDownloads}
                     >
                       🔒
                     </button>
@@ -2608,12 +2538,12 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
                   <div className="rounded-xl bg-zinc-950 px-4 py-3" style={{boxShadow: '0 0 24px 2px rgba(16,185,129,0.13)'}}>
                     <div className="flex items-center gap-2 mb-2">
                       <span className="text-emerald-400 text-sm">⬇</span>
-                      <span className="text-emerald-300 text-[11px] font-black uppercase tracking-widest">{locale === "en" ? "Standard Package" : locale === "es" ? "Paquete Estándar" : "Pachet Standard"}</span>
+                      <span className="text-emerald-300 text-[11px] font-black uppercase tracking-widest">{ui.standardPackageBtn}</span>
                     </div>
                     <div className="flex flex-col gap-1">
-                      <div className="flex items-center gap-1.5 text-zinc-400 text-[10px]"><span className="text-emerald-500">▸</span> {locale === "en" ? "PDF Presentation" : locale === "es" ? "Presentación PDF" : "Prezentare PDF"}</div>
-                      <div className="flex items-center gap-1.5 text-zinc-400 text-[10px]"><span className="text-emerald-500">▸</span> {locale === "en" ? "PPTX Brochure" : locale === "es" ? "Folleto PPTX" : "Broșură PPTX"}</div>
-                      <div className="flex items-center gap-1.5 text-zinc-400 text-[10px]"><span className="text-emerald-500">▸</span> {locale === "en" ? "Word Document" : locale === "es" ? "Documento Word" : "Document Word"}</div>
+                      <div className="flex items-center gap-1.5 text-zinc-400 text-[10px]"><span className="text-emerald-500">▸</span> {ui.pdfPresentation || "Prezentare PDF"}</div>
+                      <div className="flex items-center gap-1.5 text-zinc-400 text-[10px]"><span className="text-emerald-500">▸</span> {ui.pptxBrochure || "Broșură PPTX"}</div>
+                      <div className="flex items-center gap-1.5 text-zinc-400 text-[10px]"><span className="text-emerald-500">▸</span> {ui.wordDocument || "Document Word"}</div>
                     </div>
                   </div>
                 </div>
@@ -2630,7 +2560,7 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
                   onClick={() => { setActiveVersionId('original'); setResultState(versions.original); }} 
                   className={`px-4 py-2 rounded-xl transition-all duration-200 font-bold text-xs tracking-wide flex items-center gap-2 cursor-pointer ${activeVersionId === 'original' ? 'bg-emerald-950/80 border border-emerald-500/50 text-emerald-300 shadow-[0_0_15px_rgba(16,185,129,0.2)]' : 'bg-zinc-900/60 border border-zinc-800 text-zinc-400 hover:text-white hover:bg-zinc-800'}`}
                 >
-                  {locale === "en" ? "📝 Original Version" : locale === "es" ? "📝 Versión Original" : "📝 Varianta Originală"}
+                  {ui.originalVersion}
                 </button>
               )}
               {versions.eu_funds && (
@@ -2638,7 +2568,7 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
                   onClick={() => { setActiveVersionId('eu_funds'); setResultState(versions.eu_funds); }} 
                   className={`px-4 py-2 rounded-xl transition-all duration-200 font-bold text-xs tracking-wide flex items-center gap-2 cursor-pointer ${activeVersionId === 'eu_funds' ? 'bg-emerald-950/80 border border-emerald-500/50 text-emerald-300 shadow-[0_0_15px_rgba(16,185,129,0.2)]' : 'bg-zinc-900/60 border border-zinc-800 text-zinc-400 hover:text-white hover:bg-zinc-800'}`}
                 >
-                  {locale === "en" ? "🇪🇺 EU Funds Optimized" : locale === "es" ? "🇪🇺 Optimizado Fondos UE" : "🇪🇺 Optimizat Fonduri UE"}
+                  {ui.euFundsOptimized}
                 </button>
               )}
               {versions.investor && (
@@ -2646,7 +2576,7 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
                   onClick={() => { setActiveVersionId('investor'); setResultState(versions.investor); }} 
                   className={`px-4 py-2 rounded-xl transition-all duration-200 font-bold text-xs tracking-wide flex items-center gap-2 cursor-pointer ${activeVersionId === 'investor' ? 'bg-emerald-950/80 border border-emerald-500/50 text-emerald-300 shadow-[0_0_15px_rgba(16,185,129,0.2)]' : 'bg-zinc-900/60 border border-zinc-800 text-zinc-400 hover:text-white hover:bg-zinc-800'}`}
                 >
-                  {locale === "en" ? "🏦 Investors Plan" : locale === "es" ? "🏦 Plan para Inversores" : "🏦 Plan Investitori"}
+                  {ui.investorsPlan}
                 </button>
               )}
 
@@ -2656,14 +2586,14 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
                   onClick={() => setShowVersionDropdown(!showVersionDropdown)}
                   className="px-4 py-2 rounded-xl bg-zinc-900 border border-zinc-800 hover:border-emerald-500/40 text-amber-300 hover:text-amber-200 font-bold text-xs flex items-center gap-2 transition-all cursor-pointer shadow-sm"
                 >
-                  <span>📜 {locale === "en" ? "Version History" : locale === "es" ? "Historial de Versiones" : "Istoric Versiuni"} ({Object.keys(versions).length})</span>
+                  <span>📜 {ui.versionHistory || "Istoric Versiuni"} ({Object.keys(versions).length})</span>
                   <span className="text-[10px]">▼</span>
                 </button>
 
                 {showVersionDropdown && (
                   <div className="absolute top-full left-0 mt-2 w-64 bg-zinc-950 border border-zinc-800 rounded-2xl p-2 shadow-2xl z-[90] animate-in fade-in duration-150">
                     <div className="text-[10px] uppercase font-black tracking-widest text-zinc-500 px-3 py-1.5 border-b border-zinc-900 flex justify-between items-center">
-                      <span>{locale === "en" ? "Saved Versions" : locale === "es" ? "Versiones Guardadas" : "Versiuni Salvate"}</span>
+                      <span>{ui.savedVersions || "Versiuni Salvate"}</span>
                       <button onClick={() => setShowVersionDropdown(false)} className="text-zinc-500 hover:text-white text-xs">✕</button>
                     </div>
                     <div className="max-h-60 overflow-y-auto flex flex-col gap-1 mt-1">
@@ -2678,9 +2608,9 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
                           className={`w-full text-left px-3 py-2 rounded-xl text-xs font-semibold flex items-center justify-between transition-all cursor-pointer ${activeVersionId === vKey ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/30" : "text-zinc-400 hover:bg-zinc-900 hover:text-white"}`}
                         >
                           <span className="truncate">
-                            {vKey === "original" ? (locale === "en" ? "📝 Original Version" : locale === "es" ? "📝 Versión Original" : "📝 Varianta Originală")
-                            : vKey === "eu_funds" ? (locale === "en" ? "🇪🇺 EU Funds" : locale === "es" ? "🇪🇺 Fondos UE" : "🇪🇺 Optimizat Fonduri UE")
-                            : vKey === "investor" ? (locale === "en" ? "🏦 Investors Plan" : locale === "es" ? "🏦 Plan Inversores" : "🏦 Plan Investitori")
+                            {vKey === "original" ? (ui.originalVersion)
+                            : vKey === "eu_funds" ? ui.euFundsOptimized
+                            : vKey === "investor" ? ui.investorsPlan
                             : `📑 ${vKey}`}
                           </span>
                           {activeVersionId === vKey && <span className="text-emerald-400 text-xs">✓</span>}
@@ -3132,15 +3062,15 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
             <div className="pdf-presentation-slide w-[1280px] h-[720px] bg-white text-emerald-950 flex flex-col justify-start pt-20 px-24 pb-16 border-[12px] border-emerald-900 box-border relative">
               <div className="flex items-center gap-6 mb-12">
                 <div className="w-16 h-2 bg-emerald-600"></div>
-                <h2 className="text-lg font-black font-sans uppercase tracking-widest text-emerald-800">{locale === "en" ? "Strategic Objectives" : locale === "es" ? "Objetivos Estratégicos" : "Obiective Strategice"}</h2>
+                <h2 className="text-lg font-black font-sans uppercase tracking-widest text-emerald-800">{ui.strategicObjectives}</h2>
               </div>
               <div className="flex flex-col gap-8 font-serif leading-normal text-gray-800 text-left">
                 <div className="overflow-hidden">
-                  <h3 className="text-lg font-bold text-emerald-700 mb-3">{locale === "en" ? "Objectives (1 year)" : locale === "es" ? "Objetivos (1 año)" : "Obiective (1 an)"}</h3>
+                  <h3 className="text-lg font-bold text-emerald-700 mb-3">{ui.objectives1y || "Obiective (1 an)"}</h3>
                   <p className="text-lg text-gray-700 leading-relaxed">{truncateText(result.viziune_strategie?.obiective_scurt, 800)}</p>
                 </div>
                 <div className="overflow-hidden">
-                  <h3 className="text-lg font-bold text-emerald-700 mb-3">{locale === "en" ? "Objectives (3-5 years)" : locale === "es" ? "Objetivos (3-5 años)" : "Obiective (3-5 ani)"}</h3>
+                  <h3 className="text-lg font-bold text-emerald-700 mb-3">{ui.objectives3y || "Obiective (3-5 ani)"}</h3>
                   <p className="text-lg text-gray-700 leading-relaxed">{truncateText(result.viziune_strategie?.obiective_mediu, 800)}</p>
                 </div>
               </div>
@@ -3150,7 +3080,7 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
             <div className="pdf-presentation-slide w-[1280px] h-[720px] bg-white text-emerald-950 flex flex-col justify-start pt-20 px-24 pb-16 border-[12px] border-emerald-900 box-border relative">
               <div className="flex items-center gap-6 mb-12">
                 <div className="w-16 h-2 bg-emerald-600"></div>
-                <h2 className="text-lg font-black font-sans uppercase tracking-widest text-emerald-800">{locale === "en" ? "Mission & Values" : locale === "es" ? "Misión y Valores" : "Misiune și Valori"}</h2>
+                <h2 className="text-lg font-black font-sans uppercase tracking-widest text-emerald-800">{ui.missionValues || "Misiune și Valori"}</h2>
               </div>
               <div className="flex flex-col font-serif leading-normal text-gray-800 text-left">
                 <p className="text-lg text-gray-700 leading-relaxed">{truncateText(result.viziune_strategie?.misiune_valori, 1500)}</p>
@@ -3161,15 +3091,15 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
             <div className="pdf-presentation-slide w-[1280px] h-[720px] bg-white text-emerald-950 flex flex-col justify-start pt-20 px-24 pb-16 border-[12px] border-emerald-900 box-border relative">
               <div className="flex items-center gap-6 mb-8">
                 <div className="w-16 h-2 bg-emerald-600"></div>
-                <h2 className="text-lg font-black font-sans uppercase tracking-widest text-emerald-800">{locale === "en" ? "Market & Competition" : locale === "es" ? "Mercado y Competencia" : "Piața și Concurența"}</h2>
+                <h2 className="text-lg font-black font-sans uppercase tracking-widest text-emerald-800">{ui.marketCompetition}</h2>
               </div>
               <div className="flex flex-col gap-10 font-serif leading-normal text-gray-800 text-left">
                   <div className="overflow-hidden">
-                    <h3 className="text-lg font-bold text-emerald-700 mb-3">{locale === "en" ? "Target Customers" : locale === "es" ? "Clientes Objetivo" : "Clienții Țintă"}</h3>
+                    <h3 className="text-lg font-bold text-emerald-700 mb-3">{ui.targetCustomers || "Clienții Țintă"}</h3>
                     <p className="text-lg text-gray-700 leading-relaxed">{truncateText(result.analiza_pietei?.clienti_tinta, 700)}</p>
                   </div>
                   <div className="overflow-hidden">
-                    <h3 className="text-lg font-bold text-emerald-700 mb-3">{locale === "en" ? "Competition" : locale === "es" ? "Competencia" : "Concurența"}</h3>
+                    <h3 className="text-lg font-bold text-emerald-700 mb-3">{ui.competition || "Concurența"}</h3>
                     <p className="text-lg text-gray-700 leading-relaxed">{truncateText(result.analiza_pietei?.concurenta, 700)}</p>
                   </div>
               </div>
@@ -3179,11 +3109,11 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
             <div className="pdf-presentation-slide w-[1280px] h-[720px] bg-white text-emerald-950 flex flex-col justify-start pt-20 px-24 pb-16 border-[12px] border-emerald-900 box-border relative">
               <div className="flex items-center gap-6 mb-8">
                 <div className="w-16 h-2 bg-emerald-600"></div>
-                <h2 className="text-lg font-black font-sans uppercase tracking-widest text-emerald-800">{locale === "en" ? "Promotion" : locale === "es" ? "Promoción" : "Promovare"}</h2>
+                <h2 className="text-lg font-black font-sans uppercase tracking-widest text-emerald-800">{ui.promotion}</h2>
               </div>
               <div className="flex flex-col gap-10 font-serif leading-normal text-gray-800 text-left">
                   <div className="overflow-hidden">
-                    <h3 className="text-lg font-bold text-emerald-700 mb-3">{locale === "en" ? "Marketing Strategy" : locale === "es" ? "Estrategia de Marketing" : "Strategia de Marketing"}</h3>
+                    <h3 className="text-lg font-bold text-emerald-700 mb-3">{ui.marketingStrategy || "Strategia de Marketing"}</h3>
                     <p className="text-lg text-gray-700 leading-relaxed">{truncateText(result.analiza_pietei?.strategie_marketing, 1200)}</p>
                   </div>
               </div>
@@ -3193,10 +3123,10 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
             <div className="pdf-presentation-slide w-[1280px] h-[720px] bg-white flex flex-col px-24 py-16 border-[12px] border-emerald-900 box-border relative">
               <div className="flex items-center gap-6 mb-8 shrink-0">
                 <div className="w-16 h-2 bg-emerald-500"></div>
-                <h2 className="text-lg font-black font-sans uppercase tracking-widest text-emerald-900">{locale === "en" ? "SWOT STRATEGIC ANALYSIS" : locale === "es" ? "ANÁLISIS ESTRATÉGICO FODA / DAFO" : "Analiză Strategica SWOT"}</h2>
+                <h2 className="text-lg font-black font-sans uppercase tracking-widest text-emerald-900">{ui.swotTitle || "Analiză Strategica SWOT"}</h2>
               </div>
               <div className="bg-emerald-50/50 p-8 border-l-8 border-emerald-500 flex flex-col gap-6 flex-1 rounded-2xl overflow-hidden">
-                <h3 className="text-lg font-black text-emerald-800 uppercase tracking-widest pb-4 border-b-2 border-emerald-200 shrink-0">{locale === "en" ? "Strengths" : locale === "es" ? "Fortalezas" : "Puncte Tari"}</h3>
+                <h3 className="text-lg font-black text-emerald-800 uppercase tracking-widest pb-4 border-b-2 border-emerald-200 shrink-0">{ui.strengths || "Puncte Tari"}</h3>
                 <div className="grid grid-cols-2 gap-x-12 gap-y-6 overflow-hidden content-start flex-1">
                   {result.analiza_swot?.puncte_tari?.slice(0, 8).map((item: any, idx: number) => (
                     <div key={idx} className="flex flex-col gap-2">
@@ -3212,10 +3142,10 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
             <div className="pdf-presentation-slide w-[1280px] h-[720px] bg-white flex flex-col px-24 py-16 border-[12px] border-emerald-900 box-border relative">
               <div className="flex items-center gap-6 mb-8 shrink-0">
                 <div className="w-16 h-2 bg-[#ff4d6d]"></div>
-                <h2 className="text-lg font-black font-sans uppercase tracking-widest text-[#ff4d6d]">{locale === "en" ? "SWOT STRATEGIC ANALYSIS" : locale === "es" ? "ANÁLISIS ESTRATÉGICO FODA / DAFO" : "Analiză Strategica SWOT"}</h2>
+                <h2 className="text-lg font-black font-sans uppercase tracking-widest text-[#ff4d6d]">{ui.swotTitle || "Analiză Strategica SWOT"}</h2>
               </div>
               <div className="bg-rose-50/50 p-8 border-l-8 border-[#ff4d6d] flex flex-col gap-6 flex-1 rounded-2xl overflow-hidden">
-                <h3 className="text-lg font-black text-rose-900 uppercase tracking-widest pb-4 border-b-2 border-rose-200 shrink-0">{locale === "en" ? "Weaknesses" : locale === "es" ? "Debilidades" : "Slăbiciuni"}</h3>
+                <h3 className="text-lg font-black text-rose-900 uppercase tracking-widest pb-4 border-b-2 border-rose-200 shrink-0">{ui.weaknesses || "Slăbiciuni"}</h3>
                 <div className="grid grid-cols-2 gap-x-12 gap-y-6 overflow-hidden content-start flex-1">
                   {result.analiza_swot?.puncte_slabe?.slice(0, 8).map((item: any, idx: number) => (
                     <div key={idx} className="flex flex-col gap-2">
@@ -3231,10 +3161,10 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
             <div className="pdf-presentation-slide w-[1280px] h-[720px] bg-white flex flex-col px-24 py-16 border-[12px] border-emerald-900 box-border relative">
               <div className="flex items-center gap-6 mb-8 shrink-0">
                 <div className="w-16 h-2 bg-blue-500"></div>
-                <h2 className="text-lg font-black font-sans uppercase tracking-widest text-blue-600">{locale === "en" ? "SWOT STRATEGIC ANALYSIS" : locale === "es" ? "ANÁLISIS ESTRATÉGICO FODA / DAFO" : "Analiză Strategica SWOT"}</h2>
+                <h2 className="text-lg font-black font-sans uppercase tracking-widest text-blue-600">{ui.swotTitle || "Analiză Strategica SWOT"}</h2>
               </div>
               <div className="bg-blue-50/50 p-8 border-l-8 border-blue-500 flex flex-col gap-6 flex-1 rounded-2xl overflow-hidden">
-                <h3 className="text-lg font-black text-blue-900 uppercase tracking-widest pb-4 border-b-2 border-blue-200 shrink-0">{locale === "en" ? "Opportunities" : locale === "es" ? "Oportunidades" : "Oportunități"}</h3>
+                <h3 className="text-lg font-black text-blue-900 uppercase tracking-widest pb-4 border-b-2 border-blue-200 shrink-0">{ui.opportunities || "Oportunități"}</h3>
                 <div className="grid grid-cols-2 gap-x-12 gap-y-6 overflow-hidden content-start flex-1">
                   {result.analiza_swot?.oportunitati?.slice(0, 8).map((item: any, idx: number) => (
                     <div key={idx} className="flex flex-col gap-2">
@@ -3250,10 +3180,10 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
             <div className="pdf-presentation-slide w-[1280px] h-[720px] bg-white flex flex-col px-24 py-16 border-[12px] border-emerald-900 box-border relative">
               <div className="flex items-center gap-6 mb-8 shrink-0">
                 <div className="w-16 h-2 bg-orange-500"></div>
-                <h2 className="text-lg font-black font-sans uppercase tracking-widest text-orange-600">{locale === "en" ? "SWOT STRATEGIC ANALYSIS" : locale === "es" ? "ANÁLISIS ESTRATÉGICO FODA / DAFO" : "Analiză Strategica SWOT"}</h2>
+                <h2 className="text-lg font-black font-sans uppercase tracking-widest text-orange-600">{ui.swotTitle || "Analiză Strategica SWOT"}</h2>
               </div>
               <div className="bg-orange-50/50 p-8 border-l-8 border-orange-500 flex flex-col gap-6 flex-1 rounded-2xl overflow-hidden">
-                <h3 className="text-lg font-black text-orange-900 uppercase tracking-widest pb-4 border-b-2 border-orange-200 shrink-0">{locale === "en" ? "Threats" : locale === "es" ? "Amenazas" : "Amenințări"}</h3>
+                <h3 className="text-lg font-black text-orange-900 uppercase tracking-widest pb-4 border-b-2 border-orange-200 shrink-0">{ui.threats || "Amenințări"}</h3>
                 <div className="grid grid-cols-2 gap-x-12 gap-y-6 overflow-hidden content-start flex-1">
                   {result.analiza_swot?.amenintari?.slice(0, 8).map((item: any, idx: number) => (
                     <div key={idx} className="flex flex-col gap-2">
@@ -3269,12 +3199,12 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
             <div className="pdf-presentation-slide w-[1280px] h-[720px] bg-white flex flex-col px-24 py-16 border-[12px] border-emerald-900 box-border relative">
               <div className="flex items-center gap-6 mb-8 shrink-0">
                 <div className="w-16 h-2 bg-emerald-600"></div>
-                <h2 className="text-lg font-black font-sans uppercase tracking-widest text-emerald-800">{locale === "en" ? "Operational Plan" : locale === "es" ? "Plan Operativo" : "Planul Operațional"}</h2>
+                <h2 className="text-lg font-black font-sans uppercase tracking-widest text-emerald-800">{ui.operationalPlan || "Planul Operațional"}</h2>
               </div>
               <div className="bg-emerald-50/50 p-8 border-l-8 border-emerald-500 flex flex-col gap-6 flex-1 rounded-2xl overflow-hidden">
                 <div className="flex flex-col gap-6 overflow-hidden content-start flex-1 pl-4 text-left">
                     <div className="flex flex-col gap-4">
-                       <h4 className="text-lg font-bold text-emerald-700 leading-snug">{locale === "en" ? "1. Workflow Description (Sustainability / Green)" : locale === "es" ? "1. Descripción del Flujo (Sostenibilidad / Verde)" : "1. Descriere Flux (Sustenabilitate / Verde)"}</h4>
+                       <h4 className="text-lg font-bold text-emerald-700 leading-snug">{ui.workflowDesc || "1. Descriere Flux (Sustenabilitate / Verde)"}</h4>
                        <p className="text-lg text-gray-700 leading-relaxed">{truncateText(result.plan_operational?.descriere_flux, 1200)}</p>
                     </div>
                 </div>
@@ -3285,12 +3215,12 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
             <div className="pdf-presentation-slide w-[1280px] h-[720px] bg-white flex flex-col px-24 py-16 border-[12px] border-emerald-900 box-border relative">
               <div className="flex items-center gap-6 mb-8 shrink-0">
                 <div className="w-16 h-2 bg-emerald-600"></div>
-                <h2 className="text-lg font-black font-sans uppercase tracking-widest text-emerald-800">{locale === "en" ? "Operational Plan" : locale === "es" ? "Plan Operativo" : "Planul Operațional"}</h2>
+                <h2 className="text-lg font-black font-sans uppercase tracking-widest text-emerald-800">{ui.operationalPlan || "Planul Operațional"}</h2>
               </div>
               <div className="bg-emerald-50/50 p-8 border-l-8 border-emerald-500 flex flex-col gap-6 flex-1 rounded-2xl overflow-hidden">
                 <div className="flex flex-col gap-6 overflow-hidden content-start flex-1 pl-4 text-left">
                     <div className="flex flex-col gap-4">
-                       <h4 className="text-lg font-bold text-emerald-700 leading-snug">{locale === "en" ? "2. Human Resources" : locale === "es" ? "2. Recursos Humanos" : "2. Resurse Umane"}</h4>
+                       <h4 className="text-lg font-bold text-emerald-700 leading-snug">{ui.humanResources || "2. Resurse Umane"}</h4>
                        <p className="text-lg text-gray-700 leading-relaxed">{truncateText(result.plan_operational?.resurse_umane, 1200)}</p>
                     </div>
                 </div>
@@ -3301,12 +3231,12 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
             <div className="pdf-presentation-slide w-[1280px] h-[720px] bg-white flex flex-col px-24 py-16 border-[12px] border-emerald-900 box-border relative">
               <div className="flex items-center gap-6 mb-8 shrink-0">
                 <div className="w-16 h-2 bg-emerald-600"></div>
-                <h2 className="text-lg font-black font-sans uppercase tracking-widest text-emerald-800">{locale === "en" ? "Operational Plan" : locale === "es" ? "Plan Operativo" : "Planul Operațional"}</h2>
+                <h2 className="text-lg font-black font-sans uppercase tracking-widest text-emerald-800">{ui.operationalPlan || "Planul Operațional"}</h2>
               </div>
               <div className="bg-emerald-50/50 p-8 border-l-8 border-emerald-500 flex flex-col gap-6 flex-1 rounded-2xl overflow-hidden">
                 <div className="flex flex-col gap-6 overflow-hidden content-start flex-1 pl-4 text-left">
                     <div className="flex flex-col gap-4">
-                       <h4 className="text-lg font-bold text-emerald-700 leading-snug">{locale === "en" ? "3. Location & Facilities" : locale === "es" ? "3. Ubicación e Instalaciones" : "3. Locație și Dotări"}</h4>
+                       <h4 className="text-lg font-bold text-emerald-700 leading-snug">{ui.locationFacilities || "3. Locație și Dotări"}</h4>
                        <p className="text-lg text-gray-700 leading-relaxed">{truncateText(result.plan_operational?.locatie_dotari, 1200)}</p>
                     </div>
                 </div>
@@ -3318,7 +3248,7 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
               <div key={`pdf-budget-${slideIdx}`} className="pdf-presentation-slide w-[1280px] h-[720px] bg-white flex flex-col p-24 border-[12px] border-emerald-900 box-border relative">
                 <div className="flex items-center gap-6 mb-12">
                   <div className="w-16 h-2 bg-emerald-600"></div>
-                  <h2 className="text-lg font-black font-sans uppercase tracking-widest text-emerald-800">{locale === "en" ? "Investment Budget" : locale === "es" ? "Presupuesto de Inversión" : "Buget Investiții"} {slideIdx > 0 ? (locale === "en" ? `(Part ${slideIdx + 1})` : locale === "es" ? `(Parte ${slideIdx + 1})` : `(Partea ${slideIdx + 1})`) : ''}</h2>
+                  <h2 className="text-lg font-black font-sans uppercase tracking-widest text-emerald-800">{ui.investmentBudget} {slideIdx > 0 ? `(${ui.part} ${slideIdx + 1})` : ''}</h2>
                 </div>
                 <div className="grid grid-cols-2 gap-x-12 gap-y-8 font-sans items-start content-start overflow-hidden">
                   {result.plan_financiar?.buget_investitii?.slice(slideIdx * 4, slideIdx * 4 + 4).map((b: any, i: number) => {
@@ -3340,7 +3270,7 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
                 {slideIdx === Math.ceil((result.plan_financiar?.buget_investitii?.length || 1) / 4) - 1 && (
                   <div className="absolute bottom-12 right-24">
                      <div className="bg-emerald-900 text-white px-12 py-6 flex items-center rounded-2xl shadow-xl">
-                       <span className="text-lg font-bold uppercase tracking-wider mr-6 text-emerald-200">{locale === "en" ? "Estimated Total:" : locale === "es" ? "Total Estimado:" : "Total Estimat:"}</span>
+                       <span className="text-lg font-bold uppercase tracking-wider mr-6 text-emerald-200">{ui.estimatedTotal}</span>
                        <span className="text-lg font-black">
                          {formatPrice(result.plan_financiar?.buget_investitii?.reduce((sum: number, b: any) =>
                            sum + parseInt((b.cost !== undefined ? b.cost : b.suma_lei)?.toString().replace(/[^0-9]/g, '') || '0'), 0).toString())}
@@ -3418,7 +3348,7 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
         userId={user?.uid || ""}
         userEmail={user?.email || ""}
         currency={currency}
-        planName={result?.nume || (locale === "en" ? "Business Plan" : "Plan de Afaceri")}
+        planName={result?.nume || ui.businessPlan}
         locale={locale}
       />
       {showAuthModal && (
@@ -3456,7 +3386,7 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
           user={user}
           hasProAccess={hasProAccess}
           isAdmin={isAdmin}
-          businessName={result?.nume || (locale === "en" ? "Your Business" : locale === "es" ? "Tu Empresa" : "Compania Ta")}
+          businessName={result?.nume || ui.yourBusiness}
           onRequireAuth={() => setShowAuthModal(true)}
           onRequirePro={() => setShowPricingModal(true)}
           onAddSection={(newSection) => {

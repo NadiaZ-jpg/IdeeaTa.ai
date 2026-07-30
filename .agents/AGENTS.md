@@ -192,8 +192,20 @@ Orice agent care primește o instrucțiune ambiguă trebuie să CEARĂ CONFIRMAR
 - Curățat documentele PDF (StudioPdfSlides, StudioPresentationSlides) de string-uri hardcodate în română (ex. "Distribuția Costurilor").
 - Proiect compilat local cu succes: ✅ `✓ Compiled successfully in 6.4s` (44/44 pagini statice generate).
 
+### Checkpoint-30-Iulie-2026-Refactorizare-Sesiunea1-PlanHelpers
+- Creat `lib/planHelpers.ts` cu 3 funcții helper pure și documentate: `truncateText`, `splitTextIntoSlides`, `getDynamicTextSize`.
+- Eliminate 55 linii de cod duplicat din `components/StudioDesktop.tsx`.
+- Eliminate 55 linii de cod duplicat din `components/DemoDesktop.tsx`.
+- Ambele fișiere înlocuiesc definițiile inline cu `import { truncateText, splitTextIntoSlides, getDynamicTextSize } from '@/lib/planHelpers'`.
+- TypeScript check: ✅ zero erori (`npx tsc --noEmit`).
+- Git commit: `refactor: extrageți funcțiile helper duplicate în lib/planHelpers.ts (Sesiunea 1)`.
+- **Câștig net: -110 linii** din fișierele monolitice.
+- **Status refactorizare:** ✅ Sesiunea 1 completă. Urmează Sesiunea 2 (hooks/useUIState.ts).
 
-
+### Fișiere ÎNGHEȚATE suplimentar (Sesiunea 1 Refactorizare):
+| Fișier | Motivul Freeze |
+|---|---|
+| `lib/planHelpers.ts` | Funcții helper pure comune pentru StudioDesktop și DemoDesktop |
 
 
 

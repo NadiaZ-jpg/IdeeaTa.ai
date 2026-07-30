@@ -166,6 +166,22 @@ export const translations = {
     studioCardDesc: "Adaptează planul din mers. Adaugă secțiuni noi, taie procente din buget sau rescrie textul cu ajutorul asistentului inteligent.",
     exportCardTitle: "Export Corporate",
     exportCardDesc: "Descarcă broșura de prezentare PowerPoint (.pptx), raportul PDF sau documentul editabil Word (.doc).",
+
+    // Erori comune Demo + Studio
+    errorResponseTimeout: "Timpul de răspuns a expirat. Modificarea este prea mare. Încearcă să editezi manual sau să scurtezi textul.",
+    errorServerPrefix: "Eroare de server: ",
+    errorNetworkError: "Eroare de rețea. Te rugăm să mai încerci o dată.",
+    errorInvalidFormat: "Sistemul a returnat un format invalid. Mai încearcă o dată.",
+    errorUnexpectedEdit: "A apărut o eroare neașteptată la editare.",
+    errorSystemOverloaded: "Sistemul este momentan supraîncărcat și a generat un răspuns incomplet. Te rugăm să mai încerci o dată!",
+    errorGenerationFallback: "A apărut o eroare la generarea planului. Te rugăm să încerci din nou mai târziu.",
+    errorSavingDocument: "A apărut o eroare la salvarea documentului.",
+    errorProcessingCredit: "A apărut o eroare la procesarea creditului. Vă rugăm reîncercați.",
+    chapterAlreadyAdded: "Acest capitol a fost deja adăugat! Te redirecționăm către el.",
+    paymentConfirmedEU: "Plată confirmată! Modulul de Fonduri Europene a fost deblocat.",
+    alertCopyProtected: "Copierea și click-dreapta sunt dezactivate în previzualizarea protejată. Deblochează planul pentru acces complet.",
+    alertProtectedPreview: "Previzualizare protejată. Achiziționează Pachetul Standard pentru a descărca documentele sau Pachetul Studio pentru a le edita și copia.",
+    alertValidPercent: "Te rog introdu un procent valid (ex: 20).",
   },
   en: {
     // Landing Page
@@ -334,6 +350,22 @@ export const translations = {
     studioCardDesc: "Adapt the plan on the go. Add new sections, cut budget percentages, or rewrite text with the smart assistant.",
     exportCardTitle: "Corporate Export",
     exportCardDesc: "Download the PowerPoint presentation brochure (.pptx), PDF report, or editable Word document (.doc).",
+
+    // Common errors Demo + Studio
+    errorResponseTimeout: "Response timeout. The text section is too long. Please try manual edit or shorten the text.",
+    errorServerPrefix: "Server error: ",
+    errorNetworkError: "Network error. Please try again.",
+    errorInvalidFormat: "The system returned an invalid format. Please try again.",
+    errorUnexpectedEdit: "An unexpected error occurred during editing.",
+    errorSystemOverloaded: "The system is currently overloaded and generated an incomplete response. Please try again!",
+    errorGenerationFallback: "An error occurred during plan generation. Please try again later.",
+    errorSavingDocument: "An error occurred while saving the document.",
+    errorProcessingCredit: "An error occurred while processing the credit. Please try again.",
+    chapterAlreadyAdded: "This chapter has already been added! We are redirecting you to it.",
+    paymentConfirmedEU: "Payment confirmed! The EU Funds module has been unlocked.",
+    alertCopyProtected: "Copying and right-clicking are disabled in the protected preview. Unlock the plan for full access.",
+    alertProtectedPreview: "Protected preview. Purchase the Standard Package to download documents or the Studio Package to edit and copy.",
+    alertValidPercent: "Please enter a valid percentage (e.g. 20).",
   },
   es: {
     // Landing Page
@@ -502,6 +534,22 @@ export const translations = {
     studioCardDesc: "Adapta el plan sobre la marcha. Añade nuevas secciones, reduce porcentajes del presupuesto o reescribe el texto con el asistente inteligente.",
     exportCardTitle: "Exportación Corporativa",
     exportCardDesc: "Descarga el folleto de presentación de PowerPoint (.pptx), el informe en PDF o el documento editable de Word (.doc).",
+
+    // Errores comunes Demo + Studio
+    errorResponseTimeout: "Tiempo de respuesta agotado. La sección es demasiado larga. Intente editar manualmente o acortar el texto.",
+    errorServerPrefix: "Error del servidor: ",
+    errorNetworkError: "Error de red. Por favor, inténtelo de nuevo.",
+    errorInvalidFormat: "El sistema devolvió un formato no válido. Por favor, inténtelo de nuevo.",
+    errorUnexpectedEdit: "Ocurrió un error inesperado al editar.",
+    errorSystemOverloaded: "El sistema está actualmente sobrecargado y generó una respuesta incompleta. ¡Por favor, inténtelo de nuevo!",
+    errorGenerationFallback: "Ocurrió un error al generar el plan. Por favor, inténtelo de nuevo más tarde.",
+    errorSavingDocument: "Ocurrió un error al guardar el documento.",
+    errorProcessingCredit: "Ocurrió un error al procesar el crédito. Por favor, inténtelo de nuevo.",
+    chapterAlreadyAdded: "¡Este capítulo ya ha sido añadido! Te estamos redirigiendo a él.",
+    paymentConfirmedEU: "¡Pago confirmado! El módulo de Fondos Europeos ha sido desbloqueado.",
+    alertCopyProtected: "Copiar y hacer clic derecho están desactivados en la vista previa protegida. Desbloquea el plan para un acceso completo.",
+    alertProtectedPreview: "Vista previa protegida. Adquiera el Paquete Estándar para descargar documentos o el Paquete Studio para editarlos y copiarlos.",
+    alertValidPercent: "Por favor introduzca un porcentaje válido (ej: 20).",
   }
 };
 

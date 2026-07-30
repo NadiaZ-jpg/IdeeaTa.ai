@@ -16,6 +16,7 @@ import { generateDocxBlob } from '@/lib/generateDocx';
 import { generatePptx } from '@/lib/generatePptx';
 import { useStudioFirebaseSync } from '@/hooks/useStudioFirebaseSync';
 import { t } from '@/lib/translations';
+import { UI_STRINGS } from '@/lib/uiStrings';
 import { getExamples } from '@/lib/examples';
 import { Mail } from 'lucide-react';
 import { formatObjectNumbers, formatNumberedText } from "@/lib/utils";
@@ -310,6 +311,9 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
     }
   };
 
+  // Pre-rezolva toate string-urile UI pentru locale curent
+  const ui = UI_STRINGS[locale];
+
   const saveEditing = () => {
     setIsEditing(false);
     
@@ -334,7 +338,7 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
   const handleContextMenu = (e: React.MouseEvent) => {
     if (isContentCopyProtected) {
       e.preventDefault();
-      alert(locale === "en" ? "Copying and right-clicking are disabled in the protected preview. Unlock the plan for full access." : locale === "es" ? "Copiar y hacer clic derecho están desactivados en la vista previa protegida. Desbloquea el plan para un acceso completo." : "Copierea și click-dreapta sunt dezactivate în previzualizarea protejată. Deblochează planul pentru acces complet.");
+      alert(t("alertCopyProtected", locale));
     }
   };
 
@@ -350,17 +354,7 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
       return;
     }
 
-    // LIMITATOR TON — 2 editări gratuite pentru utilizatori gratuiți (override freeze studio - Master Plan)
-    if (action === 'professional_tone' && user && !hasStandardAccess && !isAdmin) {
-      const toneCount = parseInt(localStorage.getItem('studioToneCount') || '0', 10);
-      if (toneCount >= 2) {
-        setShowPricingModal(true);
-        return;
-      }
-      localStorage.setItem('studioToneCount', (toneCount + 1).toString());
-    }
-
-    const isActionFree = action === "professional_tone";
+    const isActionFree = action === "professional_tone" || action === "optimize_budget";
     if (!isActionFree && !isAdmin && !hasProAccess) {
       setShowPricingModal(true);
       return;
@@ -374,7 +368,7 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
       if (!customInput) return; // Anulat
       let percent = parseInt(customInput.replace(/%/g, ''));
       if (isNaN(percent) || percent <= 0) {
-        alert(locale === "en" ? "Please enter a valid percentage (e.g. 20)." : locale === "es" ? "Por favor introduzca un porcentaje válido (ej: 20)." : "Te rog introdu un procent valid (ex: 20).");
+        alert(t("alertValidPercent", locale));
         return;
       }
       targetSection = percent.toString(); 
@@ -402,11 +396,11 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
           const text = await res.text();
           console.error("API Error Status:", res.status, "Body:", text);
           if (res.status === 504) {
-            setAiEditError(locale === "en" ? "Response timeout. The text section is too long. Please try manual edit or shorten the text." : locale === "es" ? "Tiempo de respuesta agotado. La sección es demasiado larga. Intente editar manualmente o acortar el texto." : "Timpul de răspuns a expirat. Modificarea este prea mare. Încearcă să editezi manual sau să scurtezi textul.");
+            setAiEditError(t("errorResponseTimeout", locale));
             return;
           }
           
-          let errorMsg = locale === "en" ? "Server error: " + res.status : locale === "es" ? "Error del servidor: " + res.status : "Eroare de server: " + res.status;
+          let errorMsg = t("errorServerPrefix", locale) + res.status;
           try {
             const errJson = JSON.parse(text);
             if (errJson.error) {
@@ -420,7 +414,7 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
         data = JSON.parse(await res.text());
       } catch (e) {
         console.error(e);
-        setAiEditError(locale === "en" ? "Network error. Please try again." : locale === "es" ? "Error de red. Por favor, inténtelo de nuevo." : "Eroare de rețea. Te rugăm să mai încerci o dată.");
+        setAiEditError(t("errorNetworkError", locale));
         return;
       }
       
@@ -474,14 +468,14 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
            }, 800);
         } catch (err) {
           console.error("Failed to parse JSON:", err);
-          setAiEditError(locale === "en" ? "The system returned an invalid format. Please try again." : locale === "es" ? "El sistema devolvió un formato no válido. Por favor, inténtelo de nuevo." : "Sistemul a returnat un format invalid. Mai încearcă o dată.");
+          setAiEditError(t("errorInvalidFormat", locale));
         }
       } else if (data.error) {
         setAiEditError(data.error);
       }
     } catch (e) {
       console.error(e);
-      setAiEditError(locale === "en" ? "An unexpected error occurred during editing." : locale === "es" ? "Ocurrió un error inesperado al editar." : "A apărut o eroare neașteptată la editare.");
+      setAiEditError(t("errorUnexpectedEdit", locale));
     }
   };
 
@@ -631,7 +625,7 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
                   euFundsUnlocked: true,
                   processedSessions: arrayUnion(sessionId)
                 }, { merge: true });
-                alert(locale === "en" ? "Payment confirmed! The EU Funds module has been unlocked." : locale === "es" ? "¡Pago confirmado! El módulo de Fondos Europeos ha sido desbloqueado." : "Plată confirmată! Modulul de Fonduri Europene a fost deblocat.");
+                alert(t("paymentConfirmedEU", locale));
               } else if (tier === "pro") {
                 await setDoc(userRef, {
                   subscriptionActive: true,
@@ -781,7 +775,7 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
     const handleCopyCut = (e: ClipboardEvent) => {
       if (isContentCopyProtected) {
         e.preventDefault();
-        alert(locale === "en" ? "Protected preview. Purchase the Standard Package to download documents or the Studio Package to edit and copy." : locale === "es" ? "Vista previa protegida. Adquiera el Paquete Estándar para descargar documentos o el Paquete Studio para editarlos y copiarlos." : "Previzualizare protejată. Achiziționează Pachetul Standard pentru a descărca documentele sau Pachetul Studio pentru a le edita și copia.");
+        alert(t("alertProtectedPreview", locale));
       }
     };
 
@@ -1053,12 +1047,12 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
             generate(undefined, retryCount + 1);
             return;
           }
-          alert(locale === "en" ? "The system is currently overloaded and generated an incomplete response. Please try again!" : locale === "es" ? "El sistema está actualmente sobrecargado y generó una respuesta incompleta. ¡Por favor, inténtelo de nuevo!" : "Sistemul este momentan supraîncărcat și a generat un răspuns incomplet. Te rugăm să mai încerci o dată!");
+          alert(t("errorSystemOverloaded", locale));
         }
       }
     } catch (error: any) {
       console.error("Eroare:", error);
-      alert(locale === "en" ? (error.message || "An error occurred during plan generation. Please try again later.") : locale === "es" ? (error.message || "Ocurrió un error al generar el plan. Por favor, inténtelo de nuevo más tarde.") : (error.message || "A apărut o eroare la generarea planului. Te rugăm să încerci din nou mai târziu."));
+      alert(error.message || t("errorGenerationFallback", locale));
     } finally {
       if (shouldStopLoading) setLoading(false);
     }
@@ -1128,7 +1122,7 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
           }, { merge: true });
         } catch (e) {
           console.error("Eroare la scaderea creditului:", e);
-          alert(locale === "en" ? "An error occurred while processing the credit. Please try again." : locale === "es" ? "Ocurrió un error al procesar el crédito. Por favor, inténtelo de nuevo." : "A apărut o eroare la procesarea creditului. Vă rugăm reîncercați.");
+          alert(t("errorProcessingCredit", locale));
           return;
         }
       } else {
@@ -1240,7 +1234,7 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
       await new Promise(resolve => setTimeout(resolve, 2000));
     } catch (e) {
       console.error("Eroare la generarea documentului", e);
-      alert(locale === "en" ? "An error occurred while saving the document." : locale === "es" ? "Ocurrió un error al guardar el documento." : "A apărut o eroare la salvarea documentului.");
+      alert(t("errorSavingDocument", locale));
     } finally {
       setIsDownloading(null);
     }
@@ -1250,9 +1244,9 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
     <div className="w-full lg:w-2/5 xl:w-1/3 flex flex-col gap-6 sticky top-8 print:hidden">
       
                 <div className="bg-zinc-900 border border-zinc-800 rounded-[2rem] p-8 shadow-xl sticky top-8">
-                   <h3 className="text-2xl font-black text-white mb-4 flex items-center gap-3"><span className="text-emerald-500">✨</span> {locale === "en" ? "Tools" : locale === "es" ? "Herramientas" : "Instrumente"}</h3>
+                   <h3 className="text-2xl font-black text-white mb-4 flex items-center gap-3"><span className="text-emerald-500">✨</span> {ui.toolsTitle}</h3>
                    <p className="text-zinc-400 text-sm mb-6 leading-relaxed">
-                     {locale === "en" ? "Here you can use the intelligent assistant to add more information and details to your plan." : locale === "es" ? "Aquí puedes utilizar el asistente inteligente para añadir más información y detalles a tu plan." : "Aici poți folosi asistentul inteligent pentru a adăuga mai multe informații și detalii planului tău."}
+                     {ui.toolsDesc}
                    </p>
                    
                    <div className="flex flex-col gap-3">
@@ -1465,7 +1459,7 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
                         }
                         const isAlreadyAdded = result?.sectiuni_aditionale?.findIndex((sec: any) => sec.titlu.includes("Plan Profesionist") || sec.titlu.includes("Investitori") || sec.titlu.includes("Professional") || sec.titlu.includes("Investor") || sec.titlu.includes("Profesional") || sec.titlu.includes("Inversor"));
                         if (isAlreadyAdded !== undefined && isAlreadyAdded >= 0) {
-                          alert(locale === "en" ? "This chapter has already been added! We are redirecting you to it." : locale === "es" ? "¡Este capítulo ya ha sido añadido! Te estamos redirigiendo a él." : "Acest capitol a fost deja adăugat! Te redirecționăm către el.");
+                          alert(t("chapterAlreadyAdded", locale));
                           document.getElementById(`custom-section-${isAlreadyAdded}`)?.scrollIntoView({ behavior: "smooth", block: "center" });
                           return;
                         }
@@ -1486,7 +1480,7 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
                       }} disabled={isEditingAi} className={`w-full rounded-xl px-5 py-4 font-bold text-sm transition-all text-left flex items-center justify-between group disabled:opacity-50 disabled:cursor-not-allowed ${!hasProAccess ? 'bg-zinc-900/60 hover:bg-zinc-800/80 border border-amber-500/30 text-amber-300' : 'bg-zinc-900/80 hover:bg-zinc-800 border border-emerald-500/30 text-emerald-100 shadow-[0_0_15px_rgba(16,185,129,0.1)]'}`}>
                         <span className="flex items-center gap-3">
                           <span className={`${!hasProAccess ? 'text-amber-500' : 'text-emerald-400'} group-hover:scale-110 transition-transform text-lg`}>🏦</span> 
-                          <span>{isEditingAi ? (locale === "en" ? "Processing..." : locale === "es" ? "Procesando..." : "Se procesează...") : (locale === "en" ? "Professional Plan (Investors/Banks)" : locale === "es" ? "Plan Profesional (Inversores/Bancos)" : "Plan Profesionist (Investitori/Bănci)")}</span>
+                          <span>{isEditingAi ? ui.processing : ui.investorPlanBtn}</span>
                         </span>
                         {!hasProAccess && (
                           <span className="text-xs font-black bg-amber-500/20 text-amber-400 px-2.5 py-1 rounded-md border border-amber-500/20 group-hover:bg-amber-500/30 transition-colors flex items-center gap-1.5 shadow-[0_0_10px_rgba(245,158,11,0.2)]">
@@ -1624,13 +1618,13 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
             <div className="w-16 h-16 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin mb-6"></div>
             <p className="text-2xl font-bold text-white tracking-widest uppercase text-center">
               {isDownloading === 'pptx' 
-                ? (locale === "en" ? 'Generating presentation brochure...' : locale === "es" ? 'Generando folleto de presentación...' : 'Se generează broșură de prezentare...') 
+                ? ui.generatingPptx
                 : isDownloading === 'pdf' 
-                  ? (locale === "en" ? 'Generating presentation...' : locale === "es" ? 'Generando presentación...' : 'Se generează prezentarea...') 
-                  : (locale === "en" ? 'Generating document...' : locale === "es" ? 'Generando documento...' : 'Se generează document...')}
+                  ? ui.generatingPdf
+                  : ui.generatingDoc}
             </p>
             <p className="text-emerald-400 font-medium mt-3 text-center">
-              {locale === "en" ? "This process takes a few moments to ensure maximum quality." : locale === "es" ? "Este proceso tarda unos momentos para garantizar la máxima calidad." : "Acest proces durează câteva momente pentru a asigura calitatea maximă."}
+              {ui.downloadQualityNote}
             </p>
           </div>
         </div>
@@ -1651,7 +1645,7 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
                   ⚠️
                 </div>
                 <h3 className="text-2xl font-bold text-white mb-4">
-                  {locale === "en" ? "Processing Error" : locale === "es" ? "Error de procesamiento" : "Eroare la procesare"}
+                  {ui.processingError}
                 </h3>
                 <p className="text-zinc-400 text-base leading-relaxed mb-6 whitespace-pre-line">
                   {aiEditError}
@@ -1666,7 +1660,7 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
                     }}
                     className="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-6 py-3 rounded-xl transition-all cursor-pointer shadow-lg shadow-emerald-600/20 hover:scale-105 active:scale-95 animate-pulse"
                   >
-                    {locale === "en" ? "🔄 Retry" : locale === "es" ? "🔄 Reintentar" : "🔄 Reîncearcă"}
+                    {ui.retryBtn}
                   </button>
                   <button
                     onClick={() => {
@@ -1675,7 +1669,7 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
                     }}
                     className="bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 text-zinc-300 font-bold px-6 py-3 rounded-xl transition-all cursor-pointer hover:text-white"
                   >
-                    {locale === "en" ? "❌ Close" : locale === "es" ? "❌ Cerrar" : "❌ Închide"}
+                    {ui.closeBtn}
                   </button>
                 </div>
               </div>
@@ -1683,16 +1677,16 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
               <>
                 <div className="w-16 h-16 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin mb-6"></div>
                 <p className="text-2xl font-bold text-white tracking-widest uppercase text-center transition-all duration-300">
-                  {aiLoadingMessageIndex === 0 && (locale === "en" ? "Rewriting the document..." : locale === "es" ? "Reescribiendo el documento..." : "Se rescrie documentul...")}
-                  {aiLoadingMessageIndex === 1 && (locale === "en" ? "Processing sections..." : locale === "es" ? "Procesando secciones..." : "Se procesează secțiunile...")}
-                  {aiLoadingMessageIndex === 2 && (locale === "en" ? "Calculating data..." : locale === "es" ? "Calculando datos..." : "Se calculează datele...")}
-                  {aiLoadingMessageIndex === 3 && (locale === "en" ? "Finalizing..." : locale === "es" ? "Finalizando..." : "Se finalizează...")}
+                  {aiLoadingMessageIndex === 0 && ui.aiLoadingStep0}
+                  {aiLoadingMessageIndex === 1 && ui.aiLoadingStep1}
+                  {aiLoadingMessageIndex === 2 && ui.aiLoadingStep2}
+                  {aiLoadingMessageIndex === 3 && ui.aiLoadingStep3}
                 </p>
                 <p className="text-emerald-400 font-medium mt-3 text-center transition-all duration-500 max-w-lg">
-                  {aiLoadingMessageIndex === 0 && (locale === "en" ? "This process takes 15-20 seconds. We are analyzing the current structure of the document..." : locale === "es" ? "Este proceso tarda 15-20 segundos. Estamos analizando la estructura actual del documento..." : "Acest proces durează 15-20 de secunde. Analizăm structura actuală a documentului...")}
-                  {aiLoadingMessageIndex === 1 && (locale === "en" ? "Generating sections and rewriting paragraphs for maximum quality..." : locale === "es" ? "Generando secciones y reescribiendo párrafos para máxima calidad..." : "Generăm secțiunile și rescriem paragrafele pentru o calitate maximă...")}
-                  {aiLoadingMessageIndex === 2 && (locale === "en" ? "Applying financial calculations and refining the professional tone..." : locale === "es" ? "Aplicando cálculos financieros y refinando el tono profesional..." : "Aplicăm calculele financiare și rafinăm tonul profesional...")}
-                  {aiLoadingMessageIndex === 3 && (locale === "en" ? "Final touches. Preparing your new business plan..." : locale === "es" ? "Toques finales. Preparando tu nuevo plan de negocios..." : "Ultimele retușuri. Pregătim noul tău plan de afaceri...")}
+                  {aiLoadingMessageIndex === 0 && ui.aiLoadingDesc0}
+                  {aiLoadingMessageIndex === 1 && ui.aiLoadingDesc1}
+                  {aiLoadingMessageIndex === 2 && ui.aiLoadingDesc2}
+                  {aiLoadingMessageIndex === 3 && ui.aiLoadingDesc3}
                 </p>
               </>
             )}
@@ -2714,13 +2708,13 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
 
             {/* Date Generale & Viziune */}
             <div id="section-general" className="pdf-section mb-10 bg-zinc-900/50 p-10 rounded-3xl border-l-4 border-emerald-500 shadow-inner print:shadow-none print:bg-transparent print:border-l-4 print:border-emerald-700 print:text-black">
-              <h3 className="text-emerald-400 text-sm font-black uppercase mb-6 tracking-[0.2em]">{locale === "en" ? "I & II. General Information and Vision" : locale === "es" ? "I y II. Información General y Visión" : "I & II. Date Generale și Viziune"}</h3>
+              <h3 className="text-emerald-400 text-sm font-black uppercase mb-6 tracking-[0.2em]">{ui.sectionGeneral}</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8 text-zinc-300 print:text-gray-800">
                 <div className="flex flex-col relative overflow-hidden">
                   <div className="leading-relaxed text-left z-10 relative">
-                    <p className="whitespace-pre-line"><strong className="text-white print:text-black block mb-1">{locale === "en" ? "Legal Form:" : locale === "es" ? "Forma Jurídica:" : "Forma Juridică:"}</strong> {result.date_generale?.forma_juridica}</p>
-                    <p className="mt-4 whitespace-pre-line"><strong className="text-white print:text-black block mb-1">{locale === "en" ? "CAEN Code:" : locale === "es" ? "Código CAEN:" : "Cod CAEN:"}</strong> {result.date_generale?.cod_caen}</p>
-                    <p className="mt-4 whitespace-pre-line"><strong className="text-white print:text-black block mb-1">{locale === "en" ? "Contact:" : locale === "es" ? "Contacto:" : "Contact:"}</strong> {result.date_generale?.date_contact}</p>
+                    <p className="whitespace-pre-line"><strong className="text-white print:text-black block mb-1">{ui.fieldLegalForm}</strong> {result.date_generale?.forma_juridica}</p>
+                    <p className="mt-4 whitespace-pre-line"><strong className="text-white print:text-black block mb-1">{ui.fieldCaenCode}</strong> {result.date_generale?.cod_caen}</p>
+                    <p className="mt-4 whitespace-pre-line"><strong className="text-white print:text-black block mb-1">{ui.fieldContact}</strong> {result.date_generale?.date_contact}</p>
                   </div>
                   
                   {/* Decorative curved lines to fill empty space */}
@@ -2772,31 +2766,31 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
                   </div>
                 </div>
                 <div>
-                  <p className="whitespace-pre-line"><strong className="text-white print:text-black block mb-1">{locale === "en" ? "Objectives (1 year):" : locale === "es" ? "Objetivos (1 año):" : "Obiective (1 an):"}</strong>{formatNumberedText(result.viziune_strategie?.obiective_scurt)}</p>
-                  <p className="mt-4 whitespace-pre-line"><strong className="text-white print:text-black block mb-1">{locale === "en" ? "Objectives (3-5 years):" : locale === "es" ? "Objetivos (3-5 años):" : "Obiective (3-5 ani):"}</strong>{formatNumberedText(result.viziune_strategie?.obiective_mediu)}</p>
+                  <p className="whitespace-pre-line"><strong className="text-white print:text-black block mb-1">{ui.fieldObjectives1y}</strong>{formatNumberedText(result.viziune_strategie?.obiective_scurt)}</p>
+                  <p className="mt-4 whitespace-pre-line"><strong className="text-white print:text-black block mb-1">{ui.fieldObjectives35y}</strong>{formatNumberedText(result.viziune_strategie?.obiective_mediu)}</p>
                 </div>
               </div>
               <div className="mt-6 pt-6 border-t border-zinc-800/50 text-zinc-300 print:border-gray-200 print:text-gray-800 text-left leading-relaxed">
-                  <p className="whitespace-pre-line"><strong className="text-white print:text-black">{locale === "en" ? "Mission and Values:" : locale === "es" ? "Misión y Valores:" : "Misiune și Valori:"}</strong> {formatNumberedText(result.viziune_strategie?.misiune_valori)}</p>
+                  <p className="whitespace-pre-line"><strong className="text-white print:text-black">{ui.fieldMissionValues}</strong> {formatNumberedText(result.viziune_strategie?.misiune_valori)}</p>
               </div>
             </div>
 
             {/* Analiza Pietei */}
             <div id="section-market" className="pdf-section mb-10 bg-zinc-900/50 p-10 rounded-3xl border-l-4 border-emerald-500 shadow-inner print:shadow-none print:bg-transparent print:border-l-4 print:border-emerald-700 print:text-black">
-              <h3 className="text-emerald-400 text-sm font-black uppercase mb-6 tracking-[0.2em]">{locale === "en" ? "III. Market Analysis and Promotion" : locale === "es" ? "III. Análisis de Mercado y Promoción" : "III. Analiza Pieței și Promovarea"}</h3>
+              <h3 className="text-emerald-400 text-sm font-black uppercase mb-6 tracking-[0.2em]">{ui.sectionMarket}</h3>
               <div className="space-y-6 text-zinc-300 print:text-gray-800 text-left leading-relaxed">
-                <div><strong className="text-white print:text-black block mb-1">{locale === "en" ? "Target Customers:" : locale === "es" ? "Clientes Objetivo:" : "Clienții Țintă:"}</strong> <span className="italic whitespace-pre-line">{formatNumberedText(result.analiza_pietei?.clienti_tinta)}</span></div>
-                <div><strong className="text-white print:text-black block mb-1">{locale === "en" ? "Competition:" : locale === "es" ? "Competencia:" : "Concurența:"}</strong> <span className="italic whitespace-pre-line">{formatNumberedText(result.analiza_pietei?.concurenta)}</span></div>
-                <div><strong className="text-white print:text-black block mb-1">{locale === "en" ? "Marketing Strategy:" : locale === "es" ? "Estrategia de Marketing:" : "Strategia de Marketing:"}</strong> <span className="italic whitespace-pre-line">{formatNumberedText(result.analiza_pietei?.strategie_marketing)}</span></div>
+                <div><strong className="text-white print:text-black block mb-1">{ui.fieldTargetCustomers}</strong> <span className="italic whitespace-pre-line">{formatNumberedText(result.analiza_pietei?.clienti_tinta)}</span></div>
+                <div><strong className="text-white print:text-black block mb-1">{ui.fieldCompetition}</strong> <span className="italic whitespace-pre-line">{formatNumberedText(result.analiza_pietei?.concurenta)}</span></div>
+                <div><strong className="text-white print:text-black block mb-1">{ui.fieldMarketingStrategy}</strong> <span className="italic whitespace-pre-line">{formatNumberedText(result.analiza_pietei?.strategie_marketing)}</span></div>
               </div>
             </div>
             
             <div id="section-swot" className="grid grid-cols-1 gap-6 mb-14 print:gap-4">
               {Object.entries({
-                puncte_tari: {t: locale === "en" ? "Strengths" : locale === "es" ? "Fortalezas" : "Puncte Tari", l: "S"},
-                puncte_slabe: {t: locale === "en" ? "Weaknesses" : locale === "es" ? "Debilidades" : "Slăbiciuni", l: "W"},
-                oportunitati: {t: locale === "en" ? "Opportunities" : locale === "es" ? "Oportunidades" : "Oportunități", l: "O"},
-                amenintari: {t: locale === "en" ? "Threats" : locale === "es" ? "Amenazas" : "Amenințări", l: "T"}
+                puncte_tari: {t: ui.swotStrengths, l: ui.swotStrengthsLetter},
+                puncte_slabe: {t: ui.swotWeaknesses, l: ui.swotWeaknessesLetter},
+                oportunitati: {t: ui.swotOpportunities, l: 'O'},
+                amenintari: {t: ui.swotThreats, l: locale === "es" ? 'A' : 'T'}
               }).map(([key, info]) => (
                 <div key={key} className="pdf-section p-8 rounded-3xl border border-zinc-800/50 bg-black/20 shadow-inner print:break-inside-avoid print:p-0 print:border-none print:shadow-none print:bg-transparent">
                   <div className="flex items-center gap-4 mb-6 print:mb-4">
@@ -2820,11 +2814,11 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
 
             {/* Operational */}
             <div id="section-operational" className="pdf-section mb-10 bg-zinc-900/50 p-10 rounded-3xl border-l-4 border-emerald-500 shadow-inner print:shadow-none print:bg-transparent print:border-l-4 print:border-emerald-700 print:text-black">
-              <h3 className="text-emerald-400 text-sm font-black uppercase mb-6 tracking-[0.2em]">{locale === "en" ? "V. Operational and Management Plan" : locale === "es" ? "V. Plan Operativo y de Gestión" : "V. Planul Operațional și de Management"}</h3>
+              <h3 className="text-emerald-400 text-sm font-black uppercase mb-6 tracking-[0.2em]">{ui.sectionOperational}</h3>
               <ol className="space-y-6 text-zinc-300 print:text-gray-800 list-decimal pl-6 text-left leading-relaxed">
-                <li className="pl-2"><strong className="text-white print:text-black block mb-1">{locale === "en" ? "Workflow Description:" : locale === "es" ? "Descripción del Flujo de Trabajo:" : "Descriere Flux Tehnologic:"}</strong> <span className="italic whitespace-pre-line">{formatNumberedText(result.plan_operational?.descriere_flux)}</span></li>
-                <li className="pl-2"><strong className="text-white print:text-black block mb-1">{locale === "en" ? "Human Resources:" : locale === "es" ? "Recursos Humanos:" : "Resurse Umane:"}</strong> <span className="italic whitespace-pre-line">{formatNumberedText(result.plan_operational?.resurse_umane)}</span></li>
-                <li className="pl-2"><strong className="text-white print:text-black block mb-1">{locale === "en" ? "Location and Facilities:" : locale === "es" ? "Ubicación e Instalaciones:" : "Locație și Dotări:"}</strong> <span className="italic whitespace-pre-line">{formatNumberedText(result.plan_operational?.locatie_dotari)}</span></li>
+                <li className="pl-2"><strong className="text-white print:text-black block mb-1">{ui.fieldTechFlow}</strong> <span className="italic whitespace-pre-line">{formatNumberedText(result.plan_operational?.descriere_flux)}</span></li>
+                <li className="pl-2"><strong className="text-white print:text-black block mb-1">{ui.fieldHumanResources}</strong> <span className="italic whitespace-pre-line">{formatNumberedText(result.plan_operational?.resurse_umane)}</span></li>
+                <li className="pl-2"><strong className="text-white print:text-black block mb-1">{ui.fieldLocationEquipment}</strong> <span className="italic whitespace-pre-line">{formatNumberedText(result.plan_operational?.locatie_dotari)}</span></li>
               </ol>
             </div>
 
@@ -2842,7 +2836,7 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
 
             <div id="section-financial" className="pt-10 border-t border-zinc-800 print:border-none print:pt-4">
                <h3 className="pdf-section text-emerald-400 text-sm font-black uppercase mb-6 tracking-[0.2em] text-center drop-shadow-md print:text-emerald-800 print:drop-shadow-none">
-                 {locale === "en" ? "VI. Financial Plan" : locale === "es" ? "VI. Plan Financiero" : "VI. Planul Financiar"}
+                 {ui.sectionFinancial}
                </h3>
                
                <div className="pdf-section text-zinc-300 italic text-left leading-relaxed max-w-4xl mx-auto mb-10 print:text-gray-700 whitespace-pre-line">
@@ -2850,7 +2844,7 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
                </div>
 
                <div className="mb-16" id="docx-chart-container">
-                 <h4 className="text-zinc-500 font-bold uppercase tracking-wider mb-6 text-sm">{locale === "en" ? "Cost Distribution" : locale === "es" ? "Distribución de Costos" : "Distribuția costurilor"}</h4>
+                 <h4 className="text-zinc-500 font-bold uppercase tracking-wider mb-6 text-sm">{ui.fieldCostDistribution}</h4>
                  <BudgetPieChart budget={result.plan_financiar?.buget_investitii} currency={currency} locale={locale} />
                </div>
 

@@ -1688,15 +1688,15 @@ export default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" | 
           <div className="flex flex-col md:flex-row justify-between items-center gap-4 w-full mb-8 pb-8 border-b border-zinc-800">
             <div className="flex flex-col gap-3">
               <h1 className="text-3xl font-black text-emerald-400 flex items-center gap-3">
-                <span>✏️</span> Studio Editare
+                <span>🪄</span> {ui.editingStudio}
               </h1>
             </div>
             <div className="flex gap-4 shrink-0">
               <button onClick={cancelEditing} className="px-6 py-2 bg-zinc-800 hover:bg-zinc-700 text-white rounded-xl font-bold transition-all shadow-xl">
-                 ❌ Anulează
+                 {ui.cancelCross}
               </button>
               <button onClick={saveEditing} className="px-6 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl font-bold transition-all shadow-xl border border-emerald-500">
-                 ✅ Confirmă și Salvează
+                 {ui.confirmSaveCheck}
               </button>
             </div>
           </div>

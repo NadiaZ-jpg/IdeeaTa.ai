@@ -44,8 +44,8 @@ export function ActionBar({
   showCurrencyToggle = true,
 }: ActionBarProps) {
 
-  const editLabel = ui.editingStudio || "✏️ Studio Editare";
-  const resetLabel = ui.anotherIdea ? `🔄 ${ui.anotherIdea.replace("🔄 ", "")}` : "🔄 Altă idee";
+  const editLabel = ui.editingStudio ? `🪄 ${ui.editingStudio.replace("🪄 ", "")}` : "🪄 Studio Editare";
+  const resetLabel = ui.anotherIdea ? `💡 ${ui.anotherIdea.replace("💡 ", "")}` : "💡 Altă idee";
 
   return (
     <div className="flex flex-col md:flex-row justify-between items-center gap-4 w-full">

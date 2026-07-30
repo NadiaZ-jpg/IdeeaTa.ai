@@ -31,6 +31,7 @@ import { DemoLeftSidebar } from "@/components/sidebars/DemoLeftSidebar";
 import { DemoBrochurePreview } from "@/components/pdf/DemoBrochurePreview";
 import { DemoPresentationSlides } from "@/components/pdf/DemoPresentationSlides";
 import { truncateText, splitTextIntoSlides, getDynamicTextSize } from '@/lib/planHelpers';
+import { useExportActions } from '@/hooks/useExportActions';
 import { useUIState } from '@/hooks/useUIState';
 import { ActionBar } from '@/components/ActionBar';
 import { MockupPreview } from '@/components/MockupPreview';
@@ -989,146 +990,22 @@ export default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" | 
     window.scrollTo({ top: 0, behavior: "instant" });
   };
 
-  const downloadAction = async (mode: 'pdf' | 'pptx' | 'word' | 'pdf-summary', bypassPaymentCheck = false) => {
-    const planName = result?.nume || "Plan de Afaceri";
-
-    if (mode !== 'pdf-summary' && !isAdmin && !isPlanPaid && !subscriptionActive && !euFundsUnlocked && !bypassPaymentCheck) {
-      if (!user) {
-        window.location.href = ui.routes.login;
-        return;
-      }
-      if (credits > 0) {
-        const confirmUnlock = window.confirm(ui.confirmUnlockPlan);
-        if (!confirmUnlock) return;
-
-        try {
-          const userRef = doc(db, "users", user!.uid);
-          await setDoc(userRef, {
-            credits: increment(-1),
-            unlockedPlans: arrayUnion(planName)
-          }, { merge: true });
-        } catch (e) {
-          console.error("Eroare la scaderea creditului:", e);
-          alert(t("errorProcessingCredit", locale));
-          return;
-        }
-      } else {
-        setPendingDownloadMode(mode as any);
-        setShowPricingModal(true);
-        return;
-      }
-    }
-    setIsDownloading(mode as any);
-    await new Promise(resolve => setTimeout(resolve, 500));
-    try {
-      let generatedShareId: string | null = null;
-      if (mode === 'pdf-summary' || mode === 'pdf') {
-        try {
-          const res = await fetch('/api/share', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ planData: result })
-          });
-          const data = await res.json();
-          if (data.id) generatedShareId = data.id;
-        } catch (err) {
-          // Ignoram complet eroarea ca sa nu o prinda Next.js
-        }
-      }
-
-      const safeName = result?.nume?.replace(/[^a-zA-Z0-9]/g, '_') || 'Business';
-
-      if (mode === 'pptx') {
-        await generatePptx(result, safeName, isEs || isEn ? "EUR" : "RON", 0.201, locale);
-      } else if (mode === 'pdf' || mode === 'pdf-summary') {
-        let slidesArray = Array.from(document.querySelectorAll('.pdf-presentation-slide'));
-        if (slidesArray.length === 0) {
-           setIsDownloading(null);
-           return;
-        }
-        
-        if (mode === 'pdf-summary') {
-          slidesArray = slidesArray.slice(0, 4);
-          const ctaSlide = document.querySelector('.pdf-cta-slide');
-          if (ctaSlide) {
-            slidesArray.push(ctaSlide as Element);
-          }
-        }
-
-        const pdf = new jsPDF({
-          orientation: "landscape",
-          unit: "pt",
-          format: [1280, 720]
-        });
-
-        let pdfUrl = 'https://ideeata.ai/login';
-        const currentShareId = result?.id || generatedShareId;
-        if (currentShareId) {
-          pdfUrl = `https://ideeata.ai/shared/${currentShareId}`;
-        }
-
-        for (let i = 0; i < slidesArray.length; i++) {
-          const slideElement = slidesArray[i] as HTMLElement;
-          const dataUrl = await toPng(slideElement, { quality: 1.0, pixelRatio: 2 });
-          if (i > 0) pdf.addPage([1280, 720], "landscape");
-          pdf.addImage(dataUrl, 'PNG', 0, 0, 1280, 720);
-          
-          // Adăugăm un link invizibil fix deasupra butonului verde
-          if (i === slidesArray.length - 1 && mode === 'pdf-summary') {
-            const btn = slideElement.querySelector('.bg-emerald-500');
-            if (btn) {
-              const rect = btn.getBoundingClientRect();
-              const slideRect = slideElement.getBoundingClientRect();
-              const scaleX = 1280 / slideRect.width;
-              const scaleY = 720 / slideRect.height;
-              const x = (rect.left - slideRect.left) * scaleX;
-              const y = (rect.top - slideRect.top) * scaleY;
-              const w = rect.width * scaleX;
-              const h = rect.height * scaleY;
-              pdf.link(x, y, w, h, { url: pdfUrl });
-            } else {
-              pdf.link(1280/2 - 150, 420, 300, 80, { url: pdfUrl });
-            }
-          }
-
-          // Stamp footer on every page
-          pdf.setTextColor(150, 150, 150); // Gray color
-          pdf.setFontSize(14);
-          pdf.text(ui.planGeneratedSmartly, 640, 700, { align: 'center' });
-          
-          // Add invisible link covering the footer area on every page
-          pdf.link(300, 680, 680, 40, { url: pdfUrl });
-        }
-        
-        const safeName = result?.nume?.replace(/[^a-zA-Z0-9]/g, '_') || 'Business';
-        const suffix = mode === 'pdf-summary' ? '_Sumar_Gratuit' : '';
-        pdf.save(`IdeeaTa_Prezentare_${safeName}${suffix}.pdf`);
-      } else if (mode === 'word') {
-          const chartElement = document.getElementById("docx-export-chart-hidden");
-          let chartDataUrl = null;
-          if (chartElement) {
-             try {
-                chartDataUrl = await toPng(chartElement, { backgroundColor: '#ffffff' });
-             } catch(e) { console.error(e); }
-          }
-          const blob = await generateDocxBlob(result, chartDataUrl, locale);
-          const link = document.createElement('a');
-          link.href = URL.createObjectURL(blob);
-          const safeName2 = result?.nume?.replace(/[^a-zA-Z0-9]/g, '_') || 'Business';
-          link.download = `IdeeaTa_Document_${safeName2}.docx`;
-          document.body.appendChild(link);
-          link.click();
-          document.body.removeChild(link);
-      }
-
-      await new Promise(resolve => setTimeout(resolve, 2000));
-    } catch (e) {
-      console.error("Eroare la generarea documentului", e);
-      alert(t("errorSavingDocument", locale));
-    } finally {
-      setIsDownloading(null);
-    }
-  };
+  const { downloadAction } = useExportActions({
+    result,
+    locale,
+    currency,
+    user,
+    isAdmin,
+    isPlanPaid,
+    subscriptionActive,
+    euFundsUnlocked,
+    credits,
+    setIsDownloading,
+    setPendingDownloadMode,
+    setShowPricingModal,
+    setIsSharedView,
+    t
+  });
 
   const renderSidebar = () => (
     <DemoLeftSidebar 

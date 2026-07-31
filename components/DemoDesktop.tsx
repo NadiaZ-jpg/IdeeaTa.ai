@@ -31,7 +31,7 @@ import { useExportActions } from '@/hooks/useExportActions';
 import { useUIState } from '@/hooks/useUIState';
 import { ActionBar } from '@/components/ActionBar';
 import { MockupPreview } from '@/components/MockupPreview';
-import { VersionHistoryDropdown } from '@/components/VersionHistoryDropdown';
+import { VersionSelector } from '@/components/VersionSelector';
 
 const BudgetPieChart = dynamic(() => import('@/components/BudgetChart').then(mod => mod.BudgetPieChart), { ssr: false });
 
@@ -282,7 +282,7 @@ export default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" | 
     setAiPromptInput("");
     setShowToneOptions(false);
     try {
-      const baseSource = versions.original || result;
+      const baseSource = result;
       const [res] = await Promise.all([
         fetch("/api/edit", {
           method: "POST",
@@ -323,10 +323,22 @@ export default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" | 
         try {
           const parsed = JSON.parse(data.updatedResult);
           
-          const vKey = 
-            action === "eu_funds_optimization" ? "eu_funds" :
-            action === "investor_ready" ? "investor" :
-            activeVersionId;
+           let vKey = activeVersionId;
+           if (action === "eu_funds_optimization") {
+             vKey = `eu_funds_${Date.now()}`;
+           } else if (action === "investor_ready") {
+             vKey = `investor_${Date.now()}`;
+           } else if (action === "professional_tone") {
+             let toneType = "formal";
+             if (customStyle?.includes("creativ") || customStyle?.includes("entuziast")) toneType = "creative";
+             else if (customStyle?.includes("persuasiv") || customStyle?.includes("vânzări")) toneType = "persuasive";
+             else if (customStyle?.includes("prietenos") || customStyle?.includes("casual")) toneType = "friendly";
+             vKey = `ton_${toneType}_${Date.now()}`;
+           } else if (action === "optimize_budget") {
+             vKey = `budget_${Date.now()}`;
+           } else if (action === "add_sections") {
+             vKey = `expert_${Date.now()}`;
+           }
           
           const formattedResult = formatObjectNumbers(parsed);
           
@@ -1740,8 +1752,7 @@ export default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" | 
           />
 
           {!isEditing && (
-            <VersionHistoryDropdown
-              mode="demo"
+            <VersionSelector
               versions={versions}
               activeVersionId={activeVersionId}
               onSelectVersion={(vKey, vData) => {

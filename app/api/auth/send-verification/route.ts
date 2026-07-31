@@ -10,10 +10,12 @@ export async function POST(request: Request) {
     }
 
     // Generăm link-ul unic de verificare în Firebase
-    const redirectUrl = 'https://ideeata.ai/dashboard';
+    const origin = request.headers.get('origin') || request.headers.get('referer') || '';
+    const baseUrl = origin.includes('localhost') ? 'http://localhost:3000' : 'https://ideeata.ai';
+    const redirectUrl = `${baseUrl}/dashboard`;
     const actionCodeSettings = {
       url: redirectUrl,
-      handleCodeInApp: true,
+      handleCodeInApp: false,
     };
 
     const verificationLink = await adminAuth.generateEmailVerificationLink(email, actionCodeSettings);

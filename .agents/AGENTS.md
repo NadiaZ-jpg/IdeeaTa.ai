@@ -384,3 +384,12 @@ Orice agent care primește o instrucțiune ambiguă trebuie să CEARĂ CONFIRMAR
 - Verificat build Next.js (44/44 pagini statice generate cu succes).
 - Git committed & pushed. Working tree curat.
 
+
+### Checkpoint-31-Iulie-2026-Uniformizare-Moneda-LEI-EUR
+- Unificat managementul monedei (LEI / EUR) în toate secțiunile (AI generator/editor, Firestore sync, EditForm, documente exportate).
+- AI generează direct în moneda selectată (LEI sau EUR) și salvează proprietatea `selectedCurrency`.
+- Interfața (Desktop și Mobil) încarcă și sincronizează automat moneda salvată pe plan.
+- Corectat double-conversion bugs în `priceHelper.ts`, `generateDocx.ts` și `generatePptx.ts`.
+- Verificat build Next.js: ✅ `✓ Compiled successfully`, ✅ `✓ Generating static pages (44/44)`.
+- Git committed & pushed.
+

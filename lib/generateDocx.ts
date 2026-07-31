@@ -110,11 +110,12 @@ function spacer(): Paragraph {
   return new Paragraph({ spacing: { after: 160 } });
 }
 
-function formatPrice(val: any, locale: "ro" | "en" | "es" = "ro"): string {
+function formatPrice(val: any, locale: "ro" | "en" | "es" = "ro", currency?: string): string {
   const num = parseInt((val || "0").toString().replace(/[^0-9]/g, ""));
-  if (!num) return locale === "ro" ? "0 RON" : "0 EUR";
+  const activeCurrency = currency || (locale === "ro" ? "LEI" : "EUR");
+  if (!num) return `0 ${activeCurrency}`;
   if (locale === "ro") {
-    return num.toLocaleString("ro-RO") + " RON";
+    return num.toLocaleString("ro-RO") + " " + activeCurrency;
   } else {
     return num.toLocaleString(locale === "es" ? "es-ES" : "en-US") + " EUR";
   }
@@ -247,7 +248,8 @@ const docxTranslations = {
 export async function generateDocxBlob(
   result: any,
   chartDataUrl?: string | null,
-  locale: "ro" | "en" | "es" = "ro"
+  locale: "ro" | "en" | "es" = "ro",
+  currency?: string
 ): Promise<Blob> {
   const children: (Paragraph | Table)[] = [];
 
@@ -328,8 +330,9 @@ export async function generateDocxBlob(
           
           // Formateaza totalul frumos
           const formatPriceCenter = (val: number) => {
+             const activeCurrency = currency || (locale === "ro" ? "LEI" : "EUR");
              if (locale === "ro") {
-               return new Intl.NumberFormat('ro-RO').format(val) + ' RON';
+               return new Intl.NumberFormat('ro-RO').format(val) + " " + activeCurrency;
              } else {
                return new Intl.NumberFormat(locale === "es" ? 'es-ES' : 'en-US').format(val) + ' EUR';
              }
@@ -559,7 +562,7 @@ export async function generateDocxBlob(
         new Paragraph({
           children: [
             new TextRun({ text: `${itemTitle}: `, bold: true, font: FONT, size: 24 }),
-            new TextRun({ text: formatPrice(itemCost, locale), color: COLOR_EMERALD, font: FONT, size: 24, bold: true }),
+            new TextRun({ text: formatPrice(itemCost, locale, currency), color: COLOR_EMERALD, font: FONT, size: 24, bold: true }),
           ],
           spacing: { after: 40 },
           bullet: { level: 0 },
@@ -586,7 +589,7 @@ export async function generateDocxBlob(
       new Paragraph({
         children: [
           new TextRun({
-            text: `${tr.totalEstimat}: ${formatPrice(total.toString(), locale)}`,
+            text: `${tr.totalEstimat}: ${formatPrice(total.toString(), locale, currency)}`,
             bold: true,
             size: 28,
             color: COLOR_EMERALD,

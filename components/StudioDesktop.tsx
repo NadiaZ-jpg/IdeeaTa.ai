@@ -320,7 +320,7 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
         fetch("/api/edit", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ result: baseSource, action, customStyle, targetSection, locale, isRetry })
+          body: JSON.stringify({ result: baseSource, action, customStyle, targetSection, locale, isRetry, currency })
         }),
         new Promise(resolve => setTimeout(resolve, 2000))
       ]);
@@ -514,7 +514,7 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
     return () => unsubscribe();
   }, [user]);
 
-  useStudioFirebaseSync({ user, setResultState, setVersionsState, setActiveVersionId });
+  useStudioFirebaseSync({ user, setResultState, setVersionsState, setActiveVersionId, setCurrency });
 
   const handleResendVerification = async () => {
     if (user && user.email) {
@@ -1712,6 +1712,7 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
                 removeField={removeField} 
                 readOnly={!user} 
                 locale={locale}
+                currency={currency}
               />
             </div>
             {renderSidebar()}

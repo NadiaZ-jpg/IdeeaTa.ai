@@ -44,9 +44,9 @@ function extractRelevantSection(result: any, action: string) {
 
 export async function POST(req: NextRequest) {
   try {
-    const { result, action, customStyle, targetSection, locale, isRetry } = await req.json();
+    const { result, action, customStyle, targetSection, locale, isRetry, currency } = await req.json();
     const isEn = locale === "en" || locale === "es";
-    let instruction = getEditInstruction(action, locale, customStyle, targetSection);
+    let instruction = getEditInstruction(action, locale, customStyle, targetSection, currency);
 
     if (isRetry) {
       if (locale === "en") {

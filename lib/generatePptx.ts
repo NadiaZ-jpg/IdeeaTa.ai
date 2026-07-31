@@ -115,15 +115,25 @@ export const generatePptx = async (
 
   const formatPrice = (priceText: any) => {
     if (!priceText) return "";
-    const numericValue = parseInt(priceText.toString().replace(/[^0-9]/g, ""));
+    const rawText = priceText.toString();
+    const numericValue = parseInt(rawText.replace(/[^0-9]/g, ""));
     if (isNaN(numericValue)) return priceText;
 
     const locString = locale === "es" ? "es-ES" : locale === "en" ? "en-US" : "ro-RO";
+    const hasEur = rawText.toUpperCase().includes("EUR") || rawText.toUpperCase().includes("€");
+
     if (currency === "EUR") {
+      if (hasEur) {
+        return `${numericValue.toLocaleString(locString)} EUR`;
+      }
       const eurValue = Math.round(numericValue * fxRate);
-      return `€${eurValue.toLocaleString(locString)}`;
+      return `${eurValue.toLocaleString(locString)} EUR`;
     }
-    return `${numericValue.toLocaleString(locString)} RON`;
+
+    if (hasEur) {
+      return `${numericValue.toLocaleString(locString)} EUR`;
+    }
+    return `${numericValue.toLocaleString(locString)} LEI`;
   };
 
   const splitTextIntoSlides = (text: string, maxLength: number) => {

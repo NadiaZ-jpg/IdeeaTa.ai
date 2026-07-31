@@ -672,11 +672,12 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
                   {result.plan_financiar?.buget_investitii?.map((item: any, idx: number) => {
                     const label = item.item || item.categorie || '';
                     const price = item.cost !== undefined ? item.cost : item.suma_lei;
+                    const planCurrency = result.selectedCurrency || (locale === "ro" ? "LEI" : "EUR");
                     return (
                       <div key={idx} className="bg-zinc-950/40 border border-zinc-800/50 rounded-xl p-3 flex justify-between items-center text-xs">
                         <span className="font-semibold text-zinc-300">{label}</span>
                         <span className="font-black text-emerald-400">
-                          {typeof price === 'number' ? price.toLocaleString() : String(price)} {(!price?.toString().toLowerCase().includes('lei') && !price?.toString().toLowerCase().includes('eur')) ? (locale === "ro" ? "LEI" : "EUR") : ""}
+                          {typeof price === 'number' ? price.toLocaleString() : String(price)} {(!price?.toString().toLowerCase().includes('lei') && !price?.toString().toLowerCase().includes('eur')) ? planCurrency : ""}
                         </span>
                       </div>
                     );
@@ -688,7 +689,7 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
               <div className="bg-zinc-950/30 border border-zinc-800/60 rounded-xl p-4 flex flex-col items-center justify-center">
                 <h4 className="text-[10px] font-bold text-zinc-400 mb-4 uppercase">{locale === "en" ? "Funds Distribution" : locale === "es" ? "Distribución de Fondos" : "Distribuția Fondurilor"}</h4>
                 <div className="w-full max-w-[200px] aspect-square flex items-center justify-center">
-                      <BudgetPieChart budget={result.plan_financiar?.buget_investitii || []} currency={locale === "ro" ? "LEI" : "EUR"} />
+                      <BudgetPieChart budget={result.plan_financiar?.buget_investitii || []} currency={result.selectedCurrency || (locale === "ro" ? "LEI" : "EUR")} />
                 </div>
               </div>
             </div>

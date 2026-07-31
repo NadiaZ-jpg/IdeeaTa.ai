@@ -9,6 +9,7 @@ interface UseStudioFirebaseSyncProps {
   setResultState: (fn: any) => void;
   setVersionsState: (data: any) => void;
   setActiveVersionId: (id: string) => void;
+  setCurrency?: (curr: string) => void;
 }
 
 export const useStudioFirebaseSync = ({
@@ -16,6 +17,7 @@ export const useStudioFirebaseSync = ({
   setResultState,
   setVersionsState,
   setActiveVersionId,
+  setCurrency,
 }: UseStudioFirebaseSyncProps) => {
 
   // Funcționalitate #1:
@@ -64,6 +66,9 @@ export const useStudioFirebaseSync = ({
       if (snap.exists()) {
         const data = formatObjectNumbers(snap.data());
         setResultState(data);
+        if (data.selectedCurrency && setCurrency) {
+          setCurrency(data.selectedCurrency);
+        }
         if (data.versions && typeof data.versions === 'object' && Object.keys(data.versions).length > 0) {
           setVersionsState(data.versions);
         } else {

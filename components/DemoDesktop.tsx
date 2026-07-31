@@ -287,7 +287,7 @@ export default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" | 
         fetch("/api/edit", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ result: baseSource, action, customStyle, targetSection, locale, isRetry })
+          body: JSON.stringify({ result: baseSource, action, customStyle, targetSection, locale, isRetry, currency })
         }),
         new Promise(resolve => setTimeout(resolve, 2000))
       ]);
@@ -895,7 +895,7 @@ export default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" | 
         fetch("/api/generate", {
           method: "POST",
           headers,
-          body: JSON.stringify({ skill, locale }),
+          body: JSON.stringify({ skill, locale, currency }),
         }),
         new Promise(resolve => setTimeout(resolve, 2000))
       ]);
@@ -1714,6 +1714,7 @@ export default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" | 
                 updateField={updateField} 
                 removeField={removeField} 
                 readOnly={false} 
+                currency={currency}
               />
             </div>
             {renderSidebar()}

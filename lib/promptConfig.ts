@@ -115,10 +115,20 @@ export const PLAN_SKELETONS = {
   }
 };
 
-export function getGeneratePrompt(locale: "ro" | "en" | "es", skill: string): string {
+export function getGeneratePrompt(locale: "ro" | "en" | "es", skill: string, currency: "LEI" | "EUR" = "LEI"): string {
   const isEn = locale === "en";
   const isEs = locale === "es";
-  const skeleton = PLAN_SKELETONS[locale] || PLAN_SKELETONS.ro;
+  const skeleton = JSON.parse(JSON.stringify(PLAN_SKELETONS[locale] || PLAN_SKELETONS.ro));
+
+  if (locale === "ro") {
+    if (skeleton.plan_financiar?.buget_investitii?.[0]) {
+      if (currency === "EUR") {
+        skeleton.plan_financiar.buget_investitii[0].cost = "3000 EUR";
+      } else {
+        skeleton.plan_financiar.buget_investitii[0].cost = "15000 LEI";
+      }
+    }
+  }
 
   if (isEn) {
     return `Generate a comprehensive business plan in English based on the following skill or business idea: "${skill}".
@@ -148,12 +158,12 @@ Trebuie să respecte standardul structural oficial din România pentru accesarea
 Trebuie să urmezi cu strictețe cerințele pentru "Pilonul Verde" (Eco-Tech/Sustenabilitate) și "Digitalizare" (Automatizare/ERP/CRM).
 Returnează rezultatul strict ca un obiect JSON valid cu următoarea structură:
 ${JSON.stringify(skeleton, null, 2)}
-Include cel puțin 6-8 articole bugetate (care să conțină tehnologie verde și software/digitalizare).
+Include cel puțin 6-8 articole bugetate (care să conțină tehnologie verde și software/digitalizare). Toate valorile din bugetul de investiții la câmpul 'cost' trebuie exprimate obligatoriu în monedă nativă: ${currency === "EUR" ? "EUR (ex: 3000 EUR)" : "LEI (ex: 15000 LEI)"}.
 CRITICAL: The entire generated content (including item names, slogans, CAEN explanations, SWOT titles, etc.) MUST be strictly in Romanian. Do not write any English words.
 Nu include niciun alt text în afară de blocul JSON. Nu formata cu ghilimele de bloc markdown (\`\`\`json) dacă este posibil, dar dacă o faci, acestea vor fi eliminate la parsare.`;
 }
 
-export function getEditInstruction(action: string, locale: "ro" | "en" | "es", customStyle?: string, targetSection?: string): string {
+export function getEditInstruction(action: string, locale: "ro" | "en" | "es", customStyle?: string, targetSection?: string, currency: "LEI" | "EUR" = "LEI"): string {
   const isEn = locale === "en";
   const isEs = locale === "es";
 
@@ -224,7 +234,7 @@ IMPORTANT: Keep the original JSON structure, but rewrite and enrich the content 
     }
     if (action === "add_sections") {
       return `Genera NUEVAS secciones de texto para el plan de negocios, refiriéndose estrictamente a los temas solicitados: "${targetSection || 'lo que consideres necesario'}". 
-IMPORTANTE:
+IMPORTANT:
 - Si la solicitud del usuario es un comando de eliminación o modificación (ej. "eliminar", "borrar", "modificar capítulo X"), devuelve una sección titulada "⚠️ Consejo de Edición" y explica en "continut" que esta herramienta de IA es solo para *añadir* nuevas secciones, y para eliminaciones/modificaciones deben usar el icono de papelera 🗑️ en el Studio o editar el texto manualmente.
 - No utilices formato de tabla Markdown (sin barras verticales |). Estructura la información como una lista numerada (1., 2., 3., etc.) ya que la interfaz solo muestra texto plano.
 - ¡NO devuelvas el plan actual!
@@ -278,7 +288,7 @@ IMPORTANTE: ¡Mantén la estructura JSON original, pero reescribe y enriquece el
     return `Rescrie conținutul pentru a avea un ton ${customStyle || 'formal, corporativ și profesionist'}, păstrând structura exactă. Nu modifica cifrele.`;
   }
   if (action === "optimize_budget") {
-    return `Redu costurile din 'plan_financiar.buget_investitii' cu aproximativ ${targetSection}%, ajustează explicațiile arătând cum s-a făcut economia și tradu conținutul text din proprietățile 'item' și 'explicatie' în limba română dacă sunt în altă limbă. IMPORTANT: ESTE STRICT INTERZIS să schimbi numele cheilor JSON (ele trebuie să rămână 'item' și 'explicatie'). Păstrează restul neatins.`;
+    return `Redu costurile din 'plan_financiar.buget_investitii' cu aproximativ ${targetSection}%, ajustează explicațiile arătând cum s-a făcut economia și tradu conținutul text din proprietățile 'item' și 'explicatie' în limba română dacă sunt în altă limbă. Toate valorile rezultate pentru costuri în bugetul de investiții la câmpul 'cost' trebuie exprimate obligatoriu în moneda: ${currency}. IMPORTANT: ESTE STRICT INTERZIS să schimbi numele cheilor JSON (ele trebuie să rămână 'item' și 'explicatie'). Păstrează restul neatins.`;
   }
   if (action === "add_sections") {
     return `Generează SECȚIUNI NOI de text pentru planul de afaceri, referitoare strict la subiectele cerute: "${targetSection || 'orice consideri necesar'}". 

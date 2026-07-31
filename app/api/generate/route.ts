@@ -13,7 +13,7 @@ const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
 export async function POST(req: NextRequest) {
   try {
-    const { skill, locale } = await req.json();
+    const { skill, locale, currency } = await req.json();
 
     // Soft Guard: Verificăm autentificarea utilizatorului și limita de planuri server-side
     const authHeader = req.headers.get("Authorization");
@@ -51,7 +51,7 @@ export async function POST(req: NextRequest) {
         // Continuăm ca guest în caz de eroare token
       }
     }
-    const prompt = getGeneratePrompt(locale, skill);
+    const prompt = getGeneratePrompt(locale, skill, currency);
 
     let response;
     let retries = 3;
@@ -79,6 +79,15 @@ export async function POST(req: NextRequest) {
     const jsonMatch = text.match(/\{[\s\S]*\}/);
     if (jsonMatch) {
       text = jsonMatch[0];
+    }
+
+    // Injectăm selectedCurrency în obiectul planului
+    try {
+      const parsedText = JSON.parse(text);
+      parsedText.selectedCurrency = currency || (locale === "en" || locale === "es" ? "EUR" : "LEI");
+      text = JSON.stringify(parsedText);
+    } catch(e) {
+      console.error("Failed to inject selectedCurrency:", e);
     }
 
     const fxRate = await getExchangeRateRonToEur();

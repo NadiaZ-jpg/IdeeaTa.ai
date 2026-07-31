@@ -100,7 +100,8 @@ export function useExportActions({
       const safeName = result?.nume?.replace(/[^a-zA-Z0-9]/g, '_') || 'Business';
 
       if (mode === 'pptx') {
-        await generatePptx(result, safeName, currency || (locale === "es" || locale === "en" ? "EUR" : "RON"), 0.201, locale, t.fileBrochure || "Brosura");
+        const planCurrency = result?.selectedCurrency || currency || (locale === "es" || locale === "en" ? "EUR" : "LEI");
+        await generatePptx(result, safeName, planCurrency, 0.201, locale, t.fileBrochure || "Brosura");
       } else if (mode === 'pdf' || mode === 'pdf-summary') {
         let slidesArray = Array.from(document.querySelectorAll('.pdf-presentation-slide'));
         if (slidesArray.length === 0) {
@@ -165,7 +166,8 @@ export function useExportActions({
                 chartDataUrl = await toPng(chartElement, { backgroundColor: '#ffffff' });
              } catch(e) { console.error(e); }
           }
-          const blob = await generateDocxBlob(result, chartDataUrl, locale);
+          const planCurrency = result.selectedCurrency || currency || (locale === "es" || locale === "en" ? "EUR" : "LEI");
+          const blob = await generateDocxBlob(result, chartDataUrl, locale, planCurrency);
           const link = document.createElement('a');
           link.href = URL.createObjectURL(blob);
           const safeName2 = result?.nume?.replace(/[^a-zA-Z0-9]/g, '_') || 'Business';

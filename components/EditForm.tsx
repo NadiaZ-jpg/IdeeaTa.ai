@@ -48,14 +48,17 @@ function AutoExpandingTextarea({ value, onChange, className, rows = 2, placehold
 
 const noop = () => {};
 
-export function EditForm({ result, updateField, removeField, readOnly = false, locale = "ro" }: {
+export function EditForm({ result, updateField, removeField, readOnly = false, locale = "ro", currency }: {
   result: any;
   updateField: (path: (string|number)[], value: string) => void;
   removeField?: (path: (string|number)[]) => void;
   readOnly?: boolean;
   locale?: "ro" | "en" | "es";
+  currency?: string;
 }) {
   if (!result) return null;
+
+  const activeCurrency = currency || (locale === "ro" ? "LEI" : "EUR");
 
   const inputCls = (base: string) =>
     `${base} ${readOnly ? 'cursor-not-allowed opacity-80' : ''}`;
@@ -195,7 +198,7 @@ export function EditForm({ result, updateField, removeField, readOnly = false, l
 
           <h4 className="text-xl font-bold mb-4">{locale === "en" ? "Cost Distribution" : locale === "es" ? "Distribución de Costes" : "Distribuția costurilor"}</h4>
           <div className="mb-8 p-4 bg-zinc-900/50 rounded-2xl border border-zinc-800">
-             <BudgetPieChart budget={result.plan_financiar?.buget_investitii} currency={locale === "es" || locale === "en" ? "EUR" : "LEI"} />
+             <BudgetPieChart budget={result.plan_financiar?.buget_investitii} currency={activeCurrency} />
           </div>
 
           <h4 className="text-xl font-bold mb-2">{locale === "en" ? "Investment Budget" : locale === "es" ? "Presupuesto de Inversión" : "Buget Investiții"}</h4>
@@ -222,7 +225,7 @@ export function EditForm({ result, updateField, removeField, readOnly = false, l
                     </div>
                     <div className="flex flex-col gap-1 w-full md:w-32">
                       <label className="text-sm text-zinc-500 uppercase font-bold">{locale === "en" ? "Estimated Cost" : locale === "es" ? "Coste Estimado" : "Cost estimat"}</label>
-                      <input type="text" value={safeString(b.cost !== undefined ? b.cost : '')} onChange={readOnly ? noop : (e) => updateField(['plan_financiar', 'buget_investitii', originalIdx, 'cost'], e.target.value)} readOnly={readOnly} onCopy={readOnly ? e => e.preventDefault() : undefined} className={inputCls("bg-black/80 border border-zinc-700 p-3 rounded-lg text-lg font-bold w-full focus:outline-none focus:ring-1 focus:ring-emerald-500 focus:border-emerald-500 transition-all shadow-inner")} placeholder={locale === "en" ? "e.g. 3000 EUR" : locale === "es" ? "Ej: 3000 EUR" : "Ex: 15000 LEI"} />
+                      <input type="text" value={safeString(b.cost !== undefined ? b.cost : '')} onChange={readOnly ? noop : (e) => updateField(['plan_financiar', 'buget_investitii', originalIdx, 'cost'], e.target.value)} readOnly={readOnly} onCopy={readOnly ? e => e.preventDefault() : undefined} className={inputCls("bg-black/80 border border-zinc-700 p-3 rounded-lg text-lg font-bold w-full focus:outline-none focus:ring-1 focus:ring-emerald-500 focus:border-emerald-500 transition-all shadow-inner")} placeholder={activeCurrency === "EUR" ? "Ex: 3000 EUR" : "Ex: 15000 LEI"} />
                     </div>
                   </div>
                   <div className="flex flex-col gap-1">

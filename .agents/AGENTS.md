@@ -357,7 +357,7 @@ Orice agent care primește o instrucțiune ambiguă trebuie să CEARĂ CONFIRMAR
 - Condiționat afisarea selectorului LEI/EUR in ActionBar doar cand \locale === "ro"
 - Build validat 100% cu succes in Next.js (44/44 pagini statice generate).
 
-### Checkpoint-30-Iulie-2026-Remediere-Denumiri-Documente-Descarcate
+### Checkpoint - Plan de Implementare - Localizare Nume Fisiere Descarcate
 - Adaugat fileBrochure in uiStrings.ts pentru a traduce numele fisierului PPTX.
 - Inlocuit string-urile hardcodate din hooks/useExportActions.ts si lib/generatePptx.ts cu variabilele din dictionar (t.filePresentation, t.fileSummaryFree, etc.).
 - Fisierele salvate pe calculatorul utilizatorului isi preiau acum dinamic numele in limba corespunzatoare (RO, EN, ES).

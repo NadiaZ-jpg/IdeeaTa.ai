@@ -133,6 +133,7 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
     try {
       const searchParams = new URLSearchParams(window.location.search);
       let planId = searchParams.get("planId");
+      const isNewPlan = !planId;
       if (!planId) {
         const safeName = updatedResult?.nume?.replace(/[^a-zA-Z0-9]/g, '_') || 'Business';
         planId = safeName + "_" + Date.now();
@@ -149,6 +150,10 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
       }
       await setDoc(planRef, payload, { merge: true });
       console.log("Plan sincronizat automat în Firestore:", planId);
+
+      if (isNewPlan) {
+        window.history.replaceState(null, "", window.location.pathname + `?planId=${planId}&view=idea`);
+      }
     } catch (err) {
       console.error("Eroare la sincronizarea planului în Firestore:", err);
     }
@@ -941,7 +946,7 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
           finalResult.id = planId;
 
           setResult(formatObjectNumbers(finalResult));
-          window.history.pushState({ view: 'idea' }, '', window.location.pathname + '?view=idea');
+          window.history.pushState({ view: 'idea' }, '', window.location.pathname + '?planId=' + planId + '&view=idea');
           setSkill(""); 
           
           // Scroll dynamically to the top of the page to show the top of the new plan

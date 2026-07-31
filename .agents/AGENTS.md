@@ -376,3 +376,10 @@ Orice agent care primește o instrucțiune ambiguă trebuie să CEARĂ CONFIRMAR
 - Modificat `app/api/auth/send-verification/route.ts` pentru a genera link-uri de verificare stabile timp de 72 de ore (fără `handleCodeInApp`) și cu redirecționare dinamică (localhost vs producție).
 - Git commited & pushed. Working tree 100% curat.
 
+
+### Checkpoint-31-Iulie-2026-Centralizare-promptConfig
+- Creat `lib/promptConfig.ts` centralizând toate regulile și scheletele de generare / editare pe limbi (RO/EN/ES).
+- Refactorizat `/api/generate` și `/api/edit` pentru a folosi helper-ele din `promptConfig.ts`.
+- Verificat build Next.js (44/44 pagini statice generate cu succes).
+- Git committed & pushed. Working tree curat.
+

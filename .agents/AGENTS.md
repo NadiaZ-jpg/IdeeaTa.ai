@@ -370,3 +370,9 @@ Orice agent care primește o instrucțiune ambiguă trebuie să CEARĂ CONFIRMAR
 - Efectuat validarea detaliată a linkurilor universale din PDF (`https://ideeata.ai/shared/{ID}`) și confirmat logica de auto-redirecționare inteligentă pe limba vizitatorului.
 - Build validat cu succes (100% pagini statice generate, 0 erori).
 
+
+### Checkpoint-31-Iulie-2026-Fix-Auth-Localhost-Si-Email
+- Corectat `getAuthDomain` în `lib/firebase.ts` pentru a folosi domeniul implicit pe localhost, rezolvând blocajul SSL la pop-up-ul Google.
+- Modificat `app/api/auth/send-verification/route.ts` pentru a genera link-uri de verificare stabile timp de 72 de ore (fără `handleCodeInApp`) și cu redirecționare dinamică (localhost vs producție).
+- Git commited & pushed. Working tree 100% curat.
+

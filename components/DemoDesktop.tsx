@@ -1045,7 +1045,7 @@ export default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" | 
       onContextMenu={(e) => e.preventDefault()}
     >
       <div className="hidden print:block w-full h-full bg-white text-black text-center p-20 text-3xl font-bold">
-        Conținutul este protejat. Pentru a obține documentul, utilizați funcția de descărcare din aplicație.
+        {ui.protectedContentPrint}
       </div>
       {/* Background glow orbs */}
       <div className="absolute top-[10%] left-[-15%] w-[600px] h-[600px] rounded-full bg-emerald-500/5 blur-[120px] pointer-events-none animate-pulse duration-[8000ms] z-0"></div>

@@ -269,11 +269,12 @@ export function DemoPdfSlides({ result, ui, locale, currency, formatPrice, trunc
       {/* CTA Slide (For PDF Summary) */}
       <div className="pdf-cta-slide w-[1280px] h-[720px] bg-emerald-950 flex flex-col justify-center items-center p-24 border-[12px] border-emerald-900 box-border relative text-center">
         <h2 className="text-6xl font-black text-white mb-8">{ui.paywallTitle}</h2>
-        <p className="text-lg text-emerald-200 mb-12 max-w-4xl leading-relaxed">
-          Pentru a obține <strong>Analiza SWOT detaliată, Bugetul de investiții, Strategia de Piață completă și Planul Operațional</strong>, creează-ți un cont gratuit!
-        </p>
+        <p 
+          className="text-lg text-emerald-200 mb-12 max-w-4xl leading-relaxed"
+          dangerouslySetInnerHTML={{ __html: ui.paywallDesc }}
+        />
         <div className="bg-emerald-500 text-white px-12 py-6 rounded-2xl text-lg font-bold shadow-2xl">
-          Vizitează IdeeaTa.ai
+          {ui.paywallBtn}
         </div>
       </div>
 

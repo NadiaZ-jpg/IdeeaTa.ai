@@ -95,6 +95,7 @@ Orice agent care primește o instrucțiune ambiguă trebuie să CEARĂ CONFIRMAR
 | `components/PricingModal.tsx` | Structura pachete și coduri promoționale |
 | `components/ConversionBanners.tsx` | Bannere de conversie premium în demo |
 | `next.config.ts` | Configurare rewrites auth și turbopack root absolut |
+| `lib/promptConfig.ts` | Centralizat reguli și schelete AI (RO/EN/ES) |
 
 ### Fișiere ȘTERSE definitiv (nu se recreează) / ARHIVATE:
 - `app/EditForm.tsx`

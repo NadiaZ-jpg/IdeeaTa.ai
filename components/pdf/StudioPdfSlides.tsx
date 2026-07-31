@@ -276,7 +276,7 @@ export function StudioPdfSlides({ result, ui, locale, currency, formatPrice, tru
             className="text-lg text-emerald-200 mb-12 max-w-4xl leading-relaxed"
             dangerouslySetInnerHTML={{ __html: ui.paywallDescStudio }}
           />
-          <div className="bg-emerald-500 text-white px-12 py-6 rounded-2xl text-lg font-bold shadow-2xl">
+          <div className="bg-gradient-to-r from-emerald-400 via-emerald-500 to-teal-600 border border-emerald-300/30 text-white px-14 py-6 rounded-2xl text-xl font-black uppercase tracking-wider shadow-[0_15px_35px_-5px_rgba(16,185,129,0.4)]">
             {ui.paywallBtn}
           </div>
         </div>

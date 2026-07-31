@@ -5,7 +5,7 @@ import { FieldValue } from "firebase-admin/firestore";
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { planData } = body;
+    const { planData, locale } = body;
 
     if (!planData || !planData.nume) {
       return NextResponse.json({ error: "Date invalide" }, { status: 400 });
@@ -16,6 +16,7 @@ export async function POST(req: NextRequest) {
     // Salvăm în Firestore sub colecția 'shared_plans'
     const docRef = await adminDb.collection("shared_plans").add({
       data: cleanPlanData,
+      locale: locale || "ro",
       createdAt: FieldValue.serverTimestamp(),
       views: 0
     });

@@ -84,7 +84,7 @@ export function useExportActions({
           const res = await fetch('/api/share', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ planData: result })
+            body: JSON.stringify({ planData: result, locale })
           });
           const data = await res.json();
           if (data.id) generatedShareId = data.id;

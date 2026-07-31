@@ -114,7 +114,13 @@ export function DemoLeftSidebar({
                           <span>{ui.rewriteTone}</span>
                         </span>
                         <span className="flex items-center gap-2">
-                          {user && <span className="text-zinc-500 text-xs">{showToneOptions ? "▲" : "▼"}</span>}
+                          {user ? (
+                            <span className="text-zinc-500 text-xs">{showToneOptions ? "▲" : "▼"}</span>
+                          ) : (
+                            <span className="text-[10px] bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 px-2 py-0.5 rounded-full font-black uppercase tracking-wider whitespace-nowrap">
+                              {locale === "en" ? "🔒 Free Account" : locale === "es" ? "🔒 Cuenta Gratis" : "🔒 Cont Gratuit"}
+                            </span>
+                          )}
                         </span>
                       </button>
                       

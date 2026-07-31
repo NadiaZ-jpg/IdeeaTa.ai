@@ -390,6 +390,8 @@ Orice agent care primește o instrucțiune ambiguă trebuie să CEARĂ CONFIRMAR
 - AI generează direct în moneda selectată (LEI sau EUR) și salvează proprietatea `selectedCurrency`.
 - Interfața (Desktop și Mobil) încarcă și sincronizează automat moneda salvată pe plan.
 - Corectat double-conversion bugs în `priceHelper.ts`, `generateDocx.ts` și `generatePptx.ts`.
+- Adăugat badge-uri colorate pentru monedă pe cardurile de planuri în Dashboard (`app/dashboard/DashboardContent.tsx`).
+- Adăugat badge-ul verde de deblocare gratuită `🔒 Cont Gratuit` pe butonul "Rescrie tonul" din Demo Sidebar pentru vizitatorii nelogați.
 - Verificat build Next.js: ✅ `✓ Compiled successfully`, ✅ `✓ Generating static pages (44/44)`.
 - Git committed & pushed.
 

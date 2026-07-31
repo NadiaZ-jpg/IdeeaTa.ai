@@ -1,5 +1,5 @@
 # AI_MEMORY — IdeeaTa.ai
-> Ultima actualizare: 15 Iulie 2026
+> Ultima actualizare: 31 Iulie 2026
 
 ---
 
@@ -269,12 +269,22 @@ Formele acceptate de acord expres:
 
 ---
 
+## FREEZE (31 Iulie 2026 — Sesiunea Uniformizare Monedă, Badge-uri & PDF paywall link)
+- **lib/promptConfig.ts** — Adăugat parametru `currency` în helper-ele de AI generate și edit, adaptat scheletul de buget și costuri în EUR pentru RO, rezolvat eroare sintaxă. ÎNGHEȚAT.
+- **app/api/generate/route.ts** & **app/api/edit/route.ts** — Trimitere dinamică a monedei către AI și injectare `selectedCurrency` în baza de date. ÎNGHEȚATE.
+- **hooks/useStudioFirebaseSync.ts** — Citește `selectedCurrency` la încărcare plan din Firestore și setează UI state `currency`. ÎNGHEȚAT.
+- **components/StudioDesktop.tsx** — Salvează `selectedCurrency: currency` în payload-ul Firestore la orice sincronizare (persistență la editare). ÎNGHEȚAT.
+- **components/EditForm.tsx** & Desktop/Mobile pages — Propagare prop `currency` către grafic circular și placeholders input-uri cost adaptate monedei planului. ÎNGHEȚATE.
+- **lib/priceHelper.ts** & **lib/generatePptx.ts** — Adăugat protecție `hasEur` pentru a opri dubla conversie (dacă sumele au deja "EUR" sau "€") și implementat formatare bidirecțională automată. ÎNGHEȚATE.
+- **app/dashboard/DashboardContent.tsx** — Adăugat badge-uri colorate pentru monedă (`LEI` sau `EUR`) în lista de proiecte din Dashboard. ÎNGHEȚAT.
+- **components/sidebars/DemoLeftSidebar.tsx** — Afișat insignă verde `🔒 Cont Gratuit` (sau `🔒 Free Account` / `🔒 Cuenta Gratis`) pe butonul "Rescrie tonul" pentru vizitatorii nelogați. ÎNGHEȚAT.
+- **hooks/useExportActions.ts** — Extins coordonatele link-ului de paywall în PDF-ul exportat la `0, 0, 1280, 720` (toată suprafața slide-ului CTA) pentru click garantat, și salvat `locale` la crearea link-ului partajat. ÎNGHEȚAT.
+- **app/shared/[id]/page.tsx** — Server-side fetch pentru a citi locale-ul planului din Firestore și redirecționare inteligentă localizată (`/demo`, `/en/demo`, `/es/demo`). ÎNGHEȚAT.
+- **components/pdf/DemoPdfSlides.tsx** & **components/pdf/StudioPdfSlides.tsx** — Aplicat styling cu gradient premium strălucitor (emerald → teal, border tridimensional și glow shadow) pe butonul de paywall final din PDF. ÎNGHEȚATE.
+- **Build verificat local:** ✅ `✓ Compiled successfully in 6.0s` — 44/44 pagini statice generate (RO, EN, ES complete).
+- **Git committed & pushed.** Working tree curat.
+
 ## RĂMÂNE DE FĂCUT
-- **DEPLOY** — `git push origin main` din local, apoi `git pull origin main` și `npm run build && pm2 restart 0` pe serverul Hetzner pentru a urca toate modificările din local.
-
-
-
-
 
 
 

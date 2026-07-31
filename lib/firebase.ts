@@ -6,10 +6,10 @@ import { getFirestore } from 'firebase/firestore';
 // opens under the same domain as the app (bypasses third-party cookie blockers).
 // Falls back to the env var on localhost / SSR.
 const getAuthDomain = (): string => {
-  if (typeof window !== "undefined") {
+  if (typeof window !== "undefined" && !window.location.hostname.includes("localhost") && !window.location.hostname.includes("127.0.0.1")) {
     return window.location.host;
   }
-  return process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN as string;
+  return process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN || "ideeata.firebaseapp.com";
 };
 
 const firebaseConfig = {

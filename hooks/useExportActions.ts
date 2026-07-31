@@ -142,9 +142,9 @@ export function useExportActions({
           if (i > 0) pdf.addPage([1280, 720], "landscape");
           pdf.addImage(dataUrl, 'PNG', 0, 0, 1280, 720);
           
-          // Dacă este ultimul slide (CTA), adăugăm un link invizibil peste toată pagina
+          // Dacă este ultimul slide (CTA), adăugăm un link invizibil pe toată suprafața slide-ului pentru click garantat
           if (i === slidesArray.length - 1 && mode === 'pdf-summary') {
-            pdf.link(1280/2 - 200, 720 - 180, 400, 100, { url: pdfUrl });
+            pdf.link(0, 0, 1280, 720, { url: pdfUrl });
           }
 
           // Stamp footer on every page

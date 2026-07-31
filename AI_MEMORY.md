@@ -283,6 +283,12 @@ Formele acceptate de acord expres:
 - **components/pdf/DemoPdfSlides.tsx** & **components/pdf/StudioPdfSlides.tsx** — Aplicat styling cu gradient premium strălucitor (emerald → teal, border tridimensional și glow shadow) pe butonul de paywall final din PDF. ÎNGHEȚATE.
 - **Build verificat local:** ✅ `✓ Compiled successfully in 6.0s` — 44/44 pagini statice generate (RO, EN, ES complete).
 - **Git committed & pushed.** Working tree curat.
+- **Rezolvare duplicare planuri & crash-uri în Studio:**
+  * Eliminat sincronizarea `current_generated_plan` localStorage redundantă din `hooks/useStudioFirebaseSync.ts` care genera planuri multiple (migrarea este acum 100% securizată și curățată exclusiv în `migrationManager.ts`).
+  * Modificat `useStudioFirebaseSync.ts` pentru a păstra parametrul `planId` în URL-ul paginii (`?planId=XYZ&view=idea`) în loc să îl șteargă la încărcare.
+  * Modificat `components/StudioDesktop.tsx` pentru a actualiza URL-ul browserului în fundal cu `planId` generat la prima salvare sau generare a planului.
+  * Astfel, salvările succesive actualizează același document în loc de duplicate, prevenind ștergerile accidentale din curățarea de fundal din Dashboard.
+  * Build local validat: ✅ `✓ Compiled successfully in 10.2s` (44/44 pagini static pre-randate).
 
 ## RĂMÂNE DE FĂCUT
 

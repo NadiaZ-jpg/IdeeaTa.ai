@@ -142,6 +142,7 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
       const payload: any = {
         ...updatedResult,
         updatedAt: new Date().toISOString(),
+        selectedCurrency: currency,
       };
       if (versToSave && Object.keys(versToSave).length > 0) {
         payload.versions = versToSave;

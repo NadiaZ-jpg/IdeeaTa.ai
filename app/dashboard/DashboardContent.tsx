@@ -284,15 +284,24 @@ export default function DashboardContent({ locale = "ro" }: { locale?: "ro" | "e
                     <FileText className="w-6 h-6" />
                   </div>
                   <div className="flex flex-col items-end gap-2">
-                    {plan.isPaid ? (
-                      <span className="bg-amber-500/20 text-amber-400 border border-amber-500/30 text-[10px] uppercase font-black px-2 py-0.5 rounded-full flex items-center gap-1">
-                        PRO
+                    <div className="flex items-center gap-1.5">
+                      {plan.isPaid ? (
+                        <span className="bg-amber-500/20 text-amber-400 border border-amber-500/30 text-[10px] uppercase font-black px-2 py-0.5 rounded-full flex items-center gap-1">
+                          PRO
+                        </span>
+                      ) : (
+                        <span className="bg-zinc-800 text-zinc-400 border border-zinc-700 text-[10px] uppercase font-black px-2 py-0.5 rounded-full flex items-center gap-1">
+                          {isEn ? "Free" : isEs ? "Gratis" : "Gratuit"}
+                        </span>
+                      )}
+                      <span className={`text-[10px] uppercase font-black px-2 py-0.5 rounded-full border ${
+                        (plan.selectedCurrency || (locale === "ro" ? "LEI" : "EUR")) === "EUR"
+                          ? "bg-blue-500/10 text-blue-400 border-blue-500/20"
+                          : "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
+                      }`}>
+                        {plan.selectedCurrency || (locale === "ro" ? "LEI" : "EUR")}
                       </span>
-                    ) : (
-                      <span className="bg-zinc-800 text-zinc-400 border border-zinc-700 text-[10px] uppercase font-black px-2 py-0.5 rounded-full flex items-center gap-1">
-                        {isEn ? "Free" : isEs ? "Gratis" : "Gratuit"}
-                      </span>
-                    )}
+                    </div>
                     <div className="flex items-center gap-1.5 text-zinc-500 text-xs font-semibold bg-zinc-800/50 px-2.5 py-1 rounded-md">
                       <Calendar className="w-3.5 h-3.5" />
                       {new Date(plan.createdAt || Date.now()).toLocaleDateString(isEn ? 'en-US' : isEs ? 'es-ES' : 'ro-RO', { day: 'numeric', month: 'short', year: 'numeric' })}

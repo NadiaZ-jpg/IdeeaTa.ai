@@ -289,6 +289,12 @@ Formele acceptate de acord expres:
   * Modificat `components/StudioDesktop.tsx` pentru a actualiza URL-ul browserului în fundal cu `planId` generat la prima salvare sau generare a planului.
   * Astfel, salvările succesive actualizează același document în loc de duplicate, prevenind ștergerile accidentale din curățarea de fundal din Dashboard.
   * Build local validat: ✅ `✓ Compiled successfully in 10.2s` (44/44 pagini static pre-randate).
+- **Sistem de Ramificare (Branching) și Selector Segmented Control de Versiuni:**
+  * Creat componenta nouă `components/VersionSelector.tsx` ce implementează un Segmented Control orizontal fluid, cu pictograme localizate, ascunzându-se automat dacă există doar o singură versiune (fără dropdown-uri redundante).
+  * Modificat `components/StudioDesktop.tsx` și `components/DemoDesktop.tsx` pentru a trimite planul curent vizualizat (`result`) ca bază a optimizărilor AI în loc de `versions.original`, permițând combinarea optimizărilor (ex: Buget Optimizat pe variantă de Fonduri UE).
+  * Modificat generarea cheilor de versiuni în `handleAiEdit` pentru a folosi timestamp-uri (`ton_friendly_[timestamp]`, `budget_[timestamp]`, `eu_funds_[timestamp]`, `investor_[timestamp]`), oferind suport nelimitat pentru versiuni multiple și evitând suprascrierile.
+  * Șters fișierul vechi redundant `components/VersionHistoryDropdown.tsx`.
+  * Build local validat: ✅ `✓ Compiled successfully in 8.5s` (44/44 pagini static pre-randate).
 
 ## RĂMÂNE DE FĂCUT
 

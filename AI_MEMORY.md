@@ -341,6 +341,16 @@ Formele acceptate de acord expres:
 - **Adăugat REGULA #21 (Aliniere Totală și Regula de Aur) - 1 August 2026:**
   * Creat și adăugat oficial REGULA #21 în `.agents/AGENTS.md`, forțând alinierea totală lingvistică (RO/EN/ES) și pe toate dispozitivele (Desktop/Mobil/Tabletă) pentru orice analiză, evaluare, debug, plan de implementare sau walkthrough, precum și respectarea strictă a specificațiilor tehnice unice (excluziv EUR pe EN/ES, 44px tap targets pe mobil, randare sigură safeString, domeniu oficial https://ideeata.ai/ și securitate paywall reală fără devBypass).
   * Enforțat structura de planificare pe sesiuni bazată pe "Regula de Aur".
+- **Adăugat REGULA #22 (Eficiență, Modularitate și Optimizare Tokeni) - 1 August 2026:**
+  * Creat și adăugat oficial REGULA #22 în `.agents/AGENTS.md` pentru a optimiza sever consumul de tokeni și calitatea codului.
+  * Interzis citirea completă a monoliților de peste 500 de linii (cu excepția analizelor de refactorizare solicitate direct) și limitat citirea la 50-100 de linii.
+  * Stabilit prioritatea creării de fișiere/componente noi separate, limitând editările de monoliți existenți la modificări chirurgicale de 5-20 de linii.
+  * Enforțat principiul DRY (interdicție duplicare cod desktop/mobil).
+  * Structurat tranziția între modelele AI în chat (citire obligatorie `task.md` și `AI_MEMORY.md` ca memorie RAM de sesiune).
+  * Optimizat selectarea modelului AI (Flash pentru research, Pro doar pentru debug/refactorizări complexe).
+  * Limitat încercările oarbe la erori de build (maximum 2 încercări înainte de a opri execuția și a cere asistență).
+  * Interzis trimiterea de blocuri mari de cod în chat (doar linkuri spre diff-uri/fișiere .md).
+  * Interzis adăugarea de pachete noi nesolicitate și forțat conservarea comentariilor de cod.
 
 ## RĂMÂNE DE FĂCUT
 

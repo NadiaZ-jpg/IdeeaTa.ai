@@ -87,6 +87,23 @@ Orice agent care primește o instrucțiune ambiguă trebuie să CEARĂ CONFIRMAR
 
 ---
 
+## REGULA #22: (Eficiență, Modularitate și Optimizare Tokeni AI)
+
+**Pentru a preveni saturarea memoriei contextului (context window), a asigura o arhitectură curată și a minimiza consumul inutil de tokeni, toți agenții AI trebuie să respecte următoarele directive stricte:**
+
+1. **Citire Chirurgicală (Fără Monoliți Integrali):** Este strict interzisă citirea integrală a fișierelor care depășesc 500 de linii (cum ar fi `DemoDesktop.tsx`, `StudioDesktop.tsx`, `DemoMobile.tsx`, `StudioMobile.tsx`), **<u>cu excepția cazului în care este absolut necesară o analiză completă de refactorizare</u>**. În caz de depanare sau investigație, se folosește mai întâi `grep_search` pentru a localiza problema, iar citirea fișierului se face strict pe intervale **mici de linii (ex: maximum 50-100 de linii în jurul zonei afectate)**.
+2. **Prioritate: Fișier Nou vs Modificare Monolit:** Pentru orice funcționalitate sau corecție nouă, **prima soluție obligatorie este crearea unui fișier/componentă separată nouă** (în `/components` sau `/lib`). Doar dacă acest lucru este imposibil din punct de vedere tehnic sau structural, se poate recurge la modificarea fișierelor mari existente. În acest caz, modificările se vor face strict chirurgical, pe bucăți de text de **5-20 de linii** (folosind `replace_file_content` sau `multi_replace_file_content`), fiind interzisă rescrierea unor blocuri mari de cod.
+3. **Interdicție de Duplicare a Codului (Principiul DRY):** Este strict interzisă duplicarea logicii (funcții helper, calcule, stiluri) sau a blocurilor repetitive de JSX între fișiere distincte (cum ar fi componentele de Desktop și cele de Mobile). Orice bucată de cod refolosibilă trebuie extrasă imediat într-un fișier utilitar comun (ex: în `/lib` sau sub-componente în `/components`) și importată unde este necesar.
+4. **Continuitate la Schimbarea Modelului în Chat:** Dacă utilizatorul comută modelul AI din selectorul de chat în timpul sesiunii, noul model are obligația ca prim pas să verifice `task.md` și `AI_MEMORY.md` pentru a prelua exact starea curentă a lucrului, prevenind re-analizarea redundantă a codebase-ului.
+5. **Alegerea Inteligentă a Modelului (AI Model Selection):** Când se lansează subagenți sau task-uri secundare, se va alege modelul optim în funcție de complexitate. Sarcini simple de citire, căutare (grep) sau diagnosticare se vor rula pe modele rapide (`flash` sau `flash_lite`). Modelele mari de raționament (`pro` sau `inherit` la nivel pro) vor fi rezervate exclusiv pentru refactorizări, scriere de cod nou sau debugging complex.
+6. **Limitarea Încercărilor la Erori (Anti-Infinite-Loop):** In caz de eroare de build sau compilare, agentul are dreptul la maximum 2 încercări independente de remediere rapidă. Dacă eroarea persistă, agentul este obligat să se oprească, să ceară feedback-ul utilizatorului sau să redacteze un plan formal de depanare, evitând modificările recursive oarbe.
+7. **Prevenirea Duplicării de Cod în Chat:** Este interzisă afișarea blocurilor mari de cod direct în fereastra de chat. Toate propunerile extinse de cod trebuie salvate în fișiere de plan/artifacte (`.md`), iar în chat se vor trimite doar explicații text succinte și link-uri către fișierele respective.
+8. **Evitarea Dependențelor/Pachetelor Noi (No Unsolicited Packages):** Este interzisă instalarea de dependințe externe (`npm install`) fără acordul utilizatorului, dacă funcționalitatea poate fi scrisă nativ sau folosind pachetele deja existente în proiect (cum ar fi `lucide-react`, `pptxgenjs`, `docx`, `jspdf`).
+9. **Conservarea Comentariilor și a Documentației Existente (Preserve Context):** Comentariile existente de cod, JSDoc și notele de debug trebuie păstrate intacte în timpul modificărilor. Eliminarea lor abuzivă este strict interzisă.
+10. **Fără Polling / Interogări în Loop:** După lansarea unei comenzi asincrone în terminal (`npm run build` sau `npx tsc`), se va aștepta notificarea automată a sistemului. Este interzisă verificarea repetată a statusului sau citirea logurilor în loop.
+
+---
+
 ## FREEZE TOTAL — Inventar Complet Sesiunea 17 Iulie 2026
 
 ### Fișiere ÎNGHEȚATE (nu se modifică fără override explicit):

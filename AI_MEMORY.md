@@ -351,6 +351,10 @@ Formele acceptate de acord expres:
   * Limitat încercările oarbe la erori de build (maximum 2 încercări înainte de a opri execuția și a cere asistență).
   * Interzis trimiterea de blocuri mari de cod în chat (doar linkuri spre diff-uri/fișiere .md).
   * Interzis adăugarea de pachete noi nesolicitate și forțat conservarea comentariilor de cod.
+- **Corectare Traduceri Desktop (Sesiunea 7 - 1 August 2026):**
+  * Pasat proprietatea `locale={locale}` la apelul componentei `<EditForm>` în `DemoDesktop.tsx`, corectând afișarea în limba română a textelor din formular pe paginile EN/ES.
+  * Localizat elementele din `DemoLeftSidebar.tsx` (butoanele AI de adaptare fonduri UE, plan profesionist și optimizare buget, precum și sfaturile de subsol) pentru a utiliza traducerile din `uiStrings.ts` în loc de texte românești hardcodate.
+  * Build local final validat: ✅ `✓ Compiled successfully in 6.7s` (44/44 pagini static pre-randate).
 
 ## RĂMÂNE DE FĂCUT
 

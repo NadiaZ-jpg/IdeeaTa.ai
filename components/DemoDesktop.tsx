@@ -468,6 +468,8 @@ export default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" | 
         setEuFundsUnlocked(data.euFundsUnlocked || false);
         setSubscriptionActive(data.subscriptionActive || false);
         setUnlockedPlans(data.unlockedPlans || []);
+        setPromoCodeUnlocked(data.promoCodeUnlocked || false);
+        setIsPaid(data.isPaid || false);
       } else {
         setDoc(userRef, {
           email: user.email,
@@ -1832,7 +1834,17 @@ export default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" | 
           setShowPricingModal(false);
           setPendingDownloadMode(null);
         }}
-        onSuccess={() => setPromoCodeUnlocked(true)}
+        onSuccess={(tier) => {
+          setPromoCodeUnlocked(true);
+          if (tier === "full-access") {
+            setSubscriptionActive(true);
+            setEuFundsUnlocked(true);
+          } else if (tier === "eu-funds") {
+            setEuFundsUnlocked(true);
+          } else if (tier === "standard") {
+            setIsPaid(true);
+          }
+        }}
         onRequireLogin={() => {
           setShowPricingModal(false);
           setShowAuthModal(true);

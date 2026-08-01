@@ -46,7 +46,8 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
   const [promoCodeUnlocked, setPromoCodeUnlocked] = useState(false);
   
   const isAdmin = !!(user && (user.email === "adrian@ideeata.ai" || user.email === "contact@ideeata.ai" || user.email === "nadiaramonaz@gmail.com"));
-  const isPaid = typeof window !== 'undefined' && localStorage.getItem(`isPaid_${result?.nume}`) === "true";
+  const [isPaidState, setIsPaidState] = useState(false);
+  const isPaid = (typeof window !== 'undefined' && localStorage.getItem(`isPaid_${result?.nume}`) === "true") || isPaidState;
 
   const isPlanPaid = promoCodeUnlocked || isAdmin || subscriptionActive || (result && unlockedPlans.includes(result.nume)) || isPaid;
   const isStudioPaid = promoCodeUnlocked || isAdmin || subscriptionActive || euFundsUnlocked || isPaid;
@@ -155,6 +156,7 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
         setSubscriptionActive(data.subscriptionActive || false);
         setUnlockedPlans(data.unlockedPlans || []);
         setPromoCodeUnlocked(data.promoCodeUnlocked || false);
+        setIsPaidState(data.isPaid || false);
       } else {
         setDoc(userRef, {
           email: user.email,
@@ -926,8 +928,17 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
       <PricingModal
         isOpen={showPricingModal}
         onClose={() => setShowPricingModal(false)}
-        onSuccess={() => {
+        onSuccess={(tier) => {
           setShowPricingModal(false);
+          setPromoCodeUnlocked(true);
+          if (tier === "full-access") {
+            setSubscriptionActive(true);
+            setEuFundsUnlocked(true);
+          } else if (tier === "eu-funds") {
+            setEuFundsUnlocked(true);
+          } else if (tier === "standard") {
+            setIsPaidState(true);
+          }
           alert(locale === "en" ? "Payment simulated successfully! Premium access is now unlocked." : locale === "es" ? "¡Pago simulado con éxito! El acceso premium ya está desbloqueado." : "Plată simulată cu succes! Accesul premium este acum deblocat.");
         }}
         onRequireLogin={() => {

@@ -516,6 +516,7 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
         setSubscriptionActive(data.subscriptionActive || false);
         setUnlockedPlans(data.unlockedPlans || []);
         setPromoCodeUnlocked(data.promoCodeUnlocked || false);
+        setIsPaid(data.isPaid || false);
       } else {
         setDoc(userRef, {
           email: user.email,
@@ -1830,8 +1831,16 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
           setShowPricingModal(false);
           setPendingDownloadMode(null);
         }}
-        onSuccess={() => {
+        onSuccess={(tier) => {
           setPromoCodeUnlocked(true);
+          if (tier === "full-access") {
+            setSubscriptionActive(true);
+            setEuFundsUnlocked(true);
+          } else if (tier === "eu-funds") {
+            setEuFundsUnlocked(true);
+          } else if (tier === "standard") {
+            setIsPaid(true);
+          }
           // Resetare contori limitatoare după plată (override freeze studio - Master Plan)
           if (typeof window !== 'undefined') {
             localStorage.setItem('studioGenerateCount', '0');

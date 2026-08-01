@@ -15,8 +15,10 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { t } from '@/lib/translations';
 import dynamic from 'next/dynamic';
-import { generateDocxBlob } from '@/lib/generateDocx';
-import { generatePptx } from '@/lib/generatePptx';
+import { useExportActions } from "@/hooks/useExportActions";
+import { StudioPdfSlides } from "@/components/pdf/StudioPdfSlides";
+import { truncateText, splitTextIntoSlides } from "@/lib/planHelpers";
+import { formatPriceLocalized } from "@/lib/priceHelper";
 import { formatObjectNumbers, formatNumberedText } from "@/lib/utils";
 
 import { EXPERT_TEMPLATES } from '@/lib/templatesData';
@@ -300,87 +302,25 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
   const [showExportModal, setShowExportModal] = useState(false);
   const [pendingDownloadMode, setPendingDownloadMode] = useState<'pdf' | 'pptx' | 'word' | 'pdf-summary' | null>(null);
 
+  const { downloadAction: handleDownloadAction } = useExportActions({
+    result,
+    locale,
+    currency: result?.selectedCurrency || (locale === "ro" ? "LEI" : "EUR"),
+    user,
+    isAdmin,
+    isPlanPaid: isPaid,
+    subscriptionActive,
+    euFundsUnlocked,
+    credits,
+    setIsDownloading,
+    setPendingDownloadMode,
+    setShowPricingModal,
+    setIsSharedView: () => {},
+    t
+  });
+
   const downloadAction = async (mode: 'word' | 'pptx' | 'pdf' | 'pdf-summary') => {
-    const planName = result?.nume || "Plan de Afaceri";
-
-    if (mode !== 'pdf-summary' && !isAdmin && !isPlanPaid && !subscriptionActive && !euFundsUnlocked) {
-      setPendingDownloadMode(mode);
-      setShowPricingModal(true);
-      return;
-    }
-
-    setIsDownloading(mode);
-    try {
-      const safeName = result?.nume?.replace(/[^a-zA-Z0-9]/g, '_') || 'Business';
-      
-      if (mode === 'word') {
-        const blob = await generateDocxBlob(result, null, locale);
-        const link = document.createElement('a');
-        link.href = URL.createObjectURL(blob);
-        link.download = `IdeeaTa_Document_${safeName}.docx`;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-      } else if (mode === 'pptx') {
-        await generatePptx(result, safeName, locale === "es" || locale === "en" ? "EUR" : "LEI", fxRate, locale);
-      } else if (mode === 'pdf' || mode === 'pdf-summary') {
-        const docPdf = new jsPDF({
-          orientation: "portrait",
-          unit: "pt",
-          format: "a4"
-        });
-        
-        docPdf.setFontSize(22);
-        docPdf.setTextColor(16, 185, 129); // Emerald
-        docPdf.text(result.nume || "Plan de Afaceri", 50, 80);
-        
-        docPdf.setFontSize(14);
-        docPdf.setTextColor(100, 100, 100);
-        docPdf.text(result.slogan || "", 50, 105);
-        
-        docPdf.setFontSize(12);
-        docPdf.setTextColor(40, 40, 40);
-        
-        let yPos = 140;
-        const addSection = (title: string, content: string) => {
-          if (yPos > 700) {
-            docPdf.addPage();
-            yPos = 50;
-          }
-          docPdf.setFontSize(13);
-          docPdf.setTextColor(16, 185, 129);
-          docPdf.text(title, 50, yPos);
-          yPos += 20;
-          
-          docPdf.setFontSize(10);
-          docPdf.setTextColor(60, 60, 60);
-          const lines = docPdf.splitTextToSize(content || "", 500);
-          docPdf.text(lines, 50, yPos);
-          yPos += (lines.length * 15) + 25;
-        };
-
-        addSection(locale === "en" ? "1. Business Description" : locale === "es" ? "1. Descripción del Negocio" : "1. Descriere Afacere", result.descriere || "");
-        addSection(locale === "en" ? "2. Market Opportunity" : locale === "es" ? "2. Oportunidad de Mercado" : "2. Oportunitatea Pieței", result.oportunitate_piata || "");
-        addSection(locale === "en" ? "3. Target Audience" : locale === "es" ? "3. Público Objetivo" : "3. Publicul Țintă", result.public_tinta || "");
-        
-        const formatSwot = (label: string, text: string) => {
-          return `${label}: ${text || ""}`;
-        };
-        
-        const swotText = `${formatSwot(locale === "en" ? "Strengths" : "Puncte Forte", result.analiza_swot?.puncte_forte)}\n\n${formatSwot(locale === "en" ? "Weaknesses" : "Puncte Slabe", result.analiza_swot?.puncte_slabe)}`;
-        addSection(locale === "en" ? "4. SWOT Analysis" : locale === "es" ? "4. Análisis SWOT" : "4. Analiza SWOT", swotText);
-        
-        const suffix = mode === 'pdf-summary' ? '_Sumar_Gratuit' : '';
-        docPdf.save(`IdeeaTa_Document_${safeName}${suffix}.pdf`);
-      }
-      
-      await new Promise(resolve => setTimeout(resolve, 1000));
-    } catch (e) {
-      console.error(e);
-      alert(locale === "en" ? "Error generating document" : locale === "es" ? "Error al generar el documento" : "Eroare la generarea documentului");
-    } finally {
-      setIsDownloading(null);
-    }
+    await handleDownloadAction(mode);
   };
 
   if (!result) {
@@ -1159,6 +1099,20 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
               })}
             </div>
           </div>
+        </div>
+      )}
+      {result && (
+        <div className="fixed top-[-9999px] left-[-9999px] w-[1280px] opacity-0 pointer-events-none z-[-50]">
+          <StudioPdfSlides 
+            result={result} 
+            ui={t} 
+            locale={locale} 
+            currency={result?.selectedCurrency || (locale === "ro" ? "LEI" : "EUR")}
+            formatPrice={(val: any) => formatPriceLocalized(val, locale, result?.selectedCurrency || (locale === "ro" ? "LEI" : "EUR"), fxRate)} 
+            truncateText={truncateText} 
+            splitTextIntoSlides={splitTextIntoSlides} 
+            formatNumberedText={formatNumberedText} 
+          />
         </div>
       )}
     </div>

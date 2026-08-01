@@ -5,11 +5,14 @@ import { toPng } from "html-to-image";
 import pptxgen from "pptxgenjs";
 import { auth, db } from '@/lib/firebase';
 import { signInWithPopup, GoogleAuthProvider, FacebookAuthProvider, onAuthStateChanged, User, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, sendPasswordResetEmail, sendEmailVerification } from 'firebase/auth';
-import { doc, setDoc, getDoc, increment, arrayUnion } from 'firebase/firestore';
+import { doc, setDoc, getDoc, increment, arrayUnion, onSnapshot } from 'firebase/firestore';
 import { PricingModal } from '@/components/PricingModal';
 import { LanguageSwitcher } from '@/components/LanguageSwitcher';
 import { AdBanner } from '@/components/AdBanner';
-import { generateDocxBlob } from '@/lib/generateDocx';
+import { useExportActions } from "@/hooks/useExportActions";
+import { DemoPdfSlides } from "@/components/pdf/DemoPdfSlides";
+import { truncateText, splitTextIntoSlides } from "@/lib/planHelpers";
+import { formatPriceLocalized } from "@/lib/priceHelper";
 import { ConversionBanners } from '@/components/ConversionBanners';
 import { migrateLocalPlansToFirebase } from '@/lib/migrationManager';
 import { ToneEditor } from '@/components/ToneEditor';
@@ -94,7 +97,7 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
   const [activeTab, setActiveTab] = useState<"overview" | "budget" | "marketing" | "swot">("overview");
   const [loading, setLoading] = useState(false);
   const [fxRate, setFxRate] = useState(0.201);
-  const [isDownloading, setIsDownloading] = useState<'pdf' | 'word' | 'pptx' | null>(null);
+  const [isDownloading, setIsDownloading] = useState<'pdf' | 'word' | 'pptx' | 'pdf-summary' | null>(null);
   const [user, setUser] = useState<User | null>(null);
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [showPricingModal, setShowPricingModal] = useState(false);
@@ -104,6 +107,67 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
   const [isLoginMode, setIsLoginMode] = useState(true);
   const [isEmailLoading, setIsEmailLoading] = useState(false);
   const [authError, setAuthError] = useState<string | null>(null);
+
+  // Stări permisiuni utilizator
+  const [credits, setCredits] = useState(0);
+  const [euFundsUnlocked, setEuFundsUnlocked] = useState(false);
+  const [subscriptionActive, setSubscriptionActive] = useState(false);
+  const [unlockedPlans, setUnlockedPlans] = useState<string[]>([]);
+  const [promoCodeUnlocked, setPromoCodeUnlocked] = useState(false);
+  const [isPaidState, setIsPaidState] = useState(false);
+
+  const isPaid = (typeof window !== 'undefined' && localStorage.getItem(`isPaid_${result?.nume}`) === "true") || isPaidState;
+  const isAdmin = !!(user && (user.email === "adrian@ideeata.ai" || user.email === "contact@ideeata.ai" || user.email === "nadiaramonaz@gmail.com"));
+
+  useEffect(() => {
+    if (!user) {
+      setCredits(0);
+      setEuFundsUnlocked(false);
+      setSubscriptionActive(false);
+      setUnlockedPlans([]);
+      setPromoCodeUnlocked(false);
+      setIsPaidState(false);
+      return;
+    }
+
+    const userRef = doc(db, "users", user.uid);
+    const unsubscribe = onSnapshot(userRef, (snapshot) => {
+      if (snapshot.exists()) {
+        const data = snapshot.data();
+        setCredits(data.credits || 0);
+        setEuFundsUnlocked(data.euFundsUnlocked || false);
+        setSubscriptionActive(data.subscriptionActive || false);
+        setUnlockedPlans(data.unlockedPlans || []);
+        setPromoCodeUnlocked(data.promoCodeUnlocked || false);
+        
+        const planName = result?.nume || "";
+        const planUnlocked = (data.unlockedPlans || []).includes(planName);
+        setIsPaidState(planUnlocked || data.subscriptionActive || false);
+      }
+    });
+
+    return () => unsubscribe();
+  }, [user, result?.nume]);
+
+  const [pendingDownloadMode, setPendingDownloadMode] = useState<'pdf' | 'pptx' | 'word' | 'pdf-summary' | null>(null);
+  const [showExportModal, setShowExportModal] = useState(false);
+
+  const { downloadAction: handleDownloadAction } = useExportActions({
+    result,
+    locale,
+    currency: result?.selectedCurrency || (locale === "ro" ? "LEI" : "EUR"),
+    user,
+    isAdmin,
+    isPlanPaid: isPaid,
+    subscriptionActive,
+    euFundsUnlocked,
+    credits,
+    setIsDownloading,
+    setPendingDownloadMode,
+    setShowPricingModal,
+    setIsSharedView: () => {},
+    t
+  });
   
   // Stările pentru asistentul AI Bottom-Sheet
   const [isEditingAi, setIsEditingAi] = useState(false);
@@ -379,13 +443,12 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
     }
   };
 
-  // Logica de Export PDF/Word simplificată pentru demo mobil
-  const handleDownload = async (format: 'pdf' | 'word') => {
-    if (!user) {
-      setShowAuthModal(true);
-      return;
-    }
-    setShowPricingModal(true); // În demo, descărcările necesită upgrade
+  const downloadAction = async (mode: 'word' | 'pptx' | 'pdf' | 'pdf-summary') => {
+    await handleDownloadAction(mode);
+  };
+
+  const handleDownload = async (format?: string) => {
+    setShowExportModal(true);
   };
 
   const handleShare = () => {
@@ -887,6 +950,90 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
         planName={result?.nume || (locale === "en" ? "Business Plan" : "Plan de Afaceri")}
         locale={locale}
       />
+      {/* Meniu Exporturi Bottom-Sheet */}
+      {showExportModal && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex flex-col justify-end">
+          {/* Backdrop Touch Close */}
+          <div className="flex-1" onClick={() => setShowExportModal(false)}></div>
+          
+          {/* Drawer Sheet */}
+          <div className="bg-zinc-900 border-t border-zinc-800 rounded-t-3xl p-6 max-h-[85vh] overflow-y-auto space-y-5 animate-in slide-in-from-bottom duration-300 flex flex-col w-full md:max-w-lg md:mx-auto md:left-1/2 md:-translate-x-1/2 md:right-auto">
+            <div className="flex justify-between items-center border-b border-zinc-800/60 pb-3">
+              <h4 className="text-sm font-black text-white">{locale === "en" ? "Export Options" : locale === "es" ? "Opciones de Exportación" : "Opțiuni de Exportare"}</h4>
+              <button onClick={() => setShowExportModal(false)} className="text-xs text-zinc-500 font-bold p-1">{locale === "en" ? "Close" : locale === "es" ? "Cerrar" : "Închide"}</button>
+            </div>
+            
+            <div className="flex flex-col gap-3">
+              {/* PDF Sumar Gratuit */}
+              <button
+                onClick={() => {
+                  downloadAction("pdf-summary");
+                  setShowExportModal(false);
+                }}
+                disabled={isDownloading !== null}
+                className="w-full bg-zinc-950 border border-zinc-800 text-zinc-300 hover:text-white font-bold py-3.5 rounded-xl text-xs transition-all active:scale-95 text-left px-4 flex justify-between items-center"
+              >
+                <span>📄 {locale === "en" ? "Free PDF Summary" : locale === "es" ? "Resumen PDF Gratis" : "Sumar PDF Gratuit"}</span>
+                <span className="text-[10px] bg-emerald-500/10 text-emerald-400 px-2 py-0.5 rounded font-black uppercase">{locale === "en" ? "Free" : "Gratis"}</span>
+              </button>
+
+              {/* Word (DOCX) Premium */}
+              <button
+                onClick={() => {
+                  downloadAction("word");
+                  setShowExportModal(false);
+                }}
+                disabled={isDownloading !== null}
+                className="w-full bg-zinc-950 border border-zinc-800 text-zinc-300 hover:text-white font-bold py-3.5 rounded-xl text-xs transition-all active:scale-95 text-left px-4 flex justify-between items-center"
+              >
+                <span>📝 {locale === "en" ? "Word Document (.docx)" : locale === "es" ? "Documento Word (.docx)" : "Document Word (.docx)"}</span>
+                {!isPaid && <span className="text-[10px] bg-amber-500/10 text-amber-400 px-2 py-0.5 rounded font-black uppercase">🔒 PRO</span>}
+              </button>
+
+              {/* PowerPoint (PPTX) Premium */}
+              <button
+                onClick={() => {
+                  downloadAction("pptx");
+                  setShowExportModal(false);
+                }}
+                disabled={isDownloading !== null}
+                className="w-full bg-zinc-950 border border-zinc-800 text-zinc-300 hover:text-white font-bold py-3.5 rounded-xl text-xs transition-all active:scale-95 text-left px-4 flex justify-between items-center"
+              >
+                <span>📊 {locale === "en" ? "PowerPoint Presentation (.pptx)" : locale === "es" ? "Presentación PowerPoint (.pptx)" : "Prezentare PowerPoint (.pptx)"}</span>
+                {!isPaid && <span className="text-[10px] bg-amber-500/10 text-amber-400 px-2 py-0.5 rounded font-black uppercase">🔒 PRO</span>}
+              </button>
+
+              {/* PDF Complet Premium */}
+              <button
+                onClick={() => {
+                  downloadAction("pdf");
+                  setShowExportModal(false);
+                }}
+                disabled={isDownloading !== null}
+                className="w-full bg-zinc-950 border border-zinc-800 text-zinc-300 hover:text-white font-bold py-3.5 rounded-xl text-xs transition-all active:scale-95 text-left px-4 flex justify-between items-center"
+              >
+                <span>📕 {locale === "en" ? "Full PDF Document" : locale === "es" ? "Documento PDF Completo" : "Document PDF Complet"}</span>
+                {!isPaid && <span className="text-[10px] bg-amber-500/10 text-amber-400 px-2 py-0.5 rounded font-black uppercase">🔒 PRO</span>}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {result && (
+        <div className="fixed top-[-9999px] left-[-9999px] w-[1280px] opacity-0 pointer-events-none z-[-50]">
+          <DemoPdfSlides 
+            result={result} 
+            ui={t} 
+            locale={locale} 
+            currency={result?.selectedCurrency || (locale === "ro" ? "LEI" : "EUR")}
+            formatPrice={(val: any) => formatPriceLocalized(val, locale, result?.selectedCurrency || (locale === "ro" ? "LEI" : "EUR"), fxRate)} 
+            truncateText={truncateText} 
+            splitTextIntoSlides={splitTextIntoSlides} 
+            formatNumberedText={formatNumberedText} 
+          />
+        </div>
+      )}
     </div>
   );
 }

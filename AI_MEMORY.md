@@ -305,6 +305,12 @@ Formele acceptate de acord expres:
   * Pentru acțiunile care modifică planul global (`professional_tone`, `eu_funds_optimization`, `investor_ready`), derularea automată nu mai aliniează `section-general` la marginea de sus (comportament care trăgea ecranul în jos și ascundea butoanele din antet), ci efectuează un scroll fluid către top-ul absolut al paginii (`window.scrollTo({ top: 0, behavior: 'smooth' })`).
   * Păstrat comportamentul de scroll specific pentru acțiunile punctuale (`add_sections` derulează la secțiunea adăugată, `optimize_budget` derulează la secțiunea financiară).
   * Build local validat: ✅ `✓ Compiled successfully in 8.5s` (44/44 pagini static pre-randate).
+- **Optimizare Plăcintă de Buget pe Mobile (Sesiunea 1 - 1 August 2026):**
+  * Modificat `components/BudgetChart.tsx` pentru a face graficul 100% responsiv. Înlocuit dimensiunile fixe în pixeli (`innerRadius={90}`, `outerRadius={160}`) cu procente native (`innerRadius="55%"`, `outerRadius="85%"`) și flexibilizat înălțimea graficului cu clase responsive Tailwind.
+  * Ascuns legenda Recharts pe ecrane sub 1024px (`hidden lg:flex`) pentru a elimina dublarea informațiilor pe telefoane.
+  * Actualizat `components/StudioMobile.tsx` și `components/DemoMobile.tsx` pentru a sorta descrescător după cost elementele din tabelul bugetului (aliniere perfectă cu ordinea feliilor din plăcintă).
+  * Adăugat indicatori vizuali colorați (buline) în dreptul fiecărei categorii din listele mobile, utilizând aceeași paletă de culori statică ca în graficul Recharts.
+  * Build local validat: ✅ `✓ Compiled successfully in 12.2s` (44/44 pagini static pre-randate).
 
 ## RĂMÂNE DE FĂCUT
 

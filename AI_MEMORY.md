@@ -328,6 +328,10 @@ Formele acceptate de acord expres:
   * Localizat eticheta și placeholderul formularului generatorului de idei în `DemoMobile.tsx` folosind `t("businessIdeaLabel", locale)` și `ui.inputPlaceholder`.
   * Adăugat placeholder localizat în sertarul editorului manual de text (`editingField`) din `StudioMobile.tsx`.
   * Build local validat: ✅ `✓ Compiled successfully in 7.3s` (44/44 pagini static pre-randate).
+- **Corecție Valute și CAEN în Documentele de Export (Sesiunea 5 - 1 August 2026):**
+  * Unificat și implementat algoritmul complet de conversie valutară bidirecțională (LEI ➔ EUR și EUR ➔ LEI) în exporturile Word (`generateDocx.ts`) și PowerPoint (`generatePptx.ts`) pe baza ratei de schimb fixe (`0.201`).
+  * Tradus și localizat etichetele `caenCode` în documentele generate pentru a evita utilizarea CAEN în EN/ES (înlocuit cu "Industry Category" în engleză și "Categoría de Negocio" în spaniolă).
+  * Build local final validat: ✅ `✓ Compiled successfully in 8.5s` (44/44 pagini static pre-randate).
 
 ## RĂMÂNE DE FĂCUT
 

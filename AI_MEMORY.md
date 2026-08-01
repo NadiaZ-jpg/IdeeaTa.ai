@@ -355,6 +355,11 @@ Formele acceptate de acord expres:
   * Pasat proprietatea `locale={locale}` la apelul componentei `<EditForm>` în `DemoDesktop.tsx`, corectând afișarea în limba română a textelor din formular pe paginile EN/ES.
   * Localizat elementele din `DemoLeftSidebar.tsx` (butoanele AI de adaptare fonduri UE, plan profesionist și optimizare buget, precum și sfaturile de subsol) pentru a utiliza traducerile din `uiStrings.ts` în loc de texte românești hardcodate.
   * Build local final validat: ✅ `✓ Compiled successfully in 6.7s` (44/44 pagini static pre-randate).
+- **Corectare Afișare Cost Estimat în EditForm (Sesiunea 8 - 1 August 2026):**
+  * Lărgit containerul de intrare pentru costul estimat (`components/EditForm.tsx`) pe desktop și tabletă de la `md:w-32` (`128px`) la `md:w-44` (`176px`) pentru a asigura vizibilitatea completă a sumelor mari și a valutei (rezolvată problema tăierii literei „R” din „EUR” la valori peste 100,000).
+  * Pe mobil s-a păstrat comportamentul responsiv implicit (`w-full` pe layout stivuit), nefiind afectat de decupare.
+  * Audit lingvistic rulat pe `DemoMobile.tsx` și `StudioMobile.tsx` pentru a asigura alinierea totală RO/EN/ES pe toate ecranele (zero texte hardcodate în română găsite în codul de mobil).
+  * Build local final validat: ✅ `✓ Compiled successfully in 9.3s` (44/44 pagini static pre-randate).
 
 ## RĂMÂNE DE FĂCUT
 

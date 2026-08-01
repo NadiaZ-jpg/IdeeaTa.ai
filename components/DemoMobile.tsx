@@ -652,28 +652,28 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
                 )}
 
                 {/* Mobile Tab bar */}
-                <div className="flex md:flex-col bg-zinc-950 border border-zinc-800/80 rounded-xl p-1 overflow-x-auto md:overflow-visible scrollbar-none md:gap-1 w-full">
+                <div className="flex md:flex-col bg-zinc-950/90 backdrop-blur-md border border-zinc-800/80 rounded-xl p-1 overflow-x-auto md:overflow-visible scrollbar-none md:gap-1 w-full shadow-inner">
                   <button
                     onClick={() => setActiveTab("overview")}
-                    className={`flex-1 text-center md:text-left py-2.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap px-4 md:px-5 ${activeTab === "overview" ? "bg-zinc-800 text-white md:bg-zinc-900/60 md:border md:border-zinc-800" : "text-zinc-400 hover:text-white"}`}
+                    className={`flex-1 text-center md:text-left py-3 md:py-2.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap px-4 md:px-5 ${activeTab === "overview" ? "bg-zinc-900 text-emerald-400 border border-zinc-800/80 shadow-md shadow-black/40" : "text-zinc-400 hover:text-white border border-transparent"}`}
                   >
                     {locale === "en" ? "📈 Overview" : locale === "es" ? "📈 Resumen" : "📈 Prezentare"}
                   </button>
                   <button
                     onClick={() => setActiveTab("budget")}
-                    className={`flex-1 text-center md:text-left py-2.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap px-4 md:px-5 ${activeTab === "budget" ? "bg-zinc-800 text-white md:bg-zinc-900/60 md:border md:border-zinc-800" : "text-zinc-400 hover:text-white"}`}
+                    className={`flex-1 text-center md:text-left py-3 md:py-2.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap px-4 md:px-5 ${activeTab === "budget" ? "bg-zinc-900 text-emerald-400 border border-zinc-800/80 shadow-md shadow-black/40" : "text-zinc-400 hover:text-white border border-transparent"}`}
                   >
                     {locale === "en" ? "💰 Finance" : locale === "es" ? "💰 Finanzas" : "💰 Finanțe"}
                   </button>
                   <button
                     onClick={() => setActiveTab("marketing")}
-                    className={`flex-1 text-center md:text-left py-2.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap px-4 md:px-5 ${activeTab === "marketing" ? "bg-zinc-800 text-white md:bg-zinc-900/60 md:border md:border-zinc-800" : "text-zinc-400 hover:text-white"}`}
+                    className={`flex-1 text-center md:text-left py-3 md:py-2.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap px-4 md:px-5 ${activeTab === "marketing" ? "bg-zinc-900 text-emerald-400 border border-zinc-800/80 shadow-md shadow-black/40" : "text-zinc-400 hover:text-white border border-transparent"}`}
                   >
                     {locale === "en" ? "📣 Marketing" : locale === "es" ? "📣 Marketing" : "📣 Promovare"}
                   </button>
                   <button
                     onClick={() => setActiveTab("swot")}
-                    className={`flex-1 text-center md:text-left py-2.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap px-4 md:px-5 ${activeTab === "swot" ? "bg-zinc-800 text-white md:bg-zinc-900/60 md:border md:border-zinc-800" : "text-zinc-400 hover:text-white"}`}
+                    className={`flex-1 text-center md:text-left py-3 md:py-2.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap px-4 md:px-5 ${activeTab === "swot" ? "bg-zinc-900 text-emerald-400 border border-zinc-800/80 shadow-md shadow-black/40" : "text-zinc-400 hover:text-white border border-transparent"}`}
                   >
                     {locale === "en" ? "📋 SWOT" : locale === "es" ? "📋 FODA" : "📋 SWOT"}
                   </button>
@@ -697,7 +697,7 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
               <div className="w-full md:col-span-8 bg-zinc-900/30 border border-zinc-800/80 rounded-2xl p-5 space-y-6 md:min-h-[550px]">
                 
                 {activeTab === "overview" && (
-                <div className="space-y-5 animate-in fade-in duration-200">
+                <div className="space-y-5 animate-in fade-in slide-in-from-bottom-2 duration-200">
                   <div className="space-y-1">
                     <h3 className="text-emerald-400 font-bold text-sm">{locale === "en" ? "Business Description" : locale === "es" ? "Descripción del Negocio" : "Descriere Afacere"}</h3>
                     <p className="text-zinc-300 text-xs leading-relaxed">{formatNumberedText(result.viziune_strategie?.misiune_valori || result.descriere)}</p>
@@ -716,7 +716,7 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
               )}
 
               {activeTab === "budget" && (
-                <div className="space-y-6 md:grid md:grid-cols-2 md:gap-6 md:space-y-0 animate-in fade-in duration-200">
+                <div className="space-y-6 md:grid md:grid-cols-2 md:gap-6 md:space-y-0 animate-in fade-in slide-in-from-bottom-2 duration-200">
                   <div className="space-y-3">
                     <h3 className="text-emerald-400 font-bold text-sm">{locale === "en" ? "Initial Investment Budget" : locale === "es" ? "Presupuesto Inicial de Inversión" : "Buget Inițial de Investiții"}</h3>
                     <div className="space-y-2">
@@ -764,7 +764,7 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
               )}
 
               {activeTab === "marketing" && (
-                <div className="space-y-6 animate-in fade-in duration-200">
+                <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-200">
                   <div className="space-y-3">
                     <h3 className="text-emerald-400 font-bold text-sm">{locale === "en" ? "Promotion & Strategy" : locale === "es" ? "Promoción y Estrategia" : "Promovare & Strategie"}</h3>
                     {result.analiza_pietei?.strategie_marketing ? (
@@ -803,7 +803,7 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
               )}
 
               {activeTab === "swot" && (
-                <div className="space-y-5 animate-in fade-in duration-200">
+                <div className="space-y-5 animate-in fade-in slide-in-from-bottom-2 duration-200">
                   <h3 className="text-emerald-400 font-bold text-sm">{locale === "en" ? "SWOT Analysis" : locale === "es" ? "Análisis FODA" : "Analiza SWOT"}</h3>
                   <div className="grid grid-cols-1 gap-3">
                     <div className="bg-emerald-950/10 border border-emerald-800/20 rounded-xl p-4">

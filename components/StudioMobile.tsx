@@ -445,28 +445,28 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
             )}
 
             {/* Tab Selection */}
-            <div className="flex md:flex-col bg-zinc-950 border border-zinc-800/80 rounded-xl p-1 overflow-x-auto md:overflow-visible scrollbar-none md:gap-1 w-full">
+            <div className="flex md:flex-col bg-zinc-950/90 backdrop-blur-md border border-zinc-800/80 rounded-xl p-1 overflow-x-auto md:overflow-visible scrollbar-none md:gap-1 w-full shadow-inner">
               <button
                 onClick={() => setActiveTab("overview")}
-                className={`flex-1 text-center md:text-left py-2.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap px-4 md:px-5 ${activeTab === "overview" ? "bg-zinc-800 text-white md:bg-zinc-900/60 md:border md:border-zinc-800" : "text-zinc-400 hover:text-white"}`}
+                className={`flex-1 text-center md:text-left py-3 md:py-2.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap px-4 md:px-5 ${activeTab === "overview" ? "bg-zinc-900 text-emerald-400 border border-zinc-800/80 shadow-md shadow-black/40" : "text-zinc-400 hover:text-white border border-transparent"}`}
               >
                 {locale === "en" ? "📈 Overview" : locale === "es" ? "📈 Resumen" : "📈 Prezentare"}
               </button>
               <button
                 onClick={() => setActiveTab("budget")}
-                className={`flex-1 text-center md:text-left py-2.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap px-4 md:px-5 ${activeTab === "budget" ? "bg-zinc-800 text-white md:bg-zinc-900/60 md:border md:border-zinc-800" : "text-zinc-400 hover:text-white"}`}
+                className={`flex-1 text-center md:text-left py-3 md:py-2.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap px-4 md:px-5 ${activeTab === "budget" ? "bg-zinc-900 text-emerald-400 border border-zinc-800/80 shadow-md shadow-black/40" : "text-zinc-400 hover:text-white border border-transparent"}`}
               >
                 {locale === "en" ? "💰 Finance" : locale === "es" ? "💰 Finanzas" : "💰 Finanțe"}
               </button>
               <button
                 onClick={() => setActiveTab("marketing")}
-                className={`flex-1 text-center md:text-left py-2.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap px-4 md:px-5 ${activeTab === "marketing" ? "bg-zinc-800 text-white md:bg-zinc-900/60 md:border md:border-zinc-800" : "text-zinc-400 hover:text-white"}`}
+                className={`flex-1 text-center md:text-left py-3 md:py-2.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap px-4 md:px-5 ${activeTab === "marketing" ? "bg-zinc-900 text-emerald-400 border border-zinc-800/80 shadow-md shadow-black/40" : "text-zinc-400 hover:text-white border border-transparent"}`}
               >
                 {locale === "en" ? "📣 Marketing" : locale === "es" ? "📣 Marketing" : "📣 Promovare"}
               </button>
               <button
                 onClick={() => setActiveTab("swot")}
-                className={`flex-1 text-center md:text-left py-2.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap px-4 md:px-5 ${activeTab === "swot" ? "bg-zinc-800 text-white md:bg-zinc-900/60 md:border md:border-zinc-800" : "text-zinc-400 hover:text-white"}`}
+                className={`flex-1 text-center md:text-left py-3 md:py-2.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap px-4 md:px-5 ${activeTab === "swot" ? "bg-zinc-900 text-emerald-400 border border-zinc-800/80 shadow-md shadow-black/40" : "text-zinc-400 hover:text-white border border-transparent"}`}
               >
                 {locale === "en" ? "📋 SWOT" : locale === "es" ? "📋 FODA" : "📋 SWOT"}
               </button>
@@ -477,7 +477,7 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
           <div className="w-full md:col-span-8 bg-zinc-900/30 border border-zinc-800/80 rounded-2xl p-5 space-y-6 md:min-h-[550px]">
              
              {activeTab === "overview" && (
-            <div className="space-y-5">
+            <div className="space-y-5 animate-in fade-in slide-in-from-bottom-2 duration-200">
               <div className="space-y-1 relative group">
                 <div className="flex justify-between items-center">
                   <h3 className="text-emerald-400 font-bold text-sm">{locale === "en" ? "Business Description" : locale === "es" ? "Descripción del Negocio" : "Descriere Afacere"}</h3>
@@ -490,7 +490,7 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
                         value: isNew ? (result.viziune_strategie?.misiune_valori || "") : (result.descriere || "")
                       });
                     }}
-                    className="text-[11px] text-zinc-500 hover:text-white"
+                    className="text-[11px] text-zinc-500 hover:text-white p-2 -m-2 inline-flex items-center justify-center min-w-[36px] min-h-[36px]"
                   >
                     {locale === "en" ? "✏️ Edit" : locale === "es" ? "✏️ Editar" : "✏️ Editează"}
                   </button>
@@ -512,7 +512,7 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
                         value: isNew ? (result.analiza_pietei?.concurenta || "") : (result.oportunitate_piata || "")
                       });
                     }}
-                    className="text-[11px] text-zinc-500 hover:text-white"
+                    className="text-[11px] text-zinc-500 hover:text-white p-2 -m-2 inline-flex items-center justify-center min-w-[36px] min-h-[36px]"
                   >
                     {locale === "en" ? "✏️ Edit" : locale === "es" ? "✏️ Editar" : "✏️ Editează"}
                   </button>
@@ -534,7 +534,7 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
                         value: isNew ? (result.analiza_pietei?.clienti_tinta || "") : (result.public_tinta || "")
                       });
                     }}
-                    className="text-[11px] text-zinc-500 hover:text-white"
+                    className="text-[11px] text-zinc-500 hover:text-white p-2 -m-2 inline-flex items-center justify-center min-w-[36px] min-h-[36px]"
                   >
                     {locale === "en" ? "✏️ Edit" : locale === "es" ? "✏️ Editar" : "✏️ Editează"}
                   </button>
@@ -551,7 +551,7 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
                     <div className="flex gap-3">
                       <button
                         onClick={() => setEditingField({ key: `sectiuni_aditionale.${idx}.continut`, title: sec.titlu, value: sec.continut || "" })}
-                        className="text-[11px] text-zinc-500 hover:text-white"
+                        className="text-[11px] text-zinc-500 hover:text-white p-2 -m-2 inline-flex items-center justify-center min-w-[36px] min-h-[36px]"
                       >
                         {locale === "en" ? "✏️ Edit" : locale === "es" ? "✏️ Editar" : "✏️ Editează"}
                       </button>
@@ -570,7 +570,7 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
                           }
                           localStorage.setItem("current_generated_plan", JSON.stringify(updated));
                         }}
-                        className="text-[11px] text-red-500 hover:text-red-450 font-semibold"
+                        className="text-[11px] text-red-500 hover:text-red-450 font-semibold p-2 -m-2 inline-flex items-center justify-center min-w-[36px] min-h-[36px]"
                       >
                         {locale === "en" ? "✕ Delete" : locale === "es" ? "✕ Eliminar" : "✕ Șterge"}
                       </button>
@@ -593,7 +593,7 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
           )}
 
           {activeTab === "budget" && (
-            <div className="space-y-6 md:grid md:grid-cols-2 md:gap-6 md:space-y-0">
+            <div className="space-y-6 md:grid md:grid-cols-2 md:gap-6 md:space-y-0 animate-in fade-in slide-in-from-bottom-2 duration-200">
               <div className="space-y-3">
                 <div className="flex justify-between items-center">
                   <h3 className="text-emerald-400 font-bold text-sm">{locale === "en" ? "Initial Investment Budget" : locale === "es" ? "Presupuesto Inicial de Inversión" : "Buget Inițial de Investiții"}</h3>
@@ -662,7 +662,7 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
           )}
 
           {activeTab === "marketing" && (
-            <div className="space-y-6">
+            <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-200">
               <div className="space-y-3">
                 <div className="flex justify-between items-center">
                   <h3 className="text-emerald-400 font-bold text-sm">{locale === "en" ? "Promotion & Strategy" : locale === "es" ? "Promoción y Estrategia" : "Promovare & Strategie"}</h3>
@@ -673,7 +673,7 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
                         title: locale === "en" ? "Marketing Strategy" : locale === "es" ? "Estrategia de Marketing" : "Strategia de Marketing",
                         value: result.analiza_pietei?.strategie_marketing || ""
                       })}
-                      className="text-[11px] text-zinc-500 hover:text-white"
+                      className="text-[11px] text-zinc-500 hover:text-white p-2 -m-2 inline-flex items-center justify-center min-w-[36px] min-h-[36px]"
                     >
                       {locale === "en" ? "✏️ Edit" : locale === "es" ? "✏️ Editar" : "✏️ Editează"}
                     </button>
@@ -715,7 +715,7 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
           )}
 
           {activeTab === "swot" && (
-            <div className="space-y-5">
+            <div className="space-y-5 animate-in fade-in slide-in-from-bottom-2 duration-200">
               <h3 className="text-emerald-400 font-bold text-sm">{locale === "en" ? "SWOT Analysis" : locale === "es" ? "Análisis FODA" : "Analiza SWOT"}</h3>
               <div className="grid grid-cols-1 gap-3">
                 <div className="bg-emerald-950/10 border border-emerald-800/20 rounded-xl p-4 relative">
@@ -730,7 +730,7 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
                           value: getSwotString(result.analiza_swot?.puncte_tari || result.analiza_swot?.puncte_forte)
                         });
                       }}
-                      className="text-[10px] text-zinc-500 hover:text-white"
+                      className="text-[10px] text-zinc-500 hover:text-white p-2 -m-2 inline-flex items-center justify-center min-w-[36px] min-h-[36px]"
                     >
                       {locale === "en" ? "✏️ Edit" : locale === "es" ? "✏️ Editar" : "✏️ Editează"}
                     </button>
@@ -747,7 +747,7 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
                         title: locale === "en" ? "Weaknesses" : locale === "es" ? "Debilidades" : "Puncte Slabe (Weaknesses)",
                         value: getSwotString(result.analiza_swot?.puncte_slabe)
                       })}
-                      className="text-[10px] text-zinc-500 hover:text-white"
+                      className="text-[10px] text-zinc-500 hover:text-white p-2 -m-2 inline-flex items-center justify-center min-w-[36px] min-h-[36px]"
                     >
                       {locale === "en" ? "✏️ Edit" : locale === "es" ? "✏️ Editar" : "✏️ Editează"}
                     </button>
@@ -764,7 +764,7 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
                         title: locale === "en" ? "Opportunities" : locale === "es" ? "Oportunidades" : "Oportunități (Opportunities)",
                         value: getSwotString(result.analiza_swot?.oportunitati)
                       })}
-                      className="text-[10px] text-zinc-500 hover:text-white"
+                      className="text-[10px] text-zinc-500 hover:text-white p-2 -m-2 inline-flex items-center justify-center min-w-[36px] min-h-[36px]"
                     >
                       {locale === "en" ? "✏️ Edit" : locale === "es" ? "✏️ Editar" : "✏️ Editează"}
                     </button>
@@ -781,7 +781,7 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
                         title: locale === "en" ? "Threats" : locale === "es" ? "Amenazas" : "Amenințări (Threats)",
                         value: getSwotString(result.analiza_swot?.amenintari)
                       })}
-                      className="text-[10px] text-zinc-500 hover:text-white"
+                      className="text-[10px] text-zinc-500 hover:text-white p-2 -m-2 inline-flex items-center justify-center min-w-[36px] min-h-[36px]"
                     >
                       {locale === "en" ? "✏️ Edit" : locale === "es" ? "✏️ Editar" : "✏️ Editează"}
                     </button>

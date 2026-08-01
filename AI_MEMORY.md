@@ -373,6 +373,12 @@ Dacă oricare dintre aceste verificări este omisă în procesul de planificare,
   * Pe mobil s-a păstrat comportamentul responsiv implicit (`w-full` pe layout stivuit), nefiind afectat de decupare.
   * Audit lingvistic rulat pe `DemoMobile.tsx` și `StudioMobile.tsx` pentru a asigura alinierea totală RO/EN/ES pe toate ecranele (zero texte hardcodate în română găsite în codul de mobil).
   * Build local final validat: ✅ `✓ Compiled successfully in 9.3s` (44/44 pagini static pre-randate).
+- **Corectare Limbă Generare & Editare în Studio (Sesiunea 9 - 1 August 2026):**
+  * Modificat `components/StudioDesktop.tsx` (linia ~932) pentru a asigura că cererea `/api/generate` trimite explicit limba (`locale`) și moneda (`currency`) selectată, reparând anomalia generării în limba română (RO) implicită de pe paginile internaționale EN/ES.
+  * Modificat `components/DemoMobile.tsx` și `components/StudioMobile.tsx` pentru a trimite dinamic moneda (`currency`) în apelurile `/api/generate` și `/api/edit`, dedusă automat din limbă (`locale === "ro" ? "LEI" : "EUR"`).
+  * Adăugat reguli stricte de traducere și re-generare de limbă în `lib/promptConfig.ts` (`getEditPrompt` și `getSegmentPrompt` pe ramurile `en` și `es`). Acum, orice acțiune de editare AI (ex. „Rewrite Tone”) rulată de pe ecranele EN/ES deblochează traducerea automată și întoarce planul direct în limba selectată, chiar dacă textul original era în română.
+  * Adăugat oficial **Checklist Pre-Flight obligatoriu** bazat pe Regulile #21 și #22 la începutul `AI_MEMORY.md` pentru a preveni omisiunile de propagare pe toate ecranele și limbile la nivel de asistenți viitori.
+  * Build local final validat: ✅ `✓ Compiled successfully in 6.8s` (44/44 pagini static pre-randate).
 
 ## RĂMÂNE DE FĂCUT
 

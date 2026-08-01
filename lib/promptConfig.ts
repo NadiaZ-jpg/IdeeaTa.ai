@@ -359,6 +359,7 @@ ${instruction}
 
 You must respond EXCLUSIVELY with a valid JSON.
 IMPORTANT FOR JSON: 
+- The entire response values (including names, slogans, SWOT titles, and technical descriptions) MUST be strictly in English. Do NOT write any Romanian or Spanish words.
 - DO NOT use real unescaped newlines inside strings! For paragraphs, strictly use '\\n' (escaped).
 - You MUST escape double quotes inside text using backslash (\\"). It is safest to use single quotes (') inside text.
 - NO trailing commas.
@@ -375,6 +376,7 @@ ${instruction}
 
 Debes responder EXCLUSIVAMENTE con un JSON válido.
 IMPORTANTE PARA EL JSON: 
+- Todos los valores de la respuesta (incluidos nombres, eslóganes, títulos SWOT y descripciones técnicas) DEBEN estar estrictamente en español. NO escribas palabras en rumano o inglés.
 - ¡NO utilices saltos de línea reales sin escapar dentro de las cadenas! Para los párrafos, usa estrictamente '\\n' (escapado).
 - DEBES escapar las comillas dobles dentro del texto usando barra invertida (\\"). Lo más seguro es usar comillas simples (') dentro del texto.
 - SIN comas flotantes al final (no trailing commas).
@@ -409,6 +411,7 @@ ${JSON.stringify(segment)}
 Debes responder EXCLUSIVAMENTE con un JSON válido, respetando la estructura original del segmento recibido.
 Si recibiste un solo campo, devuélvelo en el mismo formato JSON.
 IMPORTANTE PARA EL JSON:
+- Todos los valores de la respuesta (incluidos nombres, eslóganes, títulos SWOT y descripciones técnicas) DEBEN estar estrictamente en español. NO escribas palabras en rumano o inglés.
 - ¡NO utilices saltos de línea reales (unescaped newlines) dentro de los textos! Para los párrafos, usa estrictamente '\\n' (escapado).
 - IMPORTANTE: Si necesitas usar comillas en los textos generados, usa estrictamente comillas simples ('). NO uses comillas dobles (") dentro de los textos bajo ninguna circunstancia, ya que romperán la estructura JSON.
 - SIN comas al final del último elemento (no trailing commas).
@@ -425,6 +428,7 @@ ${JSON.stringify(segment)}
 You must respond EXCLUSIVELY with a valid JSON, respecting the original structure of the received segment.
 If you received a single field, return it in the same JSON format.
 IMPORTANT FOR JSON: 
+- The entire response values (including names, slogans, SWOT titles, and technical descriptions) MUST be strictly in English. Do NOT write any Romanian or Spanish words.
 - DO NOT use real unescaped newlines inside strings! For paragraphs, strictly use '\\n' (escaped).
 - IMPORTANT: If you need to use quotes inside the generated texts, strictly use single quotes ('). DO NOT use double quotes (") inside the text values under any circumstances, as they break the JSON structure.
 - NO trailing commas.

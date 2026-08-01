@@ -929,7 +929,7 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
         fetch("/api/generate", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ skill }),
+          body: JSON.stringify({ skill, locale, currency }),
         }),
         new Promise(resolve => setTimeout(resolve, 2000))
       ]);

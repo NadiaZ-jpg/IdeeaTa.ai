@@ -300,7 +300,7 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
       const res = await fetch("/api/generate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ skill: inputSkill, locale }),
+        body: JSON.stringify({ skill: inputSkill, locale, currency: locale === "ro" ? "LEI" : "EUR" }),
       });
 
       if (!res.ok) throw new Error("Eroare la generare");
@@ -373,7 +373,8 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
           result,
           action,
           customStyle: customInput || aiPromptInput,
-          locale
+          locale,
+          currency: result?.selectedCurrency || (locale === "ro" ? "LEI" : "EUR")
         })
       });
 

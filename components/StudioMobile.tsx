@@ -189,7 +189,8 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
           result,
           action,
           customStyle: customInput || "",
-          locale
+          locale,
+          currency: result?.selectedCurrency || (locale === "ro" ? "LEI" : "EUR")
         })
       });
 

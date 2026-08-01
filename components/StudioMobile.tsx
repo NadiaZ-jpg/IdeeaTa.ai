@@ -445,91 +445,96 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
           </button>
         </div>
 
-        {/* Version History Selector Mobile */}
-        {versions && Object.keys(versions).length > 0 && (
-          <div className="relative z-20">
-            <button 
-              onClick={() => setShowVersionDropdown(!showVersionDropdown)}
-              className="w-full px-4 py-3 rounded-xl bg-zinc-900/80 border border-zinc-800 hover:border-emerald-500/40 text-amber-300 hover:text-amber-200 font-bold text-xs flex items-center justify-between transition-all cursor-pointer shadow-sm"
-            >
-              <span className="flex items-center gap-1.5">
-                <span>📜 {locale === "en" ? "Version History" : locale === "es" ? "Historial de Versiones" : "Istoric Versiuni"} ({Object.keys(versions).length})</span>
-              </span>
-              <span className="flex items-center gap-2">
-                <span className="text-[10px] text-zinc-400 font-normal">
-                  {activeVersionId === "original" ? (locale === "en" ? "Original" : locale === "es" ? "Original" : "Originală")
-                  : activeVersionId === "eu_funds" ? (locale === "en" ? "EU Funds" : locale === "es" ? "Fondos UE" : "Fonduri UE")
-                  : activeVersionId === "investor" ? (locale === "en" ? "Investors" : locale === "es" ? "Inversores" : "Investitori")
-                  : activeVersionId}
-                </span>
-                <span className="text-[10px] text-zinc-500">▼</span>
-              </span>
-            </button>
+        {/* Tablet split layout container */}
+        <div className="flex flex-col gap-4 md:grid md:grid-cols-12 md:gap-6 items-start w-full">
+          {/* Left Column (Navigation & Versions) - 4 cols */}
+          <div className="w-full md:col-span-4 flex flex-col gap-4 sticky md:top-20 z-20">
+            {/* Version History Selector Mobile */}
+            {versions && Object.keys(versions).length > 0 && (
+              <div className="relative z-20">
+                <button 
+                  onClick={() => setShowVersionDropdown(!showVersionDropdown)}
+                  className="w-full px-4 py-3 rounded-xl bg-zinc-900/80 border border-zinc-800 hover:border-emerald-500/40 text-amber-300 hover:text-amber-200 font-bold text-xs flex items-center justify-between transition-all cursor-pointer shadow-sm"
+                >
+                  <span className="flex items-center gap-1.5">
+                    <span>📜 {locale === "en" ? "Version History" : locale === "es" ? "Historial de Versiones" : "Istoric Versiuni"} ({Object.keys(versions).length})</span>
+                  </span>
+                  <span className="flex items-center gap-2">
+                    <span className="text-[10px] text-zinc-400 font-normal">
+                      {activeVersionId === "original" ? (locale === "en" ? "Original" : locale === "es" ? "Original" : "Originală")
+                      : activeVersionId === "eu_funds" ? (locale === "en" ? "EU Funds" : locale === "es" ? "Fondos UE" : "Fonduri UE")
+                      : activeVersionId === "investor" ? (locale === "en" ? "Investors" : locale === "es" ? "Inversores" : "Investitori")
+                      : activeVersionId}
+                    </span>
+                    <span className="text-[10px] text-zinc-500">▼</span>
+                  </span>
+                </button>
 
-            {showVersionDropdown && (
-              <div className="absolute top-full left-0 right-0 mt-1 bg-zinc-950 border border-zinc-800 rounded-2xl p-2 shadow-2xl z-30 animate-in fade-in slide-in-from-top-1 duration-150">
-                <div className="text-[9px] uppercase font-black tracking-widest text-zinc-500 px-3 py-2 border-b border-zinc-900 flex justify-between items-center">
-                  <span>{locale === "en" ? "Saved Versions" : locale === "es" ? "Versiones Guardadas" : "Versiuni Salvate"}</span>
-                  <button onClick={() => setShowVersionDropdown(false)} className="text-zinc-500 hover:text-white text-xs">✕</button>
-                </div>
-                <div className="max-h-48 overflow-y-auto flex flex-col gap-1 mt-1">
-                  {Object.entries(versions).map(([vKey, vData]) => (
-                    <button
-                      key={vKey}
-                      onClick={() => {
-                        setActiveVersionId(vKey);
-                        setResult(vData);
-                        setShowVersionDropdown(false);
-                      }}
-                      className={`w-full text-left px-3 py-2.5 rounded-xl text-xs font-semibold flex items-center justify-between transition-all cursor-pointer ${activeVersionId === vKey ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/30" : "text-zinc-400 hover:bg-zinc-900 hover:text-white"}`}
-                    >
-                      <span className="truncate">
-                        {vKey === "original" ? (locale === "en" ? "📝 Original Version" : locale === "es" ? "📝 Versión Original" : "📝 Varianta Originală")
-                        : vKey === "eu_funds" ? (locale === "en" ? "🇪🇺 EU Funds" : locale === "es" ? "🇪🇺 Fondos UE" : "🇪🇺 Optimizat Fonduri UE")
-                        : vKey === "investor" ? (locale === "en" ? "🏦 Investors Plan" : locale === "es" ? "🏦 Plan Inversores" : "🏦 Plan Investitori")
-                        : `📑 ${vKey}`}
-                      </span>
-                      {activeVersionId === vKey && <span className="text-emerald-400 text-xs">✓</span>}
-                    </button>
-                  ))}
-                </div>
+                {showVersionDropdown && (
+                  <div className="absolute top-full left-0 right-0 mt-1 bg-zinc-950 border border-zinc-800 rounded-2xl p-2 shadow-2xl z-30 animate-in fade-in slide-in-from-top-1 duration-150">
+                    <div className="text-[9px] uppercase font-black tracking-widest text-zinc-500 px-3 py-2 border-b border-zinc-900 flex justify-between items-center">
+                      <span>{locale === "en" ? "Saved Versions" : locale === "es" ? "Versiones Guardadas" : "Versiuni Salvate"}</span>
+                      <button onClick={() => setShowVersionDropdown(false)} className="text-zinc-500 hover:text-white text-xs">✕</button>
+                    </div>
+                    <div className="max-h-48 overflow-y-auto flex flex-col gap-1 mt-1">
+                      {Object.entries(versions).map(([vKey, vData]) => (
+                        <button
+                          key={vKey}
+                          onClick={() => {
+                            setActiveVersionId(vKey);
+                            setResult(vData);
+                            setShowVersionDropdown(false);
+                          }}
+                          className={`w-full text-left px-3 py-2.5 rounded-xl text-xs font-semibold flex items-center justify-between transition-all cursor-pointer ${activeVersionId === vKey ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/30" : "text-zinc-400 hover:bg-zinc-900 hover:text-white"}`}
+                        >
+                          <span className="truncate">
+                            {vKey === "original" ? (locale === "en" ? "📝 Original Version" : locale === "es" ? "📝 Versión Original" : "📝 Varianta Originală")
+                            : vKey === "eu_funds" ? (locale === "en" ? "🇪🇺 EU Funds" : locale === "es" ? "🇪🇺 Fondos UE" : "🇪🇺 Optimizat Fonduri UE")
+                            : vKey === "investor" ? (locale === "en" ? "🏦 Investors Plan" : locale === "es" ? "🏦 Plan Inversores" : "🏦 Plan Investitori")
+                            : `📑 ${vKey}`}
+                          </span>
+                          {activeVersionId === vKey && <span className="text-emerald-400 text-xs">✓</span>}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
             )}
+
+            {/* Tab Selection */}
+            <div className="flex md:flex-col bg-zinc-950 border border-zinc-800/80 rounded-xl p-1 overflow-x-auto md:overflow-visible scrollbar-none md:gap-1 w-full">
+              <button
+                onClick={() => setActiveTab("overview")}
+                className={`flex-1 text-center md:text-left py-2.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap px-4 md:px-5 ${activeTab === "overview" ? "bg-zinc-800 text-white md:bg-zinc-900/60 md:border md:border-zinc-800" : "text-zinc-400 hover:text-white"}`}
+              >
+                {locale === "en" ? "📈 Overview" : locale === "es" ? "📈 Resumen" : "📈 Prezentare"}
+              </button>
+              <button
+                onClick={() => setActiveTab("budget")}
+                className={`flex-1 text-center md:text-left py-2.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap px-4 md:px-5 ${activeTab === "budget" ? "bg-zinc-800 text-white md:bg-zinc-900/60 md:border md:border-zinc-800" : "text-zinc-400 hover:text-white"}`}
+              >
+                {locale === "en" ? "💰 Finance" : locale === "es" ? "💰 Finanzas" : "💰 Finanțe"}
+              </button>
+              <button
+                onClick={() => setActiveTab("marketing")}
+                className={`flex-1 text-center md:text-left py-2.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap px-4 md:px-5 ${activeTab === "marketing" ? "bg-zinc-800 text-white md:bg-zinc-900/60 md:border md:border-zinc-800" : "text-zinc-400 hover:text-white"}`}
+              >
+                {locale === "en" ? "📣 Marketing" : locale === "es" ? "📣 Marketing" : "📣 Promovare"}
+              </button>
+              <button
+                onClick={() => setActiveTab("swot")}
+                className={`flex-1 text-center md:text-left py-2.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap px-4 md:px-5 ${activeTab === "swot" ? "bg-zinc-800 text-white md:bg-zinc-900/60 md:border md:border-zinc-800" : "text-zinc-400 hover:text-white"}`}
+              >
+                {locale === "en" ? "📋 SWOT" : locale === "es" ? "📋 FODA" : "📋 SWOT"}
+              </button>
+            </div>
           </div>
-        )}
 
-        {/* Tab Selection */}
-        <div className="flex bg-zinc-950 border border-zinc-800/80 rounded-xl p-1 overflow-x-auto scrollbar-none">
-          <button
-            onClick={() => setActiveTab("overview")}
-            className={`flex-1 text-center py-2.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap px-4 ${activeTab === "overview" ? "bg-zinc-800 text-white" : "text-zinc-400 hover:text-white"}`}
-          >
-            {locale === "en" ? "📈 Overview" : locale === "es" ? "📈 Resumen" : "📈 Prezentare"}
-          </button>
-          <button
-            onClick={() => setActiveTab("budget")}
-            className={`flex-1 text-center py-2.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap px-4 ${activeTab === "budget" ? "bg-zinc-800 text-white" : "text-zinc-400 hover:text-white"}`}
-          >
-            {locale === "en" ? "💰 Finance" : locale === "es" ? "💰 Finanzas" : "💰 Finanțe"}
-          </button>
-          <button
-            onClick={() => setActiveTab("marketing")}
-            className={`flex-1 text-center py-2.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap px-4 ${activeTab === "marketing" ? "bg-zinc-800 text-white" : "text-zinc-400 hover:text-white"}`}
-          >
-            {locale === "en" ? "📣 Marketing" : locale === "es" ? "📣 Marketing" : "📣 Promovare"}
-          </button>
-          <button
-            onClick={() => setActiveTab("swot")}
-            className={`flex-1 text-center py-2.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap px-4 ${activeTab === "swot" ? "bg-zinc-800 text-white" : "text-zinc-400 hover:text-white"}`}
-          >
-            {locale === "en" ? "📋 SWOT" : locale === "es" ? "📋 FODA" : "📋 SWOT"}
-          </button>
-        </div>
-
-        {/* Content Box */}
-        <div className="bg-zinc-900/30 border border-zinc-800/80 rounded-2xl p-5 space-y-6">
-          
-          {activeTab === "overview" && (
+          {/* Right Column (Content Box) - 8 cols */}
+          <div className="w-full md:col-span-8 bg-zinc-900/30 border border-zinc-800/80 rounded-2xl p-5 space-y-6 md:min-h-[550px]">
+             
+             {activeTab === "overview" && (
             <div className="space-y-5">
               <div className="space-y-1 relative group">
                 <div className="flex justify-between items-center">
@@ -646,7 +651,7 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
           )}
 
           {activeTab === "budget" && (
-            <div className="space-y-6">
+            <div className="space-y-6 md:grid md:grid-cols-2 md:gap-6 md:space-y-0">
               <div className="space-y-3">
                 <div className="flex justify-between items-center">
                   <h3 className="text-emerald-400 font-bold text-sm">{locale === "en" ? "Initial Investment Budget" : locale === "es" ? "Presupuesto Inicial de Inversión" : "Buget Inițial de Investiții"}</h3>
@@ -844,8 +849,8 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
               </div>
             </div>
           )}
-
         </div>
+      </div>
 
         <AdBanner dataAdSlot="3098389905" className="my-4" />
       </main>

@@ -300,6 +300,11 @@ Formele acceptate de acord expres:
   * S-au actualizat callback-urile `onSuccess` ale modalei `PricingModal` din toate cele 3 ecrane pentru a executa actualizări locale instantanee ale stărilor React (`isPaid`, `euFundsUnlocked`, `subscriptionActive`, `promoCodeUnlocked`) în funcție de `tier`-ul returnat de API.
   * Acest lucru rezolvă definitiv problema actualizării întârziate a permisiunilor la introducerea codului promoțional (care obliga utilizatorul să dea refresh paginii).
   * Build local validat: ✅ `✓ Compiled successfully in 12.4s` (44/44 pagini static pre-randate).
+- **Corectare Comportament de Scroll după Editări AI Globale (1 August 2026):**
+  * S-a modificat logica de derulare automată din callback-ul `setTimeout` din `DemoDesktop.tsx` și `StudioDesktop.tsx`.
+  * Pentru acțiunile care modifică planul global (`professional_tone`, `eu_funds_optimization`, `investor_ready`), derularea automată nu mai aliniează `section-general` la marginea de sus (comportament care trăgea ecranul în jos și ascundea butoanele din antet), ci efectuează un scroll fluid către top-ul absolut al paginii (`window.scrollTo({ top: 0, behavior: 'smooth' })`).
+  * Păstrat comportamentul de scroll specific pentru acțiunile punctuale (`add_sections` derulează la secțiunea adăugată, `optimize_budget` derulează la secțiunea financiară).
+  * Build local validat: ✅ `✓ Compiled successfully in 8.5s` (44/44 pagini static pre-randate).
 
 ## RĂMÂNE DE FĂCUT
 

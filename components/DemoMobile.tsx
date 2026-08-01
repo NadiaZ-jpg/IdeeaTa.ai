@@ -316,6 +316,7 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
         const endIndex = cleanJson.lastIndexOf('}');
         if (startIndex !== -1 && endIndex !== -1) cleanJson = cleanJson.substring(startIndex, endIndex + 1);
 
+        cleanJson = cleanJson.replace(/,\s*([}\]])/g, '$1');
         const finalResult = formatObjectNumbers(JSON.parse(cleanJson));
         setVersionsState({});
         setActiveVersionId("original");

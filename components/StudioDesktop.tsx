@@ -960,6 +960,7 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
         if (startIndex !== -1 && endIndex !== -1) cleanJson = cleanJson.substring(startIndex, endIndex + 1);
 
         try {
+          cleanJson = cleanJson.replace(/,\s*([}\]])/g, '$1');
           const finalResult = JSON.parse(cleanJson);
           const planId = finalResult.nume.replace(/[^a-zA-Z0-9]/g, '_') + "_" + Date.now();
           finalResult.id = planId;

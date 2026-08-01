@@ -35,7 +35,14 @@ export function DemoLeftSidebar({
                           setShowAuthModal(true);
                           return;
                         }
-                        const isAlreadyAdded = result?.sectiuni_aditionale?.findIndex((sec: any) => sec.titlu.includes("Plan Profesionist") || sec.titlu.includes("Investitori"));
+                        const isAlreadyAdded = result?.sectiuni_aditionale?.findIndex((sec: any) => 
+                          sec.titlu.includes("Plan Profesionist") || 
+                          sec.titlu.includes("Investitori") || 
+                          sec.titlu.includes("Professional") || 
+                          sec.titlu.includes("Investor") || 
+                          sec.titlu.includes("Profesional") || 
+                          sec.titlu.includes("Inversor")
+                        );
                         if (isAlreadyAdded !== undefined && isAlreadyAdded >= 0) {
                           alert(t("chapterAlreadyAdded", locale));
                           document.getElementById(`custom-section-${isAlreadyAdded}`)?.scrollIntoView({ behavior: "smooth", block: "center" });
@@ -45,11 +52,20 @@ export function DemoLeftSidebar({
                           setShowPricingModal(true);
                           return;
                         }
-                        setActiveAiPrompt(activeAiPrompt?.action === "investor_ready" ? null : {action: "investor_ready", title: "Plan Profesionist", isConfirm: true, desc: "Se va genera:\n1. Rezumat Executiv\n2. Matrice Diferențiere\n3. Strategie 'Go-To-Market'\n4. Analiză Risc\n5. Scenarii Financiare"});
+                        setActiveAiPrompt(activeAiPrompt?.action === "investor_ready" ? null : {
+                          action: "investor_ready", 
+                          title: ui.investorPlanBtn, 
+                          isConfirm: true, 
+                          desc: locale === "en"
+                            ? "The following will be generated:\n1. Executive Summary\n2. Differentiation Matrix\n3. 'Go-To-Market' Strategy\n4. Risk Analysis\n5. Financial Scenarios"
+                            : locale === "es"
+                            ? "Se generará lo siguiente:\n1. Resumen Ejecutivo\n2. Matriz de Diferenciación\n3. Estrategia 'Go-To-Market'\n4. Análisis de Riesgos\n5. Escenarios Financieros"
+                            : "Se va genera:\n1. Rezumat Executiv\n2. Matrice Diferențiere\n3. Strategie 'Go-To-Market'\n4. Analiză Risc\n5. Scenarii Financiare"
+                        });
                       }} disabled={isEditingAi} className={`w-full rounded-xl px-5 py-4 font-bold text-sm transition-all text-left flex items-center justify-between group disabled:opacity-50 disabled:cursor-not-allowed ${!hasProAccess ? 'bg-zinc-900/60 hover:bg-zinc-800/80 border border-amber-500/30 text-amber-300' : 'bg-zinc-900/80 hover:bg-zinc-800 border border-emerald-500/30 text-emerald-100 shadow-[0_0_15px_rgba(16,185,129,0.1)]'}`}>
                         <span className="flex items-center gap-3">
                           <span className={`${!hasProAccess ? 'text-amber-500' : 'text-emerald-400'} group-hover:scale-110 transition-transform text-lg`}>🏦</span> 
-                          <span>{isEditingAi ? "Se procesează..." : "Plan Profesionist (Investitori/Bănci)"}</span>
+                          <span>{isEditingAi ? ui.processing : ui.investorPlanBtn}</span>
                         </span>
                         {!hasProAccess && (
                           <span className="text-[10px] bg-amber-500/20 border border-amber-500/40 text-amber-300 px-2 py-0.5 rounded-full font-black uppercase tracking-wider whitespace-nowrap flex items-center gap-1">
@@ -65,7 +81,14 @@ export function DemoLeftSidebar({
                             setShowAuthModal(true);
                             return;
                           }
-                          const isAlreadyAdded = result?.sectiuni_aditionale?.findIndex((sec: any) => sec.titlu.includes("Fonduri") || sec.titlu.includes("Europene"));
+                          const isAlreadyAdded = result?.sectiuni_aditionale?.findIndex((sec: any) => 
+                            sec.titlu.includes("Fonduri") || 
+                            sec.titlu.includes("Europene") || 
+                            sec.titlu.includes("European") || 
+                            sec.titlu.includes("Funds") || 
+                            sec.titlu.includes("Fondos") || 
+                            sec.titlu.includes("Europeos")
+                          );
                           if (isAlreadyAdded !== undefined && isAlreadyAdded >= 0) {
                             alert(t("chapterAlreadyAdded", locale));
                             document.getElementById(`custom-section-${isAlreadyAdded}`)?.scrollIntoView({ behavior: "smooth", block: "center" });
@@ -78,7 +101,16 @@ export function DemoLeftSidebar({
                           if (activeAiPrompt?.action === "eu_funds_optimization") {
                             setActiveAiPrompt(null);
                           } else {
-                            setActiveAiPrompt({action: "eu_funds_optimization", title: "Optimizare Fonduri Europene", isConfirm: true, desc: "Se va adapta planul pentru fonduri europene:\n1. Concepte cheie: digitalizare, sustenabilitate.\n2. Redenumirea achizițiilor pentru a fi eligibile.\n\nEști gata?"});
+                            setActiveAiPrompt({
+                              action: "eu_funds_optimization", 
+                              title: ui.euGrantsOpt, 
+                              isConfirm: true, 
+                              desc: locale === "en" 
+                                ? "The plan will be adapted for EU grants:\n1. Key concepts: digitization, sustainability.\n2. Renaming purchases to be eligible.\n\nAre you ready?" 
+                                : locale === "es"
+                                ? "El plan se adaptará para subvenciones de la UE:\n1. Conceptos clave: digitalización, sostenibilidad.\n2. Renombramiento de compras para que sean elegibles.\n\n¿Estás listo?"
+                                : "Se va adapta planul pentru fonduri europene:\n1. Concepte cheie: digitalizare, sustenabilitate.\n2. Redenumirea achizițiilor pentru a fi eligibile.\n\nEști gata?"
+                            });
                           }
                         }} 
                         disabled={isEditingAi} 
@@ -87,7 +119,7 @@ export function DemoLeftSidebar({
                         <span className="flex items-center gap-3">
                           <span className={`${!hasProAccess ? 'text-amber-500' : 'text-emerald-400'} group-hover:scale-110 transition-transform text-lg`}>🇪🇺</span>
                           <span>
-                            {isEditingAi ? "Se procesează..." : "Optimizat pentru Fonduri Europene"}
+                            {isEditingAi ? ui.processing : ui.optimizedForEUGrants}
                           </span>
                         </span>
                         {!hasProAccess && (
@@ -183,7 +215,16 @@ export function DemoLeftSidebar({
                         type="button" 
                         onClick={() => {
                           if (!user) { setShowAuthModal(true); return; }
-                          setActiveAiPrompt(activeAiPrompt?.action === "optimize_budget" ? null : {action: "optimize_budget", title: "Optimizează Bugetul", placeholder: "ex: 10, 20, 30", desc: "Cu ce procent dorești să reduci costurile bugetate?"});
+                          setActiveAiPrompt(activeAiPrompt?.action === "optimize_budget" ? null : {
+                            action: "optimize_budget", 
+                            title: ui.optimizeBudget, 
+                            placeholder: ui.optimizeBudgetPlaceholder, 
+                            desc: locale === "en" 
+                              ? "By what percentage do you want to reduce the budgeted costs?" 
+                              : locale === "es" 
+                              ? "¿Qué porcentaje deseas reducir de los costos presupuestados?" 
+                              : "Cu ce procent dorești să reduci costurile bugetate?"
+                          });
                         }} 
                         disabled={isEditingAi} 
                         className="w-full bg-black hover:bg-zinc-800 border border-amber-500/20 rounded-xl px-5 py-4 font-bold text-sm text-amber-100 transition-all text-left flex items-center justify-between group disabled:opacity-50 disabled:cursor-not-allowed"
@@ -191,7 +232,7 @@ export function DemoLeftSidebar({
                         <span className="flex items-center gap-3">
                           <span className="text-amber-500 group-hover:scale-110 transition-transform">📉</span>
                           <span>
-                            {isEditingAi ? (locale === "en" ? "Processing..." : locale === "es" ? "Procesando..." : "Se procesează...") : (
+                            {isEditingAi ? ui.processing : (
                               <>
                                 {ui.optimizeBudgetCustom}
                               </>
@@ -217,7 +258,7 @@ export function DemoLeftSidebar({
                           <span>{ui.expertSectionLibrary}</span>
                         </span>
                         <span className="text-[10px] bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 px-2 py-0.5 rounded-full font-black uppercase tracking-wider whitespace-nowrap">
-                          30+ MODULE
+                          {ui.modules30}
                         </span>
                       </button>
                     </div>
@@ -254,14 +295,14 @@ export function DemoLeftSidebar({
                             disabled={!activeAiPrompt.isConfirm && !aiPromptInput.trim()}
                             className="flex-1 bg-emerald-600 hover:bg-emerald-500 disabled:bg-zinc-800 disabled:text-zinc-500 text-white font-bold text-xs py-2 rounded-lg transition-colors"
                           >
-                            {activeAiPrompt.isConfirm ? "Confirmă" : "Aplică"}
+                            {activeAiPrompt.isConfirm ? ui.confirm : ui.apply}
                           </button>
                           <button 
                             type="button"
                             onClick={() => { setActiveAiPrompt(null); setAiPromptInput(""); }}
                             className="flex-1 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 font-bold text-xs py-2 rounded-lg transition-colors"
                           >
-                            Anulează
+                            {ui.cancel}
                           </button>
                         </div>
                       </div>
@@ -272,7 +313,7 @@ export function DemoLeftSidebar({
               <div className="mt-6 flex items-start gap-2 bg-emerald-500/10 border border-emerald-500/20 p-4 rounded-2xl w-full">
               <span className="text-emerald-400 mt-0.5 text-lg">💡</span>
               <p className="text-[13px] text-emerald-100/70 leading-relaxed">
-                <strong>Sfat:</strong> Aici editezi textul documentului. Pentru a adăuga <strong className="text-white">imagini</strong>, logo sau a schimba aranjarea în pagină, apasă <em>Confirmă și Salvează</em>, apoi descarcă documentele.
+                <span dangerouslySetInnerHTML={{ __html: ui.editorTip }}></span>
               </p>
             </div>
     </div>

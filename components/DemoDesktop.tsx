@@ -1734,6 +1734,7 @@ export default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" | 
                 updateField={updateField} 
                 removeField={removeField} 
                 readOnly={false} 
+                locale={locale}
                 currency={currency}
               />
             </div>

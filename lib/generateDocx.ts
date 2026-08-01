@@ -111,14 +111,40 @@ function spacer(): Paragraph {
 }
 
 function formatPrice(val: any, locale: "ro" | "en" | "es" = "ro", currency?: string): string {
-  const num = parseInt((val || "0").toString().replace(/[^0-9]/g, ""));
+  if (!val) return "";
+  const rawText = val.toString();
+  const num = parseInt(rawText.replace(/[^0-9]/g, ""));
+  if (isNaN(num)) return rawText;
+
   const activeCurrency = currency || (locale === "ro" ? "LEI" : "EUR");
-  if (!num) return `0 ${activeCurrency}`;
-  if (locale === "ro") {
-    return num.toLocaleString("ro-RO") + " " + activeCurrency;
-  } else {
-    return num.toLocaleString(locale === "es" ? "es-ES" : "en-US") + " EUR";
+  const hasEur = rawText.toUpperCase().includes("EUR") || rawText.includes("€");
+  const fxRate = 0.201;
+
+  if (locale === "en" || locale === "es") {
+    const locString = locale === "es" ? "es-ES" : "en-US";
+    if (hasEur) {
+      return `${num.toLocaleString(locString)} EUR`;
+    }
+    const eurValue = Math.round(num * fxRate);
+    return `${eurValue.toLocaleString(locString)} EUR`;
   }
+
+  // locale === "ro"
+  if (activeCurrency === "EUR") {
+    if (hasEur) {
+      return `${num.toLocaleString("ro-RO")} EUR`;
+    }
+    const eurValue = Math.round(num * fxRate);
+    return `${eurValue.toLocaleString("ro-RO")} EUR`;
+  }
+
+  // activeCurrency === "LEI"
+  if (hasEur) {
+    const leiValue = Math.round(num / fxRate);
+    return `${leiValue.toLocaleString("ro-RO")} LEI`;
+  }
+
+  return `${num.toLocaleString("ro-RO")} LEI`;
 }
 
 const swotItemParagraphs = (items: any[], title: string, color: string): Paragraph[] => {
@@ -185,7 +211,7 @@ const docxTranslations = {
     generalInfoTitle: "I & II. General Information and Vision",
     contactInfo: "Contact Info:",
     legalForm: "Legal Form:",
-    caenCode: "CAEN Code:",
+    caenCode: "Industry Category:",
     shortTermObj: "Short-Term Objectives",
     mediumTermObj: "Medium-Term Objectives",
     missionValues: "Mission and Values",
@@ -215,7 +241,7 @@ const docxTranslations = {
     generalInfoTitle: "I y II. Información General y Visión",
     contactInfo: "Contacto / Representante:",
     legalForm: "Forma Jurídica:",
-    caenCode: "Código CAEN:",
+    caenCode: "Categoría de Negocio:",
     shortTermObj: "Objetivos a Corto Plazo",
     mediumTermObj: "Objetivos a Medio Plazo",
     missionValues: "Misión y Valores",

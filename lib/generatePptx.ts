@@ -52,7 +52,7 @@ export const generatePptx = async (
     en: {
       generalInfoTitle: "GENERAL INFORMATION & OBJECTIVES",
       legalForm: "Legal form: ",
-      caenCode: "\nCAEN Code: ",
+      caenCode: "\nBusiness Category: ",
       contactInfo: "\nContact: ",
       shortTermObj: "Objectives (1 year)",
       mediumTermObj: "MEDIUM-TERM OBJECTIVES",
@@ -82,7 +82,7 @@ export const generatePptx = async (
     es: {
       generalInfoTitle: "INFORMACIÓN GENERAL Y OBJETIVOS",
       legalForm: "Forma jurídica: ",
-      caenCode: "\nCódigo CAEN: ",
+      caenCode: "\nCategoría de Negocio: ",
       contactInfo: "\nContacto: ",
       shortTermObj: "Objetivos (1 año)",
       mediumTermObj: "OBJETIVOS A MEDIO PLAZO",
@@ -116,24 +116,37 @@ export const generatePptx = async (
   const formatPrice = (priceText: any) => {
     if (!priceText) return "";
     const rawText = priceText.toString();
-    const numericValue = parseInt(rawText.replace(/[^0-9]/g, ""));
-    if (isNaN(numericValue)) return priceText;
+    const num = parseInt(rawText.replace(/[^0-9]/g, ""));
+    if (isNaN(num)) return priceText;
 
-    const locString = locale === "es" ? "es-ES" : locale === "en" ? "en-US" : "ro-RO";
-    const hasEur = rawText.toUpperCase().includes("EUR") || rawText.toUpperCase().includes("€");
+    const activeCurrency = currency || (locale === "ro" ? "LEI" : "EUR");
+    const hasEur = rawText.toUpperCase().includes("EUR") || rawText.includes("€");
 
-    if (currency === "EUR") {
+    if (locale === "en" || locale === "es") {
+      const locString = locale === "es" ? "es-ES" : "en-US";
       if (hasEur) {
-        return `${numericValue.toLocaleString(locString)} EUR`;
+        return `${num.toLocaleString(locString)} EUR`;
       }
-      const eurValue = Math.round(numericValue * fxRate);
+      const eurValue = Math.round(num * fxRate);
       return `${eurValue.toLocaleString(locString)} EUR`;
     }
 
-    if (hasEur) {
-      return `${numericValue.toLocaleString(locString)} EUR`;
+    // locale === "ro"
+    if (activeCurrency === "EUR") {
+      if (hasEur) {
+        return `${num.toLocaleString("ro-RO")} EUR`;
+      }
+      const eurValue = Math.round(num * fxRate);
+      return `${eurValue.toLocaleString("ro-RO")} EUR`;
     }
-    return `${numericValue.toLocaleString(locString)} LEI`;
+
+    // activeCurrency === "LEI"
+    if (hasEur) {
+      const leiValue = Math.round(num / fxRate);
+      return `${leiValue.toLocaleString("ro-RO")} LEI`;
+    }
+
+    return `${num.toLocaleString("ro-RO")} LEI`;
   };
 
   const splitTextIntoSlides = (text: string, maxLength: number) => {

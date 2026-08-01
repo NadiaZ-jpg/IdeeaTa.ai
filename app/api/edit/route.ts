@@ -149,7 +149,11 @@ export async function POST(req: NextRequest) {
         analiza_swot: Object.keys(parsedSwot).length > 0 ? (parsedSwot.analiza_swot || parsedSwot) : {},
         plan_financiar: {
           ...result.plan_financiar,
-          strategie_financiara: Object.keys(parsedFin).length > 0 ? (parsedFin.plan_financiar?.strategie_financiara || parsedFin.strategie_financiara || parsedFin) : result.plan_financiar?.strategie_financiara,
+          strategie_financiara: Object.keys(parsedFin).length > 0
+            ? (typeof (parsedFin.plan_financiar?.strategie_financiara || parsedFin.strategie_financiara) === 'string'
+                ? (parsedFin.plan_financiar?.strategie_financiara || parsedFin.strategie_financiara)
+                : result.plan_financiar?.strategie_financiara)
+            : result.plan_financiar?.strategie_financiara,
           buget_investitii: (Array.isArray(parsedMeta.buget_investitii) && parsedMeta.buget_investitii.length > 0) ? parsedMeta.buget_investitii : (result.plan_financiar?.buget_investitii || [])
         }
       };
@@ -214,7 +218,10 @@ export async function POST(req: NextRequest) {
           ? [...result.sectiuni_aditionale, ...parsed.sectiuni_aditionale]
           : parsed.sectiuni_aditionale;
       }
-    return NextResponse.json({ updatedResult: JSON.stringify(mergedResult) });
+    return NextResponse.json({ 
+      updatedResult: JSON.stringify(mergedResult),
+      editedPlan: mergedResult
+    });
   } catch (error: any) {
     console.error("Error editing content:", error);
 

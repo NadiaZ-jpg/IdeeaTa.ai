@@ -5,9 +5,13 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
-export const formatNumberedText = (text: string | undefined) => {
-  if (typeof text !== 'string') return text;
-  let formatted = text;
+export const formatNumberedText = (text: any): string => {
+  if (text === null || text === undefined) return '';
+  if (typeof text === 'object') {
+    const vals = Object.values(text);
+    return vals.length > 0 ? formatNumberedText(vals[0]) : '';
+  }
+  let formatted = String(text);
   
   // Remove redundant AI intro text for objectives (case insensitive)
   formatted = formatted.replace(/^(?:În primul an:?|În următorii(?:\s*\d+(?:-\d+)?\s*ani)?:?|Obiective(?:le)?[^:]*:?|Pentru primul an:?|Pe termen scurt:?|Pe termen mediu:?)\s*/i, '');

@@ -380,7 +380,14 @@ Dacă oricare dintre aceste verificări este omisă în procesul de planificare,
   * Adăugat oficial **Checklist Pre-Flight obligatoriu** bazat pe Regulile #21 și #22 la începutul `AI_MEMORY.md` pentru a preveni omisiunile de propagare pe toate ecranele și limbile la nivel de asistenți viitori.
   * Build local final validat: ✅ `✓ Compiled successfully in 6.8s` (44/44 pagini static pre-randate).
 
+## FREEZE (1 August 2026 — Sesiunea 10 - Pasul 1: Remedieri API Backend & Utilitare)
+- **app/api/edit/route.ts** — Securizat extragerea proprietății `strategie_financiara` din obiectul returnat de Gemini în paralel, prevenind transformarea textului în obiect. Adăugat returnarea `editedPlan` în corpul răspunsului pentru compatibilitate cu mobile (`DemoMobile` și `StudioMobile`). ÎNGHEȚAT.
+- **lib/utils.ts** — Adăugat protecție în `formatNumberedText` (cu adnotare explicită de tip returnat `: string`) pentru ca, în caz de primire accidentală a unui obiect, să îi extragă recursiv primul string în loc să returneze obiectul brut, oferind imunitate client-side la erorile de tip React child. ÎNGHEȚAT.
+- **Build verificat local:** ✅ `✓ Compiled successfully` — toate paginile statice generate (44/44).
+- **Checkpoint Git intermediar realizat:** `checkpoint-sesiunea10-pasul1`
+
 ## RĂMÂNE DE FĂCUT
+- Rularea Pasului 2 din Sesiunea 10 (Curățarea virgulelor terminale client-side în DemoDesktop, StudioDesktop și DemoMobile pentru a asigura rezistența completă a JSON-urilor generate).
 
 
 

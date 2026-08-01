@@ -399,19 +399,25 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
           setIsEditingAi(false);
           
           setTimeout(() => {
-             let targetId = "";
-             if (action === "add_sections") {
-                targetId = "section-custom";
-             }
-             else if (action === "optimize_budget") targetId = "section-financial";
-             else if (action === "professional_tone" || action === "eu_funds_optimization" || action === "investor_ready") targetId = "section-general";
-             
-             if (targetId) {
-                const el = document.getElementById(targetId);
-                if (action === "add_sections" && el && el.lastElementChild) {
-                  el.lastElementChild.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                } else if (el) {
-                  el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+             if (action === "professional_tone" || action === "eu_funds_optimization" || action === "investor_ready") {
+                if (typeof window !== "undefined") {
+                   window.scrollTo({ top: 0, behavior: 'smooth' });
+                }
+             } else {
+                let targetId = "";
+                if (action === "add_sections") {
+                   targetId = "section-custom";
+                } else if (action === "optimize_budget") {
+                   targetId = "section-financial";
+                }
+                
+                if (targetId) {
+                   const el = document.getElementById(targetId);
+                   if (action === "add_sections" && el && el.lastElementChild) {
+                     el.lastElementChild.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                   } else if (el) {
+                     el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                   }
                 }
              }
            }, 800);

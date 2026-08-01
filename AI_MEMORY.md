@@ -322,6 +322,12 @@ Formele acceptate de acord expres:
   * Adăugat suport pentru stările de permisiuni Firestore (credite, planuri deblocate) în `DemoMobile.tsx` pentru a asigura sincronizarea în timp real a accesului la descărcări.
   * Legat butoanele de export din antetul mobile direct la modalul/drawer-ul de selecție a formatului de export.
   * Build local validat: ✅ `✓ Compiled successfully in 8.6s` (44/44 pagini static pre-randate).
+- **Traducere Placeholders Formular și Modale (Sesiunea 4 - 1 August 2026):**
+  * Importat `UI_STRINGS` în `DemoMobile.tsx` și `StudioMobile.tsx` și instanțiat `const ui = UI_STRINGS[locale]`.
+  * Localizat placeholders pentru adresa de e-mail și parolă din formularele de autentificare din `DemoMobile.tsx` folosind `ui.emailPlaceholder` și `ui.passwordPlaceholder`.
+  * Localizat eticheta și placeholderul formularului generatorului de idei în `DemoMobile.tsx` folosind `t("businessIdeaLabel", locale)` și `ui.inputPlaceholder`.
+  * Adăugat placeholder localizat în sertarul editorului manual de text (`editingField`) din `StudioMobile.tsx`.
+  * Build local validat: ✅ `✓ Compiled successfully in 7.3s` (44/44 pagini static pre-randate).
 
 ## RĂMÂNE DE FĂCUT
 

@@ -32,7 +32,7 @@ export function BudgetPieChart({ budget, currency = "LEI", isPdf = false, isPptx
     <div className={`flex ${isPdf || isPptx ? 'flex-row' : 'flex-col lg:flex-row'} gap-8 w-full h-full items-center justify-center select-none outline-none pointer-events-none md:pointer-events-auto`}>
       {/* Pie Chart Container */}
       <motion.div 
-        className={`h-[450px] ${isPdf || isPptx ? 'w-1/2' : 'w-full lg:w-1/2'} outline-none flex justify-center items-center`}
+        className={`outline-none flex justify-center items-center ${isPdf || isPptx ? 'h-[450px] w-1/2' : 'h-[280px] sm:h-[350px] md:h-[400px] lg:h-[450px] w-full lg:w-1/2'}`}
         initial={disableAnimation ? { opacity: 1, scale: 1, rotate: 0 } : { opacity: 0, scale: 0.8, rotate: -20 }}
         whileInView={disableAnimation ? undefined : { opacity: 1, scale: 1, rotate: 0 }}
         viewport={disableAnimation ? undefined : { once: true, margin: "-50px" }}
@@ -44,8 +44,8 @@ export function BudgetPieChart({ budget, currency = "LEI", isPdf = false, isPptx
               data={data}
               cx="50%"
               cy="50%"
-              innerRadius={90}
-              outerRadius={160}
+              innerRadius="55%"
+              outerRadius="85%"
               paddingAngle={3}
               dataKey="cost"
               stroke="none"
@@ -64,8 +64,8 @@ export function BudgetPieChart({ budget, currency = "LEI", isPdf = false, isPptx
                 data={data}
                 cx="50%"
                 cy="50%"
-                innerRadius={90}
-                outerRadius={160}
+                innerRadius="55%"
+                outerRadius="85%"
                 paddingAngle={3}
                 dataKey="cost"
                 stroke="none"
@@ -88,7 +88,7 @@ export function BudgetPieChart({ budget, currency = "LEI", isPdf = false, isPptx
 
       {/* Legend Container */}
       <motion.div 
-        className={`${isPdf || isPptx ? 'w-1/2 pl-10' : 'w-full lg:w-1/2 pl-0 lg:pl-10'} flex items-center justify-center py-4`}
+        className={`items-center justify-center py-4 ${isPdf || isPptx ? 'flex w-1/2 pl-10' : 'hidden lg:flex w-full lg:w-1/2 pl-0 lg:pl-10'}`}
         initial={disableAnimation ? { opacity: 1, x: 0 } : { opacity: 0, x: 20 }}
         whileInView={disableAnimation ? undefined : { opacity: 1, x: 0 }}
         viewport={disableAnimation ? undefined : { once: true, margin: "-50px" }}

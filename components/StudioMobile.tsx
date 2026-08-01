@@ -671,26 +671,43 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
                   </button>
                 </div>
                 <div className="space-y-2">
-                  {result.plan_financiar?.buget_investitii?.map((item: any, idx: number) => {
-                    const label = item.item || item.categorie || '';
-                    const price = item.cost !== undefined ? item.cost : item.suma_lei;
-                    const planCurrency = result.selectedCurrency || (locale === "ro" ? "LEI" : "EUR");
-                    return (
-                      <div key={idx} className="bg-zinc-950/40 border border-zinc-800/50 rounded-xl p-3 flex justify-between items-center text-xs">
-                        <span className="font-semibold text-zinc-300">{label}</span>
-                        <span className="font-black text-emerald-400">
-                          {typeof price === 'number' ? price.toLocaleString() : String(price)} {(!price?.toString().toLowerCase().includes('lei') && !price?.toString().toLowerCase().includes('eur')) ? planCurrency : ""}
-                        </span>
-                      </div>
-                    );
-                  })}
+                  {(() => {
+                    const COLORS = ['#10b981', '#ef4444', '#3b82f6', '#f59e0b', '#8b5cf6', '#06b6d4', '#f97316'];
+                    const sortedBudget = [...(result.plan_financiar?.buget_investitii || [])]
+                      .map((item) => {
+                        const costText = item.cost !== undefined ? item.cost : item.suma_lei;
+                        const cost = parseInt(costText?.toString().replace(/[^0-9]/g, '') || '0');
+                        return { ...item, costVal: cost };
+                      })
+                      .filter(item => item.costVal > 0)
+                      .sort((a, b) => b.costVal - a.costVal);
+
+                    return sortedBudget.map((item: any, idx: number) => {
+                      const label = item.item || item.categorie || '';
+                      const price = item.cost !== undefined ? item.cost : item.suma_lei;
+                      const planCurrency = result.selectedCurrency || (locale === "ro" ? "LEI" : "EUR");
+                      const bulletColor = COLORS[idx % COLORS.length];
+
+                      return (
+                        <div key={idx} className="bg-zinc-950/40 border border-zinc-800/50 rounded-xl p-3 flex justify-between items-center text-xs">
+                          <span className="font-semibold text-zinc-300 flex items-center gap-2">
+                            <span className="w-2 h-2 rounded-[3px] shrink-0" style={{ backgroundColor: bulletColor }} />
+                            <span>{label}</span>
+                          </span>
+                          <span className="font-black text-emerald-400">
+                            {typeof price === 'number' ? price.toLocaleString() : String(price)} {(!price?.toString().toLowerCase().includes('lei') && !price?.toString().toLowerCase().includes('eur')) ? planCurrency : ""}
+                          </span>
+                        </div>
+                      );
+                    });
+                  })()}
                 </div>
               </div>
 
               {/* Chart Container */}
               <div className="bg-zinc-950/30 border border-zinc-800/60 rounded-xl p-4 flex flex-col items-center justify-center">
                 <h4 className="text-[10px] font-bold text-zinc-400 mb-4 uppercase">{locale === "en" ? "Funds Distribution" : locale === "es" ? "Distribución de Fondos" : "Distribuția Fondurilor"}</h4>
-                <div className="w-full max-w-[200px] aspect-square flex items-center justify-center">
+                <div className="w-full h-[280px] sm:h-[350px] flex items-center justify-center">
                       <BudgetPieChart budget={result.plan_financiar?.buget_investitii || []} currency={result.selectedCurrency || (locale === "ro" ? "LEI" : "EUR")} />
                 </div>
               </div>

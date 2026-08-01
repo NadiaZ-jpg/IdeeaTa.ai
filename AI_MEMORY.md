@@ -332,6 +332,12 @@ Formele acceptate de acord expres:
   * Unificat și implementat algoritmul complet de conversie valutară bidirecțională (LEI ➔ EUR și EUR ➔ LEI) în exporturile Word (`generateDocx.ts`) și PowerPoint (`generatePptx.ts`) pe baza ratei de schimb fixe (`0.201`).
   * Tradus și localizat etichetele `caenCode` în documentele generate pentru a evita utilizarea CAEN în EN/ES (înlocuit cu "Industry Category" în engleză și "Categoría de Negocio" în spaniolă).
   * Build local final validat: ✅ `✓ Compiled successfully in 8.5s` (44/44 pagini static pre-randate).
+- **Optimizări Premium UI/UX Mobile & Tabletă (Sesiunea 6 - 1 August 2026):**
+  * Adăugat tranziții de intrare `animate-in fade-in slide-in-from-bottom-2 duration-200` pe ecranele active din `DemoMobile.tsx` și `StudioMobile.tsx`.
+  * Redesegnat Tab Bar sub formă de Segmented Control cu `backdrop-blur-md` și pastilă activă text-emerald cu umbră 3D (`shadow-md shadow-black/40`).
+  * Mărit padding-ul tab-urilor la `py-3 md:py-2.5` pe mobile.
+  * Extins target-ul de tap (min 44px) la editările inline din `StudioMobile.tsx` prin padding invizibil și margini negative (`p-2 -m-2 inline-flex min-w-[36px] min-h-[36px]`).
+  * Build local final validat: ✅ `✓ Compiled successfully in 8.5s` (44/44 pagini static pre-randate).
 
 ## RĂMÂNE DE FĂCUT
 

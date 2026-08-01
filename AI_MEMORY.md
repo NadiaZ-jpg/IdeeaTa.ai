@@ -316,6 +316,12 @@ Formele acceptate de acord expres:
   * Pe tablete (de la 768px în sus), meniul de tab-uri și istoricul de versiuni se așază în stânga, pe 4 coloane, cu tab-urile stivuite vertical (`md:flex-col`) și cu un design premium tip listă de setări iPad, iar conținutul tab-ului activ se randează în dreapta, pe 8 coloane.
   * În interiorul tab-ului Finanțe, lista de buget și plăcinta se afișează acum side-by-side pe tabletă (`md:grid md:grid-cols-2`).
   * Build local validat: ✅ `✓ Compiled successfully in 11.1s` (44/44 pagini static pre-randate).
+- **Integrare Hook Unificat de Export pe Mobil (Sesiunea 3 - 1 August 2026):**
+  * Înlocuit logica manuală și simplificată de asamblare PDF din `components/StudioMobile.tsx` și codul gol/schelet din `components/DemoMobile.tsx` cu hook-ul unificat `useExportActions`.
+  * Randerat componentele `<StudioPdfSlides>` și `<DemoPdfSlides>` off-screen (`fixed top-[-9999px] left-[-9999px]`) în ambele fișiere de mobil/tabletă, permițând capturarea fidelă a DOM-ului și generarea de documente PDF premium la fel ca pe desktop.
+  * Adăugat suport pentru stările de permisiuni Firestore (credite, planuri deblocate) în `DemoMobile.tsx` pentru a asigura sincronizarea în timp real a accesului la descărcări.
+  * Legat butoanele de export din antetul mobile direct la modalul/drawer-ul de selecție a formatului de export.
+  * Build local validat: ✅ `✓ Compiled successfully in 8.6s` (44/44 pagini static pre-randate).
 
 ## RĂMÂNE DE FĂCUT
 

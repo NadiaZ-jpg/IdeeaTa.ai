@@ -295,6 +295,11 @@ Formele acceptate de acord expres:
   * Modificat generarea cheilor de versiuni în `handleAiEdit` pentru a folosi timestamp-uri (`ton_friendly_[timestamp]`, `budget_[timestamp]`, `eu_funds_[timestamp]`, `investor_[timestamp]`), oferind suport nelimitat pentru versiuni multiple și evitând suprascrierile.
   * Șters fișierul vechi redundant `components/VersionHistoryDropdown.tsx`.
   * Build local validat: ✅ `✓ Compiled successfully in 8.5s` (44/44 pagini static pre-randate).
+- **Corectare Validare Instantă Cod Promoțional (1 August 2026):**
+  * S-au adăugat citirile lipsă ale stărilor `isPaid` și `promoCodeUnlocked` din snapshot-ul Firestore în ascultătorii `onSnapshot` din `DemoDesktop.tsx`, `StudioDesktop.tsx` și `StudioMobile.tsx`.
+  * S-au actualizat callback-urile `onSuccess` ale modalei `PricingModal` din toate cele 3 ecrane pentru a executa actualizări locale instantanee ale stărilor React (`isPaid`, `euFundsUnlocked`, `subscriptionActive`, `promoCodeUnlocked`) în funcție de `tier`-ul returnat de API.
+  * Acest lucru rezolvă definitiv problema actualizării întârziate a permisiunilor la introducerea codului promoțional (care obliga utilizatorul să dea refresh paginii).
+  * Build local validat: ✅ `✓ Compiled successfully in 12.4s` (44/44 pagini static pre-randate).
 
 ## RĂMÂNE DE FĂCUT
 

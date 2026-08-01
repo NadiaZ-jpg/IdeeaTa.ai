@@ -19,11 +19,13 @@ import { ToneEditor } from '@/components/ToneEditor';
 import Link from 'next/link';
 import { getExamples } from '@/lib/examples';
 import { t } from '@/lib/translations';
+import { UI_STRINGS } from '@/lib/uiStrings';
 import dynamic from 'next/dynamic';
 import { formatObjectNumbers, formatNumberedText } from "@/lib/utils";
 
 const BudgetPieChart = dynamic(() => import('@/components/BudgetChart').then(mod => mod.BudgetPieChart), { ssr: false });
 export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "es" }) {
+  const ui = UI_STRINGS[locale];
   const isEn = locale === "en";
   const isEs = locale === "es";
   const ALL_EXAMPLES = getExamples(locale);
@@ -498,11 +500,11 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
             {/* Form Card */}
             <div className="bg-zinc-900/40 border border-zinc-800/80 rounded-2xl p-5 backdrop-blur-md space-y-4">
               <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-zinc-400">{locale === "en" ? "Describe your business briefly" : locale === "es" ? "Describe tu negocio brevemente" : "Descrie afacerea pe scurt"}</label>
+                <label className="text-xs font-semibold text-zinc-400">{t("businessIdeaLabel", locale)}</label>
                 <textarea
                   value={skill}
                   onChange={(e) => setSkill(e.target.value)}
-                  placeholder={locale === "en" ? "E.g. A coffee shop with its own roastery and coworking space..." : locale === "es" ? "Ej: Una cafetería con tostador propio y espacio de co-working..." : "Ex: O cafenea cu prăjitorie proprie și spațiu de co-working..."}
+                  placeholder={ui.inputPlaceholder}
                   className="w-full bg-zinc-950 border border-zinc-800 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500/30 rounded-xl px-4 py-3 text-sm text-white placeholder-zinc-500 h-28 outline-none resize-none transition-all"
                 />
               </div>
@@ -872,7 +874,7 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
             <form onSubmit={handleEmailAuth} className="space-y-3.5">
               <input
                 type="email"
-                placeholder={locale === "en" ? "Email Address" : locale === "es" ? "Dirección de correo electrónico" : "Adresa de email"}
+                placeholder={ui.emailPlaceholder}
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
@@ -880,7 +882,7 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
               />
               <input
                 type="password"
-                placeholder={locale === "en" ? "Password" : locale === "es" ? "Contraseña" : "Parolă"}
+                placeholder={ui.passwordPlaceholder}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required

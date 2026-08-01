@@ -14,6 +14,7 @@ import { ToneEditor } from '@/components/ToneEditor';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { t } from '@/lib/translations';
+import { UI_STRINGS } from '@/lib/uiStrings';
 import dynamic from 'next/dynamic';
 import { useExportActions } from "@/hooks/useExportActions";
 import { StudioPdfSlides } from "@/components/pdf/StudioPdfSlides";
@@ -26,6 +27,7 @@ import { EXPERT_TEMPLATES } from '@/lib/templatesData';
 const BudgetPieChart = dynamic(() => import('@/components/BudgetChart').then(mod => mod.BudgetPieChart), { ssr: false });
 
 export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" | "es" }) {
+  const ui = UI_STRINGS[locale];
   const isEn = locale === "en";
   const isEs = locale === "es";
   const router = useRouter();
@@ -811,6 +813,7 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
             <textarea
               value={editingField.value}
               onChange={(e) => setEditingField({ ...editingField, value: e.target.value })}
+              placeholder={locale === "en" ? "Enter the section content here..." : locale === "es" ? "Introduce el contenido de la sección aquí..." : "Introdu conținutul secțiunii aici..."}
               className="w-full bg-zinc-950 border border-zinc-800 focus:border-emerald-500 rounded-xl p-4 text-xs text-white placeholder-zinc-500 h-44 outline-none resize-none transition-all flex-1"
             />
             

@@ -338,6 +338,9 @@ Formele acceptate de acord expres:
   * Mărit padding-ul tab-urilor la `py-3 md:py-2.5` pe mobile.
   * Extins target-ul de tap (min 44px) la editările inline din `StudioMobile.tsx` prin padding invizibil și margini negative (`p-2 -m-2 inline-flex min-w-[36px] min-h-[36px]`).
   * Build local final validat: ✅ `✓ Compiled successfully in 8.5s` (44/44 pagini static pre-randate).
+- **Adăugat REGULA #21 (Aliniere Totală și Regula de Aur) - 1 August 2026:**
+  * Creat și adăugat oficial REGULA #21 în `.agents/AGENTS.md`, forțând alinierea totală lingvistică (RO/EN/ES) și pe toate dispozitivele (Desktop/Mobil/Tabletă) pentru orice analiză, evaluare, debug, plan de implementare sau walkthrough, precum și respectarea strictă a specificațiilor tehnice unice (excluziv EUR pe EN/ES, 44px tap targets pe mobil, randare sigură safeString, domeniu oficial https://ideeata.ai/ și securitate paywall reală fără devBypass).
+  * Enforțat structura de planificare pe sesiuni bazată pe "Regula de Aur".
 
 ## RĂMÂNE DE FĂCUT
 

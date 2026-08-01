@@ -67,6 +67,26 @@ Orice agent care primește o instrucțiune ambiguă trebuie să CEARĂ CONFIRMAR
 
 ---
 
+## REGULA #21: (Aliniere Totală & Standarde de Planificare pe Sesiuni)
+
+**Orice agent AI este OBLIGAT să se asigure că orice depanare (debug), analiză, evaluare (audit), modificare, optimizare, plan de implementare, checklist de task-uri sau raport final (walkthrough):**
+
+1. **Acoperă 100% toate cele 3 limbi active:** Română (`ro`), Engleză (`en`) și Spaniolă (`es`). Toate auditurile, analizele sau documentele de evaluare lingvistică trebuie să cuprindă starea tuturor celor trei limbi. Dacă se adaugă sau modifică elemente vizuale, acestea se localizează imediat în toate cele 3 limbi în `uiStrings.ts`.
+2. **Acoperă toate tipurile de ecrane:** Desktop, Tabletă și Mobil. Orice analiză de uzabilitate sau modificare la nivel de UI/layout în `/demo` sau `/studio` trebuie testată și propagată corespunzător atât pe desktop, cât și pe mobil/tabletă (`DemoDesktop` / `DemoMobile` și `StudioDesktop` / `StudioMobile`).
+3. **Respectă specificațiile tehnice unice și critice ale platformei (CRITIC):**
+   * **Valute pe Internațional:** Pe ecranele internaționale (`en` / `es`), comutatorul de valută (Toggle LEI/EUR) trebuie să fie **ascuns**, iar interfața și documentele generate trebuie să ruleze **exclusiv în EUR**.
+   * **Target-uri Tactile (Tap Targets):** Pe ecranele tactile (Mobil / Tabletă), butoanele mici sau compacte (ex: `✏️ Editează`, `✕ Șterge`, legăturile text) trebuie să folosească **target-uri tactile de minimum 44px** (implementate prin padding intern și margin negative: `p-2 -m-2 inline-flex min-w-[36px] min-h-[36px]`), în timp ce pe desktop se păstrează designul minimalist.
+   * **Siguranța JSON & Randare AI:** Toate textele dinamice venite de la LLM trebuie randate obligatoriu prin funcția de siguranță `safeString` pentru a preveni crash-ul React. Orice instrucțiune nouă dată AI-ului trebuie să-i interzică utilizarea ghilimelelor duble (`"`) în interiorul valorilor și a liniilor noi reale.
+   * **Domeniul de Producție Oficial:** Orice link generat, cod QR sau footer de document trebuie să folosească strict domeniul oficial `https://ideeata.ai/`.
+   * **Securitate & Control Acces (Paywall):** Toate verificările de acces premium sau limite (ex: maxim 3 planuri generate pe Demo, deblocarea exporturilor profesionale) trebuie legate exclusiv de starea abonamentului/creditelor din Firestore (`onSnapshot` în timp real, pe baza UID-ului autentificat). **Este strict interzisă reintroducerea oricărui tip de `devBypass` local sau test-mode care ar putea fi exploatat în producție.** Orice promo-code sau preț afișat trebuie validat doar prin backend (`/api/validate-promo`) pe baza regulilor de preț centralizate din `lib/priceHelper.ts`.
+4. **Standardizarea Planului de Implementare (Regula de Aur):**
+   * Orice propunere din `implementation_plan.md` trebuie divizată obligatoriu în **Sesiuni de lucru individuale clare**.
+   * Fiecare sesiune din plan trebuie să ruleze respectând strict **Regula de Aur a Dezvoltării Sigure**:
+     `ÎNCEPUT Sesiune ➔ Executare Cod ➔ Validare Build/TS (npx tsc --noEmit + npm run build) ➔ FINAL Sesiune (Freeze, Sincronizare AI_MEMORY.md, Git Commit & Push checkpoint tag)`.
+   * Este strict interzisă începerea unei sesiuni noi de lucru dacă sesiunea precedentă nu a fost complet validată local, comise modificările și împinse pe GitHub.
+
+---
+
 ## FREEZE TOTAL — Inventar Complet Sesiunea 17 Iulie 2026
 
 ### Fișiere ÎNGHEȚATE (nu se modifică fără override explicit):

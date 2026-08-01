@@ -311,6 +311,11 @@ Formele acceptate de acord expres:
   * Actualizat `components/StudioMobile.tsx` și `components/DemoMobile.tsx` pentru a sorta descrescător după cost elementele din tabelul bugetului (aliniere perfectă cu ordinea feliilor din plăcintă).
   * Adăugat indicatori vizuali colorați (buline) în dreptul fiecărei categorii din listele mobile, utilizând aceeași paletă de culori statică ca în graficul Recharts.
   * Build local validat: ✅ `✓ Compiled successfully in 12.2s` (44/44 pagini static pre-randate).
+- **Layout Hibrid de Tabletă (Sesiunea 2 - 1 August 2026):**
+  * Restructurat fișierele `components/StudioMobile.tsx` și `components/DemoMobile.tsx` pentru a folosi un grid hibrid pe tablete (`md:grid md:grid-cols-12 md:gap-6`).
+  * Pe tablete (de la 768px în sus), meniul de tab-uri și istoricul de versiuni se așază în stânga, pe 4 coloane, cu tab-urile stivuite vertical (`md:flex-col`) și cu un design premium tip listă de setări iPad, iar conținutul tab-ului activ se randează în dreapta, pe 8 coloane.
+  * În interiorul tab-ului Finanțe, lista de buget și plăcinta se afișează acum side-by-side pe tabletă (`md:grid md:grid-cols-2`).
+  * Build local validat: ✅ `✓ Compiled successfully in 11.1s` (44/44 pagini static pre-randate).
 
 ## RĂMÂNE DE FĂCUT
 

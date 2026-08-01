@@ -15,6 +15,19 @@ Formele acceptate de acord expres:
 **Dacă instrucțiunea este ambiguă → CERE CONFIRMARE. NU acționa.**
 
 
+## 🛡️ CHECKLIST PRE-FLIGHT OBLIGATORIU (REGULILE 21 & 22)
+Înainte de a redacta orice plan de implementare, checklist de task-uri sau de a propune cod, asistentul AI **este obligat** să scrie în mod explicit în gândirea sa (thinking window) starea următoarelor verificări:
+1. **Verificarea Celor 3 Limbi:** Planul afectează traduceri? Dacă da, modificarea a fost documentată pentru toate cele 3 limbi (`ro`, `en`, `es`)?
+2. **Verificarea Celor 3 Ecrane (Desktop, Tabletă, Mobil):** Modificarea din `/demo` sau `/studio` are corespondent pe mobil/tabletă (`DemoMobile.tsx` / `StudioMobile.tsx`) sau desktop (`DemoDesktop.tsx` / `StudioDesktop.tsx`)? Dacă da, ambele instanțe au fost modificate chirurgical și sincronizate?
+3. **Verificare Valută:** Pe paginile internaționale (EN/ES), comutatorul de valută este ascuns și rulează exclusiv în `EUR`?
+4. **Verificare Target-uri Tactile (Tap Targets):** Elementele tactile noi/modificate de pe mobil/tabletă au padding intern și margini negative pentru a atinge minimum 44px?
+5. **Verificare Ghilimele & JSON:** Am instruit AI-ul/Gemini (în prompts) să utilizeze exclusiv ghilimele simple (`'`) în interiorul valorilor text și să nu folosească caractere de rând nou neescapate real?
+6. **Verificare Chirurgicală (Fără Citire Monoliți):** Fișierele peste 500 de linii (cum ar fi `DemoDesktop.tsx`, `StudioDesktop.tsx` etc.) au fost investigate prin căutări chirurgicale (`grep_search` și intervale mici de citire de 50-100 linii)?
+7. **Verificare Duplicare Cod (DRY):** Există funcții helper sau JSX duplicat pe care le pot muta într-un utilitar comun (cum ar fi `lib/planHelpers.ts` sau `components/ActionBar.tsx`)?
+
+Dacă oricare dintre aceste verificări este omisă în procesul de planificare, asistentul este în stare de încălcare de regulă.
+
+
 ## DATE PROIECT
 - **Cale oficială:** `D:\APLICATII\IdeeaTa-latest_17072026\IdeeaTa-latest`
 - **Framework:** Next.js 15.5.20

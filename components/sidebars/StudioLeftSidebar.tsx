@@ -57,7 +57,7 @@ export function StudioLeftSidebar({
                             <div className="bg-black/40 border border-zinc-800 rounded-xl p-2 flex flex-col gap-1.5 animate-in fade-in slide-in-from-top-2 duration-200">
                             <button 
                               type="button"
-                              onClick={() => handleAiEdit("professional_tone", "formal, corporativ și profesionist")} 
+                              onClick={() => handleAiEdit("professional_tone", "formal")} 
                               disabled={isEditingAi}
                               className="w-full text-xs text-left px-4 py-2.5 rounded-lg hover:bg-zinc-900 text-zinc-400 hover:text-white transition-all font-semibold"
                             >
@@ -65,7 +65,7 @@ export function StudioLeftSidebar({
                             </button>
                             <button 
                               type="button"
-                              onClick={() => handleAiEdit("professional_tone", "entuziast, creativ și plin de energie")} 
+                              onClick={() => handleAiEdit("professional_tone", "creative")} 
                               disabled={isEditingAi}
                               className="w-full text-xs text-left px-4 py-2.5 rounded-lg hover:bg-zinc-900 text-zinc-400 hover:text-white transition-all font-semibold"
                             >
@@ -78,7 +78,7 @@ export function StudioLeftSidebar({
                                   setShowPricingModal(true);
                                   return;
                                 }
-                                handleAiEdit("professional_tone", "persuasiv, orientat spre vânzări și convingător");
+                                handleAiEdit("professional_tone", "persuasive");
                               }} 
                               disabled={isEditingAi}
                               className="w-full text-xs text-left px-4 py-2.5 rounded-lg hover:bg-zinc-900 text-zinc-400 hover:text-white transition-all font-semibold flex items-center justify-between group"
@@ -95,7 +95,7 @@ export function StudioLeftSidebar({
                                   setShowPricingModal(true);
                                   return;
                                 }
-                                handleAiEdit("professional_tone", "prietenos, simplu și ușor de înțeles");
+                                handleAiEdit("professional_tone", "friendly");
                               }} 
                               disabled={isEditingAi}
                               className="w-full text-xs text-left px-4 py-2.5 rounded-lg hover:bg-zinc-900 text-zinc-400 hover:text-white transition-all font-semibold flex items-center justify-between group"

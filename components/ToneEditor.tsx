@@ -84,7 +84,7 @@ export function ToneEditor({
         <div className="flex flex-col gap-1 p-2 bg-zinc-950/50 rounded-xl border border-zinc-800/50 mt-1 animate-in slide-in-from-top-2">
           <button 
             type="button"
-            onClick={() => onToneSelect("foarte formal, academic și riguros")} 
+            onClick={() => onToneSelect("formal")} 
             disabled={isEditingAi}
             className="w-full text-xs text-left px-4 py-2.5 rounded-lg hover:bg-zinc-900 text-zinc-400 hover:text-white transition-all font-semibold"
           >
@@ -92,7 +92,7 @@ export function ToneEditor({
           </button>
           <button 
             type="button"
-            onClick={() => onToneSelect("entuziast, creativ și plin de energie")} 
+            onClick={() => onToneSelect("creative")} 
             disabled={isEditingAi}
             className="w-full text-xs text-left px-4 py-2.5 rounded-lg hover:bg-zinc-900 text-zinc-400 hover:text-white transition-all font-semibold"
           >
@@ -100,7 +100,7 @@ export function ToneEditor({
           </button>
           <button 
             type="button"
-            onClick={() => onToneSelect("persuasiv, orientat spre vânzări și convingător")} 
+            onClick={() => onToneSelect("persuasive")} 
             disabled={isEditingAi}
             className="w-full text-xs text-left px-4 py-2.5 rounded-lg hover:bg-zinc-900 text-zinc-400 hover:text-white transition-all font-semibold"
           >
@@ -108,7 +108,7 @@ export function ToneEditor({
           </button>
           <button 
             type="button"
-            onClick={() => onToneSelect("prietenos, simplu și ușor de înțeles")} 
+            onClick={() => onToneSelect("friendly")} 
             disabled={isEditingAi}
             className="w-full text-xs text-left px-4 py-2.5 rounded-lg hover:bg-zinc-900 text-zinc-400 hover:text-white transition-all font-semibold"
           >

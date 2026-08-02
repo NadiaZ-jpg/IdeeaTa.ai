@@ -167,9 +167,31 @@ export function getEditInstruction(action: string, locale: "ro" | "en" | "es", c
   const isEn = locale === "en";
   const isEs = locale === "es";
 
+  // Map tone keys to full localized instructions
+  let mappedStyle = customStyle;
+  if (action === "professional_tone" && customStyle) {
+    const styleKey = customStyle.trim().toLowerCase();
+    if (isEn) {
+      if (styleKey === "formal") mappedStyle = "formal, corporate and professional";
+      else if (styleKey === "creative") mappedStyle = "enthusiastic, creative and energetic";
+      else if (styleKey === "persuasive") mappedStyle = "persuasive, sales-oriented and convincing";
+      else if (styleKey === "friendly") mappedStyle = "friendly, simple and easy to understand";
+    } else if (isEs) {
+      if (styleKey === "formal") mappedStyle = "formal, corporativo y profesional";
+      else if (styleKey === "creative") mappedStyle = "entusiasta, creativo y lleno de energía";
+      else if (styleKey === "persuasive") mappedStyle = "persuasivo, orientado a las ventas y convincente";
+      else if (styleKey === "friendly") mappedStyle = "amigable, simple y fácil de entender";
+    } else { // ro / default
+      if (styleKey === "formal") mappedStyle = "formal, corporativ și profesionist";
+      else if (styleKey === "creative") mappedStyle = "entuziast, creativ și plin de energie";
+      else if (styleKey === "persuasive") mappedStyle = "persuasiv, orientat spre vânzări și convingător";
+      else if (styleKey === "friendly") mappedStyle = "prietenos, simplu și ușor de înțeles";
+    }
+  }
+
   if (isEn) {
     if (action === "professional_tone") {
-      return `Rewrite the textual content to have a ${customStyle || 'formal, corporate and professional'} tone, keeping the exact structure. Do not change any numbers.`;
+      return `Rewrite the textual content to have a ${mappedStyle || 'formal, corporate and professional'} tone, keeping the exact structure. Do not change any numbers.`;
     }
     if (action === "optimize_budget") {
       return `Reduce costs in 'plan_financiar.buget_investitii' by approximately ${targetSection}%, adjust explanations showing how the savings were achieved, and translate the text inside the 'item' and 'explicatie' properties to English if they are in another language. IMPORTANT: DO NOT rename the JSON keys 'item' and 'explicatie' themselves. Keep everything else untouched.`;
@@ -227,14 +249,14 @@ IMPORTANT: Keep the original JSON structure, but rewrite and enrich the content 
 
   if (isEs) {
     if (action === "professional_tone") {
-      return `Reescribe el contenido de texto para tener un tono ${customStyle || 'formal, corporativo y profesional'}, manteniendo la estructura exacta. No cambies ningún número.`;
+      return `Reescribe el contenido de texto para tener un tono ${mappedStyle || 'formal, corporativo y profesional'}, manteniendo la estructura exacta. No cambies ningún número.`;
     }
     if (action === "optimize_budget") {
       return `Reduce los costes en 'plan_financiar.buget_investitii' en aproximadamente un ${targetSection}%, ajusta las explicaciones mostrando cómo se lograron los ahorros, y traduce el texto dentro de las propiedades 'item' y 'explicatie' al español. IMPORTANTE: NO cambies los nombres de las claves JSON 'item' y 'explicatie' bajo ninguna circunstancia. Mantén todo lo demás intacto.`;
     }
     if (action === "add_sections") {
       return `Genera NUEVAS secciones de texto para el plan de negocios, refiriéndose estrictamente a los temas solicitados: "${targetSection || 'lo que consideres necesario'}". 
-IMPORTANT:
+IMPORTANTE:
 - Si la solicitud del usuario es un comando de eliminación o modificación (ej. "eliminar", "borrar", "modificar capítulo X"), devuelve una sección titulada "⚠️ Consejo de Edición" y explica en "continut" que esta herramienta de IA es solo para *añadir* nuevas secciones, y para eliminaciones/modificaciones deben usar el icono de papelera 🗑️ en el Studio o editar el texto manualmente.
 - No utilices formato de tabla Markdown (sin barras verticales |). Estructura la información como una lista numerada (1., 2., 3., etc.) ya que la interfaz solo muestra texto plano.
 - ¡NO devuelvas el plan actual!
@@ -285,7 +307,7 @@ IMPORTANTE: ¡Mantén la estructura JSON original, pero reescribe y enriquece el
 
   // Default: Română
   if (action === "professional_tone") {
-    return `Rescrie conținutul pentru a avea un ton ${customStyle || 'formal, corporativ și profesionist'}, păstrând structura exactă. Nu modifica cifrele.`;
+    return `Rescrie conținutul pentru a avea un ton ${mappedStyle || 'formal, corporativ și profesionist'}, păstrând structura exactă. Nu modifica cifrele.`;
   }
   if (action === "optimize_budget") {
     return `Redu costurile din 'plan_financiar.buget_investitii' cu aproximativ ${targetSection}%, ajustează explicațiile arătând cum s-a făcut economia și tradu conținutul text din proprietățile 'item' și 'explicatie' în limba română dacă sunt în altă limbă. Toate valorile rezultate pentru costuri în bugetul de investiții la câmpul 'cost' trebuie exprimate obligatoriu în moneda: ${currency}. IMPORTANT: ESTE STRICT INTERZIS să schimbi numele cheilor JSON (ele trebuie să rămână 'item' și 'explicatie'). Păstrează restul neatins.`;

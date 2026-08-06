@@ -73,14 +73,14 @@ export function VersionSelector({
   };
 
   return (
-    <div className="flex items-center gap-1.5 p-1 bg-zinc-900/60 border border-zinc-800/80 rounded-2xl w-fit max-w-full overflow-x-auto no-scrollbar mb-6 shadow-sm relative">
+    <div className="flex flex-wrap items-center gap-1.5 p-1.5 bg-zinc-900/60 border border-zinc-800/80 rounded-2xl w-full max-w-full mb-6 shadow-sm relative">
       {Object.entries(versions).map(([vKey, vData]) => {
         const isActive = activeVersionId === vKey;
         const title = formatVersionTabTitle(vKey, vData, locale, ui);
 
         return (
-          <div key={vKey} className="relative shrink-0" ref={menuFor === vKey ? menuRef : undefined}>
-            <div className="flex items-center gap-0.5">
+          <div key={vKey} className="relative shrink-0 max-w-full" ref={menuFor === vKey ? menuRef : undefined}>
+            <div className="flex items-center gap-0.5 max-w-full">
               <button
                 type="button"
                 onClick={() => onSelectVersion(vKey, vData)}

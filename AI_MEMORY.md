@@ -457,6 +457,18 @@ Dacă oricare dintre aceste verificări este omisă în procesul de planificare,
 - **lib/uiStrings.ts** — `examplesSwipeHint`, `examplesCounter` pe RO/EN/ES.
 - **Build verificat local:** ✅ `npx tsc --noEmit` OK · `npm run build` OK
 
+## FREEZE (6 August 2026 — PDF CTA locale RO/EN/ES)
+- **lib/pdfCtaBehavior.ts** — Sursa unică: URL CTA PDF (`/es|/en|/demo?sharedId=` pe ideeata.ai), attach link-uri jsPDF, currency toggle pe shared view, redirect locale.
+- **hooks/useExportActions.ts** — CTA/footer PDF folosesc `buildPdfCtaUrl` / `attachPdfCtaLinks` (nu mai trec prin `/shared` → `/demo` RO).
+- **app/shared/[id]/page.tsx** — Redirect localizat via același modul.
+- **DemoDesktop / StudioDesktop** — `shouldShowCurrencyToggle` + load share unificat.
+- **Notă:** PDF-urile vechi cu link `/shared/{id}` fără locale rămân pe RO până la regenerare + deploy Hetzner.
+
+## FREEZE (6 August 2026 — Empty ES locatie_dotari / operational fill)
+- **lib/normalizePlanResult.ts** — Alias ES/EN pentru `locatie_dotari` / `resurse_umane` / `descriere_flux`; fill pass completează și câmpurile operaționale goale.
+- **lib/promptConfig.ts** — Prompt ES/EN: cheia `locatie_dotari` obligatorie, neredenumită.
+- **hooks/useCompleteMissingPlanFields.ts** — Re-trigger fill (`fields-v2`) pentru planurile deja încărcate cu secțiuni goale.
+
 
 
 

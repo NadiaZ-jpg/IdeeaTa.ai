@@ -39,7 +39,7 @@ REGULA #19: (ANTI-DISTRUGERE) Niciodată nu folosi comenzi distructive fără pl
 ---
 
 ## FREEZE — Pasul 1 (16 Iulie 2026)
-- app/shared/[id]/page.tsx — ÎNGHEȚAT. Redirecționarea modificată la `/demo?sharedId=${id}` pentru a asigura randarea corectă a planurilor partajate.
+- app/shared/[id]/page.tsx — DEZGHEȚAT (Aug 2026): redirect localizat via `lib/pdfCtaBehavior.sharedPlanOpenPath` (`/en|/es|/demo?sharedId=`). PDF CTA folosește DIRECT path-ul localizat (nu depinde de `/shared`).
 - Build verificat: ✅ `✓ Compiled successfully` (34.7s) după remediere.
 
 ## FREEZE — Pasul 2 (16 Iulie 2026)
@@ -114,7 +114,8 @@ Orice agent care primește o instrucțiune ambiguă trebuie să CEARĂ CONFIRMAR
 | `app/login/page.tsx` | Guard-uri autentificare și butoane Google/Facebook active |
 | `app/page.tsx` | Landing Page |
 | `app/dashboard/page.tsx` | Afișare planuri, delogare, ștergere directă și migrare asincronă la mount |
-| `app/shared/[id]/page.tsx` | Redirecționare la `/demo` pentru planuri partajate |
+| `app/shared/[id]/page.tsx` | Redirect localizat RO/EN/ES via `lib/pdfCtaBehavior` |
+| `lib/pdfCtaBehavior.ts` | Comportament unic CTA PDF (URL, link-uri, currency toggle, redirect) |
 | `app/contact/page.tsx`, `app/cookies/page.tsx`, `app/despre-noi/page.tsx`, `app/privacy/page.tsx`, `app/termeni/page.tsx` | Înlocuit referințe `/start` cu `/demo` |
 | `lib/firebase.ts` | Aliniere import Firestore și `authDomain: window.location.host` pentru login social |
 | `lib/migrationManager.ts` | Migrare automată a planurilor multiple din `demo_plans_list` la login |

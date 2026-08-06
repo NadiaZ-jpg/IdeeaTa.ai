@@ -5,6 +5,8 @@ import { toPng } from "html-to-image";
 import { generatePptx } from "@/lib/generatePptx";
 import { generateDocxBlob } from "@/lib/generateDocx";
 import { createSharedPlan, buildSharedPlanUrl } from "@/lib/sharePlan";
+import { attachPdfCtaLinks, normalizeAppLocale } from "@/lib/pdfCtaBehavior";
+import { UI_STRINGS } from "@/lib/uiStrings";
 
 interface UseExportActionsProps {
   result: any;
@@ -89,10 +91,18 @@ export function useExportActions({
       }
 
       const safeName = result?.nume?.replace(/[^a-zA-Z0-9]/g, '_') || 'Business';
+      // Localized filenames for ALL export modes (free summary / paid pdf / word / pptx),
+      // independent of auth or package (guest, account, standard, full-access).
+      // Callers often pass `t` as translation fn — never use t.file* for names.
+      const fileUi = UI_STRINGS[locale] || UI_STRINGS.ro;
+      const presentationLabel = fileUi.filePresentation;
+      const summaryFreeLabel = fileUi.fileSummaryFree;
+      const documentLabel = fileUi.fileDocument;
+      const brochureLabel = fileUi.fileBrochure;
 
       if (mode === 'pptx') {
         const planCurrency = result?.selectedCurrency || currency || (locale === "es" || locale === "en" ? "EUR" : "LEI");
-        await generatePptx(result, safeName, planCurrency, 0.201, locale, t.fileBrochure || "Brosura");
+        await generatePptx(result, safeName, planCurrency, 0.201, locale, brochureLabel);
       } else if (mode === 'pdf' || mode === 'pdf-summary') {
         let slidesArray = Array.from(document.querySelectorAll('.pdf-presentation-slide'));
         if (slidesArray.length === 0) {
@@ -114,12 +124,13 @@ export function useExportActions({
           format: [1280, 720]
         });
 
-        // REGULA #5: Folosește domeniul oficial de producție ideeata.ai
-        let pdfUrl = 'https://ideeata.ai/';
-        const currentShareId = result?.id || generatedShareId;
-        if (currentShareId) {
-          pdfUrl = buildSharedPlanUrl(currentShareId);
-        }
+        // CTA PDF: un singur modul (lib/pdfCtaBehavior) — RO/EN/ES, Desktop+Mobile.
+        // URL = /{locale}/demo?sharedId=… pe ideeata.ai (REGULA #5), nu /shared → /demo RO.
+        const exportLocale = normalizeAppLocale(locale);
+        const currentShareId = generatedShareId || result?.id;
+        const pdfUrl = currentShareId
+          ? buildSharedPlanUrl(currentShareId, exportLocale)
+          : `https://ideeata.ai${exportLocale === "en" ? "/en" : exportLocale === "es" ? "/es" : ""}/`;
 
         const pdfFooters: Record<string, string> = {
           ro: "Plan generat inteligent de IdeeaTa.ai",
@@ -132,23 +143,21 @@ export function useExportActions({
           const dataUrl = await toPng(slideElement, { quality: 1.0, pixelRatio: 2 });
           if (i > 0) pdf.addPage([1280, 720], "landscape");
           pdf.addImage(dataUrl, 'PNG', 0, 0, 1280, 720);
-          
-          // Dacă este ultimul slide (CTA), adăugăm un link invizibil pe toată suprafața slide-ului pentru click garantat
-          if (i === slidesArray.length - 1 && mode === 'pdf-summary') {
-            pdf.link(0, 0, 1280, 720, { url: pdfUrl });
-          }
 
-          // Stamp footer on every page
-          pdf.setTextColor(150, 150, 150); // Gray color
+          pdf.setTextColor(150, 150, 150);
           pdf.setFontSize(14);
-          pdf.text(pdfFooters[locale] || pdfFooters.ro, 640, 700, { align: 'center' });
-          
-          // Add invisible link covering the footer area on every page
-          pdf.link(300, 680, 680, 40, { url: pdfUrl });
+          pdf.text(pdfFooters[exportLocale] || pdfFooters.ro, 640, 700, { align: 'center' });
+
+          attachPdfCtaLinks(pdf, {
+            pageIndex: i,
+            totalPages: slidesArray.length,
+            isSummaryExport: mode === 'pdf-summary',
+            ctaUrl: pdfUrl,
+          });
         }
         
-        const suffix = mode === 'pdf-summary' ? `_${t.fileSummaryFree || "Sumar_Gratuit"}` : '';
-        pdf.save(`IdeeaTa_${t.filePresentation || "Prezentare"}_${safeName}${suffix}.pdf`);
+        const suffix = mode === 'pdf-summary' ? `_${summaryFreeLabel}` : '';
+        pdf.save(`IdeeaTa_${presentationLabel}_${safeName}${suffix}.pdf`);
       } else if (mode === 'word') {
           const chartElement = document.getElementById("docx-export-chart-hidden");
           let chartDataUrl = null;
@@ -162,7 +171,7 @@ export function useExportActions({
           const link = document.createElement('a');
           link.href = URL.createObjectURL(blob);
           const safeName2 = result?.nume?.replace(/[^a-zA-Z0-9]/g, '_') || 'Business';
-          link.download = `IdeeaTa_${t.fileDocument || "Document"}_${safeName2}.docx`;
+          link.download = `IdeeaTa_${documentLabel}_${safeName2}.docx`;
           document.body.appendChild(link);
           link.click();
           document.body.removeChild(link);

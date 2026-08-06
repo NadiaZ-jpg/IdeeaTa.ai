@@ -19,6 +19,7 @@ import { createAndCopySharedPlanLink } from '@/lib/sharePlan';
 import { StudioMobileGenerateHint } from '@/components/StudioMobileGenerateHint';
 import dynamic from 'next/dynamic';
 import { useExportActions } from "@/hooks/useExportActions";
+import { useCompleteMissingPlanFields } from "@/hooks/useCompleteMissingPlanFields";
 import { StudioPdfSlides } from "@/components/pdf/StudioPdfSlides";
 import { truncateText, splitTextIntoSlides } from "@/lib/planHelpers";
 import { formatPriceLocalized } from "@/lib/priceHelper";
@@ -35,6 +36,7 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
   const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
   const [result, setResult] = useState<any>(null);
+  useCompleteMissingPlanFields(result, setResult, locale);
   const [versions, setVersions] = useState<any>({});
   const [activeVersionId, setActiveVersionId] = useState<string>("original");
   
@@ -93,8 +95,8 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
       return (
         <ul className="space-y-2 text-zinc-300 text-xs list-none">
           {catData.map((item: any, idx: number) => {
-            const title = typeof item === 'string' ? item : (item.titlu || '');
-            const desc = item.explicatie_tehnica || '';
+            const title = typeof item === 'string' ? item : (item.titlu || item.titulo || item.title || '');
+            const desc = item.explicatie_tehnica || item.explicacion_tecnica || item.explicacion || item.descriere || item.detalii || '';
             return (
               <li key={idx} className="leading-relaxed">
                 <strong>✦ {title}</strong>
@@ -742,10 +744,11 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
                 </div>
                 <ToneEditor
                   user={user}
-                  isStudioPaid={isStudioPaid}
+                  locale={locale}
+                  hasStandardAccess={isStudioPaid}
                   isAdmin={isAdmin}
                   isEditingAi={isEditingAi}
-                  setShowAuthModal={() => {}}
+                  setShowAuthModal={() => router.push(locale === "en" ? "/en/login" : locale === "es" ? "/es/login" : "/login")}
                   setShowPricingModal={setShowPricingModal}
                   handleAiEdit={handleAiEdit}
                 />

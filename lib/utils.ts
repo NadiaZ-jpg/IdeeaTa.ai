@@ -1,5 +1,6 @@
 import { clsx, type ClassValue } from "clsx"
 import { twMerge } from "tailwind-merge"
+import { normalizePlanResult } from "@/lib/normalizePlanResult"
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
@@ -50,19 +51,31 @@ export const formatNumberedText = (text: any): string => {
   return formatted.trim();
 };
 
-export const formatObjectNumbers = (obj: any): any => {
+const formatObjectNumbersDeep = (obj: any): any => {
   if (typeof obj === 'string') {
     return formatNumberedText(obj);
   }
   if (Array.isArray(obj)) {
-    return obj.map(formatObjectNumbers);
+    return obj.map(formatObjectNumbersDeep);
   }
   if (obj !== null && typeof obj === 'object') {
     const newObj: any = {};
     for (const key in obj) {
-      newObj[key] = formatObjectNumbers(obj[key]);
+      newObj[key] = formatObjectNumbersDeep(obj[key]);
     }
     return newObj;
   }
   return obj;
+};
+
+export const formatObjectNumbers = (obj: any): any => {
+  // Canonicalize SWOT/budget field aliases before/after string formatting (Demo + Studio edit).
+  const looksLikePlan =
+    obj &&
+    typeof obj === "object" &&
+    !Array.isArray(obj) &&
+    (obj.analiza_swot || obj.plan_financiar || obj.nume);
+  const source = looksLikePlan ? normalizePlanResult(obj) : obj;
+  const formatted = formatObjectNumbersDeep(source);
+  return looksLikePlan ? normalizePlanResult(formatted) : formatted;
 };

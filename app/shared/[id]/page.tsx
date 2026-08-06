@@ -1,24 +1,41 @@
-import { redirect } from 'next/navigation';
-import { adminDb } from '@/lib/firebase-admin';
+import { redirect } from "next/navigation";
+import { adminDb, isFirebaseAdminReady } from "@/lib/firebase-admin";
+import { readLocalSharedPlan } from "@/lib/localSharedPlans";
+import {
+  normalizeAppLocale,
+  sharedPlanOpenPath,
+  type AppLocale,
+} from "@/lib/pdfCtaBehavior";
 
-export default async function SharedRedirect({ params }: { params: Promise<{ id: string }> }) {
+export default async function SharedRedirect({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ id: string }>;
+  searchParams: Promise<{ l?: string }>;
+}) {
   const { id } = await params;
-  
-  let targetLocale = "ro";
+  const query = await searchParams;
+
+  let targetLocale: AppLocale = normalizeAppLocale(query?.l);
+
   try {
-    const docSnap = await adminDb.collection("shared_plans").doc(id).get();
-    if (docSnap.exists) {
-      targetLocale = docSnap.data()?.locale || "ro";
+    if (isFirebaseAdminReady) {
+      const docSnap = await adminDb.collection("shared_plans").doc(id).get();
+      if (docSnap.exists) {
+        targetLocale = normalizeAppLocale(docSnap.data()?.locale || query?.l);
+      }
+    } else {
+      const local = await readLocalSharedPlan(id);
+      if (local) {
+        targetLocale = normalizeAppLocale(local.locale || query?.l);
+      }
     }
   } catch (e) {
     console.error("Eroare la citirea shared plan locale:", e);
+    targetLocale = normalizeAppLocale(query?.l);
   }
-  
-  if (targetLocale === "en") {
-    redirect(`/en/demo?sharedId=${id}`);
-  } else if (targetLocale === "es") {
-    redirect(`/es/demo?sharedId=${id}`);
-  } else {
-    redirect(`/demo?sharedId=${id}`);
-  }
+
+  // Aceeași destinație ca butonul din PDF (lib/pdfCtaBehavior)
+  redirect(sharedPlanOpenPath(targetLocale, id));
 }

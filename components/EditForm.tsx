@@ -163,7 +163,7 @@ export function EditForm({ result, updateField, removeField, readOnly = false, l
                     </button>
                   )}
                   <input type="text" value={safeString(item.titlu !== undefined ? item.titlu : item)} onChange={readOnly ? noop : (e) => updateField(['analiza_swot', cat, idx, typeof item === 'string' ? ' ' : 'titlu'], e.target.value)} readOnly={readOnly} onCopy={readOnly ? e => e.preventDefault() : undefined} className={inputCls("bg-black/80 border border-zinc-700 p-3 rounded-lg text-xl font-bold focus:outline-none focus:ring-1 focus:ring-emerald-500 focus:border-emerald-500 transition-all shadow-inner")} placeholder={locale === "en" ? "Item title..." : locale === "es" ? "Título del elemento..." : "Titlu element..."} />
-                  <AutoExpandingTextarea readOnly={readOnly} rows={2} value={safeString(item.explicatie_tehnica)} onChange={readOnly ? noop : (e) => updateField(['analiza_swot', cat, idx, 'explicatie_tehnica'], e.target.value)} className="bg-black/80 border border-zinc-700 p-3 rounded-lg text-lg w-full shadow-inner" placeholder={locale === "en" ? "Explanation..." : locale === "es" ? "Explicación..." : "Explicație..."} />
+                  <AutoExpandingTextarea readOnly={readOnly} rows={2} value={safeString(item.explicatie_tehnica || item.explicacion_tecnica || item.explicacion || item.descriere || item.description || item.detalii || '')} onChange={readOnly ? noop : (e) => updateField(['analiza_swot', cat, idx, 'explicatie_tehnica'], e.target.value)} className="bg-black/80 border border-zinc-700 p-3 rounded-lg text-lg w-full shadow-inner" placeholder={locale === "en" ? "Explanation..." : locale === "es" ? "Explicación..." : "Explicație..."} />
                 </div>
               ))}
             </div>
@@ -230,7 +230,7 @@ export function EditForm({ result, updateField, removeField, readOnly = false, l
                   </div>
                   <div className="flex flex-col gap-1">
                     <label className="text-sm text-zinc-500 uppercase font-bold">{locale === "en" ? "Justification / Necessity" : locale === "es" ? "Justificación / Necesidad" : "Justificare necesitate"}</label>
-                    <AutoExpandingTextarea readOnly={readOnly} rows={2} value={safeString(b.explicatie || '')} onChange={readOnly ? noop : (e) => updateField(['plan_financiar', 'buget_investitii', originalIdx, 'explicatie'], e.target.value)} className="bg-black/80 border border-zinc-700 p-3 rounded-lg text-base w-full shadow-inner" placeholder={locale === "en" ? "Why is it necessary? How does it contribute to the business?" : locale === "es" ? "¿Por qué es necesario? ¿Cómo contribuye al negocio?" : "De ce este necesar? Cum contribuie la afacere?"} />
+                    <AutoExpandingTextarea readOnly={readOnly} rows={2} value={safeString(b.explicatie || b.detalii || b.justificare || b.justificacion || b.descripcion || '')} onChange={readOnly ? noop : (e) => updateField(['plan_financiar', 'buget_investitii', originalIdx, 'explicatie'], e.target.value)} className="bg-black/80 border border-zinc-700 p-3 rounded-lg text-base w-full shadow-inner" placeholder={locale === "en" ? "Why is it necessary? How does it contribute to the business?" : locale === "es" ? "¿Por qué es necesario? ¿Cómo contribuye al negocio?" : "De ce este necesar? Cum contribuie la afacere?"} />
                   </div>
                 </div>
               );

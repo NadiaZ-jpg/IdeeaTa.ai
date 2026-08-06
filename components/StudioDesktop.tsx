@@ -27,10 +27,18 @@ import { StudioBrochurePreview } from "@/components/pdf/StudioBrochurePreview";
 import { StudioPresentationSlides } from "@/components/pdf/StudioPresentationSlides";
 import { truncateText, splitTextIntoSlides, getDynamicTextSize } from '@/lib/planHelpers';
 import { useExportActions } from '@/hooks/useExportActions';
+import { useCompleteMissingPlanFields } from '@/hooks/useCompleteMissingPlanFields';
 import { useUIState } from '@/hooks/useUIState';
 import { ActionBar } from '@/components/ActionBar';
 import { MockupPreview } from '@/components/MockupPreview';
 import { VersionSelector } from '@/components/VersionSelector';
+import {
+  fetchSharedPlanPayload,
+  resetDemoShareCounters,
+  clearSharedIdFromUrl,
+  redirectIfSharedLocaleMismatch,
+} from '@/hooks/useSharedPlanLoader';
+import { resolveSharedViewCurrency, shouldShowCurrencyToggle } from '@/lib/pdfCtaBehavior';
 const BudgetPieChart = dynamic(() => import('@/components/BudgetChart').then(mod => mod.BudgetPieChart), { ssr: false });
 
 export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" | "es" }) {
@@ -82,6 +90,7 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
   };
 
   const result = resultState;
+  useCompleteMissingPlanFields(result, setResult, locale);
   const [loading, setLoading] = useState(false);
   const [fxRate, setFxRate] = useState(0.201);
   const [currency, setCurrency] = useState("LEI");
@@ -294,7 +303,31 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
       return;
     }
 
-    const isActionFree = action === "professional_tone" || action === "optimize_budget";
+    const freeTones = ["formal", "creative"];
+    const isToneAction = action === "professional_tone";
+    const isProTone =
+      isToneAction &&
+      !!customStyle &&
+      !freeTones.includes(String(customStyle).trim().toLowerCase());
+
+    // Tonuri 3–4 necesită Standard/Pro
+    if (isProTone && !isAdmin && !hasStandardAccess) {
+      setShowPricingModal(true);
+      return;
+    }
+
+    // Cont gratuit: primele 2 tonuri, max 3 utilizări
+    if (isToneAction && !isProTone && !isAdmin && !hasStandardAccess) {
+      const toneCount = parseInt(localStorage.getItem("demoToneEditCount") || "0", 10);
+      if (toneCount >= 3) {
+        setShowPricingModal(true);
+        return;
+      }
+      localStorage.setItem("demoToneEditCount", (toneCount + 1).toString());
+    }
+
+    // Optimize budget + alte tool-uri Pro (nu sunt free pe Studio)
+    const isActionFree = isToneAction && !isProTone;
     if (!isActionFree && !isAdmin && !hasProAccess) {
       setShowPricingModal(true);
       return;
@@ -622,18 +655,15 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
       const sharedId = urlParams.get("sharedId");
       
       if (sharedId) {
-        fetch(`/api/share/${sharedId}`)
-          .then(res => res.json())
-          .then(data => {
-            if (data && data.data) {
-              setResult(formatObjectNumbers(data.data));
-              setIsSharedView(true);
-              if (typeof window !== "undefined") {
-                localStorage.setItem('demoGenerateCount', '0');
-                localStorage.setItem('demoEditCount', '0');
-              }
-              window.history.replaceState({}, document.title, window.location.pathname);
-            }
+        fetchSharedPlanPayload(sharedId)
+          .then(payload => {
+            if (!payload) return;
+            if (redirectIfSharedLocaleMismatch(payload.locale, locale, sharedId)) return;
+            setResult(formatObjectNumbers(payload.data));
+            setCurrency(resolveSharedViewCurrency(payload.data, payload.locale));
+            setIsSharedView(true);
+            resetDemoShareCounters();
+            clearSharedIdFromUrl();
           })
           .catch(err => console.error("Eroare incarcare shareId:", err))
           .finally(() => setIsCheckingShared(false));
@@ -1759,7 +1789,7 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
             isDownloading={isDownloading}
             isPlanPaid={isPlanPaid}
             isEditing={isEditing}
-            showCurrencyToggle={locale === "ro"}
+            showCurrencyToggle={shouldShowCurrencyToggle(locale, isSharedView)}
           />
 
           {!isEditing && (

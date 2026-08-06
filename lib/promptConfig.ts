@@ -10,7 +10,7 @@ export const PLAN_SKELETONS = {
     slogan: "A catchy slogan",
     date_generale: {
       forma_juridica: "Ex: LLC, Sole Proprietorship, Partnership (Use target equivalents, strictly avoid Romanian terms like SRL or PFA)",
-      cod_caen: "Main Business Category / Industry description (Use target equivalents, strictly avoid Romanian CAEN terms or Romanian law references)",
+      cod_caen: "Main industry / activity code (use local equivalents e.g. SIC/NAICS or plain industry description; strictly avoid Romanian CAEN codes or Romanian law)",
       date_contact: "Ex: Legal Representative"
     },
     viziune_strategie: {
@@ -46,7 +46,7 @@ export const PLAN_SKELETONS = {
     slogan: "Un eslogan llamativo",
     date_generale: {
       forma_juridica: "Ej: S.L., Sociedad Anónima, Autónomo, Coop (Use equivalentes locales en español, evite términos rumanos como SRL o PFA)",
-      cod_caen: "Categoría principal de negocio / Descripción de industria (Use explicaciones en español, evite códigos o términos estrictamente rumanos)",
+      cod_caen: "Código CNAE + descripción de la actividad (España; evite códigos CAEN rumanos o referencias a ley rumana)",
       date_contact: "Ej: Representante Legal"
     },
     viziune_strategie: {
@@ -137,19 +137,44 @@ You must strictly follow the requirements for the green transition (Eco-Tech/Sus
 Return the result strictly as a valid JSON object with the following structure:
 ${JSON.stringify(skeleton, null, 2)}
 Include at least 6-8 budgeted items (must include green tech and software/digitalization).
-CRITICAL PENALTY AVOIDANCE: The entire generated content (including item names, slogans, CAEN explanations, detailed SWOT technical explanations, etc.) MUST be strictly in English. Even if the user provided the idea or skill in colloquial Romanian, you MUST completely translate and explain everything in English. Do NOT write any Romanian words. Failure to do so will break the application.
+STRICT STRUCTURE RULES (do not break the app):
+- Keep JSON KEY names EXACTLY as in the skeleton (do NOT translate keys). Values in English; required keys stay Romanian names: titlu, explicatie_tehnica, item, explicatie, cost, descriere_flux, resurse_umane, locatie_dotari, strategie_financiara, etc.
+- NEVER rename locatie_dotari to location_facilities / facilities. Key must be exactly "locatie_dotari" with non-empty text (3-6 sentences).
+- plan_operational MUST include all 3 non-empty keys: "descriere_flux", "resurse_umane", "locatie_dotari".
+- Every SWOT item MUST include BOTH "titlu" AND a non-empty "explicatie_tehnica" (2-4 sentences). Never leave explicatie_tehnica empty.
+- Provide at least 4 items in EACH SWOT category (puncte_tari, puncte_slabe, oportunitati, amenintari).
+- Every budget row MUST include non-empty "item", "cost", AND "explicatie" (justification). Do NOT use alternate keys like detalii/justificacion/descripcion.
+CRITICAL PENALTY AVOIDANCE: The entire generated content (including item names, slogans, industry/activity descriptions, detailed SWOT technical explanations, etc.) MUST be strictly in English. Use LLC/sole proprietorship etc. (never Romanian SRL/PFA). Use industry codes/descriptions appropriate for EN markets (never Romanian CAEN). Currency EUR unless specified. Even if the user provided the idea in Romanian, translate everything to English. Do NOT write any Romanian words. Failure to do so will break the application.
 Do not include any other text besides the JSON block. Do not format with markdown block quotes (\`\`\`json) if possible, but if you do, it will be stripped out.`;
   }
 
   if (isEs) {
-    return `Generate a comprehensive business plan in Spanish based on the following skill or business idea: "${skill}".
-It must adhere to the official standards for accessing Eco-Tech / Sustainability and Digitalization SME programs in 2026.
-You must strictly follow the requirements for the green transition (Eco-Tech/Sustainability) and digitalization (Automation/ERP/CRM).
-Return the result strictly as a valid JSON object with the following structure:
+    // Ensure EUR costs in skeleton for ES
+    if (skeleton.plan_financiar?.buget_investitii?.[0]) {
+      skeleton.plan_financiar.buget_investitii[0].cost = "3000 EUR";
+    }
+    return `Genera un plan de negocio completo en ESPAÑOL (España / Latinoamérica formal) basado en esta idea: "${skill}".
+Adáptalo a programas Eco-Tech / Sostenibilidad y Digitalización para pymes en 2026 (equivalentes locales en español, NO programas rumanos).
+Sigue requisitos de transición ecológica y digitalización (Automatización/ERP/CRM).
+Devuelve SOLO un JSON válido con esta estructura:
 ${JSON.stringify(skeleton, null, 2)}
-Include at least 6-8 budgeted items (must include green tech and software/digitalization).
-CRITICAL PENALTY AVOIDANCE: The entire generated content (including item names, slogans, CAEN explanations, detailed SWOT technical explanations, etc.) MUST be strictly in Spanish. Even if the user provided the idea or skill in colloquial Romanian, you MUST completely translate and explain everything in Spanish. Do NOT write any Romanian words. Failure to do so will break the application.
-Do not include any other text besides the JSON block. Do not format with markdown block quotes (\`\`\`json) if possible, but if you do, it will be stripped out.`;
+Incluye al menos 6-8 partidas de presupuesto (tecnología verde y software/digitalización). Costes en EUR.
+
+FORMATO DEL CONTENIDO (obligatorio — NO uses formato rumano):
+- Forma jurídica: S.L., S.A., Autónomo, Cooperativa (NUNCA SRL, PFA, SRL-D u otros términos rumanos).
+- Actividad económica: código CNAE español + descripción en español (NUNCA "CAEN" ni códigos rumanos).
+- Mercado, precios, impuestos y tono: España / hispanohablante; moneda EUR.
+- No menciones Fonduri Europene de Rumanía, ANAF, ONRC, LEI/RON ni ciudades rumanas salvo que la idea lo pida explícitamente.
+
+REGLAS ESTRICTAS DE ESTRUCTURA (no romper la app):
+- Mantén los NOMBRES de las claves JSON EXACTAMENTE como en el esqueleto (NO traduzcas las claves). Valores en español; claves OBLIGATORIAS sin traducir: titlu, explicatie_tehnica, item, explicatie, cost, descriere_flux, resurse_umane, locatie_dotari, strategie_financiara, etc.
+- NUNCA renombres locatie_dotari → ubicacion / instalaciones / location_facilities. La clave debe ser exactamente "locatie_dotari" con texto NO vacío (3-6 frases).
+- plan_operational DEBE incluir las 3 claves con texto no vacío: "descriere_flux", "resurse_umane", "locatie_dotari".
+- Cada elemento SWOT DEBE incluir AMBOS "titlu" Y "explicatie_tehnica" no vacío (2-4 frases). Nunca dejes explicatie_tehnica vacío.
+- Incluye al menos 4 elementos en CADA categoría SWOT (puncte_tari, puncte_slabe, oportunitati, amenintari).
+- Cada fila de presupuesto DEBE incluir "item", "cost" Y "explicatie" no vacíos. NO uses claves alternativas como detalii/justificacion/descripcion.
+CRITICAL: Todo el contenido generado (nombres, eslóganes, CNAE, SWOT, presupuesto, ubicación) DEBE estar estrictamente en español. Si la idea viene en rumano u otro idioma, tradúcela por completo al español. Cero palabras en rumano.
+No agregues texto fuera del JSON. Sin markdown (\`\`\`json) si es posible.`;
   }
 
   // Default: Română
@@ -159,6 +184,12 @@ Trebuie să urmezi cu strictețe cerințele pentru "Pilonul Verde" (Eco-Tech/Sus
 Returnează rezultatul strict ca un obiect JSON valid cu următoarea structură:
 ${JSON.stringify(skeleton, null, 2)}
 Include cel puțin 6-8 articole bugetate (care să conțină tehnologie verde și software/digitalizare). Toate valorile din bugetul de investiții la câmpul 'cost' trebuie exprimate obligatoriu în monedă nativă: ${currency === "EUR" ? "EUR (ex: 3000 EUR)" : "LEI (ex: 15000 LEI)"}.
+REGULI STRICTE DE STRUCTURĂ:
+- Păstrează EXACT numele cheilor JSON din schelet (nu le traduce).
+- plan_operational trebuie să aibă text nevid la: descriere_flux, resurse_umane, locatie_dotari.
+- Fiecare element SWOT trebuie să aibă ȘI "titlu" ȘI "explicatie_tehnica" nevid (2-4 propoziții).
+- Minim 4 elemente în FIECARE categorie SWOT.
+- Fiecare linie de buget trebuie să aibă "item", "cost" ȘI "explicatie" nevide (nu folosi chei alternative precum detalii).
 CRITICAL: The entire generated content (including item names, slogans, CAEN explanations, SWOT titles, etc.) MUST be strictly in Romanian. Do not write any English words.
 Nu include niciun alt text în afară de blocul JSON. Nu formata cu ghilimele de bloc markdown (\`\`\`json) dacă este posibil, dar dacă o faci, acestea vor fi eliminate la parsare.`;
 }

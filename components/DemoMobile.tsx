@@ -10,6 +10,7 @@ import { PricingModal } from '@/components/PricingModal';
 import { LanguageSwitcher } from '@/components/LanguageSwitcher';
 import { AdBanner } from '@/components/AdBanner';
 import { useExportActions } from "@/hooks/useExportActions";
+import { useCompleteMissingPlanFields } from "@/hooks/useCompleteMissingPlanFields";
 import { DemoPdfSlides } from "@/components/pdf/DemoPdfSlides";
 import { truncateText, splitTextIntoSlides } from "@/lib/planHelpers";
 import { formatPriceLocalized } from "@/lib/priceHelper";
@@ -83,14 +84,15 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
   };
 
   const result = resultState;
+  useCompleteMissingPlanFields(result, setResult, locale);
   const renderSwotCategory = (catData: any) => {
     if (!catData) return null;
     if (Array.isArray(catData)) {
       return (
         <ul className="space-y-2 text-zinc-300 text-xs list-none">
           {catData.map((item: any, idx: number) => {
-            const title = typeof item === 'string' ? item : (item.titlu || '');
-            const desc = item.explicatie_tehnica || '';
+            const title = typeof item === 'string' ? item : (item.titlu || item.titulo || item.title || '');
+            const desc = item.explicatie_tehnica || item.explicacion_tecnica || item.explicacion || item.descriere || item.detalii || '';
             return (
               <li key={idx} className="leading-relaxed">
                 <strong>✦ {title}</strong>
@@ -270,6 +272,7 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
 
   // Încărcare plan partajat (?sharedId=) — același helper ca pe Desktop
   const { isCheckingShared } = useSharedPlanLoader({
+    pageLocale: locale,
     onLoaded: (plan) => {
       setSkipLocalRestore(true);
       setResult(plan);
@@ -902,8 +905,9 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
                     </div>
                     <ToneEditor
                       user={user}
-                      isStudioPaid={false}
-                      isAdmin={false}
+                      locale={locale}
+                      hasStandardAccess={isPaid || promoCodeUnlocked || subscriptionActive || euFundsUnlocked}
+                      isAdmin={isAdmin}
                       isEditingAi={isEditingAi}
                       setShowAuthModal={setShowAuthModal}
                       setShowPricingModal={setShowPricingModal}

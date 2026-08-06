@@ -1,5 +1,6 @@
 import React from "react";
 import dynamic from "next/dynamic";
+import { getSwotItemExplanation } from "@/lib/normalizePlanResult";
 
 const BudgetPieChart = dynamic(() => import("@/components/BudgetChart").then((mod) => mod.BudgetPieChart), { ssr: false });
 
@@ -87,7 +88,7 @@ export function DemoPdfSlides({ result, ui, locale, currency, formatPrice, trunc
             {result.analiza_swot?.puncte_tari?.slice(0, 8).map((item: any, idx: number) => (
               <div key={idx} className="flex flex-col gap-2">
                 <h4 className="text-lg font-bold text-emerald-700 leading-snug">✦ {item.titlu || (typeof item === 'string' ? item : Object.values(item)[0])}</h4>
-                <p className="text-lg text-gray-600 leading-relaxed max-w-lg text-left">{item.explicatie_tehnica}</p>
+                <p className="text-lg text-gray-600 leading-relaxed max-w-lg text-left">{getSwotItemExplanation(item)}</p>
               </div>
             ))}
           </div>
@@ -106,7 +107,7 @@ export function DemoPdfSlides({ result, ui, locale, currency, formatPrice, trunc
             {result.analiza_swot?.puncte_slabe?.slice(0, 8).map((item: any, idx: number) => (
               <div key={idx} className="flex flex-col gap-2">
                 <h4 className="text-lg font-bold text-[#ff4d6d] leading-snug">✦ {item.titlu || (typeof item === 'string' ? item : Object.values(item)[0])}</h4>
-                <p className="text-lg text-gray-600 leading-relaxed max-w-lg text-left">{item.explicatie_tehnica}</p>
+                <p className="text-lg text-gray-600 leading-relaxed max-w-lg text-left">{getSwotItemExplanation(item)}</p>
               </div>
             ))}
           </div>
@@ -125,7 +126,7 @@ export function DemoPdfSlides({ result, ui, locale, currency, formatPrice, trunc
             {result.analiza_swot?.oportunitati?.slice(0, 8).map((item: any, idx: number) => (
               <div key={idx} className="flex flex-col gap-2">
                 <h4 className="text-lg font-bold text-blue-600 leading-snug">✦ {item.titlu || (typeof item === 'string' ? item : Object.values(item)[0])}</h4>
-                <p className="text-lg text-gray-600 leading-relaxed max-w-lg text-left">{item.explicatie_tehnica}</p>
+                <p className="text-lg text-gray-600 leading-relaxed max-w-lg text-left">{getSwotItemExplanation(item)}</p>
               </div>
             ))}
           </div>
@@ -144,7 +145,7 @@ export function DemoPdfSlides({ result, ui, locale, currency, formatPrice, trunc
             {result.analiza_swot?.amenintari?.slice(0, 8).map((item: any, idx: number) => (
               <div key={idx} className="flex flex-col gap-2">
                 <h4 className="text-lg font-bold text-orange-600 leading-snug">✦ {item.titlu || (typeof item === 'string' ? item : Object.values(item)[0])}</h4>
-                <p className="text-lg text-gray-600 leading-relaxed max-w-lg text-left">{item.explicatie_tehnica}</p>
+                <p className="text-lg text-gray-600 leading-relaxed max-w-lg text-left">{getSwotItemExplanation(item)}</p>
               </div>
             ))}
           </div>

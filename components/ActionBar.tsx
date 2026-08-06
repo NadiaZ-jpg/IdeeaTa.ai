@@ -116,9 +116,7 @@ export function ActionBar({
               >
                 {isDownloading === "pdf-summary"
                   ? ui.downloadingAlt || "⏳ Se descarcă..."
-                  : ui.downloadFreeSummaryBtn || ui.downloadFreeSummary
-                    ? `🎁 ${ui.downloadFreeSummaryBtn || ui.downloadFreeSummary}`
-                    : "🎁 PDF Gratuit"}
+                  : (ui.downloadFreeSummaryBtn || ui.downloadFreeSummary || "🎁 PDF Gratuit")}
               </button>
             ) : (
               <>
@@ -128,7 +126,7 @@ export function ActionBar({
                   disabled={isDownloading !== null}
                   className="flex-none hover:bg-zinc-800 text-[10px] sm:text-[11px] h-full px-3 rounded-lg font-black uppercase tracking-wider transition-all flex items-center justify-center whitespace-nowrap gap-1 cursor-pointer text-zinc-300 hover:text-white"
                 >
-                  {isDownloading === "pdf" ? "⏳..." : `⬇ ${ui.presentationBtn || ui.downloadPresentation || "Prezentare"}`}
+                  {isDownloading === "pdf" ? "⏳..." : (ui.presentationBtn || ui.downloadPresentation || "⬇ Prezentare")}
                 </button>
                 <div className="w-px h-4 bg-zinc-800 flex-none" />
                 <button
@@ -136,7 +134,7 @@ export function ActionBar({
                   disabled={isDownloading !== null}
                   className="flex-none hover:bg-zinc-800 text-[10px] sm:text-[11px] h-full px-3 rounded-lg font-black uppercase tracking-wider transition-all flex items-center justify-center whitespace-nowrap gap-1 cursor-pointer text-zinc-300 hover:text-white"
                 >
-                  {isDownloading === "pptx" ? "⏳..." : `⬇ ${ui.brochureBtn || ui.downloadBrochure || "Broșură"}`}
+                  {isDownloading === "pptx" ? "⏳..." : (ui.brochureBtn || ui.downloadBrochure || "⬇ Broșură")}
                 </button>
                 <div className="w-px h-4 bg-zinc-800 flex-none" />
                 <button
@@ -144,7 +142,7 @@ export function ActionBar({
                   disabled={isDownloading !== null}
                   className="flex-none hover:bg-zinc-800 text-[10px] sm:text-[11px] h-full px-3 rounded-lg font-black uppercase tracking-wider transition-all flex items-center justify-center whitespace-nowrap gap-1 cursor-pointer text-zinc-300 hover:text-white"
                 >
-                  {isDownloading === "word" ? "⏳..." : `⬇ ${ui.documentBtn || ui.downloadDocument || "Document"}`}
+                  {isDownloading === "word" ? "⏳..." : (ui.documentBtn || ui.downloadDocument || "⬇ Document")}
                 </button>
               </>
             )}

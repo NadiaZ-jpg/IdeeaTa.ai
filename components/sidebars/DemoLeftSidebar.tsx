@@ -1,4 +1,5 @@
 import React from "react";
+import { ToolActionButton } from "@/components/tools/ToolActionButton";
 
 export function DemoLeftSidebar({ 
   user, 
@@ -28,9 +29,15 @@ export function DemoLeftSidebar({
                    <h3 className="text-2xl font-black text-white mb-4 flex items-center gap-3"><span className="text-emerald-500">✨</span> {ui.toolsTitle}</h3>
                    <p className="text-zinc-400 text-sm mb-6 leading-relaxed">{ui.toolsDesc}</p>
                    
-                      <div className="flex flex-col gap-3">
-                      {/* BLOC PREMIUM (VERDE) */}
-                      <button type="button" onClick={() => {
+                      <div className="flex flex-col gap-2">
+                      <ToolActionButton
+                        icon="🏦"
+                        accent={!hasProAccess ? "amber" : "emerald"}
+                        label={isEditingAi ? ui.processing : ui.investorPlanBtn}
+                        disabled={isEditingAi}
+                        locale={locale}
+                        badge={!hasProAccess ? "pro" : "none"}
+                        onClick={() => {
                         if (!user) {
                           setShowAuthModal(true);
                           return;
@@ -62,20 +69,16 @@ export function DemoLeftSidebar({
                             ? "Se generará lo siguiente:\n1. Resumen Ejecutivo\n2. Matriz de Diferenciación\n3. Estrategia 'Go-To-Market'\n4. Análisis de Riesgos\n5. Escenarios Financieros"
                             : "Se va genera:\n1. Rezumat Executiv\n2. Matrice Diferențiere\n3. Strategie 'Go-To-Market'\n4. Analiză Risc\n5. Scenarii Financiare"
                         });
-                      }} disabled={isEditingAi} className={`w-full rounded-xl px-5 py-4 font-bold text-sm transition-all text-left flex items-center justify-between group disabled:opacity-50 disabled:cursor-not-allowed ${!hasProAccess ? 'bg-zinc-900/60 hover:bg-zinc-800/80 border border-amber-500/30 text-amber-300' : 'bg-zinc-900/80 hover:bg-zinc-800 border border-emerald-500/30 text-emerald-100 shadow-[0_0_15px_rgba(16,185,129,0.1)]'}`}>
-                        <span className="flex items-center gap-3">
-                          <span className={`${!hasProAccess ? 'text-amber-500' : 'text-emerald-400'} group-hover:scale-110 transition-transform text-lg`}>🏦</span> 
-                          <span>{isEditingAi ? ui.processing : ui.investorPlanBtn}</span>
-                        </span>
-                        {!hasProAccess && (
-                          <span className="text-[10px] bg-amber-500/20 border border-amber-500/40 text-amber-300 px-2 py-0.5 rounded-full font-black uppercase tracking-wider whitespace-nowrap flex items-center gap-1">
-                            🔒 PRO
-                          </span>
-                        )}
-                      </button>
+                      }}
+                      />
 
-                      <button 
-                        type="button" 
+                      <ToolActionButton
+                        icon="🇪🇺"
+                        accent={!hasProAccess ? "amber" : "emerald"}
+                        label={isEditingAi ? ui.processing : ui.optimizedForEUGrants}
+                        disabled={isEditingAi}
+                        locale={locale}
+                        badge={!hasProAccess ? "pro" : "none"}
                         onClick={() => {
                           if (!user) {
                             setShowAuthModal(true);
@@ -112,52 +115,28 @@ export function DemoLeftSidebar({
                                 : "Se va adapta planul pentru fonduri europene:\n1. Concepte cheie: digitalizare, sustenabilitate.\n2. Redenumirea achizițiilor pentru a fi eligibile.\n\nEști gata?"
                             });
                           }
-                        }} 
-                        disabled={isEditingAi} 
-                        className={`w-full rounded-xl px-5 py-4 font-bold text-sm transition-all text-left flex items-center justify-between group disabled:opacity-50 disabled:cursor-not-allowed ${!hasProAccess ? 'bg-zinc-900/60 hover:bg-zinc-800/80 border border-amber-500/30 text-amber-300' : 'bg-zinc-900/80 hover:bg-zinc-800 border border-emerald-500/30 text-emerald-100 shadow-[0_0_15px_rgba(16,185,129,0.1)]'}`}
-                      >
-                        <span className="flex items-center gap-3">
-                          <span className={`${!hasProAccess ? 'text-amber-500' : 'text-emerald-400'} group-hover:scale-110 transition-transform text-lg`}>🇪🇺</span>
-                          <span>
-                            {isEditingAi ? ui.processing : ui.optimizedForEUGrants}
-                          </span>
-                        </span>
-                        {!hasProAccess && (
-                          <span className="text-[10px] bg-amber-500/20 border border-amber-500/40 text-amber-300 px-2 py-0.5 rounded-full font-black uppercase tracking-wider whitespace-nowrap flex items-center gap-1">
-                            🔒 PRO
-                          </span>
-                        )}
-                      </button>
+                        }}
+                      />
 
-                        <div className="h-px w-full bg-zinc-800 my-2"></div>
+                        <div className="h-px w-full bg-zinc-800/80 my-1" />
 
-                      {/* BLOC SECUNDAR (AURIU - LIBER PE DEMO) */}
-                      <button 
-                        type="button"
+                      {/* Cont gratuit: doar Rescrie tonul — cu cont, primele 2 tonuri; 3–4 = Pro */}
+                      <ToolActionButton
+                        icon="🪄"
+                        accent="emerald"
+                        label={ui.rewriteTone}
+                        disabled={isEditingAi}
+                        locale={locale}
+                        badge={!user ? "locked" : "none"}
+                        trailing={user ? <span className="text-zinc-500 text-xs">{showToneOptions ? "▲" : "▼"}</span> : undefined}
                         onClick={() => {
                           if (!user) { setShowAuthModal(true); return; }
                           setShowToneOptions(!showToneOptions);
-                        }} 
-                        disabled={isEditingAi} 
-                        className="w-full bg-black hover:bg-zinc-800 border border-zinc-800 rounded-xl px-5 py-4 font-bold text-sm text-zinc-300 transition-all text-left flex items-center justify-between group disabled:opacity-50 disabled:cursor-not-allowed"
-                      >
-                        <span className="flex items-center gap-3">
-                          <span className="text-emerald-500 group-hover:scale-110 transition-transform">🪄</span>
-                          <span>{ui.rewriteTone}</span>
-                        </span>
-                        <span className="flex items-center gap-2">
-                          {user ? (
-                            <span className="text-zinc-500 text-xs">{showToneOptions ? "▲" : "▼"}</span>
-                          ) : (
-                            <span className="text-[10px] bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 px-2 py-0.5 rounded-full font-black uppercase tracking-wider whitespace-nowrap">
-                              {locale === "en" ? "🔒 Free Account" : locale === "es" ? "🔒 Cuenta Gratis" : "🔒 Cont Gratuit"}
-                            </span>
-                          )}
-                        </span>
-                      </button>
+                        }}
+                      />
                       
-                      {showToneOptions && (
-                          <div className="flex flex-col gap-1 p-2 bg-zinc-950/50 rounded-xl border border-zinc-800/50 mt-1 animate-in slide-in-from-top-2">
+                      {showToneOptions && user && (
+                          <div className="flex flex-col gap-1 p-2 bg-zinc-950/50 rounded-xl border border-zinc-800/50 animate-in slide-in-from-top-2">
                           <button 
                             type="button"
                             onClick={() => handleAiEdit("professional_tone", "formal")} 
@@ -184,11 +163,11 @@ export function DemoLeftSidebar({
                               handleAiEdit("professional_tone", "persuasive");
                             }} 
                             disabled={isEditingAi}
-                            className="w-full text-xs text-left px-4 py-2.5 rounded-lg hover:bg-zinc-900 text-zinc-400 hover:text-white transition-all font-semibold flex items-center justify-between group"
+                            className="w-full text-xs text-left px-4 py-2.5 rounded-lg hover:bg-zinc-900 text-zinc-400 hover:text-white transition-all font-semibold flex items-center justify-between gap-2"
                           >
-                            <span>{ui.tonePersuasive}</span>
+                            <span className="min-w-0">{ui.tonePersuasive}</span>
                             {(!hasStandardAccess && !isAdmin) && (
-                              <span className="text-[9px] bg-amber-500/20 border border-amber-500/40 text-amber-300 px-1.5 py-0.5 rounded font-black uppercase">🔒 PRO</span>
+                              <span className="shrink-0 min-w-[3.25rem] text-center text-[9px] font-bold uppercase tracking-wide text-amber-400/90 border border-amber-500/30 bg-amber-500/5 px-2 py-1 rounded-md">Pro</span>
                             )}
                           </button>
                           <button 
@@ -201,20 +180,29 @@ export function DemoLeftSidebar({
                                 handleAiEdit("professional_tone", "friendly");
                               }} 
                               disabled={isEditingAi}
-                              className="w-full text-xs text-left px-4 py-2.5 rounded-lg hover:bg-zinc-900 text-zinc-400 hover:text-white transition-all font-semibold flex items-center justify-between group"
+                              className="w-full text-xs text-left px-4 py-2.5 rounded-lg hover:bg-zinc-900 text-zinc-400 hover:text-white transition-all font-semibold flex items-center justify-between gap-2"
                             >
-                              <span>{ui.toneFriendly}</span>
+                              <span className="min-w-0">{ui.toneFriendly}</span>
                               {(!hasStandardAccess && !isAdmin) && (
-                                <span className="text-[9px] bg-amber-500/20 border border-amber-500/40 text-amber-300 px-1.5 py-0.5 rounded font-black uppercase">🔒 PRO</span>
+                                <span className="shrink-0 min-w-[3.25rem] text-center text-[9px] font-bold uppercase tracking-wide text-amber-400/90 border border-amber-500/30 bg-amber-500/5 px-2 py-1 rounded-md">Pro</span>
                               )}
                             </button>
                           </div>
                         )}
 
-                      <button 
-                        type="button" 
+                      <ToolActionButton
+                        icon="📉"
+                        accent="amber"
+                        label={isEditingAi ? ui.processing : ui.optimizeBudget}
+                        disabled={isEditingAi}
+                        locale={locale}
+                        badge="pro"
                         onClick={() => {
                           if (!user) { setShowAuthModal(true); return; }
+                          if (!hasProAccess && !isAdmin) {
+                            setShowPricingModal(true);
+                            return;
+                          }
                           setActiveAiPrompt(activeAiPrompt?.action === "optimize_budget" ? null : {
                             action: "optimize_budget", 
                             title: ui.optimizeBudget, 
@@ -225,42 +213,22 @@ export function DemoLeftSidebar({
                               ? "¿Qué porcentaje deseas reducir de los costos presupuestados?" 
                               : "Cu ce procent dorești să reduci costurile bugetate?"
                           });
-                        }} 
-                        disabled={isEditingAi} 
-                        className="w-full bg-black hover:bg-zinc-800 border border-amber-500/20 rounded-xl px-5 py-4 font-bold text-sm text-amber-100 transition-all text-left flex items-center justify-between group disabled:opacity-50 disabled:cursor-not-allowed"
-                      >
-                        <span className="flex items-center gap-3">
-                          <span className="text-amber-500 group-hover:scale-110 transition-transform">📉</span>
-                          <span>
-                            {isEditingAi ? ui.processing : (
-                              <>
-                                {ui.optimizeBudgetCustom}
-                              </>
-                            )}
-                          </span>
-                        </span>
-                        <span className="text-[10px] bg-amber-500/20 border border-amber-500/40 text-amber-300 px-2 py-0.5 rounded-full font-black uppercase tracking-wider whitespace-nowrap">
-                          🔒 PRO
-                        </span>
-                      </button>
+                        }}
+                      />
 
-                      <button 
-                        type="button" 
+                      <ToolActionButton
+                        icon="🏛️"
+                        accent="emerald"
+                        label={ui.expertSectionLibrary}
+                        disabled={isEditingAi}
+                        locale={locale}
+                        badge="modules"
+                        badgeLabel={ui.modules30}
                         onClick={() => {
                           if (!user) { setShowAuthModal(true); return; }
                           setShowExpertDrawer(true);
-                        }} 
-                        disabled={isEditingAi} 
-                        className="w-full text-left flex items-center justify-between rounded-xl px-5 py-4 font-bold text-sm transition-all group disabled:opacity-50 disabled:cursor-not-allowed bg-gradient-to-r from-emerald-950/40 via-zinc-900 to-black hover:from-emerald-900/40 border border-emerald-500/40 text-emerald-200 shadow-[0_0_15px_rgba(16,185,129,0.1)] cursor-pointer"
-                      >
-                        <span className="flex items-center gap-3">
-                          <span className="text-emerald-400 group-hover:scale-110 transition-transform text-lg">🏛️</span> 
-                          <span>{ui.expertSectionLibrary}</span>
-                        </span>
-                        <span className="text-[10px] bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 px-2 py-0.5 rounded-full font-black uppercase tracking-wider whitespace-nowrap">
-                          {ui.modules30}
-                        </span>
-                      </button>
+                        }}
+                      />
                     </div>
 
 

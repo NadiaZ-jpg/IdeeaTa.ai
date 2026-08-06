@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { adminDb } from "@/lib/firebase-admin";
+import { adminDb, isFirebaseAdminReady } from "@/lib/firebase-admin";
 import { FieldValue } from "firebase-admin/firestore";
+import { saveLocalSharedPlan } from "@/lib/localSharedPlans";
 
 export async function POST(req: NextRequest) {
   try {
@@ -13,12 +14,28 @@ export async function POST(req: NextRequest) {
 
     const cleanPlanData = JSON.parse(JSON.stringify(planData));
 
-    // Salvăm în Firestore sub colecția 'shared_plans'
+    if (!isFirebaseAdminReady) {
+      if (process.env.NODE_ENV === "production") {
+        console.error("[share] Firebase Admin missing in production");
+        return NextResponse.json(
+          { error: "Share service unavailable. Configure FIREBASE_CLIENT_EMAIL / FIREBASE_PRIVATE_KEY." },
+          { status: 503 }
+        );
+      }
+      // Development: persist locally so PDF CTA / share still work without Admin SDK
+      const id = await saveLocalSharedPlan({
+        data: cleanPlanData,
+        locale: locale || "ro",
+      });
+      console.warn(`[share] Local fallback id=${id} (add Firebase Admin credentials for Firestore)`);
+      return NextResponse.json({ id, localFallback: true });
+    }
+
     const docRef = await adminDb.collection("shared_plans").add({
       data: cleanPlanData,
       locale: locale || "ro",
       createdAt: FieldValue.serverTimestamp(),
-      views: 0
+      views: 0,
     });
 
     return NextResponse.json({ id: docRef.id });

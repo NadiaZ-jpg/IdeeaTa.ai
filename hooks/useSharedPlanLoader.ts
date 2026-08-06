@@ -2,6 +2,14 @@
 
 import { useEffect, useRef, useState } from "react";
 import { formatObjectNumbers } from "@/lib/utils";
+import {
+  normalizeAppLocale,
+  redirectToSharedPlanLocale,
+  sharedPlanOpenPath,
+  type AppLocale,
+} from "@/lib/pdfCtaBehavior";
+
+export type { AppLocale };
 
 /** Citește ?sharedId= din URL (client-only). */
 export function readSharedIdFromLocation(): string | null {
@@ -9,12 +17,45 @@ export function readSharedIdFromLocation(): string | null {
   return new URLSearchParams(window.location.search).get("sharedId");
 }
 
-/** Încarcă planul partajat de pe /api/share/{id}. */
-export async function fetchSharedPlan(sharedId: string): Promise<any | null> {
+export type SharedPlanPayload = {
+  data: any;
+  locale: AppLocale;
+};
+
+/** Path demo pentru un locale (fără origin) — alias pdfCtaBehavior. */
+export function demoPathForLocale(locale: AppLocale, sharedId?: string): string {
+  if (sharedId) return sharedPlanOpenPath(locale, sharedId);
+  const prefix = locale === "en" ? "/en" : locale === "es" ? "/es" : "";
+  return `${prefix}/demo`;
+}
+
+/**
+ * Dacă locale-ul planului partajat ≠ locale-ul paginii curente, redirecționează.
+ * Returnează true dacă a pornit redirect (nu continua load-ul).
+ */
+export function redirectIfSharedLocaleMismatch(
+  shareLocale: AppLocale,
+  pageLocale: AppLocale,
+  sharedId: string
+): boolean {
+  return redirectToSharedPlanLocale(shareLocale, pageLocale, sharedId);
+}
+
+/** Încarcă planul partajat + locale de pe /api/share/{id}. */
+export async function fetchSharedPlanPayload(sharedId: string): Promise<SharedPlanPayload | null> {
   const res = await fetch(`/api/share/${sharedId}`);
   const data = await res.json();
-  if (data?.data) return formatObjectNumbers(data.data);
-  return null;
+  if (!data?.data) return null;
+  return {
+    data: formatObjectNumbers(data.data),
+    locale: normalizeAppLocale(data.locale),
+  };
+}
+
+/** @deprecated — preferă fetchSharedPlanPayload */
+export async function fetchSharedPlan(sharedId: string): Promise<any | null> {
+  const payload = await fetchSharedPlanPayload(sharedId);
+  return payload?.data ?? null;
 }
 
 /** Scoate sharedId din URL după încărcare reușită. */
@@ -32,7 +73,8 @@ export function resetDemoShareCounters(setDemoCount?: (n: number) => void): void
 }
 
 type UseSharedPlanLoaderOptions = {
-  onLoaded: (plan: any) => void;
+  pageLocale: AppLocale;
+  onLoaded: (plan: any, shareLocale: AppLocale) => void;
   onSharedView?: () => void;
   resetDemoCounters?: boolean;
   setDemoCount?: (n: number) => void;
@@ -40,7 +82,7 @@ type UseSharedPlanLoaderOptions = {
 
 /**
  * Încarcă automat planul din ?sharedId= la mount.
- * Folosit pe Mobile; Desktop poate apela helper-ele de mai sus în useEffect-ul existent.
+ * Redirecționează pe /en|/es/demo dacă locale-ul share ≠ pagina.
  */
 export function useSharedPlanLoader(options: UseSharedPlanLoaderOptions) {
   const [isCheckingShared, setIsCheckingShared] = useState(true);
@@ -58,10 +100,13 @@ export function useSharedPlanLoader(options: UseSharedPlanLoaderOptions) {
 
     (async () => {
       try {
-        const plan = await fetchSharedPlan(sharedId);
-        if (cancelled || !plan) return;
+        const payload = await fetchSharedPlanPayload(sharedId);
+        if (cancelled || !payload) return;
         const o = optsRef.current;
-        o.onLoaded(plan);
+        if (redirectIfSharedLocaleMismatch(payload.locale, o.pageLocale, sharedId)) {
+          return;
+        }
+        o.onLoaded(payload.data, payload.locale);
         o.onSharedView?.();
         if (o.resetDemoCounters) {
           resetDemoShareCounters(o.setDemoCount);

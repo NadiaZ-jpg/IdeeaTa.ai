@@ -28,7 +28,9 @@ import { DemoBrochurePreview } from "@/components/pdf/DemoBrochurePreview";
 import { DemoPresentationSlides } from "@/components/pdf/DemoPresentationSlides";
 import { truncateText, splitTextIntoSlides, getDynamicTextSize } from '@/lib/planHelpers';
 import { useExportActions } from '@/hooks/useExportActions';
-import { fetchSharedPlan, resetDemoShareCounters, clearSharedIdFromUrl } from '@/hooks/useSharedPlanLoader';
+import { fetchSharedPlanPayload, resetDemoShareCounters, clearSharedIdFromUrl, redirectIfSharedLocaleMismatch } from '@/hooks/useSharedPlanLoader';
+import { resolveSharedViewCurrency, shouldShowCurrencyToggle } from '@/lib/pdfCtaBehavior';
+import { useCompleteMissingPlanFields } from '@/hooks/useCompleteMissingPlanFields';
 import { useUIState } from '@/hooks/useUIState';
 import { ActionBar } from '@/components/ActionBar';
 import { MockupPreview } from '@/components/MockupPreview';
@@ -85,6 +87,7 @@ export default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" | 
   };
 
   const result = resultState;
+  useCompleteMissingPlanFields(result, setResult, locale);
   const [loading, setLoading] = useState(false);
   const [fxRate, setFxRate] = useState(0.201);
   const [currency, setCurrency] = useState("LEI");
@@ -239,6 +242,18 @@ export default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" | 
     if (isEditingAi) return;
 
     const isActionFree = action === "professional_tone";
+    const freeTones = ["formal", "creative"];
+    const isProTone =
+      isActionFree &&
+      !!customStyle &&
+      !freeTones.includes(String(customStyle).trim().toLowerCase());
+
+    // Tonuri 3–4 (persuasive/friendly) necesită Standard/Pro
+    if (isProTone && !isAdmin && !hasStandardAccess) {
+      if (!user) setShowAuthModal(true);
+      else setShowPricingModal(true);
+      return;
+    }
 
     if (!isActionFree && !isAdmin && !hasProAccess) {
       if (!user) {
@@ -249,14 +264,15 @@ export default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" | 
       return;
     }
 
-    if (isActionFree && !isAdmin && !hasStandardAccess) {
+    // Cont gratuit: primele 2 tonuri (formal/creative), max 3 utilizări pe Demo
+    if (isActionFree && !isProTone && !isAdmin && !hasStandardAccess) {
+       if (!user) {
+         setShowAuthModal(true);
+         return;
+       }
        const toneCount = parseInt(localStorage.getItem("demoToneEditCount") || "0", 10);
        if (toneCount >= 3) {
-         if (!user) {
-           setShowAuthModal(true);
-         } else {
-           setShowPricingModal(true);
-         }
+         setShowPricingModal(true);
          return;
        }
        localStorage.setItem("demoToneEditCount", (toneCount + 1).toString());
@@ -549,14 +565,15 @@ export default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" | 
       const sharedId = urlParams.get("sharedId");
       
       if (sharedId) {
-        fetchSharedPlan(sharedId)
-          .then(plan => {
-            if (plan) {
-              setResult(plan);
-              setIsSharedView(true);
-              resetDemoShareCounters(setDemoCount);
-              clearSharedIdFromUrl();
-            }
+        fetchSharedPlanPayload(sharedId)
+          .then(payload => {
+            if (!payload) return;
+            if (redirectIfSharedLocaleMismatch(payload.locale, locale, sharedId)) return;
+            setResult(payload.data);
+            setCurrency(resolveSharedViewCurrency(payload.data, payload.locale));
+            setIsSharedView(true);
+            resetDemoShareCounters(setDemoCount);
+            clearSharedIdFromUrl();
           })
           .catch(err => console.error("Eroare incarcare shareId:", err))
           .finally(() => setIsCheckingShared(false));
@@ -1754,7 +1771,7 @@ export default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" | 
             isDownloading={isDownloading}
             isPlanPaid={isPlanPaid}
             isEditing={isEditing}
-            showCurrencyToggle={locale === "ro"}
+            showCurrencyToggle={shouldShowCurrencyToggle(locale, isSharedView)}
           />
 
           {!isEditing && (

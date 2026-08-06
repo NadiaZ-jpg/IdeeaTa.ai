@@ -3,6 +3,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { getExchangeRateRonToEur } from "@/lib/exchangeRate";
 import { adminDb, adminAuth } from "@/lib/firebase-admin";
 import { getGeneratePrompt } from "@/lib/promptConfig";
+import { normalizePlanResult } from "@/lib/normalizePlanResult";
+import { fillMissingPlanExplanations } from "@/lib/fillMissingPlanExplanations";
 
 export const maxDuration = 60; // Max execution time 60s to allow for retries and long generations
 
@@ -81,10 +83,15 @@ export async function POST(req: NextRequest) {
       text = jsonMatch[0];
     }
 
-    // Injectăm selectedCurrency în obiectul planului
+    // Injectăm selectedCurrency + normalizăm cheile SWOT/buget (alias-uri AI)
     try {
-      const parsedText = JSON.parse(text);
+      let parsedText = normalizePlanResult(JSON.parse(text));
       parsedText.selectedCurrency = currency || (locale === "en" || locale === "es" ? "EUR" : "LEI");
+      // Al doilea pas: completează explicațiile SWOT/buget lipsă (titlu fără text)
+      parsedText = await fillMissingPlanExplanations(
+        parsedText,
+        locale === "en" || locale === "es" ? locale : "ro"
+      );
       text = JSON.stringify(parsedText);
     } catch(e) {
       console.error("Failed to inject selectedCurrency:", e);

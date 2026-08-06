@@ -30,6 +30,7 @@ import { truncateText, splitTextIntoSlides, getDynamicTextSize } from '@/lib/pla
 import { useExportActions } from '@/hooks/useExportActions';
 import { fetchSharedPlanPayload, resetDemoShareCounters, clearSharedIdFromUrl, redirectIfSharedLocaleMismatch } from '@/hooks/useSharedPlanLoader';
 import { resolveSharedViewCurrency, shouldShowCurrencyToggle } from '@/lib/pdfCtaBehavior';
+import { FREE_ACCOUNT_PLAN_LIMIT, GUEST_DEMO_PLAN_LIMIT, clearLocalPlanState } from '@/lib/planQuota';
 import { useCompleteMissingPlanFields } from '@/hooks/useCompleteMissingPlanFields';
 import { useUIState } from '@/hooks/useUIState';
 import { ActionBar } from '@/components/ActionBar';
@@ -90,7 +91,14 @@ export default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" | 
   useCompleteMissingPlanFields(result, setResult, locale);
   const [loading, setLoading] = useState(false);
   const [fxRate, setFxRate] = useState(0.201);
-  const [currency, setCurrency] = useState("LEI");
+  const [currency, setCurrency] = useState(() => (locale === "ro" ? "LEI" : "EUR"));
+
+  // EN/ES: nu lăsa LEI din planuri vechi / localStorage
+  useEffect(() => {
+    if (locale === "en" || locale === "es") {
+      setCurrency("EUR");
+    }
+  }, [locale]);
   const [isDownloading, setIsDownloading] = useState<'pdf' | 'pptx' | 'word' | 'pdf-summary' | null>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [backupResult, setBackupResult] = useState<any>(null);
@@ -227,7 +235,7 @@ export default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" | 
   };
 
   // Pre-rezolvă toate string-urile UI pentru locale curent — elimină ternare inline
-  const ui = UI_STRINGS[locale];
+  const ui = UI_STRINGS[locale] || UI_STRINGS.ro;
 
   const handleContextMenu = (e: React.MouseEvent) => {
     if (isContentCopyProtected) {
@@ -441,7 +449,7 @@ export default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" | 
 
   const [showExamples, setShowExamples] = useState(false); 
   const [mockupTab, setMockupTab] = useState(0);
-  const [innerMockupTab, setInnerMockupTab] = useState('SWOT');
+  const [innerMockupTab, setInnerMockupTab] = useState('swot');
   
   const [user, setUser] = useState<User | null>(null);
   const [promoCodeUnlocked, setPromoCodeUnlocked] = useState(false);
@@ -686,28 +694,32 @@ export default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" | 
       }
       if (result) {
         localStorage.setItem("current_generated_plan", JSON.stringify(result));
-        try {
-          const listStr = localStorage.getItem("demo_plans_list");
-          let list = listStr ? JSON.parse(listStr) : [];
-          if (!Array.isArray(list)) list = [];
-          const planToSave = { ...result };
-          if (!planToSave.id) {
-            const safeName = planToSave.nume?.replace(/[^a-zA-Z0-9]/g, '_') || 'Plan';
-            planToSave.id = `${safeName}_${Date.now()}`;
+        // Guest only — dacă ești logat, planul e deja în Firestore; lista locală
+        // ar duce la duplicate la migrate pe Dashboard.
+        if (!user) {
+          try {
+            const listStr = localStorage.getItem("demo_plans_list");
+            let list = listStr ? JSON.parse(listStr) : [];
+            if (!Array.isArray(list)) list = [];
+            const planToSave = { ...result };
+            if (!planToSave.id) {
+              const safeName = planToSave.nume?.replace(/[^a-zA-Z0-9]/g, '_') || 'Plan';
+              planToSave.id = `${safeName}_${Date.now()}`;
+            }
+            const exists = list.some((p: any) => p.nume === planToSave.nume || p.id === planToSave.id);
+            if (!exists) {
+              list.push(planToSave);
+              localStorage.setItem("demo_plans_list", JSON.stringify(list));
+            }
+          } catch (e) {
+            console.error("Eroare la adăugarea planului în demo_plans_list:", e);
           }
-          const exists = list.some((p: any) => p.nume === planToSave.nume || p.id === planToSave.id);
-          if (!exists) {
-            list.push(planToSave);
-            localStorage.setItem("demo_plans_list", JSON.stringify(list));
-          }
-        } catch (e) {
-          console.error("Eroare la adăugarea planului în demo_plans_list:", e);
         }
       } else {
         localStorage.removeItem("current_generated_plan");
       }
     }
-  }, [result]);
+  }, [result, user]);
 
   // Prevenire copiere conținut dacă este protejat
   useEffect(() => {
@@ -801,7 +813,11 @@ export default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" | 
           console.warn("Eroare API la trimitere email initial, folosim fallback:", apiError);
           try {
             auth.languageCode = locale;
-            await sendEmailVerification(userCredential.user);
+            const { verificationActionCodeSettings } = await import("@/lib/emailVerification");
+            await sendEmailVerification(
+              userCredential.user,
+              verificationActionCodeSettings(locale)
+            );
           } catch (fallbackError) {
             console.error("Eroare fallback trimitere email initial:", fallbackError);
           }
@@ -896,7 +912,7 @@ export default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" | 
           try {
             const plansRef = collection(db, "users", user.uid, "plans");
             const snap = await getDocs(plansRef);
-            if (snap.size >= 4) {
+            if (snap.size >= FREE_ACCOUNT_PLAN_LIMIT) {
               setShowPricingModal(true);
               return;
             }
@@ -905,7 +921,7 @@ export default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" | 
           }
         } else {
           const count = parseInt(localStorage.getItem("demoGenerateCount") || "0", 10);
-          if (count >= 3 && !isAdmin) {
+          if (count >= GUEST_DEMO_PLAN_LIMIT && !isAdmin) {
             setShowAuthModal(true);
             return;
           }
@@ -928,7 +944,11 @@ export default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" | 
         fetch("/api/generate", {
           method: "POST",
           headers,
-          body: JSON.stringify({ skill, locale, currency }),
+          body: JSON.stringify({
+            skill,
+            locale,
+            currency: locale === "ro" ? currency : "EUR",
+          }),
         }),
         new Promise(resolve => setTimeout(resolve, 2000))
       ]);
@@ -943,6 +963,10 @@ export default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" | 
         }
 
         if (!res.ok) {
+          if (data?.error === "LIMIT_REACHED") {
+            setShowPricingModal(true);
+            return;
+          }
           throw new Error(data.error || `Eroare server: ${res.status}`);
         }
       } catch (err: any) {
@@ -1014,7 +1038,7 @@ export default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" | 
 
   const resetApp = () => {
     setResult(null);
-    setCurrency("LEI");
+    setCurrency(locale === "ro" ? "LEI" : "EUR");
     setIsPaid(false);
     setIsSharedView(false);
     if (typeof window !== "undefined") {
@@ -1256,7 +1280,10 @@ export default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" | 
                   </button>
                 )}
                 <button 
-                  onClick={() => signOut(auth)}
+                  onClick={async () => {
+                    clearLocalPlanState();
+                    await signOut(auth);
+                  }}
                   className="text-zinc-500 hover:text-white transition-colors cursor-pointer"
                 >
                   {ui.logOut}
@@ -1487,10 +1514,10 @@ export default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" | 
                 {!user && (
                   <div className="text-center sm:text-right mt-3">
                     <span className="text-xs font-bold text-emerald-400">
-                      {demoCount >= 3 ? (
+                      {demoCount >= GUEST_DEMO_PLAN_LIMIT ? (
                         `🔒 ${ui.limitReached}`
                       ) : (
-                        `🎁 ${ui.limitRemaining.replace('{{count}}', String(3 - demoCount))}`
+                        `🎁 ${ui.limitRemaining.replace('{{count}}', String(GUEST_DEMO_PLAN_LIMIT - demoCount))}`
                       )}
                     </span>
                   </div>
@@ -1771,6 +1798,7 @@ export default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" | 
             isDownloading={isDownloading}
             isPlanPaid={isPlanPaid}
             isEditing={isEditing}
+            isSharedView={isSharedView}
             showCurrencyToggle={shouldShowCurrencyToggle(locale, isSharedView)}
           />
 

@@ -97,6 +97,22 @@ function normalizeSwotCategory(arr: unknown): Array<{ titlu: string; explicatie_
 
 const SWOT_KEYS = ["puncte_tari", "puncte_forte", "puncte_slabe", "oportunitati", "amenintari"] as const;
 
+/** ES/EN models often rename SWOT category arrays. */
+const SWOT_CATEGORY_ALIASES: Record<string, string[]> = {
+  puncte_tari: ["puncte_tari", "puncte_forte", "fortalezas", "strengths", "fortalezas_internas"],
+  puncte_slabe: ["puncte_slabe", "debilidades", "weaknesses", "flaquezas", "puntos_debiles"],
+  oportunitati: ["oportunitati", "oportunidades", "opportunities"],
+  amenintari: ["amenintari", "amenazas", "threats", "riesgos", "amenazas_externas"],
+};
+
+function pickSwotCategoryArray(swot: Record<string, unknown>, canonical: string): unknown {
+  const aliases = SWOT_CATEGORY_ALIASES[canonical] || [canonical];
+  for (const key of aliases) {
+    if (Array.isArray(swot[key])) return swot[key];
+  }
+  return undefined;
+}
+
 /** Canonical operational keys + common ES/EN aliases the model invents. */
 const OPERATIONAL_FIELD_ALIASES: Record<string, string[]> = {
   descriere_flux: [
@@ -139,6 +155,122 @@ const OPERATIONAL_FIELD_ALIASES: Record<string, string[]> = {
 };
 
 const OPERATIONAL_CANONICAL_FIELDS = ["descriere_flux", "resurse_umane", "locatie_dotari"] as const;
+
+/** Vision / market string fields + ES/EN aliases (model often renames keys). */
+const VISION_FIELD_ALIASES: Record<string, string[]> = {
+  obiective_scurt: [
+    "obiective_scurt",
+    "objetivos_corto",
+    "objetivos_a_corto_plazo",
+    "short_term_objectives",
+    "objectives_short",
+  ],
+  obiective_mediu: [
+    "obiective_mediu",
+    "objetivos_medio",
+    "objetivos_a_medio_plazo",
+    "medium_term_objectives",
+    "objectives_medium",
+  ],
+  misiune_valori: [
+    "misiune_valori",
+    "mision_valores",
+    "mision_y_valores",
+    "mission_values",
+    "mission_and_values",
+    "mision",
+    "valores",
+  ],
+};
+
+const MARKET_FIELD_ALIASES: Record<string, string[]> = {
+  clienti_tinta: [
+    "clienti_tinta",
+    "clientes_objetivo",
+    "clientes_diana",
+    "target_customers",
+    "target_clients",
+    "public_tinta",
+  ],
+  concurenta: [
+    "concurenta",
+    "competencia",
+    "competition",
+    "competitors",
+  ],
+  strategie_marketing: [
+    "strategie_marketing",
+    "estrategia_marketing",
+    "estrategia_de_marketing",
+    "marketing_strategy",
+  ],
+};
+
+function pickAliasedTextField(
+  src: Record<string, unknown>,
+  aliases: string[]
+): string {
+  for (const key of aliases) {
+    if (src[key] === undefined) continue;
+    const text = coercePlanText(src[key]);
+    if (text) return text;
+  }
+  return "";
+}
+
+function normalizeVisionStrategy(viz: any): Record<string, any> {
+  if (!viz || typeof viz !== "object") {
+    return { obiective_scurt: "", obiective_mediu: "", misiune_valori: "" };
+  }
+  const src = { ...viz };
+  const next = { ...src };
+  for (const [canonical, aliases] of Object.entries(VISION_FIELD_ALIASES)) {
+    if (canonical === "misiune_valori") continue;
+    next[canonical] = pickAliasedTextField(src, aliases) || coercePlanText(src[canonical]) || "";
+  }
+  // Prefer single key; else merge split mision/valores (common ES model habit)
+  const missionCombined = pickAliasedTextField(src, [
+    "misiune_valori",
+    "mision_valores",
+    "mision_y_valores",
+    "mission_values",
+    "mission_and_values",
+  ]);
+  if (missionCombined) {
+    next.misiune_valori = missionCombined;
+  } else {
+    const parts = [
+      coercePlanText(src.mision) || coercePlanText(src.mission),
+      coercePlanText(src.valores) || coercePlanText(src.values),
+    ].filter(Boolean);
+    next.misiune_valori = parts.join("\n\n");
+  }
+  return next;
+}
+
+function normalizeMarketAnalysis(piata: any): Record<string, any> {
+  if (!piata || typeof piata !== "object") {
+    return { clienti_tinta: "", concurenta: "", strategie_marketing: "" };
+  }
+  const src = { ...piata };
+  const next = { ...src };
+  for (const [canonical, aliases] of Object.entries(MARKET_FIELD_ALIASES)) {
+    next[canonical] = pickAliasedTextField(src, aliases) || coercePlanText(src[canonical]) || "";
+  }
+  return next;
+}
+
+function hasEmptyCoreTextFields(plan: any): boolean {
+  const viz = normalizeVisionStrategy(plan?.viziune_strategie || {});
+  for (const k of Object.keys(VISION_FIELD_ALIASES)) {
+    if (!String(viz[k] || "").trim()) return true;
+  }
+  const piata = normalizeMarketAnalysis(plan?.analiza_pietei || {});
+  for (const k of Object.keys(MARKET_FIELD_ALIASES)) {
+    if (!String(piata[k] || "").trim()) return true;
+  }
+  return false;
+}
 
 function coercePlanText(value: unknown): string {
   if (value === null || value === undefined) return "";
@@ -217,9 +349,16 @@ export function normalizePlanResult<T = any>(plan: T): T {
   const next: any = { ...(plan as any) };
 
   if (next.analiza_swot && typeof next.analiza_swot === "object") {
-    const swot = { ...next.analiza_swot };
+    const raw = { ...next.analiza_swot };
+    const swot: Record<string, unknown> = { ...raw };
 
-    // Legacy alias used in older payloads
+    // Map ES/EN category aliases → canonical Romanian keys
+    for (const canonical of ["puncte_tari", "puncte_slabe", "oportunitati", "amenintari"]) {
+      const arr = pickSwotCategoryArray(raw, canonical);
+      if (arr !== undefined) swot[canonical] = arr;
+    }
+
+    // Legacy alias
     if (!swot.puncte_tari && swot.puncte_forte) {
       swot.puncte_tari = swot.puncte_forte;
     }
@@ -252,6 +391,14 @@ export function normalizePlanResult<T = any>(plan: T): T {
 
   if (next.plan_operational && typeof next.plan_operational === "object") {
     next.plan_operational = normalizePlanOperational(next.plan_operational);
+  }
+
+  if (next.viziune_strategie && typeof next.viziune_strategie === "object") {
+    next.viziune_strategie = normalizeVisionStrategy(next.viziune_strategie);
+  }
+
+  if (next.analiza_pietei && typeof next.analiza_pietei === "object") {
+    next.analiza_pietei = normalizeMarketAnalysis(next.analiza_pietei);
   }
 
   return next as T;
@@ -294,6 +441,7 @@ export function planNeedsExplanationFill(plan: any): boolean {
   ) {
     return true;
   }
+  if (hasEmptyCoreTextFields(plan)) return true;
   return false;
 }
 
@@ -302,42 +450,72 @@ export function buildFillMissingExplanationsPrompt(plan: any, locale: "ro" | "en
     locale === "en" ? "English" : locale === "es" ? "Spanish" : "Romanian";
 
   const op = normalizePlanOperational(plan?.plan_operational || {});
+  const viz = normalizeVisionStrategy(plan?.viziune_strategie || {});
+  const piata = normalizeMarketAnalysis(plan?.analiza_pietei || {});
+
+  // Compact SWOT: only titlu + explicatie (empty ones are the job)
+  const compactSwot: Record<string, { titlu: string; explicatie_tehnica: string }[]> = {};
+  const swot = plan?.analiza_swot || {};
+  for (const key of ["puncte_tari", "puncte_slabe", "oportunitati", "amenintari"]) {
+    const arr = Array.isArray(swot[key]) ? swot[key] : [];
+    compactSwot[key] = arr.map((item: any) => {
+      const n = normalizeSwotItem(item);
+      return { titlu: n.titlu, explicatie_tehnica: n.explicatie_tehnica || "" };
+    });
+  }
+
+  const compactBudget = (plan?.plan_financiar?.buget_investitii || []).map((b: any) => ({
+    item: b?.item || b?.nume || "",
+    cost: b?.cost || "",
+    explicatie: getBudgetItemExplanation(b) || "",
+  }));
+
   const payload = {
     nume: plan?.nume,
-    analiza_swot: plan?.analiza_swot,
-    buget_investitii: plan?.plan_financiar?.buget_investitii || [],
+    analiza_swot: compactSwot,
+    buget_investitii: compactBudget,
     plan_operational: {
       descriere_flux: op.descriere_flux || "",
       resurse_umane: op.resurse_umane || "",
       locatie_dotari: op.locatie_dotari || "",
     },
+    viziune_strategie: {
+      obiective_scurt: viz.obiective_scurt || "",
+      obiective_mediu: viz.obiective_mediu || "",
+      misiune_valori: viz.misiune_valori || "",
+    },
+    analiza_pietei: {
+      clienti_tinta: piata.clienti_tinta || "",
+      concurenta: piata.concurenta || "",
+      strategie_marketing: piata.strategie_marketing || "",
+    },
     strategie_financiara: plan?.plan_financiar?.strategie_financiara || "",
   };
 
-  return `You are fixing an incomplete business plan JSON.
-Language for ALL new text values: ${lang}.
+  return `You repair an incomplete business plan JSON.
+Language for ALL new text: ${lang}.
 
-Task:
-1) Fill EVERY empty "explicatie_tehnica" in analiza_swot items and every empty "explicatie" in buget_investitii.
-2) Fill EVERY empty plan_operational field: descriere_flux, resurse_umane, locatie_dotari (exact key names — never translate keys to ubicacion/location/etc.).
-3) Fill empty strategie_financiara if missing.
-Rules:
-- Keep JSON KEY names exactly: titlu, explicatie_tehnica, item, cost, explicatie, descriere_flux, resurse_umane, locatie_dotari, strategie_financiara
-- Do NOT translate or change keys
-- Keep existing non-empty text unchanged
-- Keep titles, costs, and item names unchanged
-- Each new SWOT/budget explanation must be 2-4 complete sentences
-- Each operational field must be 3-6 complete sentences when filled
-- CRITICAL: For each SWOT category, return the SAME number of items as received, in the SAME order. Do not drop items.
-- Return ONLY valid JSON with this shape:
+PRIORITY — fill EVERY empty "explicatie_tehnica" in SWOT and every empty "explicatie" in budget.
+Also fill any other empty string fields listed below.
+
+STRICT RULES:
+- Keep Romanian JSON KEY names exactly (puncte_tari, puncte_slabe, oportunitati, amenintari, titlu, explicatie_tehnica, item, cost, explicatie). NEVER use fortalezas/debilidades/oportunidades/amenazas as keys.
+- For EACH SWOT category return the SAME number of items, SAME order, SAME titlu values. Only fill empty explicatie_tehnica.
+- NEVER leave explicatie_tehnica empty on items 2–4 if item 1 already has text.
+- oportunitati = positive external opportunities ONLY (never cyber risk / threats).
+- amenintari = external threats/risks.
+- Budget: same rows/order; fill empty explicatie only.
+- Values in ${lang}. Return ONLY valid JSON:
 {
   "analiza_swot": { "puncte_tari": [...], "puncte_slabe": [...], "oportunitati": [...], "amenintari": [...] },
   "buget_investitii": [ { "item": "...", "cost": "...", "explicatie": "..." } ],
   "plan_operational": { "descriere_flux": "...", "resurse_umane": "...", "locatie_dotari": "..." },
+  "viziune_strategie": { "obiective_scurt": "...", "obiective_mediu": "...", "misiune_valori": "..." },
+  "analiza_pietei": { "clienti_tinta": "...", "concurenta": "...", "strategie_marketing": "..." },
   "strategie_financiara": "..."
 }
 
-Current incomplete data:
+Incomplete data:
 ${JSON.stringify(payload)}`;
 }
 
@@ -347,10 +525,15 @@ export function mergeFilledExplanations(plan: any, filled: any): any {
   const next = normalizePlanResult({ ...plan });
 
   if (filled.analiza_swot && typeof filled.analiza_swot === "object") {
-    const incomingRaw = filled.analiza_swot;
+    const incomingRaw = { ...filled.analiza_swot };
+    // Accept ES/EN category aliases from fill model
+    for (const canonical of ["puncte_tari", "puncte_slabe", "oportunitati", "amenintari"]) {
+      const arr = pickSwotCategoryArray(incomingRaw, canonical);
+      if (arr !== undefined) (incomingRaw as any)[canonical] = arr;
+    }
     const baseSwot = { ...(next.analiza_swot || {}) };
 
-    for (const key of SWOT_KEYS) {
+    for (const key of ["puncte_tari", "puncte_slabe", "oportunitati", "amenintari"] as const) {
       const original = Array.isArray(baseSwot[key]) ? baseSwot[key] : [];
       const incoming = Array.isArray(incomingRaw[key]) ? incomingRaw[key] : [];
       if (original.length === 0 && incoming.length === 0) continue;
@@ -422,6 +605,28 @@ export function mergeFilledExplanations(plan: any, filled: any): any {
       descriere_flux: baseOp.descriere_flux || fillOp.descriere_flux || "",
       resurse_umane: baseOp.resurse_umane || fillOp.resurse_umane || "",
       locatie_dotari: baseOp.locatie_dotari || fillOp.locatie_dotari || "",
+    };
+  }
+
+  if (filled.viziune_strategie && typeof filled.viziune_strategie === "object") {
+    const base = normalizeVisionStrategy(next.viziune_strategie || {});
+    const fill = normalizeVisionStrategy(filled.viziune_strategie);
+    next.viziune_strategie = {
+      ...base,
+      obiective_scurt: base.obiective_scurt || fill.obiective_scurt || "",
+      obiective_mediu: base.obiective_mediu || fill.obiective_mediu || "",
+      misiune_valori: base.misiune_valori || fill.misiune_valori || "",
+    };
+  }
+
+  if (filled.analiza_pietei && typeof filled.analiza_pietei === "object") {
+    const base = normalizeMarketAnalysis(next.analiza_pietei || {});
+    const fill = normalizeMarketAnalysis(filled.analiza_pietei);
+    next.analiza_pietei = {
+      ...base,
+      clienti_tinta: base.clienti_tinta || fill.clienti_tinta || "",
+      concurenta: base.concurenta || fill.concurenta || "",
+      strategie_marketing: base.strategie_marketing || fill.strategie_marketing || "",
     };
   }
 

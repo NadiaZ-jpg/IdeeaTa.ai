@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import DemoContent from './DemoContent';
+import { redirectRoEntryIfNeeded } from '@/lib/localeEntry';
 
 export default function DemoPage() {
   const router = useRouter();
@@ -9,16 +10,7 @@ export default function DemoPage() {
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    if (typeof window === "undefined") return;
-    const preferred = localStorage.getItem("preferred_language");
-    if (preferred === "en") { router.replace("/en/demo"); return; }
-    if (preferred === "es") { router.replace("/es/demo"); return; }
-    if (!preferred) {
-      const lang = (navigator.language || navigator.languages?.[0] || "").toLowerCase();
-      if (lang.startsWith("es")) { localStorage.setItem("preferred_language", "es"); router.replace("/es/demo"); return; }
-      if (lang.startsWith("en")) { localStorage.setItem("preferred_language", "en"); router.replace("/en/demo"); return; }
-      localStorage.setItem("preferred_language", "ro");
-    }
+    if (redirectRoEntryIfNeeded(router.replace.bind(router), "/demo")) return;
     setLocale("ro");
     setMounted(true);
   }, [router]);

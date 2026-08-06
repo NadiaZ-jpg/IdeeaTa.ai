@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import DashboardContent from './DashboardContent';
+import { redirectRoEntryIfNeeded } from '@/lib/localeEntry';
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -9,16 +10,7 @@ export default function DashboardPage() {
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    if (typeof window === "undefined") return;
-    const preferred = localStorage.getItem("preferred_language");
-    if (preferred === "en") { router.replace("/en/dashboard"); return; }
-    if (preferred === "es") { router.replace("/es/dashboard"); return; }
-    if (!preferred) {
-      const lang = (navigator.language || navigator.languages?.[0] || "").toLowerCase();
-      if (lang.startsWith("es")) { localStorage.setItem("preferred_language", "es"); router.replace("/es/dashboard"); return; }
-      if (lang.startsWith("en")) { localStorage.setItem("preferred_language", "en"); router.replace("/en/dashboard"); return; }
-      localStorage.setItem("preferred_language", "ro");
-    }
+    if (redirectRoEntryIfNeeded(router.replace.bind(router), "/dashboard")) return;
     setLocale("ro");
     setMounted(true);
   }, [router]);

@@ -4,7 +4,7 @@ import { getExchangeRateRonToEur } from "@/lib/exchangeRate";
 import { adminDb, adminAuth } from "@/lib/firebase-admin";
 import { getGeneratePrompt } from "@/lib/promptConfig";
 import { normalizePlanResult } from "@/lib/normalizePlanResult";
-import { fillMissingPlanExplanations } from "@/lib/fillMissingPlanExplanations";
+import { FREE_ACCOUNT_PLAN_LIMIT } from "@/lib/planQuota";
 
 export const maxDuration = 60; // Max execution time 60s to allow for retries and long generations
 
@@ -15,7 +15,14 @@ const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
 export async function POST(req: NextRequest) {
   try {
-    const { skill, locale, currency } = await req.json();
+    const { skill, locale, currency: rawCurrency } = await req.json();
+    // EN/ES: forțează EUR indiferent ce trimite clientul (evită bugete cu LEI pe /es|/en)
+    const currency =
+      locale === "en" || locale === "es"
+        ? "EUR"
+        : rawCurrency === "EUR"
+        ? "EUR"
+        : "LEI";
 
     // Soft Guard: Verificăm autentificarea utilizatorului și limita de planuri server-side
     const authHeader = req.headers.get("Authorization");
@@ -42,7 +49,7 @@ export async function POST(req: NextRequest) {
           userData?.promoCodeUnlocked;
 
         // Dacă utilizatorul nu este Paid și are deja 4 sau mai multe planuri, blocăm generarea
-        if (!isPaid && plansSnap.size >= 4) {
+        if (!isPaid && plansSnap.size >= FREE_ACCOUNT_PLAN_LIMIT) {
           return NextResponse.json(
             { error: "LIMIT_REACHED", message: "Ai atins limita de 4 planuri gratuite. Te rugăm să faci upgrade." },
             { status: 403 }
@@ -83,17 +90,14 @@ export async function POST(req: NextRequest) {
       text = jsonMatch[0];
     }
 
-    // Injectăm selectedCurrency + normalizăm cheile SWOT/buget (alias-uri AI)
+    // Normalizare rapidă (fără al 2-lea call Gemini aici — ăla încetinea Demo).
+    // Câmpurile goale (SWOT/buget) se completează pe client via useCompleteMissingPlanFields.
     try {
-      let parsedText = normalizePlanResult(JSON.parse(text));
-      parsedText.selectedCurrency = currency || (locale === "en" || locale === "es" ? "EUR" : "LEI");
-      // Al doilea pas: completează explicațiile SWOT/buget lipsă (titlu fără text)
-      parsedText = await fillMissingPlanExplanations(
-        parsedText,
-        locale === "en" || locale === "es" ? locale : "ro"
-      );
+      const parsedText = normalizePlanResult(JSON.parse(text));
+      parsedText.selectedCurrency =
+        currency || (locale === "en" || locale === "es" ? "EUR" : "LEI");
       text = JSON.stringify(parsedText);
-    } catch(e) {
+    } catch (e) {
       console.error("Failed to inject selectedCurrency:", e);
     }
 
@@ -101,7 +105,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({
       fx_rate: fxRate,
-      ideas: [text]
+      ideas: [text],
     });
   } catch (error: any) {
     console.error("API error:", error);

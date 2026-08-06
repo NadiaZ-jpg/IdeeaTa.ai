@@ -10,15 +10,21 @@ export const formatPriceLocalized = (
   if (typeof priceText === 'object') {
     rawText = Object.values(priceText)[0] || "";
   }
-  
-  const numericValue = parseInt(rawText.toString().replace(/[^0-9]/g, ""));
-  if (isNaN(numericValue)) return rawText;
 
+  const text = rawText.toString();
+  const numericValue = parseInt(text.replace(/[^0-9]/g, ""));
+  if (isNaN(numericValue)) return text;
+
+  const upper = text.toUpperCase();
+  const isRawEur = upper.includes("EUR") || text.includes("€");
+  const isRawLei = upper.includes("LEI") || upper.includes("RON");
+
+  // EN/ES: always show EUR. If the AI wrote LEI amounts, convert with fxRate.
   if (locale === "en" || locale === "es") {
-    return `${numericValue.toLocaleString(locale === 'en' ? 'en-US' : 'es-ES')} EUR`;
+    const eurValue =
+      isRawLei && !isRawEur ? Math.round(numericValue * fxRate) : numericValue;
+    return `${eurValue.toLocaleString(locale === "en" ? "en-US" : "es-ES")} EUR`;
   }
-
-  const isRawEur = rawText.toString().toUpperCase().includes("EUR") || rawText.toString().includes("€");
 
   if (currencyToggle === "EUR") {
     if (isRawEur) {

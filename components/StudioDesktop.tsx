@@ -18,6 +18,7 @@ import { getExamples } from '@/lib/examples';
 
 import { formatObjectNumbers, formatNumberedText } from "@/lib/utils";
 import { EXPERT_TEMPLATES, ExpertTemplate } from '@/lib/templatesData';
+import { FREE_ACCOUNT_PLAN_LIMIT, clearLocalPlanState } from '@/lib/planQuota';
 import { AuthWallModal } from '@/components/modals/AuthWallModal';
 import { EmailVerificationModal } from '@/components/modals/EmailVerificationModal';
 import { ExpertSectionsDrawer } from '@/components/modals/ExpertSectionsDrawer';
@@ -93,7 +94,13 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
   useCompleteMissingPlanFields(result, setResult, locale);
   const [loading, setLoading] = useState(false);
   const [fxRate, setFxRate] = useState(0.201);
-  const [currency, setCurrency] = useState("LEI");
+  const [currency, setCurrency] = useState(() => (locale === "ro" ? "LEI" : "EUR"));
+
+  useEffect(() => {
+    if (locale === "en" || locale === "es") {
+      setCurrency("EUR");
+    }
+  }, [locale]);
   const [isDownloading, setIsDownloading] = useState<'pdf' | 'pptx' | 'word' | 'pdf-summary' | null>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [backupResult, setBackupResult] = useState<any>(null);
@@ -265,7 +272,7 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
   };
 
   // Pre-rezolva toate string-urile UI pentru locale curent
-  const ui = UI_STRINGS[locale];
+  const ui = UI_STRINGS[locale] || UI_STRINGS.ro;
 
   const saveEditing = () => {
     setIsEditing(false);
@@ -498,7 +505,7 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
 
   const [showExamples, setShowExamples] = useState(false); 
   const [mockupTab, setMockupTab] = useState(0);
-  const [innerMockupTab, setInnerMockupTab] = useState('SWOT');
+  const [innerMockupTab, setInnerMockupTab] = useState('swot');
   
   const [user, setUser] = useState<User | null>(null);
   const [promoCodeUnlocked, setPromoCodeUnlocked] = useState(false);
@@ -591,7 +598,8 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
         console.warn("Eroare trimitere email personalizat, folosim fallback:", error);
         try {
           auth.languageCode = locale;
-          await sendEmailVerification(user);
+          const { verificationActionCodeSettings } = await import("@/lib/emailVerification");
+          await sendEmailVerification(user, verificationActionCodeSettings(locale));
           setVerificationSent(true);
         } catch (fallbackError) {
           console.error("Eroare fallback trimitere email:", fallbackError);
@@ -933,7 +941,7 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
         try {
           const plansRef = collection(db, "users", user.uid, "plans");
           const snap = await getDocs(plansRef);
-          if (snap.size >= 4) {
+          if (snap.size >= FREE_ACCOUNT_PLAN_LIMIT) {
             setShowPricingModal(true);
             return;
           }
@@ -955,11 +963,19 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
     }
 
     try {
+      const token = user ? await user.getIdToken() : null;
+      const headers: Record<string, string> = { "Content-Type": "application/json" };
+      if (token) headers["Authorization"] = `Bearer ${token}`;
+
       const [res] = await Promise.all([
         fetch("/api/generate", {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ skill, locale, currency }),
+          headers,
+          body: JSON.stringify({
+            skill,
+            locale,
+            currency: locale === "ro" ? currency : "EUR",
+          }),
         }),
         new Promise(resolve => setTimeout(resolve, 2000))
       ]);
@@ -974,6 +990,10 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
         }
 
         if (!res.ok) {
+          if (data?.error === "LIMIT_REACHED") {
+            setShowPricingModal(true);
+            return;
+          }
           throw new Error(data.error || `Eroare server: ${res.status}`);
         }
       } catch (err: any) {
@@ -1053,7 +1073,7 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
       return;
     }
     setResult(null);
-    setCurrency("LEI");
+    setCurrency(locale === "ro" ? "LEI" : "EUR");
     setIsPaid(false);
     setIsSharedView(false);
     if (typeof window !== "undefined") {
@@ -1300,7 +1320,10 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
                 </button>
               )}
               <button 
-                onClick={() => signOut(auth)}
+                  onClick={async () => {
+                    clearLocalPlanState();
+                    await signOut(auth);
+                  }}
                 className="text-zinc-500 hover:text-white transition-colors cursor-pointer"
               >
                 {ui.logOut}
@@ -1701,17 +1724,17 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
         {/* Previzualizare Plan / Mockup - 5 Taburi */}
         <div className="mt-24 w-full max-w-5xl relative z-10">
           <h3 className="text-2xl md:text-3xl font-black mb-4 tracking-tighter bg-gradient-to-r from-zinc-400 via-emerald-400 to-zinc-400 bg-clip-text text-transparent animate-shimmer text-center">
-            Cum arată un plan generat?
+            {ui.howItLooks}
           </h3>
-          <p className="text-xl lg:text-2xl font-medium text-zinc-400 text-center mb-10">Perspectivă</p>
+          <p className="text-xl lg:text-2xl font-medium text-zinc-400 text-center mb-10">{ui.perspective}</p>
 
           {/* Tab buttons */}
           <div className="flex flex-wrap justify-center gap-2 mb-8">
             {[
-              { id: 0, label: '🎬 Preview cu tabs' },
-              { id: 1, label: '📊 Grafice animate' },
-              { id: 2, label: '🖥️ Typing live' },
-              { id: 4, label: '✨ Înainte & După' },
+              { id: 0, label: `👀 ${ui.previewTabs}` },
+              { id: 1, label: `📈 ${ui.animatedCharts}` },
+              { id: 2, label: `💻 ${ui.typingLive}` },
+              { id: 4, label: `✨ ${ui.beforeAfter}` },
             ].map((tab) => (
               <button
                 key={tab.id}
@@ -1789,6 +1812,7 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
             isDownloading={isDownloading}
             isPlanPaid={isPlanPaid}
             isEditing={isEditing}
+            isSharedView={isSharedView}
             showCurrencyToggle={shouldShowCurrencyToggle(locale, isSharedView)}
           />
 

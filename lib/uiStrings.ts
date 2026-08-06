@@ -99,8 +99,11 @@ type UIStringsShape = {
   mockupSwotO_Title: string; mockupSwotO_1: string; mockupSwotO_2: string; mockupSwotO_3: string;
   mockupSwotT_Title: string; mockupSwotT_1: string; mockupSwotT_2: string; mockupSwotT_3: string;
   mockupBudgetTitle: string; mockupBudgetEq: string; mockupBudgetDes: string; mockupBudgetStock: string;
+  mockupBudgetEqVal: string; mockupBudgetDesVal: string; mockupBudgetStockVal: string; mockupBudgetTotal: string; mockupBudgetTotalVal: string;
   mockupStrategy1_Title: string; mockupStrategy1_Desc: string;
   mockupStrategy2_Title: string; mockupStrategy2_Desc: string;
+  mockupStrategy3_Title: string; mockupStrategy3_Desc: string;
+  mockupFinYearTitle: string; mockupFinYearDesc: string; mockupChartRevenue: string; mockupChartCostsDist: string;
   mockupChartSalaries: string; mockupChartRent: string; mockupChartStock: string; mockupChartMarketing: string;
   mockupProfitMargin: string;
   mockupLiveTitle: string; mockupLiveGen: string; mockupLiveRev: string; mockupLiveRev1: string; mockupLiveRev2: string; mockupLiveRev3: string;
@@ -242,8 +245,12 @@ export const UI_STRINGS: Record<Locale, UIStringsShape> = {
     mockupSwotO_Title: "Oportunități", mockupSwotO_1: "Creșterea cererii pentru cafea de specialitate", mockupSwotO_2: "Parteneriate B2B cu birourile din zonă", mockupSwotO_3: "Abonament lunar pentru boabe de cafea",
     mockupSwotT_Title: "Amenințări", mockupSwotT_1: "Fluctuația prețului cafelei verzi", mockupSwotT_2: "Deschiderea unei noi francize în apropiere", mockupSwotT_3: "Reticența clienților tradiționaliști",
     mockupBudgetTitle: "Buget de Investiții Inițiale", mockupBudgetEq: "Echipamente (Espressor, Râșnițe)", mockupBudgetDes: "Amenajare locație & Design", mockupBudgetStock: "Stoc inițial marfă & Consumabile",
+    mockupBudgetEqVal: "62.000 lei", mockupBudgetDesVal: "85.000 lei", mockupBudgetStockVal: "17.000 lei", mockupBudgetTotal: "Total Investiție Estimată", mockupBudgetTotalVal: "164.000 lei",
     mockupStrategy1_Title: "Pre-lansare & Teasing", mockupStrategy1_Desc: "Campanie Social Media axată pe procesul de amenajare, prezentarea echipei și dezvăluirea prăjitorului partener.",
     mockupStrategy2_Title: "Soft Opening", mockupStrategy2_Desc: "O săptămână dedicată exclusiv comunității locale și influencerilor din nișa culinară, cu un meniu limitat la 50% reducere.",
+    mockupStrategy3_Title: "Fidelizare B2B", mockupStrategy3_Desc: "Pachete speciale pentru angajații birourilor din proximitate: badge-uri de companie care oferă 15% discount permanent.",
+    mockupFinYearTitle: "Proiecții Financiare: Anul 1", mockupFinYearDesc: "Estimare a veniturilor și a distribuției costurilor operaționale (în RON).",
+    mockupChartRevenue: "Evoluție Venituri", mockupChartCostsDist: "Distribuție Costuri",
     mockupChartSalaries: "Salarii", mockupChartRent: "Chirie & Utilități", mockupChartStock: "Stoc Marfă", mockupChartMarketing: "Marketing",
     mockupProfitMargin: "Marjă Profit",
     mockupLiveTitle: "# Plan de Afaceri - Cafenea de Specialitate \"Urban Beans\"", mockupLiveGen: "> Generând proiecții financiare (în LEI)...", mockupLiveRev: "## Venituri Estimate", mockupLiveRev1: "- Trimestrul 1: 150.000 lei (creștere organică)", mockupLiveRev2: "- Trimestrul 2: 275.000 lei (sezon cald)", mockupLiveRev3: "- Trimestrul 3: 400.000 lei (B2B stabilizat)",
@@ -383,8 +390,12 @@ export const UI_STRINGS: Record<Locale, UIStringsShape> = {
     mockupSwotO_Title: "Opportunities", mockupSwotO_1: "Growing demand for specialty coffee", mockupSwotO_2: "B2B partnerships with local offices", mockupSwotO_3: "Monthly coffee bean subscription",
     mockupSwotT_Title: "Threats", mockupSwotT_1: "Green coffee price fluctuations", mockupSwotT_2: "Opening of a new major franchise nearby", mockupSwotT_3: "Reluctance of traditionalist customers",
     mockupBudgetTitle: "Initial Investment Budget", mockupBudgetEq: "Equipment (Espresso machines, Grinders)", mockupBudgetDes: "Location setup & Design", mockupBudgetStock: "Initial inventory & Supplies",
+    mockupBudgetEqVal: "€12,500", mockupBudgetDesVal: "€17,000", mockupBudgetStockVal: "€3,500", mockupBudgetTotal: "Estimated Total Investment", mockupBudgetTotalVal: "€33,000",
     mockupStrategy1_Title: "Pre-launch & Teasing", mockupStrategy1_Desc: "Social Media campaign focused on the setup process, presenting the team and revealing the partner roaster.",
     mockupStrategy2_Title: "Soft Opening", mockupStrategy2_Desc: "A week dedicated exclusively to the local community and culinary influencers, with a limited menu at 50% discount.",
+    mockupStrategy3_Title: "B2B Loyalty", mockupStrategy3_Desc: "Special packages for nearby office employees: company badges with a permanent 15% discount.",
+    mockupFinYearTitle: "Financial Projections: Year 1", mockupFinYearDesc: "Estimated revenue and operating cost distribution (in EUR).",
+    mockupChartRevenue: "Revenue Growth", mockupChartCostsDist: "Cost Distribution",
     mockupChartSalaries: "Salaries", mockupChartRent: "Rent & Utilities", mockupChartStock: "Inventory", mockupChartMarketing: "Marketing",
     mockupProfitMargin: "Profit Margin",
     mockupLiveTitle: "# Business Plan - Specialty Coffee Shop \"Urban Beans\"", mockupLiveGen: "> Generating financial projections...", mockupLiveRev: "## Estimated Revenues", mockupLiveRev1: "- Quarter 1: 150,000 (organic growth)", mockupLiveRev2: "- Quarter 2: 275,000 (warm season)", mockupLiveRev3: "- Quarter 3: 400,000 (stable B2B)",
@@ -524,8 +535,12 @@ export const UI_STRINGS: Record<Locale, UIStringsShape> = {
     mockupSwotO_Title: "Oportunidades", mockupSwotO_1: "Creciente demanda de café de especialidad", mockupSwotO_2: "Asociaciones B2B con oficinas de la zona", mockupSwotO_3: "Suscripción mensual de granos de café",
     mockupSwotT_Title: "Amenazas", mockupSwotT_1: "Fluctuación del precio del café verde", mockupSwotT_2: "Apertura de una nueva franquicia cercana", mockupSwotT_3: "Reticencia de los clientes tradicionalistas",
     mockupBudgetTitle: "Presupuesto de Inversión Inicial", mockupBudgetEq: "Equipamiento (Máquinas, Molinillos)", mockupBudgetDes: "Acondicionamiento y Diseño", mockupBudgetStock: "Inventario inicial y Suministros",
+    mockupBudgetEqVal: "12.500 €", mockupBudgetDesVal: "17.000 €", mockupBudgetStockVal: "3.500 €", mockupBudgetTotal: "Inversión Total Estimada", mockupBudgetTotalVal: "33.000 €",
     mockupStrategy1_Title: "Pre-lanzamiento y Teasing", mockupStrategy1_Desc: "Campaña en redes sociales centrada en el proceso de montaje, presentación del equipo y revelación del tostador asociado.",
     mockupStrategy2_Title: "Apertura Suave", mockupStrategy2_Desc: "Una semana dedicada exclusivamente a la comunidad local e influencers culinarios, con un menú limitado al 50% de descuento.",
+    mockupStrategy3_Title: "Fidelización B2B", mockupStrategy3_Desc: "Paquetes especiales para empleados de oficinas cercanas: badges de empresa con un 15% de descuento permanente.",
+    mockupFinYearTitle: "Proyecciones Financieras: Año 1", mockupFinYearDesc: "Estimación de ingresos y distribución de costes operativos (en EUR).",
+    mockupChartRevenue: "Evolución de Ingresos", mockupChartCostsDist: "Distribución de Costes",
     mockupChartSalaries: "Salarios", mockupChartRent: "Alquiler y Servicios", mockupChartStock: "Inventario", mockupChartMarketing: "Marketing",
     mockupProfitMargin: "Margen de Beneficio",
     mockupLiveTitle: "# Plan de Negocio - Cafetería de Especialidad \"Urban Beans\"", mockupLiveGen: "> Generando proyecciones financieras...", mockupLiveRev: "## Ingresos Estimados", mockupLiveRev1: "- Trimestre 1: 150.000 (crecimiento orgánico)", mockupLiveRev2: "- Trimestre 2: 275.000 (temporada cálida)", mockupLiveRev3: "- Trimestre 3: 400.000 (B2B estable)",

@@ -5,7 +5,7 @@ import { toPng } from "html-to-image";
 import pptxgen from "pptxgenjs";
 import { auth, db } from '@/lib/firebase';
 import { signInWithPopup, GoogleAuthProvider, FacebookAuthProvider, onAuthStateChanged, User, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, sendPasswordResetEmail, sendEmailVerification } from 'firebase/auth';
-import { doc, setDoc, getDoc, increment, arrayUnion, onSnapshot } from 'firebase/firestore';
+import { doc, setDoc, getDoc, increment, arrayUnion, onSnapshot, collection, getDocs } from 'firebase/firestore';
 import { PricingModal } from '@/components/PricingModal';
 import { LanguageSwitcher } from '@/components/LanguageSwitcher';
 import { AdBanner } from '@/components/AdBanner';
@@ -25,6 +25,7 @@ import dynamic from 'next/dynamic';
 import { formatObjectNumbers, formatNumberedText } from "@/lib/utils";
 import { useSharedPlanLoader } from "@/hooks/useSharedPlanLoader";
 import { createAndCopySharedPlanLink } from "@/lib/sharePlan";
+import { FREE_ACCOUNT_PLAN_LIMIT, GUEST_DEMO_PLAN_LIMIT } from "@/lib/planQuota";
 
 const BudgetPieChart = dynamic(() => import('@/components/BudgetChart').then(mod => mod.BudgetPieChart), { ssr: false });
 export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "es" }) {
@@ -118,6 +119,7 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
   const [isLoginMode, setIsLoginMode] = useState(true);
   const [isEmailLoading, setIsEmailLoading] = useState(false);
   const [authError, setAuthError] = useState<string | null>(null);
+  const [verificationEmailSent, setVerificationEmailSent] = useState(false);
 
   // Stări permisiuni utilizator
   const [credits, setCredits] = useState(0);
@@ -220,7 +222,7 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
       currentExamples.push(ALL_EXAMPLES[(startIndex + i) % ALL_EXAMPLES.length]);
     }
     setExamplesList(currentExamples);
-  }, []);
+  }, [locale]);
 
   // Progressive loading messages
   const [loadingMessageIndex, setLoadingMessageIndex] = useState(0);
@@ -321,25 +323,46 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
 
     if (!user) {
       const count = parseInt(localStorage.getItem("demoGenerateCount") || "0", 10);
-      if (count >= 3) {
+      if (count >= GUEST_DEMO_PLAN_LIMIT) {
         setShowAuthModal(true);
         return;
       }
       localStorage.setItem("demoGenerateCount", (count + 1).toString());
       setDemoCount(count + 1);
+    } else if (!isAdmin && !isPaid) {
+      try {
+        const snap = await getDocs(collection(db, "users", user.uid, "plans"));
+        if (snap.size >= FREE_ACCOUNT_PLAN_LIMIT) {
+          setShowPricingModal(true);
+          return;
+        }
+      } catch (err) {
+        console.error("Eroare verificare limită planuri:", err);
+      }
     }
 
     setLoading(true);
     setResult(null);
 
     try {
+      const token = user ? await user.getIdToken() : null;
+      const headers: Record<string, string> = { "Content-Type": "application/json" };
+      if (token) headers["Authorization"] = `Bearer ${token}`;
+
       const res = await fetch("/api/generate", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers,
         body: JSON.stringify({ skill: inputSkill, locale, currency: locale === "ro" ? "LEI" : "EUR" }),
       });
 
-      if (!res.ok) throw new Error("Eroare la generare");
+      if (!res.ok) {
+        const errBody = await res.json().catch(() => ({}));
+        if (errBody?.error === "LIMIT_REACHED") {
+          setShowPricingModal(true);
+          return;
+        }
+        throw new Error(errBody?.message || "Eroare la generare");
+      }
 
       const data = await res.json();
       if (data.fx_rate) setFxRate(data.fx_rate);
@@ -354,44 +377,50 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
 
         cleanJson = cleanJson.replace(/,\s*([}\]])/g, '$1');
         const finalResult = formatObjectNumbers(JSON.parse(cleanJson));
+        const planId =
+          String(finalResult.nume || "Plan").replace(/[^a-zA-Z0-9]/g, "_") + "_" + Date.now();
+        finalResult.id = planId;
         setVersionsState({});
         setActiveVersionId("original");
         setResult(finalResult);
         localStorage.setItem("current_generated_plan", JSON.stringify(finalResult));
-        
-        // Adăugăm în demo_plans_list
-        try {
-          const listStr = localStorage.getItem("demo_plans_list");
-          let list = listStr ? JSON.parse(listStr) : [];
-          if (!Array.isArray(list)) list = [];
-          const planToSave = { ...finalResult };
-          if (!planToSave.id) {
-            const safeName = planToSave.nume?.replace(/[^a-zA-Z0-9]/g, '_') || 'Plan';
-            planToSave.id = `${safeName}_${Date.now()}`;
-          }
-          const exists = list.some((p: any) => p.nume === planToSave.nume || p.id === planToSave.id);
-          if (!exists) {
-            list.push(planToSave);
-            localStorage.setItem("demo_plans_list", JSON.stringify(list));
-          }
-        } catch (err) {
-          console.error(err);
-        }
 
-        if (user) {
+        // Guest only: listă locală pentru migrare la login.
+        // Logat → doar Firestore (altfel migrate creează duplicate cu alt id).
+        if (!user) {
           try {
-            const planId = finalResult.nume.replace(/[^a-zA-Z0-9]/g, '_') + "_" + Date.now();
+            const listStr = localStorage.getItem("demo_plans_list");
+            let list = listStr ? JSON.parse(listStr) : [];
+            if (!Array.isArray(list)) list = [];
+            const exists = list.some((p: any) => p.nume === finalResult.nume || p.id === planId);
+            if (!exists) {
+              list.push(finalResult);
+              localStorage.setItem("demo_plans_list", JSON.stringify(list));
+            }
+          } catch (err) {
+            console.error(err);
+          }
+        } else {
+          try {
             await setDoc(doc(db, "users", user.uid, "plans", planId), {
               ...finalResult,
               createdAt: new Date().toISOString(),
-              isPaid: false
+              isPaid: false,
             });
           } catch (fsError) {
             console.error("Firestore save error:", fsError);
           }
         }
       }
-      alert(locale === "en" ? "An error occurred during generation. Please try again." : locale === "es" ? "Ocurrió un error al generar. Por favor, inténtelo de nuevo." : "A apărut o eroare la generare. Vă rugăm să încercați din nou.");
+    } catch (error: any) {
+      console.error("Eroare generare:", error);
+      alert(
+        locale === "en"
+          ? "An error occurred during generation. Please try again."
+          : locale === "es"
+          ? "Ocurrió un error al generar. Por favor, inténtelo de nuevo."
+          : "A apărut o eroare la generare. Vă rugăm să încercați din nou."
+      );
     } finally {
       setLoading(false);
     }
@@ -439,13 +468,20 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
 
   const handleSocialLogin = async (provider: 'google' | 'facebook') => {
     setAuthError(null);
+    setVerificationEmailSent(false);
     try {
       const authProvider = provider === 'google' ? new GoogleAuthProvider() : new FacebookAuthProvider();
       await signInWithPopup(auth, authProvider);
       setShowAuthModal(false);
     } catch (error: any) {
       if (error.code === 'auth/popup-closed-by-user') return;
-      setAuthError("Eroare la autentificare cu partenerul social.");
+      setAuthError(
+        locale === "en"
+          ? "Social sign-in failed. Please try again."
+          : locale === "es"
+          ? "Error al iniciar sesión con la red social. Inténtalo de nuevo."
+          : "Eroare la autentificare cu partenerul social."
+      );
     }
   };
 
@@ -453,9 +489,11 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
     e.preventDefault();
     setIsEmailLoading(true);
     setAuthError(null);
+    setVerificationEmailSent(false);
     try {
       if (isLoginMode) {
         await signInWithEmailAndPassword(auth, email, password);
+        setShowAuthModal(false);
       } else {
         const userCredential = await createUserWithEmailAndPassword(auth, email, password);
         try {
@@ -469,15 +507,51 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
           console.warn("Eroare API la trimitere email initial, folosim fallback:", apiError);
           try {
             auth.languageCode = locale;
-            await sendEmailVerification(userCredential.user);
+            const { verificationActionCodeSettings } = await import("@/lib/emailVerification");
+            await sendEmailVerification(
+              userCredential.user,
+              verificationActionCodeSettings(locale)
+            );
           } catch (fallbackError) {
             console.error("Eroare fallback trimitere email initial:", fallbackError);
           }
         }
+        setVerificationEmailSent(true);
       }
-      setShowAuthModal(false);
     } catch (error: any) {
-      setAuthError("Email sau parolă incorectă.");
+      if (error.code === 'auth/email-already-in-use') {
+        setAuthError(
+          locale === "en"
+            ? "An account already exists with this email. Please log in."
+            : locale === "es"
+            ? "Ya existe una cuenta con este correo. Por favor, inicia sesión."
+            : "Există deja un cont cu acest email. Te rugăm să te loghezi."
+        );
+      } else if (error.code === 'auth/weak-password') {
+        setAuthError(
+          locale === "en"
+            ? "Password must be at least 6 characters."
+            : locale === "es"
+            ? "La contraseña debe tener al menos 6 caracteres."
+            : "Parola trebuie să aibă cel puțin 6 caractere."
+        );
+      } else if (error.code === 'auth/invalid-email') {
+        setAuthError(
+          locale === "en"
+            ? "Invalid email address."
+            : locale === "es"
+            ? "Correo electrónico no válido."
+            : "Adresă de email invalidă."
+        );
+      } else {
+        setAuthError(
+          locale === "en"
+            ? "Incorrect email or password."
+            : locale === "es"
+            ? "Correo o contraseña incorrectos."
+            : "Email sau parolă incorectă."
+        );
+      }
     } finally {
       setIsEmailLoading(false);
     }
@@ -518,7 +592,7 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
 
       {/* Header */}
       <header className={`h-16 px-4 flex items-center justify-between border-b border-zinc-800/80 sticky top-0 bg-[#09090b]/80 backdrop-blur-md z-30 transition-transform duration-300 ${showHeader ? 'translate-y-0' : '-translate-y-full'}`}>
-        <Link href="/" className="text-xl font-black tracking-tight">
+        <Link href={isEn ? "/en" : isEs ? "/es" : "/"} className="text-xl font-black tracking-tight">
           IdeeaTa<span className="text-emerald-500">.ai</span>
         </Link>
         {!result && <LanguageSwitcher currentLocale={locale} />}
@@ -595,10 +669,10 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
               {!user && (
                 <div className="text-center mt-2">
                   <span className="text-[11px] font-bold text-emerald-400">
-                    {demoCount >= 3 ? (
+                    {demoCount >= GUEST_DEMO_PLAN_LIMIT ? (
                       `🔒 ${ui.limitReached}`
                     ) : (
-                      `🎁 ${ui.limitRemaining.replace("{{count}}", String(3 - demoCount))}`
+                      `🎁 ${ui.limitRemaining.replace("{{count}}", String(GUEST_DEMO_PLAN_LIMIT - demoCount))}`
                     )}
                   </span>
                 </div>
@@ -986,6 +1060,35 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
               </div>
             )}
 
+            {verificationEmailSent ? (
+              <div className="bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs py-3 px-3 rounded-xl text-center font-semibold space-y-3">
+                <p>
+                  {locale === "en"
+                    ? "Account created! Check your inbox and confirm your email."
+                    : locale === "es"
+                    ? "¡Cuenta creada! Revisa tu bandeja de entrada y confirma tu correo."
+                    : "Cont creat! Verifică inbox-ul și confirmă adresa de email."}
+                </p>
+                <p className="text-[10px] text-emerald-400/80 font-medium">
+                  {locale === "en"
+                    ? "The confirmation page opens in English."
+                    : locale === "es"
+                    ? "La página de confirmación se abre en español."
+                    : "Pagina de confirmare se deschide în română."}
+                </p>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowAuthModal(false);
+                    setVerificationEmailSent(false);
+                  }}
+                  className="w-full min-h-[44px] bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 rounded-xl text-xs"
+                >
+                  {locale === "en" ? "Got it" : locale === "es" ? "Entendido" : "Am înțeles"}
+                </button>
+              </div>
+            ) : (
+            <>
             <form onSubmit={handleEmailAuth} className="space-y-3.5">
               <input
                 type="email"
@@ -1006,7 +1109,7 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
               <button
                 type="submit"
                 disabled={isEmailLoading}
-                className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 rounded-xl text-xs transition-all active:scale-95 disabled:opacity-50"
+                className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 rounded-xl text-xs transition-all active:scale-95 disabled:opacity-50 min-h-[44px]"
               >
                 {isEmailLoading 
                   ? (locale === "en" ? "Processing..." : locale === "es" ? "Procesando..." : "Se procesează...") 
@@ -1037,7 +1140,11 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
 
             <div className="text-center">
               <button
-                onClick={() => setIsLoginMode(!isLoginMode)}
+                onClick={() => {
+                  setIsLoginMode(!isLoginMode);
+                  setAuthError(null);
+                  setVerificationEmailSent(false);
+                }}
                 className="text-[11px] text-emerald-400 hover:text-emerald-300 font-semibold p-2 -m-2 inline-flex items-center justify-center min-h-[44px]"
               >
                 {isLoginMode 
@@ -1045,6 +1152,8 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
                   : (locale === "en" ? "Already have an account? Log in" : locale === "es" ? "¿Ya tienes una cuenta? Inicia sesión" : "Ai deja cont? Conectează-te")}
               </button>
             </div>
+            </>
+            )}
           </div>
         </div>
       )}
@@ -1064,7 +1173,7 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
         userId={user?.uid || ""}
         userEmail={user?.email || ""}
         currency={locale === "ro" ? "LEI" : "EUR"}
-        planName={result?.nume || (locale === "en" ? "Business Plan" : "Plan de Afaceri")}
+        planName={result?.nume || (locale === "en" ? "Business Plan" : locale === "es" ? "Plan de Negocios" : "Plan de Afaceri")}
         locale={locale}
       />
       {/* Meniu Exporturi Bottom-Sheet */}
@@ -1091,7 +1200,7 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
                 className="w-full bg-zinc-950 border border-zinc-800 text-zinc-300 hover:text-white font-bold py-3.5 rounded-xl text-xs transition-all active:scale-95 text-left px-4 flex justify-between items-center"
               >
                 <span>📄 {locale === "en" ? "Free PDF Summary" : locale === "es" ? "Resumen PDF Gratis" : "Sumar PDF Gratuit"}</span>
-                <span className="text-[10px] bg-emerald-500/10 text-emerald-400 px-2 py-0.5 rounded font-black uppercase">{locale === "en" ? "Free" : "Gratis"}</span>
+                <span className="text-[10px] bg-emerald-500/10 text-emerald-400 px-2 py-0.5 rounded font-black uppercase">{locale === "en" ? "Free" : locale === "es" ? "Gratis" : "Gratuit"}</span>
               </button>
 
               {/* Word (DOCX) Premium */}

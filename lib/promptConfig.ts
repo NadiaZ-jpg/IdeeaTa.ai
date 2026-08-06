@@ -24,10 +24,30 @@ export const PLAN_SKELETONS = {
       strategie_marketing: "Marketing and pricing strategy"
     },
     analiza_swot: {
-      puncte_tari: [ { titlu: "Strength 1", explicatie_tehnica: "Explanation" } ],
-      puncte_slabe: [ { titlu: "Weakness 1", explicatie_tehnica: "Explanation" } ],
-      oportunitati: [ { titlu: "Opportunity 1", explicatie_tehnica: "Explanation" } ],
-      amenintari: [ { titlu: "Threat 1", explicatie_tehnica: "Explanation" } ]
+      puncte_tari: [
+        { titlu: "Strength 1", explicatie_tehnica: "2-4 sentences explaining why this is a strength." },
+        { titlu: "Strength 2", explicatie_tehnica: "2-4 sentences explaining why this is a strength." },
+        { titlu: "Strength 3", explicatie_tehnica: "2-4 sentences explaining why this is a strength." },
+        { titlu: "Strength 4", explicatie_tehnica: "2-4 sentences explaining why this is a strength." },
+      ],
+      puncte_slabe: [
+        { titlu: "Weakness 1", explicatie_tehnica: "2-4 sentences explaining this internal weakness." },
+        { titlu: "Weakness 2", explicatie_tehnica: "2-4 sentences explaining this internal weakness." },
+        { titlu: "Weakness 3", explicatie_tehnica: "2-4 sentences explaining this internal weakness." },
+        { titlu: "Weakness 4", explicatie_tehnica: "2-4 sentences explaining this internal weakness." },
+      ],
+      oportunitati: [
+        { titlu: "Opportunity 1", explicatie_tehnica: "2-4 sentences on an EXTERNAL positive market opportunity (never a risk)." },
+        { titlu: "Opportunity 2", explicatie_tehnica: "2-4 sentences on an EXTERNAL positive market opportunity (never a risk)." },
+        { titlu: "Opportunity 3", explicatie_tehnica: "2-4 sentences on an EXTERNAL positive market opportunity (never a risk)." },
+        { titlu: "Opportunity 4", explicatie_tehnica: "2-4 sentences on an EXTERNAL positive market opportunity (never a risk)." },
+      ],
+      amenintari: [
+        { titlu: "Threat 1", explicatie_tehnica: "2-4 sentences on an EXTERNAL risk/threat (cyber risk, competition, regulation)." },
+        { titlu: "Threat 2", explicatie_tehnica: "2-4 sentences on an EXTERNAL risk/threat (cyber risk, competition, regulation)." },
+        { titlu: "Threat 3", explicatie_tehnica: "2-4 sentences on an EXTERNAL risk/threat (cyber risk, competition, regulation)." },
+        { titlu: "Threat 4", explicatie_tehnica: "2-4 sentences on an EXTERNAL risk/threat (cyber risk, competition, regulation)." },
+      ],
     },
     plan_operational: {
       descriere_flux: "Description of operations, explicitly detailing the green transition and digitalization.",
@@ -60,10 +80,30 @@ export const PLAN_SKELETONS = {
       strategie_marketing: "Estrategia de marketing y precios"
     },
     analiza_swot: {
-      puncte_tari: [ { titlu: "Fortaleza 1", explicatie_tehnica: "Explicación" } ],
-      puncte_slabe: [ { titlu: "Debilidad 1", explicatie_tehnica: "Explicación" } ],
-      oportunitati: [ { titlu: "Oportunidad 1", explicatie_tehnica: "Explicación" } ],
-      amenintari: [ { titlu: "Amenaza 1", explicatie_tehnica: "Explicación" } ]
+      puncte_tari: [
+        { titlu: "Fortaleza 1", explicatie_tehnica: "2-4 frases explicando por qué es una fortaleza." },
+        { titlu: "Fortaleza 2", explicatie_tehnica: "2-4 frases explicando por qué es una fortaleza." },
+        { titlu: "Fortaleza 3", explicatie_tehnica: "2-4 frases explicando por qué es una fortaleza." },
+        { titlu: "Fortaleza 4", explicatie_tehnica: "2-4 frases explicando por qué es una fortaleza." },
+      ],
+      puncte_slabe: [
+        { titlu: "Debilidad 1", explicatie_tehnica: "2-4 frases explicando esta debilidad interna." },
+        { titlu: "Debilidad 2", explicatie_tehnica: "2-4 frases explicando esta debilidad interna." },
+        { titlu: "Debilidad 3", explicatie_tehnica: "2-4 frases explicando esta debilidad interna." },
+        { titlu: "Debilidad 4", explicatie_tehnica: "2-4 frases explicando esta debilidad interna." },
+      ],
+      oportunitati: [
+        { titlu: "Oportunidad 1", explicatie_tehnica: "2-4 frases sobre una oportunidad EXTERNA positiva (nunca un riesgo)." },
+        { titlu: "Oportunidad 2", explicatie_tehnica: "2-4 frases sobre una oportunidad EXTERNA positiva (nunca un riesgo)." },
+        { titlu: "Oportunidad 3", explicatie_tehnica: "2-4 frases sobre una oportunidad EXTERNA positiva (nunca un riesgo)." },
+        { titlu: "Oportunidad 4", explicatie_tehnica: "2-4 frases sobre una oportunidad EXTERNA positiva (nunca un riesgo)." },
+      ],
+      amenintari: [
+        { titlu: "Amenaza 1", explicatie_tehnica: "2-4 frases sobre un riesgo/amenaza EXTERNA (ciberriesgo, competencia, regulación)." },
+        { titlu: "Amenaza 2", explicatie_tehnica: "2-4 frases sobre un riesgo/amenaza EXTERNA (ciberriesgo, competencia, regulación)." },
+        { titlu: "Amenaza 3", explicatie_tehnica: "2-4 frases sobre un riesgo/amenaza EXTERNA (ciberriesgo, competencia, regulación)." },
+        { titlu: "Amenaza 4", explicatie_tehnica: "2-4 frases sobre un riesgo/amenaza EXTERNA (ciberriesgo, competencia, regulación)." },
+      ],
     },
     plan_operational: {
       descriere_flux: "Descripción de operaciones, detallando explícitamente la transición ecológica y la digitalización.",
@@ -96,10 +136,30 @@ export const PLAN_SKELETONS = {
       strategie_marketing: "Strategia de marketing și prețuri"
     },
     analiza_swot: {
-      puncte_tari: [ { titlu: "Punct tare 1", explicatie_tehnica: "Explicație tehnică" } ],
-      puncte_slabe: [ { titlu: "Punct slab 1", explicatie_tehnica: "Explicație tehnică" } ],
-      oportunitati: [ { titlu: "Oportunitate 1", explicatie_tehnica: "Explicație tehnică" } ],
-      amenintari: [ { titlu: "Amenințare 1", explicatie_tehnica: "Explicație tehnică" } ]
+      puncte_tari: [
+        { titlu: "Punct tare 1", explicatie_tehnica: "2-4 propoziții care explică de ce e un punct tare." },
+        { titlu: "Punct tare 2", explicatie_tehnica: "2-4 propoziții care explică de ce e un punct tare." },
+        { titlu: "Punct tare 3", explicatie_tehnica: "2-4 propoziții care explică de ce e un punct tare." },
+        { titlu: "Punct tare 4", explicatie_tehnica: "2-4 propoziții care explică de ce e un punct tare." },
+      ],
+      puncte_slabe: [
+        { titlu: "Punct slab 1", explicatie_tehnica: "2-4 propoziții despre această slăbiciune internă." },
+        { titlu: "Punct slab 2", explicatie_tehnica: "2-4 propoziții despre această slăbiciune internă." },
+        { titlu: "Punct slab 3", explicatie_tehnica: "2-4 propoziții despre această slăbiciune internă." },
+        { titlu: "Punct slab 4", explicatie_tehnica: "2-4 propoziții despre această slăbiciune internă." },
+      ],
+      oportunitati: [
+        { titlu: "Oportunitate 1", explicatie_tehnica: "2-4 propoziții despre o oportunitate EXTERNĂ pozitivă (niciodată un risc)." },
+        { titlu: "Oportunitate 2", explicatie_tehnica: "2-4 propoziții despre o oportunitate EXTERNĂ pozitivă (niciodată un risc)." },
+        { titlu: "Oportunitate 3", explicatie_tehnica: "2-4 propoziții despre o oportunitate EXTERNĂ pozitivă (niciodată un risc)." },
+        { titlu: "Oportunitate 4", explicatie_tehnica: "2-4 propoziții despre o oportunitate EXTERNĂ pozitivă (niciodată un risc)." },
+      ],
+      amenintari: [
+        { titlu: "Amenințare 1", explicatie_tehnica: "2-4 propoziții despre un risc/amenințare EXTERNĂ." },
+        { titlu: "Amenințare 2", explicatie_tehnica: "2-4 propoziții despre un risc/amenințare EXTERNĂ." },
+        { titlu: "Amenințare 3", explicatie_tehnica: "2-4 propoziții despre un risc/amenințare EXTERNĂ." },
+        { titlu: "Amenințare 4", explicatie_tehnica: "2-4 propoziții despre un risc/amenințare EXTERNĂ." },
+      ],
     },
     plan_operational: {
       descriere_flux: "Descrierea operațiunilor, detaliind explicit tranziția verde (Pilonul Verde) și digitalizarea (Componenta Tech).",
@@ -131,19 +191,27 @@ export function getGeneratePrompt(locale: "ro" | "en" | "es", skill: string, cur
   }
 
   if (isEn) {
+    // Ensure EUR costs in skeleton for EN (same as ES)
+    if (skeleton.plan_financiar?.buget_investitii?.[0]) {
+      skeleton.plan_financiar.buget_investitii[0].cost = "3000 EUR";
+    }
     return `Generate a comprehensive business plan in English based on the following skill or business idea: "${skill}".
 It must adhere to the official standards for accessing Eco-Tech / Sustainability and Digitalization SME programs in 2026.
 You must strictly follow the requirements for the green transition (Eco-Tech/Sustainability) and digitalization (Automation/ERP/CRM).
 Return the result strictly as a valid JSON object with the following structure:
 ${JSON.stringify(skeleton, null, 2)}
-Include at least 6-8 budgeted items (must include green tech and software/digitalization).
+Include at least 6-8 budgeted items (must include green tech and software/digitalization). Costs in EUR.
 STRICT STRUCTURE RULES (do not break the app):
-- Keep JSON KEY names EXACTLY as in the skeleton (do NOT translate keys). Values in English; required keys stay Romanian names: titlu, explicatie_tehnica, item, explicatie, cost, descriere_flux, resurse_umane, locatie_dotari, strategie_financiara, etc.
+- Keep JSON KEY names EXACTLY as in the skeleton (do NOT translate keys). Values in English; required keys stay Romanian names: titlu, explicatie_tehnica, item, explicatie, cost, descriere_flux, resurse_umane, locatie_dotari, obiective_scurt, obiective_mediu, misiune_valori, clienti_tinta, concurenta, strategie_marketing, strategie_financiara, etc.
 - NEVER rename locatie_dotari to location_facilities / facilities. Key must be exactly "locatie_dotari" with non-empty text (3-6 sentences).
+- NEVER rename misiune_valori to mission_values / mission / values. Key must be exactly "misiune_valori" with non-empty text (3-6 sentences).
 - plan_operational MUST include all 3 non-empty keys: "descriere_flux", "resurse_umane", "locatie_dotari".
-- Every SWOT item MUST include BOTH "titlu" AND a non-empty "explicatie_tehnica" (2-4 sentences). Never leave explicatie_tehnica empty.
-- Provide at least 4 items in EACH SWOT category (puncte_tari, puncte_slabe, oportunitati, amenintari).
-- Every budget row MUST include non-empty "item", "cost", AND "explicatie" (justification). Do NOT use alternate keys like detalii/justificacion/descripcion.
+- viziune_strategie MUST include all 3 non-empty keys: "obiective_scurt", "obiective_mediu", "misiune_valori".
+- Every SWOT item MUST include BOTH "titlu" AND a non-empty "explicatie_tehnica" (2-4 sentences). Never leave explicatie_tehnica empty — not even on items 2, 3, or 4.
+- CRITICAL: EVERY item in puncte_tari, puncte_slabe, oportunitati, amenintari must have its own non-empty explicatie_tehnica. Copying the title alone is forbidden.
+- SWOT semantics: oportunitati = EXTERNAL positive opportunities only. amenintari = EXTERNAL risks/threats (cyber risk, competition, regulation). NEVER put risks inside oportunitati.
+- Provide exactly 4 items in EACH SWOT category (puncte_tari, puncte_slabe, oportunitati, amenintari).
+- Every budget row MUST include non-empty "item", "cost", AND "explicatie" (justification). Do NOT leave explicatie empty on later rows.
 CRITICAL PENALTY AVOIDANCE: The entire generated content (including item names, slogans, industry/activity descriptions, detailed SWOT technical explanations, etc.) MUST be strictly in English. Use LLC/sole proprietorship etc. (never Romanian SRL/PFA). Use industry codes/descriptions appropriate for EN markets (never Romanian CAEN). Currency EUR unless specified. Even if the user provided the idea in Romanian, translate everything to English. Do NOT write any Romanian words. Failure to do so will break the application.
 Do not include any other text besides the JSON block. Do not format with markdown block quotes (\`\`\`json) if possible, but if you do, it will be stripped out.`;
   }
@@ -167,12 +235,16 @@ FORMATO DEL CONTENIDO (obligatorio — NO uses formato rumano):
 - No menciones Fonduri Europene de Rumanía, ANAF, ONRC, LEI/RON ni ciudades rumanas salvo que la idea lo pida explícitamente.
 
 REGLAS ESTRICTAS DE ESTRUCTURA (no romper la app):
-- Mantén los NOMBRES de las claves JSON EXACTAMENTE como en el esqueleto (NO traduzcas las claves). Valores en español; claves OBLIGATORIAS sin traducir: titlu, explicatie_tehnica, item, explicatie, cost, descriere_flux, resurse_umane, locatie_dotari, strategie_financiara, etc.
+- Mantén los NOMBRES de las claves JSON EXACTAMENTE como en el esqueleto (NO traduzcas las claves). Valores en español; claves OBLIGATORIAS sin traducir: titlu, explicatie_tehnica, item, explicatie, cost, descriere_flux, resurse_umane, locatie_dotari, obiective_scurt, obiective_mediu, misiune_valori, clienti_tinta, concurenta, strategie_marketing, strategie_financiara, etc.
 - NUNCA renombres locatie_dotari → ubicacion / instalaciones / location_facilities. La clave debe ser exactamente "locatie_dotari" con texto NO vacío (3-6 frases).
+- NUNCA renombres misiune_valori → mision_valores / mision / valores. Clave exacta "misiune_valori" con texto NO vacío (3-6 frases).
 - plan_operational DEBE incluir las 3 claves con texto no vacío: "descriere_flux", "resurse_umane", "locatie_dotari".
-- Cada elemento SWOT DEBE incluir AMBOS "titlu" Y "explicatie_tehnica" no vacío (2-4 frases). Nunca dejes explicatie_tehnica vacío.
-- Incluye al menos 4 elementos en CADA categoría SWOT (puncte_tari, puncte_slabe, oportunitati, amenintari).
-- Cada fila de presupuesto DEBE incluir "item", "cost" Y "explicatie" no vacíos. NO uses claves alternativas como detalii/justificacion/descripcion.
+- viziune_strategie DEBE incluir las 3 claves con texto no vacío: "obiective_scurt", "obiective_mediu", "misiune_valori".
+- Cada elemento SWOT DEBE incluir AMBOS "titlu" Y "explicatie_tehnica" no vacío (2-4 frases). Nunca dejes explicatie_tehnica vacío — tampoco en los ítems 2, 3 o 4.
+- CRÍTICO: CADA ítem en puncte_tari, puncte_slabe, oportunitati, amenintari debe tener su propia explicatie_tehnica no vacía. Solo el título está prohibido.
+- Semántica SWOT: oportunitati = solo oportunidades EXTERNAS positivas. amenintari = riesgos/amenazas EXTERNAS (ciberriesgo, competencia, regulación). NUNCA pongas riesgos dentro de oportunitati.
+- Incluye exactamente 4 elementos en CADA categoría SWOT (puncte_tari, puncte_slabe, oportunitati, amenintari).
+- Cada fila de presupuesto DEBE incluir "item", "cost" Y "explicatie" no vacíos. NO dejes explicatie vacío en filas posteriores.
 CRITICAL: Todo el contenido generado (nombres, eslóganes, CNAE, SWOT, presupuesto, ubicación) DEBE estar estrictamente en español. Si la idea viene en rumano u otro idioma, tradúcela por completo al español. Cero palabras en rumano.
 No agregues texto fuera del JSON. Sin markdown (\`\`\`json) si es posible.`;
   }
@@ -187,8 +259,11 @@ Include cel puțin 6-8 articole bugetate (care să conțină tehnologie verde ș
 REGULI STRICTE DE STRUCTURĂ:
 - Păstrează EXACT numele cheilor JSON din schelet (nu le traduce).
 - plan_operational trebuie să aibă text nevid la: descriere_flux, resurse_umane, locatie_dotari.
-- Fiecare element SWOT trebuie să aibă ȘI "titlu" ȘI "explicatie_tehnica" nevid (2-4 propoziții).
-- Minim 4 elemente în FIECARE categorie SWOT.
+- Fiecare element SWOT trebuie să aibă ȘI "titlu" ȘI "explicatie_tehnica" nevid (2-4 propoziții). Nu lăsa explicatie_tehnica gol nici la itemele 2–4.
+- CRITICAL: FIECARE item din puncte_tari, puncte_slabe, oportunitati, amenintari trebuie să aibă propria explicatie_tehnica. Doar titlul este interzis.
+- Semantica SWOT: oportunitati = doar oportunități EXTERNE pozitive. amenintari = riscuri/amenințări EXTERNE. NU pune riscuri în oportunitati.
+- Exact 4 elemente în FIECARE categorie SWOT.
+- Fiecare rând de buget trebuie să aibă "item", "cost" ȘI "explicatie" nevide (și pe rândurile următoare).
 - Fiecare linie de buget trebuie să aibă "item", "cost" ȘI "explicatie" nevide (nu folosi chei alternative precum detalii).
 CRITICAL: The entire generated content (including item names, slogans, CAEN explanations, SWOT titles, etc.) MUST be strictly in Romanian. Do not write any English words.
 Nu include niciun alt text în afară de blocul JSON. Nu formata cu ghilimele de bloc markdown (\`\`\`json) dacă este posibil, dar dacă o faci, acestea vor fi eliminate la parsare.`;

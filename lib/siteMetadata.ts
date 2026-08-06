@@ -75,7 +75,8 @@ export function getSiteMetadata(locale: SiteLocale): Metadata {
   const url = `https://ideeata.ai${copy.path === "/" ? "" : copy.path}`;
 
   return {
-    title: copy.title,
+    // `absolute` — previne ca title-ul RO din root layout să rămână pe /en|/es
+    title: { absolute: copy.title },
     description: copy.description,
     keywords: copy.keywords,
     openGraph: {

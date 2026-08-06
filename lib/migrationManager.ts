@@ -1,35 +1,54 @@
-import { doc, getDoc, setDoc } from 'firebase/firestore';
+import { collection, doc, getDoc, getDocs, setDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { User } from 'firebase/auth';
+import {
+  FREE_ACCOUNT_PLAN_LIMIT,
+  readDeletedPlanIds,
+  resetGuestDemoCounterOnLogin,
+} from '@/lib/planQuota';
+
+function planNameKey(plan: any): string {
+  return String(plan?.nume || "")
+    .trim()
+    .toLowerCase();
+}
 
 /**
- * Migrates locally saved plans (from Demo) to the user's Firebase account upon login.
+ * Migrates locally saved plans (from Demo guest) to the user's Firebase account upon login.
+ * - Nu reîncarcă planurile șterse (deleted_plan_ids_{uid})
+ * - Nu creează duplicate pe același nume
+ * - Respectă FREE_ACCOUNT_PLAN_LIMIT (nu umple contul peste cotă)
  */
 export const migrateLocalPlansToFirebase = async (user: User) => {
   if (!user) return;
-  
+
   try {
+    resetGuestDemoCounterOnLogin();
+
+    const deletedIds = readDeletedPlanIds(user.uid);
     let localPlans: any[] = [];
-    
-    // Check 'current_generated_plan' which contains the active plan
+
     const singlePlanStr = localStorage.getItem('current_generated_plan');
     if (singlePlanStr) {
       try {
         const singlePlan = JSON.parse(singlePlanStr);
         if (singlePlan && typeof singlePlan === 'object') {
-          // If the plan has no ID, generate a unique ID
           if (!singlePlan.id) {
             const safeName = singlePlan.nume?.replace(/[^a-zA-Z0-9]/g, '_') || 'Plan';
             singlePlan.id = `${safeName}_${Date.now()}`;
           }
-          localPlans.push(singlePlan);
+          if (!deletedIds.has(String(singlePlan.id))) {
+            const nameKey = planNameKey(singlePlan);
+            if (!nameKey || !deletedIds.has(`name:${nameKey}`)) {
+              localPlans.push(singlePlan);
+            }
+          }
         }
       } catch (e) {
         console.error("Eroare la parsarea current_generated_plan:", e);
       }
     }
 
-    // Check 'demo_plans_list' which contains other generated plans
     const plansListStr = localStorage.getItem('demo_plans_list');
     if (plansListStr) {
       try {
@@ -41,8 +60,12 @@ export const migrateLocalPlansToFirebase = async (user: User) => {
                 const safeName = plan.nume?.replace(/[^a-zA-Z0-9]/g, '_') || 'Plan';
                 plan.id = `${safeName}_${Date.now()}_${index}`;
               }
-              // Evităm duplicatele în localPlans bazat pe ID sau Nume
-              const exists = localPlans.some((p) => p.id === plan.id || p.nume === plan.nume);
+              if (deletedIds.has(String(plan.id))) return;
+              const nameKey = planNameKey(plan);
+              if (nameKey && deletedIds.has(`name:${nameKey}`)) return;
+              const exists = localPlans.some(
+                (p) => p.id === plan.id || planNameKey(p) === nameKey
+              );
               if (!exists) {
                 localPlans.push(plan);
               }
@@ -54,43 +77,74 @@ export const migrateLocalPlansToFirebase = async (user: User) => {
       }
     }
 
+    // Curățăm mereu lista locală după ce am citit-o — altfel refresh Dashboard
+    // reîncărca planuri vechi / duplicate la fiecare vizită.
+    localStorage.removeItem('demo_plans_list');
+
     if (localPlans.length === 0) {
-      // Chiar dacă nu avem planuri locale de migrat, setăm flagul pentru a preveni alte sync-uri redundante
       localStorage.setItem('migration_completed_for_uid', user.uid);
       return;
     }
 
-    let allMigrated = true;
+    const plansSnap = await getDocs(collection(db, 'users', user.uid, 'plans'));
+    const existingNames = new Set<string>();
+    let existingCount = 0;
+    plansSnap.forEach((d) => {
+      existingCount += 1;
+      const name = planNameKey(d.data());
+      if (name) existingNames.add(name);
+    });
+
+    let slotsLeft = Math.max(0, FREE_ACCOUNT_PLAN_LIMIT - existingCount);
+    // Paid users: still migrate, but without inventing unlimited free quota abuse —
+    // if already at/over free limit we only skip when free; for simplicity always
+    // respect the free cap for migration (paid can generate more via Studio).
+    if (slotsLeft <= 0) {
+      localStorage.setItem('migration_completed_for_uid', user.uid);
+      console.log(
+        `[migrate] Skip upload — already ${existingCount} plans (limit ${FREE_ACCOUNT_PLAN_LIMIT}).`
+      );
+      return;
+    }
+
     for (const plan of localPlans) {
       if (!plan || !plan.id) continue;
-      
+      if (deletedIds.has(String(plan.id))) continue;
+      const name = planNameKey(plan);
+      if (name && deletedIds.has(`name:${name}`)) continue;
+      if (slotsLeft <= 0) break;
+
+      if (name && existingNames.has(name)) {
+        console.log(`[migrate] Skip duplicate name: ${plan.nume}`);
+        continue;
+      }
+
       try {
         const planRef = doc(db, 'users', user.uid, 'plans', plan.id);
         const planSnap = await getDoc(planRef);
-        
+
         if (!planSnap.exists()) {
           await setDoc(planRef, {
             ...plan,
             isPaid: false,
             isGeneratedFromDemo: true,
             createdAt: plan.createdAt || new Date().toISOString(),
-            migratedAt: new Date().toISOString()
+            migratedAt: new Date().toISOString(),
           });
+          existingCount += 1;
+          slotsLeft -= 1;
+          if (name) existingNames.add(name);
           console.log(`Plan ${plan.id} migrated to Firebase successfully.`);
+        } else if (name) {
+          existingNames.add(name);
         }
       } catch (e) {
-        allMigrated = false;
         console.error(`Eroare la migrarea planului ${plan.id || 'necunoscut'}:`, e);
       }
     }
 
-    // Curățăm storage-ul local DOAR după migrare completă cu succes a tuturor planurilor
-    if (allMigrated) {
-      localStorage.removeItem('current_generated_plan');
-      localStorage.removeItem('demo_plans_list');
-      localStorage.setItem('migration_completed_for_uid', user.uid);
-      console.log(`Toate planurile locale au fost migrate. Flag-ul migration_completed_for_uid setat.`);
-    }
+    localStorage.setItem('migration_completed_for_uid', user.uid);
+    console.log(`Migrare planuri locale finalizată pentru ${user.uid}.`);
   } catch (error) {
     console.error("Eroare la migrarea planurilor din localStorage:", error);
   }

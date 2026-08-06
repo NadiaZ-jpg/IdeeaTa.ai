@@ -23,30 +23,52 @@ function extractJsonObject(text: string): any | null {
 }
 
 /**
- * If SWOT/budget rows are missing explanations, ask the model once to fill them.
+ * If SWOT/budget/operational/vision fields are missing, ask the model once to fill them.
  * Safe no-op when complete or when the API key / model call fails.
+ * Optional timeoutMs: return normalized plan early so /api/generate stays fast;
+ * client hook useCompleteMissingPlanFields finishes the rest.
  */
 export async function fillMissingPlanExplanations(
   plan: any,
-  locale: "ro" | "en" | "es"
+  locale: "ro" | "en" | "es",
+  timeoutMs = 0
 ): Promise<any> {
   const normalized = normalizePlanResult(plan);
   if (!planNeedsExplanationFill(normalized) || !apiKey) {
     return normalized;
   }
 
+  const fillPromise = (async () => {
+    try {
+      const ai = new GoogleGenAI({ apiKey });
+      const response = await ai.models.generateContent({
+        model: "gemini-2.5-flash",
+        contents: buildFillMissingExplanationsPrompt(normalized, locale),
+        config: { responseMimeType: "application/json" },
+      });
+      const filled = extractJsonObject(response?.text || "");
+      if (!filled) return normalized;
+      return mergeFilledExplanations(normalized, filled);
+    } catch (e) {
+      console.error("[fillMissingPlanExplanations]", e);
+      return normalized;
+    }
+  })();
+
+  if (!timeoutMs || timeoutMs <= 0) return fillPromise;
+
+  let timer: ReturnType<typeof setTimeout> | undefined;
   try {
-    const ai = new GoogleGenAI({ apiKey });
-    const response = await ai.models.generateContent({
-      model: "gemini-2.5-flash",
-      contents: buildFillMissingExplanationsPrompt(normalized, locale),
-      config: { responseMimeType: "application/json" },
-    });
-    const filled = extractJsonObject(response?.text || "");
-    if (!filled) return normalized;
-    return mergeFilledExplanations(normalized, filled);
-  } catch (e) {
-    console.error("[fillMissingPlanExplanations]", e);
-    return normalized;
+    return await Promise.race([
+      fillPromise,
+      new Promise<any>((resolve) => {
+        timer = setTimeout(() => {
+          console.warn(`[fillMissingPlanExplanations] timeout ${timeoutMs}ms — returning partial plan`);
+          resolve(normalized);
+        }, timeoutMs);
+      }),
+    ]);
+  } finally {
+    if (timer) clearTimeout(timer);
   }
 }

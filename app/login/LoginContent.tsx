@@ -118,7 +118,11 @@ export default function LoginContent({ locale = "ro" }: { locale?: "ro" | "en" |
           console.warn("Eroare API la trimitere email initial, folosim fallback:", apiError);
           try {
             auth.languageCode = locale;
-            await sendEmailVerification(userCredential.user);
+            const { verificationActionCodeSettings } = await import("@/lib/emailVerification");
+            await sendEmailVerification(
+              userCredential.user,
+              verificationActionCodeSettings(locale)
+            );
           } catch (fallbackError) {
             console.error("Eroare fallback trimitere email initial:", fallbackError);
           }

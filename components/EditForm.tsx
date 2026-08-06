@@ -103,7 +103,7 @@ export function EditForm({ result, updateField, removeField, readOnly = false, l
               <input type="text" value={safeString(result.date_generale?.forma_juridica || '')} onChange={readOnly ? noop : (e) => updateField(['date_generale', 'forma_juridica'], e.target.value)} readOnly={readOnly} onCopy={readOnly ? e => e.preventDefault() : undefined} className={inputCls("bg-zinc-900 border border-zinc-700 p-3 rounded-lg text-lg w-full focus:outline-none focus:ring-1 focus:ring-emerald-500")} />
             </div>
             <div className="flex flex-col gap-2">
-              <label className="text-sm text-zinc-400 font-bold uppercase tracking-wider">{locale === "en" ? "CAEN Code" : locale === "es" ? "Código de Actividad (CAEN)" : "Cod CAEN"}</label>
+              <label className="text-sm text-zinc-400 font-bold uppercase tracking-wider">{locale === "en" ? "Industry / Activity" : locale === "es" ? "Código CNAE" : "Cod CAEN"}</label>
               <input type="text" value={safeString(result.date_generale?.cod_caen || '')} onChange={readOnly ? noop : (e) => updateField(['date_generale', 'cod_caen'], e.target.value)} readOnly={readOnly} onCopy={readOnly ? e => e.preventDefault() : undefined} className={inputCls("bg-zinc-900 border border-zinc-700 p-3 rounded-lg text-lg w-full focus:outline-none focus:ring-1 focus:ring-emerald-500")} />
             </div>
             <div className="flex flex-col gap-2 md:col-span-2">

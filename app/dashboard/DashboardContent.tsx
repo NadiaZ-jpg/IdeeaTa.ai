@@ -8,6 +8,7 @@ import { onAuthStateChanged, User, sendEmailVerification, signOut } from 'fireba
 import { collection, query, orderBy, getDocs, doc, deleteDoc, getDoc } from 'firebase/firestore';
 import { Plus, FileText, Calendar, ArrowRight, Loader2, Sparkles, Mail, AlertTriangle, Trash2 } from 'lucide-react';
 import { migrateLocalPlansToFirebase } from '@/lib/migrationManager';
+import { markPlanDeletedLocally, FREE_ACCOUNT_PLAN_LIMIT, clearLocalPlanState } from '@/lib/planQuota';
 import { LanguageSwitcher } from '@/components/LanguageSwitcher';
 import BuyMeACoffeeModal from '@/components/BuyMeACoffeeModal';
 import { PricingModal } from '@/components/PricingModal';
@@ -27,8 +28,8 @@ export default function DashboardContent({ locale = "ro" }: { locale?: "ro" | "e
   const isEn = locale === "en";
   const isEs = locale === "es";
 
-  // FEAT-3: Avertizare vizuală dacă utilizatorul gratuit a consumat limita de 4 generări
-  const studioLimitUsed = plans.length >= 4;
+  // Cont gratuit: max 4 planuri în Firestore (inclusiv cele migrate din Demo)
+  const studioLimitUsed = plans.length >= FREE_ACCOUNT_PLAN_LIMIT;
 
   const handleGenerateNew = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -66,7 +67,8 @@ export default function DashboardContent({ locale = "ro" }: { locale?: "ro" | "e
         console.warn("Eroare trimitere email personalizat, folosim fallback:", error);
         try {
           auth.languageCode = locale;
-          await sendEmailVerification(user);
+          const { verificationActionCodeSettings } = await import("@/lib/emailVerification");
+          await sendEmailVerification(user, verificationActionCodeSettings(locale));
           setVerificationSent(true);
         } catch (fallbackError) {
           console.error("Eroare fallback trimitere email:", fallbackError);
@@ -81,6 +83,8 @@ export default function DashboardContent({ locale = "ro" }: { locale?: "ro" | "e
     
     try {
       await deleteDoc(doc(db, "users", user.uid, "plans", planId));
+      // Previne re-migrarea planului șters din localStorage la refresh Dashboard
+      markPlanDeletedLocally(user.uid, planId, plans.find(p => p.id === planId)?.nume);
       setPlans(plans.filter(p => p.id !== planId));
       setConfirmDeleteId(null);
     } catch (err) {
@@ -185,7 +189,10 @@ export default function DashboardContent({ locale = "ro" }: { locale?: "ro" | "e
                 {user.email}
               </span>
               <button 
-                onClick={() => signOut(auth)}
+                onClick={async () => {
+                  clearLocalPlanState();
+                  await signOut(auth);
+                }}
                 className="text-sm font-bold text-zinc-500 hover:text-white transition-colors cursor-pointer"
               >
                 {isEn ? "Log Out" : isEs ? "Cerrar sesión" : "Ieși din cont"}
@@ -238,10 +245,10 @@ export default function DashboardContent({ locale = "ro" }: { locale?: "ro" | "e
                   className="text-[11px] text-emerald-400 font-semibold flex items-center gap-1 hover:underline cursor-pointer"
                 >
                   🎁 {isEn 
-                    ? (4 - plans.length === 1 ? "You have 1 free plan generation remaining. Click to view packages." : `You have ${4 - plans.length} free plan generations remaining. Click to view packages.`) 
-                    : isEs 
-                    ? (4 - plans.length === 1 ? "Te queda 1 generación de plan gratuito. Clic para ver paquetes." : `Te quedan ${4 - plans.length} generaciones de planes gratuitos. Clic para ver paquetes.`) 
-                    : (4 - plans.length === 1 ? "Mai ai dreptul la 1 plan gratuit. Click pentru pachete." : `Mai ai dreptul la ${4 - plans.length} planuri gratuite. Click pentru pachete.`)}
+                    ? (FREE_ACCOUNT_PLAN_LIMIT - plans.length === 1 ? "You have 1 free plan generation remaining. Click to view packages." : `You have ${FREE_ACCOUNT_PLAN_LIMIT - plans.length} free plan generations remaining. Click to view packages.`) 
+                    : isEs
+                    ? (FREE_ACCOUNT_PLAN_LIMIT - plans.length === 1 ? "Te queda 1 generación de plan gratuito. Clic para ver paquetes." : `Te quedan ${FREE_ACCOUNT_PLAN_LIMIT - plans.length} generaciones de planes gratuitos. Clic para ver paquetes.`) 
+                    : (FREE_ACCOUNT_PLAN_LIMIT - plans.length === 1 ? "Mai ai dreptul la 1 plan gratuit. Click pentru pachete." : `Mai ai dreptul la ${FREE_ACCOUNT_PLAN_LIMIT - plans.length} planuri gratuite. Click pentru pachete.`)}
                 </button>
               )
             )}
@@ -424,7 +431,7 @@ export default function DashboardContent({ locale = "ro" }: { locale?: "ro" | "e
         locale={locale}
         userId={user?.uid || ""}
         userEmail={user?.email || null}
-        currency="LEI"
+        currency={isEn || isEs ? "EUR" : "LEI"}
       />
     </div>
   );

@@ -132,7 +132,7 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       if (!currentUser) {
-        router.push("/login");
+        router.push(isEn ? "/en/login" : isEs ? "/es/login" : "/login");
         return;
       }
       setUser(currentUser);
@@ -143,7 +143,7 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
       }
     });
     return () => unsubscribe();
-  }, [router]);
+  }, [router, isEn, isEs]);
 
   useEffect(() => {
     if (!user) {
@@ -289,7 +289,8 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
         console.warn("Eroare trimitere email personalizat, folosim fallback:", error);
         try {
           auth.languageCode = locale;
-          await sendEmailVerification(user);
+          const { verificationActionCodeSettings } = await import("@/lib/emailVerification");
+          await sendEmailVerification(user, verificationActionCodeSettings(locale));
           setVerificationSent(true);
         } catch (fallbackError) {
           console.error("Eroare fallback trimitere email:", fallbackError);
@@ -884,7 +885,7 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
             <button
               onClick={() => {
                 setShowVerificationModal(false);
-                router.push('/dashboard');
+                router.push(isEn ? "/en/dashboard" : isEs ? "/es/dashboard" : "/dashboard");
               }}
               className="absolute top-4 right-4 text-zinc-500 hover:text-white font-bold p-1 text-sm"
             >
@@ -920,7 +921,7 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
               <button
                 onClick={() => {
                   setShowVerificationModal(false);
-                  router.push('/dashboard');
+                  router.push(isEn ? "/en/dashboard" : isEs ? "/es/dashboard" : "/dashboard");
                 }}
                 className="w-full bg-zinc-950 border border-zinc-800 text-zinc-400 font-bold py-3 rounded-xl text-xs transition-all active:scale-95"
               >
@@ -950,7 +951,7 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
         }}
         onRequireLogin={() => {
           setShowPricingModal(false);
-          router.push("/login");
+          router.push(isEn ? "/en/login" : isEs ? "/es/login" : "/login");
         }}
         userId={user?.uid || ""}
         userEmail={user?.email || ""}
@@ -983,7 +984,7 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
                 className="w-full bg-zinc-950 border border-zinc-800 text-zinc-300 hover:text-white font-bold py-3.5 rounded-xl text-xs transition-all active:scale-95 text-left px-4 flex justify-between items-center"
               >
                 <span>📄 {locale === "en" ? "Free PDF Summary" : locale === "es" ? "Resumen PDF Gratis" : "Sumar PDF Gratuit"}</span>
-                <span className="text-[10px] bg-emerald-500/10 text-emerald-400 px-2 py-0.5 rounded font-black uppercase">{locale === "en" ? "Free" : "Gratis"}</span>
+                <span className="text-[10px] bg-emerald-500/10 text-emerald-400 px-2 py-0.5 rounded font-black uppercase">{locale === "en" ? "Free" : locale === "es" ? "Gratis" : "Gratuit"}</span>
               </button>
 
               {/* Word (DOCX) Premium */}

@@ -1,5 +1,5 @@
 # AI_MEMORY — IdeeaTa.ai
-> Ultima actualizare: 31 Iulie 2026
+> Ultima actualizare: 6 August 2026
 
 ---
 
@@ -447,10 +447,9 @@ Dacă oricare dintre aceste verificări este omisă în procesul de planificare,
 - **components/DemoMobile.tsx** — Tap targets ≥44px pe Share/Export, close Auth/Export, toggle login, Google/Facebook, close versiuni (`p-2 -m-2` / `min-w/h-[36-44px]`). Adăugat `beforeunload` când există plan activ (ca Desktop; exclus shared view / download). Tabletă rămâne pe arborele Mobile (&lt;1024).
 - **Build verificat local:** ✅ `npx tsc --noEmit` OK · `npm run build` OK
 
-## RĂMÂNE DE FĂCUT
-- Deploy Hetzner cu S1–S8
+## RĂMÂNE DE FĂCUT (actualizat 6 Aug — vezi freeze Demo ES/EN de mai jos)
+- Deploy Hetzner cu S1–S8 + Demo ES/EN + auth action
 - S3-A opțional (generate Studio pe Mobile)
-- Checkpoint git S7+S8 (la cerere)
 
 ## FREEZE (6 August 2026 — DemoMobile: Inspiră-mă + carusel UX)
 - **components/DemoMobile.tsx** — Buton `inspireMeSparkles` (umple textarea, ca Desktop). Carusel păstrat: titlu `businessExamplesTitle`, contor `current/total` (18), hint swipe, peek card (`w-[78%]`), fade dreapta, dots, scrollbar thin. Click exemplu = doar umple textarea (nu mai auto-generate).
@@ -469,9 +468,36 @@ Dacă oricare dintre aceste verificări este omisă în procesul de planificare,
 - **lib/promptConfig.ts** — Prompt ES/EN: cheia `locatie_dotari` obligatorie, neredenumită.
 - **hooks/useCompleteMissingPlanFields.ts** — Re-trigger fill (`fields-v2`) pentru planurile deja încărcate cu secțiuni goale.
 
+## FREEZE (6 August 2026 — Locale entry RO/EN/ES)
+- **lib/localeEntry.ts** — Redirect pe preferred/browser păstrează query (`?sharedId=`); cu `sharedId` nu forțează preferred (evită loop + pierdere plan).
+- Rute RO: `app/page.tsx`, `demo`, `studio`, `login`, `dashboard` folosesc helper-ul.
 
+## FREEZE (6 August 2026 — MockupPreview i18n)
+- **components/MockupPreview.tsx** — zero text RO hardcodat; tab-uri pe chei stabile (`swot`/`FODA`); buget/strategie/grafice/înainte din `UI_STRINGS`.
+- **StudioDesktop** — titluri mockup din `ui.howItLooks` / `previewTabs` (ca Demo).
+- Pe `/es/demo` mock-ul trebuie să apară în spaniolă după deploy.
 
+## FREEZE (6 August 2026 — ES ActionBar / EditForm / currency)
+- **ActionBar** — fallback-uri pe locale (nu mai cade pe RO când lipsește cheia); LEI/EUR doar RO.
+- **DemoDesktop / StudioDesktop** — currency default EUR pe EN/ES.
+- **EditForm** — etichetă ES: Código CNAE.
+- **Notă ops:** `ideeata.ai` fără deploy încă arată UI mixt RO/ES din build vechi.
 
+## FREEZE (6 August 2026 — Demo ES/EN: plan fill, cotă, auth verify)
+- **Cotă:** Guest Demo = 3 (`GUEST_DEMO_PLAN_LIMIT`); cont gratuit = 4 planuri Firestore (`FREE_ACCOUNT_PLAN_LIMIT`) — `lib/planQuota.ts`.
+- **Migrare:** `migrateLocalPlansToFirebase` — fără duplicate pe nume, respectă limita 4, curăță `demo_plans_list`; logat nu mai scrie în lista locală (evită dubluri).
+- **Logout:** `clearLocalPlanState()` pe Dashboard/Demo/Studio — restart curat după delete account.
+- **Generate:** `/api/generate` doar normalizează (fără al 2-lea Gemini pe server — viteză); fill pe client `useCompleteMissingPlanFields` (retry, `fields-v4`).
+- **normalizePlanResult:** alias ES/EN pentru vision/market/SWOT categorii; merge misiune+valores; fill SWOT+buget compact.
+- **promptConfig:** schelet SWOT 4×4 cu explicații pe RO/EN/ES; reguli: fără explicații goale pe itemele 2–4; riscuri ≠ oportunități; EN forțează EUR ca ES.
+- **Auth verify:** link email → `/es|/en|/auth/action` (pagină IdeeaTa localizată), nu Firebase hosted EN/RO; `lib/emailVerification.ts` + `AuthActionContent.tsx`.
+- **Branch:** `cursor/pdf-cta-locale-and-plan-fill`.
+- **Deploy:** necesar pe Hetzner pentru `ideeata.ai`; emailuri vechi de verify rămân pe link Firebase până la resend.
+
+## RĂMÂNE DE FĂCUT
+- Deploy Hetzner (PDF CTA + ES/EN Demo + auth action pages)
+- S3-A opțional (generate Studio pe Mobile)
+- Smoke test `/es/demo` + `/en/demo` guest (3) → login → Dashboard (max 4)
 
 
 

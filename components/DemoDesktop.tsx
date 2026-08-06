@@ -31,6 +31,7 @@ import { useExportActions } from '@/hooks/useExportActions';
 import { fetchSharedPlanPayload, resetDemoShareCounters, clearSharedIdFromUrl, redirectIfSharedLocaleMismatch } from '@/hooks/useSharedPlanLoader';
 import { resolveSharedViewCurrency, shouldShowCurrencyToggle } from '@/lib/pdfCtaBehavior';
 import { FREE_ACCOUNT_PLAN_LIMIT, GUEST_DEMO_PLAN_LIMIT, clearLocalPlanState } from '@/lib/planQuota';
+import { canUseFreeToneEdit, consumeFreeToneEdit, isProToneKey, toneVersionKey } from '@/lib/toneQuota';
 import { useCompleteMissingPlanFields } from '@/hooks/useCompleteMissingPlanFields';
 import { useUIState } from '@/hooks/useUIState';
 import { ActionBar } from '@/components/ActionBar';
@@ -250,11 +251,7 @@ export default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" | 
     if (isEditingAi) return;
 
     const isActionFree = action === "professional_tone";
-    const freeTones = ["formal", "creative"];
-    const isProTone =
-      isActionFree &&
-      !!customStyle &&
-      !freeTones.includes(String(customStyle).trim().toLowerCase());
+    const isProTone = isActionFree && isProToneKey(customStyle);
 
     // Tonuri 3–4 (persuasive/friendly) necesită Standard/Pro
     if (isProTone && !isAdmin && !hasStandardAccess) {
@@ -272,18 +269,16 @@ export default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" | 
       return;
     }
 
-    // Cont gratuit: primele 2 tonuri (formal/creative), max 3 utilizări pe Demo
+    // Cont gratuit: primele 2 tonuri (formal/creative), max FREE_TONE_EDIT_LIMIT (consum după succes)
     if (isActionFree && !isProTone && !isAdmin && !hasStandardAccess) {
        if (!user) {
          setShowAuthModal(true);
          return;
        }
-       const toneCount = parseInt(localStorage.getItem("demoToneEditCount") || "0", 10);
-       if (toneCount >= 3) {
+       if (!canUseFreeToneEdit(false)) {
          setShowPricingModal(true);
          return;
        }
-       localStorage.setItem("demoToneEditCount", (toneCount + 1).toString());
     }
 
     let targetSection = "";
@@ -354,11 +349,7 @@ export default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" | 
            } else if (action === "investor_ready") {
              vKey = `investor_${Date.now()}`;
            } else if (action === "professional_tone") {
-             let toneType = "formal";
-             if (customStyle?.includes("creativ") || customStyle?.includes("entuziast")) toneType = "creative";
-             else if (customStyle?.includes("persuasiv") || customStyle?.includes("vânzări")) toneType = "persuasive";
-             else if (customStyle?.includes("prietenos") || customStyle?.includes("casual")) toneType = "friendly";
-             vKey = `ton_${toneType}_${Date.now()}`;
+             vKey = toneVersionKey(customStyle);
            } else if (action === "optimize_budget") {
              vKey = `budget_${Date.now()}`;
            } else if (action === "add_sections") {
@@ -376,6 +367,10 @@ export default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" | 
           setActiveVersionId(vKey);
           setResult(formattedResult);
           
+          if (isActionFree && !isProTone && !isAdmin && !hasStandardAccess) {
+            consumeFreeToneEdit(false);
+          }
+
           if (typeof window !== "undefined") {
             localStorage.setItem("current_generated_plan", JSON.stringify(formattedResult));
           }

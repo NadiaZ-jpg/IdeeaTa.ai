@@ -494,10 +494,18 @@ Dacă oricare dintre aceste verificări este omisă în procesul de planificare,
 - **Branch:** `cursor/pdf-cta-locale-and-plan-fill`.
 - **Deploy:** necesar pe Hetzner pentru `ideeata.ai`; emailuri vechi de verify rămân pe link Firebase până la resend.
 
+## FREEZE (6 August 2026 — Studio free account: 2 tones)
+- **lib/toneQuota.ts** — Sursă unică: `formal`/`creative` free, `persuasive`/`friendly` Pro; limită 3 consumuri (`demoToneEditCount`); `toneVersionKey` pentru EN/ES/RO.
+- **Studio/Demo Desktop** — gate înainte de API; **consum cotă doar după succes**; version keys pe chei stabile (nu mai mapează greșit `friendly`→formal).
+- **ToneEditor (Mobile)** — fără dublu-increment; afișează câte rescrieri free mai rămân; Pro pe tonurile 3–4.
+- **StudioMobile** — versiuni `ton_*` la rewrite; `hasStandardAccess` = StudioPaid || PlanPaid.
+- Cont gratuit fără Standard/Pro: doar primele 2 tonuri, max 3 folosiri totale Demo+Studio.
+- **Branch:** `cursor/pdf-cta-locale-and-plan-fill`.
+
 ## RĂMÂNE DE FĂCUT
-- Deploy Hetzner (PDF CTA + ES/EN Demo + auth action pages)
+- Deploy Hetzner (PDF CTA + ES/EN Demo + auth action + Studio tones)
+- Smoke test `/es/studio` + `/en/studio` cont gratuit: formal + creative OK; persuasive → pricing
 - S3-A opțional (generate Studio pe Mobile)
-- Smoke test `/es/demo` + `/en/demo` guest (3) → login → Dashboard (max 4)
 
 
 

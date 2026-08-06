@@ -19,6 +19,7 @@ import { getExamples } from '@/lib/examples';
 import { formatObjectNumbers, formatNumberedText } from "@/lib/utils";
 import { EXPERT_TEMPLATES, ExpertTemplate } from '@/lib/templatesData';
 import { FREE_ACCOUNT_PLAN_LIMIT, clearLocalPlanState } from '@/lib/planQuota';
+import { canUseFreeToneEdit, consumeFreeToneEdit, isProToneKey, toneVersionKey } from '@/lib/toneQuota';
 import { AuthWallModal } from '@/components/modals/AuthWallModal';
 import { EmailVerificationModal } from '@/components/modals/EmailVerificationModal';
 import { ExpertSectionsDrawer } from '@/components/modals/ExpertSectionsDrawer';
@@ -312,10 +313,7 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
 
     const freeTones = ["formal", "creative"];
     const isToneAction = action === "professional_tone";
-    const isProTone =
-      isToneAction &&
-      !!customStyle &&
-      !freeTones.includes(String(customStyle).trim().toLowerCase());
+    const isProTone = isToneAction && isProToneKey(customStyle);
 
     // Tonuri 3–4 necesită Standard/Pro
     if (isProTone && !isAdmin && !hasStandardAccess) {
@@ -323,14 +321,12 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
       return;
     }
 
-    // Cont gratuit: primele 2 tonuri, max 3 utilizări
+    // Cont gratuit: primele 2 tonuri, max FREE_TONE_EDIT_LIMIT (consum după succes)
     if (isToneAction && !isProTone && !isAdmin && !hasStandardAccess) {
-      const toneCount = parseInt(localStorage.getItem("demoToneEditCount") || "0", 10);
-      if (toneCount >= 3) {
+      if (!canUseFreeToneEdit(false)) {
         setShowPricingModal(true);
         return;
       }
-      localStorage.setItem("demoToneEditCount", (toneCount + 1).toString());
     }
 
     // Optimize budget + alte tool-uri Pro (nu sunt free pe Studio)
@@ -408,11 +404,7 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
            } else if (action === "investor_ready") {
              vKey = `investor_${Date.now()}`;
            } else if (action === "professional_tone") {
-             let toneType = "formal";
-             if (customStyle?.includes("creativ") || customStyle?.includes("entuziast")) toneType = "creative";
-             else if (customStyle?.includes("persuasiv") || customStyle?.includes("vânzări")) toneType = "persuasive";
-             else if (customStyle?.includes("prietenos") || customStyle?.includes("casual")) toneType = "friendly";
-             vKey = `ton_${toneType}_${Date.now()}`;
+             vKey = toneVersionKey(customStyle);
            } else if (action === "optimize_budget") {
              vKey = `budget_${Date.now()}`;
            } else if (action === "add_sections") {
@@ -430,6 +422,10 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
           setActiveVersionId(vKey);
           setResult(formattedResult);
           
+          if (isToneAction && !isProTone && !isAdmin && !hasStandardAccess) {
+            consumeFreeToneEdit(false);
+          }
+
           syncCurrentPlanToFirestore(formattedResult, nextVersions);
           
           if (typeof window !== "undefined") {

@@ -24,6 +24,7 @@ import { StudioPdfSlides } from "@/components/pdf/StudioPdfSlides";
 import { truncateText, splitTextIntoSlides } from "@/lib/planHelpers";
 import { formatPriceLocalized } from "@/lib/priceHelper";
 import { formatObjectNumbers, formatNumberedText } from "@/lib/utils";
+import { canUseFreeToneEdit, consumeFreeToneEdit, isFreeToneKey, isProToneKey, toneVersionKey } from "@/lib/toneQuota";
 
 import { EXPERT_TEMPLATES } from '@/lib/templatesData';
 
@@ -183,6 +184,19 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
 
   const handleAiEdit = async (action: string, customInput?: string) => {
     if (!result || !user) return;
+
+    const isTone = action === "professional_tone";
+    const hasPaidTones = !!(isAdmin || isStudioPaid || isPlanPaid);
+
+    if (isTone && isProToneKey(customInput) && !hasPaidTones) {
+      setShowPricingModal(true);
+      return;
+    }
+    if (isTone && isFreeToneKey(customInput) && !hasPaidTones && !canUseFreeToneEdit(false)) {
+      setShowPricingModal(true);
+      return;
+    }
+
     setIsEditingAi(true);
 
     try {
@@ -202,9 +216,24 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
 
       const data = await res.json();
       if (data && data.editedPlan) {
-        const parsed = data.editedPlan;
+        const parsed = formatObjectNumbers(data.editedPlan);
+        if (isTone) {
+          const vKey = toneVersionKey(customInput);
+          setVersions((prev: any) => ({
+            ...(Object.keys(prev).length ? prev : { original: result }),
+            [vKey]: parsed,
+          }));
+          setActiveVersionId(vKey);
+        } else if (action === "eu_funds_optimization") {
+          setActiveVersionId("eu_funds");
+        } else if (action === "investor_ready") {
+          setActiveVersionId("investor");
+        }
         setResult(parsed);
         localStorage.setItem("current_generated_plan", JSON.stringify(parsed));
+        if (isTone && isFreeToneKey(customInput) && !hasPaidTones) {
+          consumeFreeToneEdit(false);
+        }
 
         // Salvare în Firestore
         const searchParams = new URLSearchParams(window.location.search);
@@ -746,7 +775,7 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
                 <ToneEditor
                   user={user}
                   locale={locale}
-                  hasStandardAccess={isStudioPaid}
+                  hasStandardAccess={isStudioPaid || isPlanPaid}
                   isAdmin={isAdmin}
                   isEditingAi={isEditingAi}
                   setShowAuthModal={() => router.push(locale === "en" ? "/en/login" : locale === "es" ? "/es/login" : "/login")}

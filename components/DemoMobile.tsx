@@ -26,6 +26,7 @@ import { formatObjectNumbers, formatNumberedText } from "@/lib/utils";
 import { useSharedPlanLoader } from "@/hooks/useSharedPlanLoader";
 import { createAndCopySharedPlanLink } from "@/lib/sharePlan";
 import { FREE_ACCOUNT_PLAN_LIMIT, GUEST_DEMO_PLAN_LIMIT } from "@/lib/planQuota";
+import { canUseFreeToneEdit, consumeFreeToneEdit, isFreeToneKey, isProToneKey, toneVersionKey } from "@/lib/toneQuota";
 
 const BudgetPieChart = dynamic(() => import('@/components/BudgetChart').then(mod => mod.BudgetPieChart), { ssr: false });
 export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "es" }) {
@@ -428,6 +429,25 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
 
   const handleAiEdit = async (action: string, customInput?: string) => {
     if (!result) return;
+
+    const isTone = action === "professional_tone";
+    const hasPaidTones = !!(isAdmin || isPaid || promoCodeUnlocked || subscriptionActive || euFundsUnlocked);
+
+    if (isTone && isProToneKey(customInput) && !hasPaidTones) {
+      setShowPricingModal(true);
+      return;
+    }
+    if (isTone && isFreeToneKey(customInput) && !hasPaidTones) {
+      if (!user) {
+        setShowAuthModal(true);
+        return;
+      }
+      if (!canUseFreeToneEdit(false)) {
+        setShowPricingModal(true);
+        return;
+      }
+    }
+
     setIsEditingAi(true);
     setActiveAiPrompt(null);
 
@@ -453,9 +473,16 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
           setActiveVersionId("eu_funds");
         } else if (action === "investor_ready") {
           setActiveVersionId("investor");
+        } else if (isTone) {
+          const vKey = toneVersionKey(customInput);
+          setVersions((prev: any) => ({ ...prev, [vKey]: parsed }));
+          setActiveVersionId(vKey);
         }
         setResult(parsed);
         localStorage.setItem("current_generated_plan", JSON.stringify(parsed));
+        if (isTone && isFreeToneKey(customInput) && !hasPaidTones) {
+          consumeFreeToneEdit(false);
+        }
       }
     } catch (e) {
       console.error(e);

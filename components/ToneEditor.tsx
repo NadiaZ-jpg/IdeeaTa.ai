@@ -3,6 +3,11 @@
 import { useState } from "react";
 import { User } from "firebase/auth";
 import { UI_STRINGS } from "@/lib/uiStrings";
+import {
+  FREE_TONE_EDIT_LIMIT,
+  canUseFreeToneEdit,
+  getFreeToneEditCount,
+} from "@/lib/toneQuota";
 
 type Locale = "ro" | "en" | "es";
 
@@ -18,12 +23,12 @@ interface ToneEditorProps {
   handleAiEdit: (field: string, instructions: string) => void;
 }
 
-const FREE_TONES = ["formal", "creative"] as const;
-
 /**
- * Mobile rewrite-tone control.
- * - Without account → "Gratis cu cont" / Free w/ account
- * - With free account → first 2 tones; last 2 = Pro
+ * Mobile rewrite-tone control (Studio + Demo).
+ * - Without account → "Gratis cu cont"
+ * - Free account → formal + creative (shared FREE_TONE_EDIT_LIMIT)
+ * - Persuasive / friendly → Pro
+ * Quota is consumed by parent handleAiEdit after successful API (not here).
  */
 export function ToneEditor({
   user,
@@ -38,6 +43,7 @@ export function ToneEditor({
   const [showToneOptions, setShowToneOptions] = useState(false);
   const ui = UI_STRINGS[locale] || UI_STRINGS.ro;
   const canUseProTones = !!(isAdmin || hasStandardAccess);
+  const remaining = Math.max(0, FREE_TONE_EDIT_LIMIT - getFreeToneEditCount());
 
   const freeWithAccountBadge =
     locale === "en" ? "Free w/ account" : locale === "es" ? "Gratis con cuenta" : "Gratis cu cont";
@@ -50,21 +56,15 @@ export function ToneEditor({
       return;
     }
 
-    const isFreeTone = (FREE_TONES as readonly string[]).includes(toneKey);
+    const isFreeTone = (FREE_TONE_KEYS as readonly string[]).includes(toneKey);
     if (!isFreeTone && !canUseProTones) {
       setShowPricingModal(true);
       return;
     }
 
-    // Cont gratuit: limită 3 folosiri pe tonurile free (ca pe Demo desktop)
-    if (isFreeTone && !canUseProTones && typeof window !== "undefined") {
-      const key = "demoToneEditCount";
-      const currentEdits = parseInt(localStorage.getItem(key) || "0", 10);
-      if (currentEdits >= 3) {
-        setShowPricingModal(true);
-        return;
-      }
-      localStorage.setItem(key, (currentEdits + 1).toString());
+    if (isFreeTone && !canUseProTones && !canUseFreeToneEdit(false)) {
+      setShowPricingModal(true);
+      return;
     }
 
     handleAiEdit("professional_tone", toneKey);
@@ -103,11 +103,20 @@ export function ToneEditor({
 
       {showToneOptions && user && (
         <div className="flex flex-col gap-1 p-2 bg-zinc-950/50 rounded-xl border border-zinc-800/50 mt-1 animate-in slide-in-from-top-2">
+          {!canUseProTones && (
+            <p className="text-[10px] text-zinc-500 px-2 pb-1">
+              {locale === "en"
+                ? `${remaining} free tone rewrite(s) left`
+                : locale === "es"
+                ? `${remaining} reescritura(s) de tono gratis restantes`
+                : `${remaining} rescrieri de ton gratuite rămase`}
+            </p>
+          )}
           <button
             type="button"
             onClick={() => onToneSelect("formal")}
             disabled={isEditingAi}
-            className="w-full text-xs text-left px-4 py-2.5 rounded-lg hover:bg-zinc-900 text-zinc-400 hover:text-white transition-all font-semibold"
+            className="w-full text-xs text-left px-4 py-2.5 rounded-lg hover:bg-zinc-900 text-zinc-400 hover:text-white transition-all font-semibold min-h-[44px]"
           >
             {ui.toneProfessional}
           </button>
@@ -115,7 +124,7 @@ export function ToneEditor({
             type="button"
             onClick={() => onToneSelect("creative")}
             disabled={isEditingAi}
-            className="w-full text-xs text-left px-4 py-2.5 rounded-lg hover:bg-zinc-900 text-zinc-400 hover:text-white transition-all font-semibold"
+            className="w-full text-xs text-left px-4 py-2.5 rounded-lg hover:bg-zinc-900 text-zinc-400 hover:text-white transition-all font-semibold min-h-[44px]"
           >
             {ui.toneCreative}
           </button>
@@ -123,7 +132,7 @@ export function ToneEditor({
             type="button"
             onClick={() => onToneSelect("persuasive")}
             disabled={isEditingAi}
-            className="w-full text-xs text-left px-4 py-2.5 rounded-lg hover:bg-zinc-900 text-zinc-400 hover:text-white transition-all font-semibold flex items-center justify-between gap-2"
+            className="w-full text-xs text-left px-4 py-2.5 rounded-lg hover:bg-zinc-900 text-zinc-400 hover:text-white transition-all font-semibold flex items-center justify-between gap-2 min-h-[44px]"
           >
             <span className="min-w-0">{ui.tonePersuasive}</span>
             {!canUseProTones && (
@@ -136,7 +145,7 @@ export function ToneEditor({
             type="button"
             onClick={() => onToneSelect("friendly")}
             disabled={isEditingAi}
-            className="w-full text-xs text-left px-4 py-2.5 rounded-lg hover:bg-zinc-900 text-zinc-400 hover:text-white transition-all font-semibold flex items-center justify-between gap-2"
+            className="w-full text-xs text-left px-4 py-2.5 rounded-lg hover:bg-zinc-900 text-zinc-400 hover:text-white transition-all font-semibold flex items-center justify-between gap-2 min-h-[44px]"
           >
             <span className="min-w-0">{ui.toneFriendly}</span>
             {!canUseProTones && (

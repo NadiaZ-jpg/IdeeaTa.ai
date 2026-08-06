@@ -327,7 +327,7 @@ export const translations = {
     standardPlanName: "Standard",
     proToolsPlanName: "Professional Tools",
     mostPopularLabel: "Most Popular",
-    currencyLabel: "RON",
+    currencyLabel: "EUR",
     oneTimePayment: "one-time payment",
     buyNowBtn: "Buy Now",
     promoCodeLabel: "Promo Code",

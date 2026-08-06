@@ -436,9 +436,23 @@ Dacă oricare dintre aceste verificări este omisă în procesul de planificare,
 - EN/ES legal: neschimbate (deja Lemon). Zero „Stripe” rămas în paginile legale RO.
 - **Build verificat local:** ✅ `npx tsc --noEmit` OK · `npm run build` OK
 
+## FREEZE (6 August 2026 — Sesiunea S7: i18n hygiene)
+- **lib/translations.ts** — EN `currencyLabel`: RON → **EUR** (REGULA #21). RO rămâne RON; ES era deja EUR.
+- **lib/uiStrings.ts** — Batch diacritice RO pe stringurile principale de UI; adăugat `shareLinkTitle` pe RO/EN/ES.
+- **components/DemoMobile.tsx** — title Share din `ui.shareLinkTitle` (fără ternară).
+- **Notă:** Desktop rămâne sursa de adevăr pentru fluxuri; Mobile importă helper-ele share/sharedId. Diacritice rămase pe stringuri secundare pot fi batch-uite ulterior.
+- **Build verificat local:** ✅ `npx tsc --noEmit` OK · `npm run build` OK
+
+## FREEZE (6 August 2026 — Sesiunea S8: DemoMobile tap targets + beforeunload)
+- **components/DemoMobile.tsx** — Tap targets ≥44px pe Share/Export, close Auth/Export, toggle login, Google/Facebook, close versiuni (`p-2 -m-2` / `min-w/h-[36-44px]`). Adăugat `beforeunload` când există plan activ (ca Desktop; exclus shared view / download). Tabletă rămâne pe arborele Mobile (&lt;1024).
+- **Build verificat local:** ✅ `npx tsc --noEmit` OK · `npm run build` OK
+
 ## RĂMÂNE DE FĂCUT
-- S7–S8: i18n hygiene, tap targets DemoMobile
-- Deploy Hetzner + checkpoint git (la cerere)
+- Deploy Hetzner cu S1–S8
+- S3-A opțional (generate Studio pe Mobile)
+- Checkpoint git S7+S8 (la cerere)
+
+
 
 
 

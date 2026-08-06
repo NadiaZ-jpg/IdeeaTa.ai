@@ -295,6 +295,18 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
     }
   }, [isCheckingShared, skipLocalRestore]);
 
+  // Prevenire părăsire accidentală când există plan activ (ca pe Desktop)
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (result && !isSharedView && !isDownloading) {
+        e.preventDefault();
+        e.returnValue = "";
+      }
+    };
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    return () => window.removeEventListener("beforeunload", handleBeforeUnload);
+  }, [result, isSharedView, isDownloading]);
+
   const handleGenerate = async (nicheExample?: string) => {
     const inputSkill = nicheExample || skill;
     if (!inputSkill.trim()) return;
@@ -603,14 +615,14 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
               <div className="flex gap-2 shrink-0">
                 <button
                   onClick={handleShare}
-                  className="bg-zinc-800 hover:bg-zinc-700 text-white font-bold p-2.5 rounded-lg text-xs transition-all active:scale-95"
-                  title={locale === "en" ? "Copy link" : locale === "es" ? "Copiar enlace" : "Copiază link-ul"}
+                  className="bg-zinc-800 hover:bg-zinc-700 text-white font-bold p-2 -m-1 rounded-lg text-xs transition-all active:scale-95 inline-flex items-center justify-center min-w-[44px] min-h-[44px]"
+                  title={ui.shareLinkTitle}
                 >
                   🔗
                 </button>
                 <button
                   onClick={() => handleDownload('pdf')}
-                  className="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-3 py-2 rounded-lg text-xs transition-all active:scale-95 flex items-center gap-1.5"
+                  className="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-3 py-2 rounded-lg text-xs transition-all active:scale-95 inline-flex items-center justify-center gap-1.5 min-h-[44px]"
                 >
                   <span>{locale === "en" ? "Export" : locale === "es" ? "Exportar" : "Export"}</span>
                   <span>📥</span>
@@ -653,7 +665,7 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
                       <div className="absolute top-full left-0 right-0 mt-1 bg-zinc-950 border border-zinc-800 rounded-2xl p-2 shadow-2xl z-30 animate-in fade-in slide-in-from-top-1 duration-150">
                         <div className="text-[9px] uppercase font-black tracking-widest text-zinc-500 px-3 py-2 border-b border-zinc-900 flex justify-between items-center">
                           <span>{locale === "en" ? "Saved Versions" : locale === "es" ? "Versiones Guardadas" : "Versiuni Salvate"}</span>
-                          <button onClick={() => setShowVersionDropdown(false)} className="text-zinc-500 hover:text-white text-xs">✕</button>
+                          <button onClick={() => setShowVersionDropdown(false)} className="text-zinc-500 hover:text-white text-xs p-2 -m-2 inline-flex items-center justify-center min-w-[36px] min-h-[36px]">✕</button>
                         </div>
                         <div className="max-h-48 overflow-y-auto flex flex-col gap-1 mt-1">
                           {Object.entries(versions).map(([vKey, vData]) => (
@@ -881,7 +893,7 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
           <div className="bg-zinc-900 border border-zinc-800 rounded-3xl p-6 w-full max-w-sm space-y-6 relative animate-in zoom-in-95 duration-200">
             <button
               onClick={() => setShowAuthModal(false)}
-              className="absolute top-4 right-4 text-zinc-500 hover:text-white font-bold p-1 text-sm"
+              className="absolute top-4 right-4 text-zinc-500 hover:text-white font-bold text-sm p-2 -m-2 inline-flex items-center justify-center min-w-[44px] min-h-[44px]"
             >
               ✕
             </button>
@@ -939,13 +951,13 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
             <div className="grid grid-cols-2 gap-3">
               <button
                 onClick={() => handleSocialLogin('google')}
-                className="bg-zinc-950 border border-zinc-800 hover:bg-zinc-900 text-xs font-bold py-2.5 rounded-xl transition-all flex items-center justify-center gap-2"
+                className="bg-zinc-950 border border-zinc-800 hover:bg-zinc-900 text-xs font-bold py-2.5 rounded-xl transition-all inline-flex items-center justify-center gap-2 min-h-[44px]"
               >
                 Google
               </button>
               <button
                 onClick={() => handleSocialLogin('facebook')}
-                className="bg-zinc-950 border border-zinc-800 hover:bg-zinc-900 text-xs font-bold py-2.5 rounded-xl transition-all flex items-center justify-center gap-2"
+                className="bg-zinc-950 border border-zinc-800 hover:bg-zinc-900 text-xs font-bold py-2.5 rounded-xl transition-all inline-flex items-center justify-center gap-2 min-h-[44px]"
               >
                 Facebook
               </button>
@@ -954,7 +966,7 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
             <div className="text-center">
               <button
                 onClick={() => setIsLoginMode(!isLoginMode)}
-                className="text-[11px] text-emerald-400 hover:text-emerald-300 font-semibold"
+                className="text-[11px] text-emerald-400 hover:text-emerald-300 font-semibold p-2 -m-2 inline-flex items-center justify-center min-h-[44px]"
               >
                 {isLoginMode 
                   ? (locale === "en" ? "Don't have an account? Register" : locale === "es" ? "¿No tienes una cuenta? Regístrate" : "Nu ai cont? Înregistrează-te") 
@@ -993,7 +1005,7 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
           <div className="bg-zinc-900 border-t border-zinc-800 rounded-t-3xl p-6 max-h-[85vh] overflow-y-auto space-y-5 animate-in slide-in-from-bottom duration-300 flex flex-col w-full md:max-w-lg md:mx-auto md:left-1/2 md:-translate-x-1/2 md:right-auto">
             <div className="flex justify-between items-center border-b border-zinc-800/60 pb-3">
               <h4 className="text-sm font-black text-white">{locale === "en" ? "Export Options" : locale === "es" ? "Opciones de Exportación" : "Opțiuni de Exportare"}</h4>
-              <button onClick={() => setShowExportModal(false)} className="text-xs text-zinc-500 font-bold p-1">{locale === "en" ? "Close" : locale === "es" ? "Cerrar" : "Închide"}</button>
+              <button onClick={() => setShowExportModal(false)} className="text-xs text-zinc-500 font-bold p-2 -m-2 inline-flex items-center justify-center min-w-[44px] min-h-[44px]">{locale === "en" ? "Close" : locale === "es" ? "Cerrar" : "Închide"}</button>
             </div>
             
             <div className="flex flex-col gap-3">

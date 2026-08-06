@@ -522,9 +522,19 @@ Dacă oricare dintre aceste verificări este omisă în procesul de planificare,
 - **ToolActionButton:** locked badge `Free w/ account` / `Gratis con cuenta`.
 - Branch: `cursor/pdf-cta-locale-and-plan-fill`.
 
+## FREEZE (6 August 2026 — Word DOCX: pie total vs TOTAL ESTIMADO)
+**Bug:** pe EN/ES, `TOTAL ESTIMADO` din Word era `sumă × 0.201` (ex. 33000→6633) — `formatPrice` din `generateDocx.ts` trata totalul numeric fără „EUR” ca LEI.
+**Fix:**
+- `lib/priceHelper.ts` — `parseBudgetCost`, `formatAmountInCurrency`; EN/ES convertesc doar dacă textul are LEI/RON explicit.
+- `lib/generateDocx.ts` — totalul final via `formatAmountInCurrency` (fără FX pe sumă); iteme via `formatPriceLocalized`.
+- `lib/generatePptx.ts` — același helper (nu mai are formatPrice local greșit).
+- PDF/Presentation slides — totalul estimat trimite suma + marker valută ca să nu se reconvertească.
+- Acoperă Desktop+Mobile (export comun) pe RO/EN/ES.
+
 ## RĂMÂNE DE FĂCUT
-- Deploy Hetzner (PDF CTA + ES/EN Demo + auth action + Studio tones + Dashboard/BMC/sync + ToneEditor fix)
+- Deploy Hetzner (PDF CTA + ES/EN Demo + auth action + Studio tones + Dashboard/BMC/sync + ToneEditor fix + Word total)
 - Smoke test cont gratuit EN+ES Desktop/Mobile: 4 generări → Pricing; 3× formal/creative → Pricing; persuasive → Pricing
+- Smoke Word EN/ES: placintă TOTAL = TOTAL ESTIMADO / ESTIMATED TOTAL
 - Smoke Dashboard `/en/dashboard` + `/es/dashboard` fără badge Gratis
 - S3-A opțional (generate Studio pe Mobile)
 

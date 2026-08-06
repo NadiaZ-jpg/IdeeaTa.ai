@@ -1,4 +1,5 @@
 import pptxgen from "pptxgenjs";
+import { formatPriceLocalized, parseBudgetCost } from "@/lib/priceHelper";
 
 export const generatePptx = async (
   result: any,
@@ -113,41 +114,8 @@ export const generatePptx = async (
 
   const tr = pptxTranslations[locale] || pptxTranslations.ro;
 
-  const formatPrice = (priceText: any) => {
-    if (!priceText) return "";
-    const rawText = priceText.toString();
-    const num = parseInt(rawText.replace(/[^0-9]/g, ""));
-    if (isNaN(num)) return priceText;
-
-    const activeCurrency = currency || (locale === "ro" ? "LEI" : "EUR");
-    const hasEur = rawText.toUpperCase().includes("EUR") || rawText.includes("€");
-
-    if (locale === "en" || locale === "es") {
-      const locString = locale === "es" ? "es-ES" : "en-US";
-      if (hasEur) {
-        return `${num.toLocaleString(locString)} EUR`;
-      }
-      const eurValue = Math.round(num * fxRate);
-      return `${eurValue.toLocaleString(locString)} EUR`;
-    }
-
-    // locale === "ro"
-    if (activeCurrency === "EUR") {
-      if (hasEur) {
-        return `${num.toLocaleString("ro-RO")} EUR`;
-      }
-      const eurValue = Math.round(num * fxRate);
-      return `${eurValue.toLocaleString("ro-RO")} EUR`;
-    }
-
-    // activeCurrency === "LEI"
-    if (hasEur) {
-      const leiValue = Math.round(num / fxRate);
-      return `${leiValue.toLocaleString("ro-RO")} LEI`;
-    }
-
-    return `${num.toLocaleString("ro-RO")} LEI`;
-  };
+  const formatPrice = (priceText: any) =>
+    formatPriceLocalized(priceText, locale, currency || (locale === "ro" ? "LEI" : "EUR"), fxRate);
 
   const splitTextIntoSlides = (text: string, maxLength: number) => {
     if (!text) return [];
@@ -250,10 +218,9 @@ export const generatePptx = async (
       {
         name: tr.budgetName,
         labels: result.plan_financiar.buget_investitii.map((i: any) => i.item || i.categorie || i.nume || (locale === "en" ? "Investment" : locale === "es" ? "Inversión" : "Investiție")),
-        values: result.plan_financiar.buget_investitii.map((i: any) => {
-          const costText = i.cost !== undefined ? i.cost : i.suma_lei;
-          return parseInt(costText?.toString().replace(/[^0-9]/g, "") || "0");
-        })
+        values: result.plan_financiar.buget_investitii.map((i: any) =>
+          parseBudgetCost(i.cost !== undefined ? i.cost : i.suma_lei)
+        )
       }
     ];
     cSlide.addChart(pres.ChartType.doughnut, dataChartPie, { 

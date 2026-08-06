@@ -228,7 +228,7 @@ export function DemoPdfSlides({ result, ui, locale, currency, formatPrice, trunc
             <div className="absolute bottom-12 right-24">
                <div className="bg-emerald-900 text-white px-12 py-6 flex items-center rounded-2xl shadow-xl">
                  <span className="text-lg font-bold uppercase tracking-wider mr-6 text-emerald-200">{ui.estimatedTotal}</span>
-                 <span className="text-lg font-black">{formatPrice(result.plan_financiar?.buget_investitii?.reduce((sum: number, b: any) => sum + parseInt((b.cost !== undefined ? b.cost : b.suma_lei)?.toString().replace(/[^0-9]/g, '') || '0'), 0).toString())}</span>
+                 <span className="text-lg font-black">{formatPrice(`${result.plan_financiar?.buget_investitii?.reduce((sum: number, b: any) => sum + parseInt((b.cost !== undefined ? b.cost : b.suma_lei)?.toString().replace(/[^0-9]/g, '') || '0'), 0)} ${currency || (locale === "en" || locale === "es" ? "EUR" : "LEI")}`)}</span>
                </div>
             </div>
           )}

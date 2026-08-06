@@ -1,10 +1,37 @@
+export const parseBudgetCost = (priceText: any): number => {
+  if (priceText === null || priceText === undefined || priceText === "") return 0;
+  let rawText: any = priceText;
+  if (typeof priceText === "object") {
+    rawText = Object.values(priceText)[0] || "";
+  }
+  const numericValue = parseInt(String(rawText).replace(/[^0-9]/g, ""), 10);
+  return Number.isFinite(numericValue) ? numericValue : 0;
+};
+
+/** Format a numeric total already expressed in the plan's display currency (no FX). */
+export const formatAmountInCurrency = (
+  amount: number,
+  locale: string,
+  currencyToggle: string
+): string => {
+  const loc =
+    locale === "en" ? "en-US" : locale === "es" ? "es-ES" : "ro-RO";
+  const cur =
+    locale === "en" || locale === "es"
+      ? "EUR"
+      : currencyToggle === "EUR"
+      ? "EUR"
+      : "LEI";
+  return `${Math.round(amount).toLocaleString(loc)} ${cur}`;
+};
+
 export const formatPriceLocalized = (
   priceText: any,
   locale: string,
   currencyToggle: string,
   fxRate: number = 0.201
 ) => {
-  if (!priceText) return "";
+  if (priceText === null || priceText === undefined || priceText === "") return "";
   
   let rawText = priceText;
   if (typeof priceText === 'object') {
@@ -19,7 +46,8 @@ export const formatPriceLocalized = (
   const isRawEur = upper.includes("EUR") || text.includes("€");
   const isRawLei = upper.includes("LEI") || upper.includes("RON");
 
-  // EN/ES: always show EUR. If the AI wrote LEI amounts, convert with fxRate.
+  // EN/ES: always show EUR. Convert only when the AI explicitly wrote LEI/RON.
+  // Bare numbers (and summed totals) are already EUR for EN/ES plans — do NOT apply fxRate.
   if (locale === "en" || locale === "es") {
     const eurValue =
       isRawLei && !isRawEur ? Math.round(numericValue * fxRate) : numericValue;

@@ -13,6 +13,11 @@ import {
   TextRun,
   WidthType,
 } from "docx";
+import {
+  formatAmountInCurrency,
+  formatPriceLocalized,
+  parseBudgetCost,
+} from "@/lib/priceHelper";
 
 const FONT = "Times New Roman";
 const COLOR_EMERALD = "065f46";
@@ -111,40 +116,8 @@ function spacer(): Paragraph {
 }
 
 function formatPrice(val: any, locale: "ro" | "en" | "es" = "ro", currency?: string): string {
-  if (!val) return "";
-  const rawText = val.toString();
-  const num = parseInt(rawText.replace(/[^0-9]/g, ""));
-  if (isNaN(num)) return rawText;
-
   const activeCurrency = currency || (locale === "ro" ? "LEI" : "EUR");
-  const hasEur = rawText.toUpperCase().includes("EUR") || rawText.includes("€");
-  const fxRate = 0.201;
-
-  if (locale === "en" || locale === "es") {
-    const locString = locale === "es" ? "es-ES" : "en-US";
-    if (hasEur) {
-      return `${num.toLocaleString(locString)} EUR`;
-    }
-    const eurValue = Math.round(num * fxRate);
-    return `${eurValue.toLocaleString(locString)} EUR`;
-  }
-
-  // locale === "ro"
-  if (activeCurrency === "EUR") {
-    if (hasEur) {
-      return `${num.toLocaleString("ro-RO")} EUR`;
-    }
-    const eurValue = Math.round(num * fxRate);
-    return `${eurValue.toLocaleString("ro-RO")} EUR`;
-  }
-
-  // activeCurrency === "LEI"
-  if (hasEur) {
-    const leiValue = Math.round(num / fxRate);
-    return `${leiValue.toLocaleString("ro-RO")} LEI`;
-  }
-
-  return `${num.toLocaleString("ro-RO")} LEI`;
+  return formatPriceLocalized(val, locale, activeCurrency);
 }
 
 const swotItemParagraphs = (items: any[], title: string, color: string): Paragraph[] => {
@@ -299,10 +272,7 @@ export async function generateDocxBlob(
         }
 
         const colors = ['#10b981', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#14b8a6'];
-        const values = items.map((i: any) => {
-          const costText = i.cost !== undefined ? i.cost : i.suma_lei;
-          return parseInt(costText?.toString().replace(/[^0-9]/g, '')) || 0;
-        });
+        const values = items.map((i: any) => parseBudgetCost(i.cost !== undefined ? i.cost : i.suma_lei));
         const total = values.reduce((a: number, b: number) => a + b, 0);
 
         const cx = 250;
@@ -576,8 +546,8 @@ export async function generateDocxBlob(
 
     const sorted = [...fin.buget_investitii].sort(
       (a: any, b: any) =>
-        parseInt((b.cost !== undefined ? b.cost : b.suma_lei)?.toString().replace(/[^0-9]/g, "") || "0") -
-        parseInt((a.cost !== undefined ? a.cost : a.suma_lei)?.toString().replace(/[^0-9]/g, "") || "0")
+        parseBudgetCost(b.cost !== undefined ? b.cost : b.suma_lei) -
+        parseBudgetCost(a.cost !== undefined ? a.cost : a.suma_lei)
     );
 
     sorted.forEach((b: any) => {
@@ -607,15 +577,17 @@ export async function generateDocxBlob(
     });
 
     const total = fin.buget_investitii.reduce(
-      (sum: number, b: any) => sum + parseInt((b.cost !== undefined ? b.cost : b.suma_lei)?.toString().replace(/[^0-9]/g, "") || "0"),
+      (sum: number, b: any) => sum + parseBudgetCost(b.cost !== undefined ? b.cost : b.suma_lei),
       0
     );
+    const activeCurrency = currency || (locale === "ro" ? "LEI" : "EUR");
 
     children.push(
       new Paragraph({
         children: [
           new TextRun({
-            text: `${tr.totalEstimat}: ${formatPrice(total.toString(), locale, currency)}`,
+            // Sum is already in plan currency — do not run LEI→EUR FX on a bare number
+            text: `${tr.totalEstimat}: ${formatAmountInCurrency(total, locale, activeCurrency)}`,
             bold: true,
             size: 28,
             color: COLOR_EMERALD,

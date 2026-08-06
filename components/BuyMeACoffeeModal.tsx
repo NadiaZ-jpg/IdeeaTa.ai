@@ -28,10 +28,10 @@ export default function BuyMeACoffeeModal({ isOpen, onClose, locale }: BuyMeACof
           </h2>
           <p className="text-zinc-400 text-xs px-2">
             {locale === "en" 
-              ? "Scan the QR code with your phone or use the link below to support the IdeeaTa.ai project."
+              ? "Scan the QR with your phone, then open the link in the browser (do not Install as an app). Or use the button below."
               : locale === "es"
-              ? "Escanea el código QR con tu móvil o usa el enlace de abajo para apoyar el proyecto de IdeeaTa.ai."
-              : "Scanează codul QR cu telefonul sau folosește linkul de mai jos pentru a susține proiectul IdeeaTa.ai."}
+              ? "Escanea el QR con el móvil y abre el enlace en el navegador (no Instales como app). O usa el botón de abajo."
+              : "Scanează QR-ul cu telefonul, apoi deschide linkul în browser (nu apăsa Instalează ca aplicație). Sau folosește butonul de mai jos."}
           </p>
         </div>
 

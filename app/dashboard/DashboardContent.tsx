@@ -292,13 +292,9 @@ export default function DashboardContent({ locale = "ro" }: { locale?: "ro" | "e
                   </div>
                   <div className="flex flex-col items-end gap-2">
                     <div className="flex items-center gap-1.5">
-                      {plan.isPaid ? (
+                      {plan.isPaid && (
                         <span className="bg-amber-500/20 text-amber-400 border border-amber-500/30 text-[10px] uppercase font-black px-2 py-0.5 rounded-full flex items-center gap-1">
                           PRO
-                        </span>
-                      ) : (
-                        <span className="bg-zinc-800 text-zinc-400 border border-zinc-700 text-[10px] uppercase font-black px-2 py-0.5 rounded-full flex items-center gap-1">
-                          {isEn ? "Free" : isEs ? "Gratis" : "Gratuit"}
                         </span>
                       )}
                       <span className={`text-[10px] uppercase font-black px-2 py-0.5 rounded-full border ${

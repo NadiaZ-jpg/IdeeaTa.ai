@@ -65,6 +65,18 @@ export function consumeFreeToneEdit(hasPaidToneAccess: boolean): void {
   localStorage.setItem(TONE_EDIT_COUNT_KEY, String(next));
 }
 
+export function freeToneRemainingCount(): number {
+  return Math.max(0, FREE_TONE_EDIT_LIMIT - getFreeToneEditCount());
+}
+
+/** RO/EN/ES label for remaining free tone rewrites. */
+export function freeToneRemainingLabel(locale: "ro" | "en" | "es"): string {
+  const remaining = freeToneRemainingCount();
+  if (locale === "en") return `${remaining} free tone rewrite(s) left`;
+  if (locale === "es") return `${remaining} reescritura(s) de tono gratis restantes`;
+  return `${remaining} rescrieri de ton gratuite rămase`;
+}
+
 export function toneVersionKey(customStyle?: string | null): string {
   const toneType = normalizeToneKey(customStyle) || "formal";
   return `ton_${toneType}_${Date.now()}`;

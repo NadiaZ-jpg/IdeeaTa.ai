@@ -1,5 +1,6 @@
 import React from "react";
 import { ToolActionButton } from "@/components/tools/ToolActionButton";
+import { freeToneRemainingLabel } from "@/lib/toneQuota";
 
 export function StudioLeftSidebar({ 
   user, 
@@ -53,6 +54,11 @@ export function StudioLeftSidebar({
                         
                         {showToneOptions && user && (
                             <div className="bg-black/40 border border-zinc-800 rounded-xl p-2 flex flex-col gap-1.5 animate-in fade-in slide-in-from-top-2 duration-200">
+                            {!hasStandardAccess && !isAdmin && (
+                              <p className="text-[10px] text-zinc-500 px-2 pb-1">
+                                {freeToneRemainingLabel(locale === "en" || locale === "es" ? locale : "ro")}
+                              </p>
+                            )}
                             <button 
                               type="button"
                               onClick={() => handleAiEdit("professional_tone", "formal")} 

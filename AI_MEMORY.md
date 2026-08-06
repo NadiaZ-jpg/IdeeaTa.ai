@@ -512,10 +512,20 @@ Dacă oricare dintre aceste verificări este omisă în procesul de planificare,
 - **BuyMeACoffeeModal + public/bmc-qr.png** — QR clar → `https://buymeacoffee.com/ideeata`; copy RO/EN/ES: deschide în browser, nu „Instalează” (PWA BMC titrat IdeeaTa.ai).
 - Commit tones: `71600eb`. Branch: `cursor/pdf-cta-locale-and-plan-fill`.
 
+## FREEZE (6 August 2026 — EN/ES Desktop+Mobile parity: free account tones)
+**Verificat + aliniat RO/EN/ES pe Desktop și Mobile:**
+- Cotă planuri 4 + tone 3 (formal/creative) — același `lib/toneQuota.ts` / `lib/planQuota.ts` pe `/en/*` și `/es/*` (page wrappers trimit `locale`).
+- **ToneEditor (Mobile Demo+Studio):** fix import `FREE_TONE_KEYS` (bug Runtime pe select tone); badge + remaining label RO/EN/ES.
+- **DemoLeftSidebar / StudioLeftSidebar (Desktop):** același remaining label ca Mobile via `freeToneRemainingLabel(locale)`; Pro pe persuasive/friendly.
+- **Demo/Studio Desktop+Mobile handleAiEdit:** gate Pro + free quota + consume după succes — EN/ES identic cu RO (logică pe chei stabile `formal|creative|persuasive|friendly`, nu pe text tradus).
+- **Dashboard EN/ES:** limit banner + Pricing fără badge Gratis; EUR pe EN/ES.
+- **ToolActionButton:** locked badge `Free w/ account` / `Gratis con cuenta`.
+- Branch: `cursor/pdf-cta-locale-and-plan-fill`.
+
 ## RĂMÂNE DE FĂCUT
-- Deploy Hetzner (PDF CTA + ES/EN Demo + auth action + Studio tones + Dashboard/BMC/sync)
-- Smoke test cont gratuit: 4 generări → Pricing; 3× formal/creative → Pricing; persuasive → Pricing
-- Smoke `/es/studio` + `/en/studio` + Dashboard fără badge Gratis
+- Deploy Hetzner (PDF CTA + ES/EN Demo + auth action + Studio tones + Dashboard/BMC/sync + ToneEditor fix)
+- Smoke test cont gratuit EN+ES Desktop/Mobile: 4 generări → Pricing; 3× formal/creative → Pricing; persuasive → Pricing
+- Smoke Dashboard `/en/dashboard` + `/es/dashboard` fără badge Gratis
 - S3-A opțional (generate Studio pe Mobile)
 
 

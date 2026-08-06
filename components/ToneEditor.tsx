@@ -4,9 +4,9 @@ import { useState } from "react";
 import { User } from "firebase/auth";
 import { UI_STRINGS } from "@/lib/uiStrings";
 import {
-  FREE_TONE_EDIT_LIMIT,
+  FREE_TONE_KEYS,
   canUseFreeToneEdit,
-  getFreeToneEditCount,
+  freeToneRemainingLabel,
 } from "@/lib/toneQuota";
 
 type Locale = "ro" | "en" | "es";
@@ -43,7 +43,6 @@ export function ToneEditor({
   const [showToneOptions, setShowToneOptions] = useState(false);
   const ui = UI_STRINGS[locale] || UI_STRINGS.ro;
   const canUseProTones = !!(isAdmin || hasStandardAccess);
-  const remaining = Math.max(0, FREE_TONE_EDIT_LIMIT - getFreeToneEditCount());
 
   const freeWithAccountBadge =
     locale === "en" ? "Free w/ account" : locale === "es" ? "Gratis con cuenta" : "Gratis cu cont";
@@ -105,11 +104,7 @@ export function ToneEditor({
         <div className="flex flex-col gap-1 p-2 bg-zinc-950/50 rounded-xl border border-zinc-800/50 mt-1 animate-in slide-in-from-top-2">
           {!canUseProTones && (
             <p className="text-[10px] text-zinc-500 px-2 pb-1">
-              {locale === "en"
-                ? `${remaining} free tone rewrite(s) left`
-                : locale === "es"
-                ? `${remaining} reescritura(s) de tono gratis restantes`
-                : `${remaining} rescrieri de ton gratuite rămase`}
+              {freeToneRemainingLabel(locale)}
             </p>
           )}
           <button

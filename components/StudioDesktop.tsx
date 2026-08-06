@@ -311,7 +311,6 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
       return;
     }
 
-    const freeTones = ["formal", "creative"];
     const isToneAction = action === "professional_tone";
     const isProTone = isToneAction && isProToneKey(customStyle);
 

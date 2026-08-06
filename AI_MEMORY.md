@@ -550,6 +550,15 @@ Dacă oricare dintre aceste verificări este omisă în procesul de planificare,
 - Desktop: procent valid 1–90; Mobile Studio: `prompt` pentru procent + trimite `targetSection` + versiune `budget_*`.
 - Acoperă Studio Desktop+Mobile (API comun) RO/EN/ES.
 
+## FREEZE (6 August 2026 — Studio version stack / Combină cu…)
+**Reguli produs în `lib/versionStack.ts` (Desktop+Mobile, RO/EN/ES):**
+- Free: max 1 tool pe lanț (tab simplu); **fără** meniu Combină.
+- Standard: max **2** tool-uri pe stack.
+- Full Access: max **4** tool-uri pe stack.
+- „Combină cu…” pe tab existent → rulează tool pe conținutul tabului → **tab nou** cu etichetă `A + B`.
+- Download = tab activ.
+- UI: `VersionSelector` (Desktop) + dropdown istoric (Mobile); gate în `handleAiEdit`.
+
 ## FREEZE (6 August 2026 — Studio batch commit: tools quality)
 **Înghețat pe branch `cursor/pdf-cta-locale-and-plan-fill`:**
 - Cotă free: 4 planuri + 3 tonuri formal/creative (Desktop+Mobile RO/EN/ES).

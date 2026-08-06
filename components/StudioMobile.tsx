@@ -25,6 +25,22 @@ import { truncateText, splitTextIntoSlides } from "@/lib/planHelpers";
 import { formatPriceLocalized } from "@/lib/priceHelper";
 import { formatObjectNumbers, formatNumberedText } from "@/lib/utils";
 import { canUseFreeToneEdit, consumeFreeToneEdit, isFreeToneKey, isProToneKey, toneVersionKey } from "@/lib/toneQuota";
+import {
+  buildStackedVersionKey,
+  canUseVersionCombine,
+  combineWithLabel,
+  formatVersionTabTitle,
+  gateVersionStackAppend,
+  getCombineMenuItems,
+  getVersionStackLimit,
+  noCombineAccessMessage,
+  resolveVersionStack,
+  stackLimitReachedMessage,
+  toolStepFromAction,
+  withVersionStack,
+  type CombineAction,
+  type VersionStackAccess,
+} from "@/lib/versionStack";
 
 import { EXPERT_TEMPLATES } from '@/lib/templatesData';
 
@@ -60,6 +76,13 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
 
   const isPlanPaid = promoCodeUnlocked || isAdmin || subscriptionActive || (result && unlockedPlans.includes(result.nume)) || isPaid;
   const isStudioPaid = promoCodeUnlocked || isAdmin || subscriptionActive || euFundsUnlocked || isPaid;
+  const versionStackAccess: VersionStackAccess = {
+    isAdmin,
+    hasStandardAccess: !!(isPlanPaid || isStudioPaid),
+    hasFullAccess: !!(isAdmin || subscriptionActive || euFundsUnlocked),
+    hasProTools: !!(isAdmin || subscriptionActive || euFundsUnlocked),
+  };
+  const [combineMenuFor, setCombineMenuFor] = useState<string | null>(null);
 
   // Stări pentru editarea AI și manuală pe mobil (Bottom-Sheets)
   const [isEditingAi, setIsEditingAi] = useState(false);
@@ -182,7 +205,11 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
     return () => unsubscribe();
   }, [user]);
 
-  const handleAiEdit = async (action: string, customInput?: string) => {
+  const handleAiEdit = async (
+    action: string,
+    customInput?: string,
+    options?: { basePlan?: any; sourceVersionId?: string }
+  ) => {
     if (!result || !user) return;
 
     const isTone = action === "professional_tone";
@@ -198,6 +225,7 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
     }
 
     let targetSection = "";
+    let budgetPercent: number | null = null;
     if (action === "optimize_budget") {
       const promptMsg =
         locale === "en"
@@ -218,7 +246,36 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
         );
         return;
       }
+      budgetPercent = percent;
       targetSection = String(percent);
+    }
+
+    const sourceId = options?.sourceVersionId || activeVersionId;
+    const baseSource = options?.basePlan || result;
+    const currentStack = resolveVersionStack(sourceId, baseSource);
+    const nextStep = toolStepFromAction(action, isTone ? customInput : undefined, budgetPercent);
+    let nextStack = currentStack;
+    if (nextStep) {
+      const gate = gateVersionStackAppend(currentStack, nextStep, versionStackAccess);
+      if (!gate.ok) {
+        if (gate.reason === "no_access") {
+          alert(noCombineAccessMessage(locale));
+          setShowPricingModal(true);
+          return;
+        }
+        if (gate.reason === "limit") {
+          const isStandardOnly = !!(
+            versionStackAccess.hasStandardAccess &&
+            !versionStackAccess.hasFullAccess &&
+            !versionStackAccess.isAdmin
+          );
+          alert(stackLimitReachedMessage(locale, gate.limit, isStandardOnly));
+          if (isStandardOnly) setShowPricingModal(true);
+          return;
+        }
+        return;
+      }
+      nextStack = gate.nextStack;
     }
 
     setIsEditingAi(true);
@@ -228,12 +285,12 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          result,
+          result: baseSource,
           action,
           customStyle: isTone ? (customInput || "") : "",
           targetSection: targetSection || (action === "add_sections" ? customInput || "" : ""),
           locale,
-          currency: result?.selectedCurrency || (locale === "ro" ? "LEI" : "EUR")
+          currency: baseSource?.selectedCurrency || (locale === "ro" ? "LEI" : "EUR")
         })
       });
 
@@ -241,33 +298,21 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
 
       const data = await res.json();
       if (data && data.editedPlan) {
-        const parsed = formatObjectNumbers(data.editedPlan);
-        if (isTone) {
-          const vKey = toneVersionKey(customInput);
-          setVersions((prev: any) => ({
-            ...(Object.keys(prev).length ? prev : { original: result }),
-            [vKey]: parsed,
-          }));
-          setActiveVersionId(vKey);
-        } else if (action === "eu_funds_optimization") {
-          setActiveVersionId("eu_funds");
-        } else if (action === "investor_ready") {
-          setActiveVersionId("investor");
-        } else if (action === "optimize_budget") {
-          const vKey = `budget_${Date.now()}`;
-          setVersions((prev: any) => ({
-            ...(Object.keys(prev).length ? prev : { original: result }),
-            [vKey]: parsed,
-          }));
-          setActiveVersionId(vKey);
-        }
+        const parsed = withVersionStack(formatObjectNumbers(data.editedPlan), nextStack);
+        const vKey = nextStep
+          ? buildStackedVersionKey(nextStack)
+          : `edit_${Date.now()}`;
+        setVersions((prev: any) => ({
+          ...(Object.keys(prev).length ? prev : { original: baseSource }),
+          [vKey]: parsed,
+        }));
+        setActiveVersionId(vKey);
         setResult(parsed);
         localStorage.setItem("current_generated_plan", JSON.stringify(parsed));
         if (isTone && isFreeToneKey(customInput) && !hasPaidTones) {
           consumeFreeToneEdit(false);
         }
 
-        // Salvare în Firestore
         const searchParams = new URLSearchParams(window.location.search);
         const planId = searchParams.get("planId");
         if (planId) {
@@ -280,6 +325,34 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
     } finally {
       setIsEditingAi(false);
     }
+  };
+
+  const handleCombineWith = (sourceVersionId: string, combine: CombineAction) => {
+    const sourcePlan = versions[sourceVersionId];
+    if (!sourcePlan) return;
+    setActiveVersionId(sourceVersionId);
+    setResult(sourcePlan);
+    setCombineMenuFor(null);
+    setShowVersionDropdown(false);
+
+    if (combine.action === "optimize_budget") {
+      void handleAiEdit("optimize_budget", undefined, {
+        basePlan: sourcePlan,
+        sourceVersionId,
+      });
+      return;
+    }
+    if (combine.action === "professional_tone") {
+      void handleAiEdit(combine.action, combine.customStyle, {
+        basePlan: sourcePlan,
+        sourceVersionId,
+      });
+      return;
+    }
+    void handleAiEdit(combine.action, undefined, {
+      basePlan: sourcePlan,
+      sourceVersionId,
+    });
   };
 
   const handleManualSave = async () => {
@@ -505,11 +578,8 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
                     <span>📜 {locale === "en" ? "Version History" : locale === "es" ? "Historial de Versiones" : "Istoric Versiuni"} ({Object.keys(versions).length})</span>
                   </span>
                   <span className="flex items-center gap-2">
-                    <span className="text-[10px] text-zinc-400 font-normal">
-                      {activeVersionId === "original" ? (locale === "en" ? "Original" : locale === "es" ? "Original" : "Originală")
-                      : activeVersionId === "eu_funds" ? (locale === "en" ? "EU Funds" : locale === "es" ? "Fondos UE" : "Fonduri UE")
-                      : activeVersionId === "investor" ? (locale === "en" ? "Investors" : locale === "es" ? "Inversores" : "Investitori")
-                      : activeVersionId}
+                    <span className="text-[10px] text-zinc-400 font-normal truncate max-w-[140px]">
+                      {formatVersionTabTitle(activeVersionId, versions[activeVersionId] || result, locale, ui)}
                     </span>
                     <span className="text-[10px] text-zinc-500">▼</span>
                   </span>
@@ -519,27 +589,70 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
                   <div className="absolute top-full left-0 right-0 mt-1 bg-zinc-950 border border-zinc-800 rounded-2xl p-2 shadow-2xl z-30 animate-in fade-in slide-in-from-top-1 duration-150">
                     <div className="text-[9px] uppercase font-black tracking-widest text-zinc-500 px-3 py-2 border-b border-zinc-900 flex justify-between items-center">
                       <span>{locale === "en" ? "Saved Versions" : locale === "es" ? "Versiones Guardadas" : "Versiuni Salvate"}</span>
-                      <button onClick={() => setShowVersionDropdown(false)} className="text-zinc-500 hover:text-white text-xs">✕</button>
+                      <button type="button" onClick={() => { setShowVersionDropdown(false); setCombineMenuFor(null); }} className="text-zinc-500 hover:text-white text-xs min-w-[44px] min-h-[44px]">✕</button>
                     </div>
-                    <div className="max-h-48 overflow-y-auto flex flex-col gap-1 mt-1">
+                    <div className="max-h-64 overflow-y-auto flex flex-col gap-1 mt-1">
                       {Object.entries(versions).map(([vKey, vData]) => (
-                        <button
-                          key={vKey}
-                          onClick={() => {
-                            setActiveVersionId(vKey);
-                            setResult(vData);
-                            setShowVersionDropdown(false);
-                          }}
-                          className={`w-full text-left px-3 py-2.5 rounded-xl text-xs font-semibold flex items-center justify-between transition-all cursor-pointer ${activeVersionId === vKey ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/30" : "text-zinc-400 hover:bg-zinc-900 hover:text-white"}`}
-                        >
-                          <span className="truncate">
-                            {vKey === "original" ? (locale === "en" ? "📝 Original Version" : locale === "es" ? "📝 Versión Original" : "📝 Varianta Originală")
-                            : vKey === "eu_funds" ? (locale === "en" ? "🇪🇺 EU Funds" : locale === "es" ? "🇪🇺 Fondos UE" : "🇪🇺 Optimizat Fonduri UE")
-                            : vKey === "investor" ? (locale === "en" ? "🏦 Investors Plan" : locale === "es" ? "🏦 Plan Inversores" : "🏦 Plan Investitori")
-                            : `📑 ${vKey}`}
-                          </span>
-                          {activeVersionId === vKey && <span className="text-emerald-400 text-xs">✓</span>}
-                        </button>
+                        <div key={vKey} className="flex flex-col gap-1">
+                          <div className="flex items-stretch gap-1">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setActiveVersionId(vKey);
+                                setResult(vData);
+                                setShowVersionDropdown(false);
+                                setCombineMenuFor(null);
+                              }}
+                              className={`flex-1 text-left px-3 py-2.5 rounded-xl text-xs font-semibold flex items-center justify-between transition-all cursor-pointer min-h-[44px] ${activeVersionId === vKey ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/30" : "text-zinc-400 hover:bg-zinc-900 hover:text-white"}`}
+                            >
+                              <span className="truncate pr-2">
+                                {formatVersionTabTitle(vKey, vData, locale, ui)}
+                              </span>
+                              {activeVersionId === vKey && <span className="text-emerald-400 text-xs shrink-0">✓</span>}
+                            </button>
+                            {canUseVersionCombine(versionStackAccess) && (
+                              <button
+                                type="button"
+                                title={combineWithLabel(locale)}
+                                onClick={() => {
+                                  const stack = resolveVersionStack(vKey, vData);
+                                  const limit = getVersionStackLimit(versionStackAccess);
+                                  if (stack.length >= limit) {
+                                    const isStandardOnly = !!(
+                                      versionStackAccess.hasStandardAccess &&
+                                      !versionStackAccess.hasFullAccess &&
+                                      !versionStackAccess.isAdmin
+                                    );
+                                    alert(stackLimitReachedMessage(locale, limit, isStandardOnly));
+                                    if (isStandardOnly) setShowPricingModal(true);
+                                    return;
+                                  }
+                                  setCombineMenuFor(combineMenuFor === vKey ? null : vKey);
+                                }}
+                                className="shrink-0 px-3 rounded-xl text-emerald-400 border border-emerald-500/25 bg-emerald-500/5 text-xs font-black min-w-[44px] min-h-[44px]"
+                              >
+                                +
+                              </button>
+                            )}
+                          </div>
+                          {combineMenuFor === vKey && (
+                            <div className="mx-1 mb-1 p-1.5 rounded-xl bg-zinc-900/80 border border-zinc-800">
+                              <p className="text-[9px] uppercase font-black tracking-widest text-zinc-500 px-2 py-1">
+                                {combineWithLabel(locale)}
+                              </p>
+                              {getCombineMenuItems(locale, versionStackAccess, ui).map((item) => (
+                                <button
+                                  key={item.id}
+                                  type="button"
+                                  className="w-full text-left text-xs px-3 py-2.5 rounded-lg text-zinc-300 hover:bg-zinc-800 hover:text-white font-semibold min-h-[44px]"
+                                  onClick={() => handleCombineWith(vKey, item.combine)}
+                                >
+                                  {item.label}
+                                </button>
+                              ))}
+                            </div>
+                          )}
+                        </div>
                       ))}
                     </div>
                   </div>

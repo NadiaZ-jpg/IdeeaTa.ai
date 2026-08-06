@@ -20,6 +20,18 @@ import { formatObjectNumbers, formatNumberedText } from "@/lib/utils";
 import { EXPERT_TEMPLATES, ExpertTemplate } from '@/lib/templatesData';
 import { FREE_ACCOUNT_PLAN_LIMIT, clearLocalPlanState } from '@/lib/planQuota';
 import { canUseFreeToneEdit, consumeFreeToneEdit, isProToneKey, toneVersionKey } from '@/lib/toneQuota';
+import {
+  buildStackedVersionKey,
+  gateVersionStackAppend,
+  getVersionStackLimit,
+  noCombineAccessMessage,
+  resolveVersionStack,
+  stackLimitReachedMessage,
+  toolStepFromAction,
+  withVersionStack,
+  type CombineAction,
+  type VersionStackAccess,
+} from '@/lib/versionStack';
 import { AuthWallModal } from '@/components/modals/AuthWallModal';
 import { EmailVerificationModal } from '@/components/modals/EmailVerificationModal';
 import { ExpertSectionsDrawer } from '@/components/modals/ExpertSectionsDrawer';
@@ -303,7 +315,13 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
     }
   };
 
-  const handleAiEdit = async (action: string, customStyle?: string, customInput?: string, isRetry?: boolean) => {
+  const handleAiEdit = async (
+    action: string,
+    customStyle?: string,
+    customInput?: string,
+    isRetry?: boolean,
+    options?: { basePlan?: any; sourceVersionId?: string }
+  ) => {
     if (isEditingAi) return;
 
     if (!user) {
@@ -336,6 +354,7 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
     }
 
     let targetSection = "";
+    let budgetPercent: number | null = null;
     if (action === "add_sections") {
       if (!customInput) return; // Anulat
       targetSection = customInput;
@@ -346,8 +365,33 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
         alert(t("alertValidPercent", locale));
         return;
       }
+      budgetPercent = percent;
       targetSection = percent.toString(); 
-    } 
+    }
+
+    const sourceId = options?.sourceVersionId || activeVersionId;
+    const baseSource = options?.basePlan || result;
+    const currentStack = resolveVersionStack(sourceId, baseSource);
+    const nextStep = toolStepFromAction(action, customStyle, budgetPercent);
+    let nextStack = currentStack;
+    if (nextStep) {
+      const gate = gateVersionStackAppend(currentStack, nextStep, versionStackAccess);
+      if (!gate.ok) {
+        if (gate.reason === "no_access") {
+          alert(noCombineAccessMessage(locale));
+          setShowPricingModal(true);
+          return;
+        }
+        if (gate.reason === "limit") {
+          const isStandardOnly = !!(versionStackAccess.hasStandardAccess && !versionStackAccess.hasFullAccess && !versionStackAccess.isAdmin);
+          alert(stackLimitReachedMessage(locale, gate.limit, isStandardOnly));
+          if (isStandardOnly) setShowPricingModal(true);
+          return;
+        }
+        return;
+      }
+      nextStack = gate.nextStack;
+    }
 
     setIsEditingAi(true);
     setAiEditError(null);
@@ -356,7 +400,6 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
     setAiPromptInput("");
     setShowToneOptions(false);
     try {
-      const baseSource = result;
       const [res] = await Promise.all([
         fetch("/api/edit", {
           method: "POST",
@@ -397,20 +440,21 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
         try {
           const parsed = JSON.parse(data.updatedResult);
           
-           let vKey = activeVersionId;
-           if (action === "eu_funds_optimization") {
-             vKey = `eu_funds_${Date.now()}`;
-           } else if (action === "investor_ready") {
-             vKey = `investor_${Date.now()}`;
-           } else if (action === "professional_tone") {
-             vKey = toneVersionKey(customStyle);
-           } else if (action === "optimize_budget") {
-             vKey = `budget_${Date.now()}`;
-           } else if (action === "add_sections") {
-             vKey = `expert_${Date.now()}`;
-           }
+          const vKey = nextStep
+            ? buildStackedVersionKey(nextStack)
+            : (action === "eu_funds_optimization"
+                ? `eu_funds_${Date.now()}`
+                : action === "investor_ready"
+                ? `investor_${Date.now()}`
+                : action === "professional_tone"
+                ? toneVersionKey(customStyle)
+                : action === "optimize_budget"
+                ? `budget_${Date.now()}`
+                : action === "add_sections"
+                ? `expert_${Date.now()}`
+                : activeVersionId);
           
-          const formattedResult = formatObjectNumbers(parsed);
+          const formattedResult = withVersionStack(formatObjectNumbers(parsed), nextStack);
           
           const nextVersions = {
             ...versions,
@@ -469,6 +513,39 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
     }
   };
 
+  const handleCombineWith = (sourceVersionId: string, combine: CombineAction) => {
+    const sourcePlan = versions[sourceVersionId];
+    if (!sourcePlan) return;
+    setActiveVersionId(sourceVersionId);
+    setResultState(sourcePlan);
+
+    if (combine.action === "optimize_budget") {
+      setActiveAiPrompt({
+        action: "optimize_budget",
+        title: ui.optimizeBudget,
+        placeholder: ui.optimizeBudgetPlaceholder,
+        desc:
+          locale === "en"
+            ? "By what percentage do you want to reduce the budgeted costs?"
+            : locale === "es"
+            ? "¿Qué porcentaje deseas reducir de los costos presupuestados?"
+            : "Cu ce procent dorești să reduci costurile bugetate?",
+      });
+      return;
+    }
+    if (combine.action === "professional_tone") {
+      void handleAiEdit(combine.action, combine.customStyle, undefined, false, {
+        basePlan: sourcePlan,
+        sourceVersionId,
+      });
+      return;
+    }
+    void handleAiEdit(combine.action, undefined, undefined, false, {
+      basePlan: sourcePlan,
+      sourceVersionId,
+    });
+  };
+
   const updateField = (path: (string|number)[], value: string) => {
     setResult((prev: any) => {
       const next = JSON.parse(JSON.stringify(prev));
@@ -511,6 +588,12 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
   const hasStandardAccess = isPaid || promoCodeUnlocked || isAdmin || subscriptionActive || isPlanPaid || isStudioPaid;
   const hasProAccess = isAdmin || subscriptionActive || euFundsUnlocked;
   const isContentCopyProtected = !hasStandardAccess;
+  const versionStackAccess: VersionStackAccess = {
+    isAdmin,
+    hasStandardAccess,
+    hasFullAccess: isAdmin || subscriptionActive || euFundsUnlocked,
+    hasProTools: hasProAccess,
+  };
   const [isAuthLoading, setIsAuthLoading] = useState(true);
   const [authError, setAuthError] = useState<string | null>(null);
   const [email, setEmail] = useState("");
@@ -1820,6 +1903,10 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
                 setResultState(vData);
               }}
               ui={ui}
+              locale={locale}
+              access={versionStackAccess}
+              onCombineWith={handleCombineWith}
+              onRequireUpgrade={() => setShowPricingModal(true)}
             />
           )}
 

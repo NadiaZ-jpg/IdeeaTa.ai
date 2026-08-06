@@ -197,6 +197,30 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
       return;
     }
 
+    let targetSection = "";
+    if (action === "optimize_budget") {
+      const promptMsg =
+        locale === "en"
+          ? "By what percentage do you want to reduce the budgeted costs? (e.g. 20)"
+          : locale === "es"
+          ? "¿Qué porcentaje deseas reducir de los costos presupuestados? (ej. 20)"
+          : "Cu ce procent dorești să reduci costurile bugetate? (ex: 20)";
+      const entered = typeof window !== "undefined" ? window.prompt(promptMsg, customInput || "20") : null;
+      if (!entered) return;
+      const percent = parseInt(entered.replace(/%/g, "").trim(), 10);
+      if (isNaN(percent) || percent <= 0 || percent > 90) {
+        alert(
+          locale === "en"
+            ? "Please enter a valid percentage between 1 and 90 (e.g. 20)."
+            : locale === "es"
+            ? "Introduce un porcentaje válido entre 1 y 90 (ej. 20)."
+            : "Te rog introdu un procent valid între 1 și 90 (ex: 20)."
+        );
+        return;
+      }
+      targetSection = String(percent);
+    }
+
     setIsEditingAi(true);
 
     try {
@@ -206,7 +230,8 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
         body: JSON.stringify({
           result,
           action,
-          customStyle: customInput || "",
+          customStyle: isTone ? (customInput || "") : "",
+          targetSection: targetSection || (action === "add_sections" ? customInput || "" : ""),
           locale,
           currency: result?.selectedCurrency || (locale === "ro" ? "LEI" : "EUR")
         })
@@ -228,6 +253,13 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
           setActiveVersionId("eu_funds");
         } else if (action === "investor_ready") {
           setActiveVersionId("investor");
+        } else if (action === "optimize_budget") {
+          const vKey = `budget_${Date.now()}`;
+          setVersions((prev: any) => ({
+            ...(Object.keys(prev).length ? prev : { original: result }),
+            [vKey]: parsed,
+          }));
+          setActiveVersionId(vKey);
         }
         setResult(parsed);
         localStorage.setItem("current_generated_plan", JSON.stringify(parsed));

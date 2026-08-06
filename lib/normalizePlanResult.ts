@@ -113,6 +113,38 @@ function pickSwotCategoryArray(swot: Record<string, unknown>, canonical: string)
   return undefined;
 }
 
+/**
+ * After tone / investor / EU rewrite: keep AI titles, but never wipe explanations
+ * when the model returns empty explicatie_tehnica.
+ */
+export function mergeSwotPreservingExplanations(originalSwot: any, incomingSwot: any): any {
+  if (!incomingSwot || typeof incomingSwot !== "object") {
+    return originalSwot || incomingSwot;
+  }
+  const origNorm = normalizePlanResult({ analiza_swot: originalSwot || {} }).analiza_swot || {};
+  const incNorm = normalizePlanResult({ analiza_swot: incomingSwot }).analiza_swot || {};
+  const out: Record<string, unknown> = { ...incNorm };
+
+  for (const key of ["puncte_tari", "puncte_slabe", "oportunitati", "amenintari"] as const) {
+    const incArr = Array.isArray(incNorm[key]) ? (incNorm[key] as any[]) : [];
+    const origArr = Array.isArray(origNorm[key]) ? (origNorm[key] as any[]) : [];
+    if (incArr.length === 0 && origArr.length > 0) {
+      out[key] = origArr;
+      continue;
+    }
+    out[key] = incArr.map((item: any, i: number) => {
+      const prev = origArr[i];
+      const expl = String(item?.explicatie_tehnica || "").trim();
+      const prevExpl = String(prev?.explicatie_tehnica || "").trim();
+      return {
+        titlu: String(item?.titlu || prev?.titlu || "").trim(),
+        explicatie_tehnica: expl || prevExpl || "",
+      };
+    });
+  }
+  return out;
+}
+
 /** Canonical operational keys + common ES/EN aliases the model invents. */
 const OPERATIONAL_FIELD_ALIASES: Record<string, string[]> = {
   descriere_flux: [

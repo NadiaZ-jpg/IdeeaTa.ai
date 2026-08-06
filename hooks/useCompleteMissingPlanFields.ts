@@ -61,7 +61,7 @@ export function useCompleteMissingPlanFields(
   useEffect(() => {
     if (!enabled || !result || !needsFill || !planId) return;
 
-    const planKey = `${planId}:fields-v4`;
+    const planKey = `${planId}:fields-v5:e${beforeEmpty}:s${beforeCount}`;
     if (attemptedKeys.current.has(planKey)) return;
     if (inFlightKey.current === planKey) return;
 

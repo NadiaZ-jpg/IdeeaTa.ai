@@ -531,11 +531,37 @@ Dacă oricare dintre aceste verificări este omisă în procesul de planificare,
 - PDF/Presentation slides — totalul estimat trimite suma + marker valută ca să nu se reconvertească.
 - Acoperă Desktop+Mobile (export comun) pe RO/EN/ES.
 
+## FREEZE (6 August 2026 — Studio tools: language lock + SWOT explanations)
+**Bug:** Plan Profesional / Fonduri UE / ton pe ES amestecau EN+ES; SWOT rămânea cu titluri fără `explicatie_tehnica` (placeholder Explicación...).
+**Cauze:** instruțiuni cu jargon EN fără blocaj puternic; modelul returna titluri goale la explicații și overwrite-uia planul; client fill nu re-rula după rewrite (`fields-v4` pe același planId).
+**Fix:**
+- `getEditLanguageLock` pe toate acțiunile `/api/edit` (RO/EN/ES).
+- `mergeSwotPreservingExplanations` + `normalizePlanResult` + `fillMissingPlanExplanations` după edit.
+- Segment prompts: limba + SWOT cu explicatie_tehnica obligatorie.
+- `useCompleteMissingPlanFields` key `fields-v5:e{empty}:s{count}` — re-fill după rewrite.
+- Acoperă instrumentele Full/Standard: ton, investor_ready, eu_funds, optimize_budget, add_sections (via același API).
+
+## FREEZE (6 August 2026 — Studio optimize_budget: exact percent)
+**Bug:** reducerea bugetului pe Standard/Full Access lăsa Gemini să aplice „aproximativ X%” → total greșit; pe Mobile nu trimitea deloc `targetSection`.
+**Fix:**
+- `lib/budgetOptimize.ts` — reducere matematică exactă `round(cost * (1 - p/100))` pe iteme; merge cu explicațiile AI.
+- `app/api/edit/route.ts` — după merge, forțează costurile din helper (nu se mai încredere în cifrele AI).
+- `promptConfig` RO/EN/ES — instrucțiune EXACT %, nu „aproximativ”.
+- Desktop: procent valid 1–90; Mobile Studio: `prompt` pentru procent + trimite `targetSection` + versiune `budget_*`.
+- Acoperă Studio Desktop+Mobile (API comun) RO/EN/ES.
+
+## FREEZE (6 August 2026 — Studio batch commit: tools quality)
+**Înghețat pe branch `cursor/pdf-cta-locale-and-plan-fill`:**
+- Cotă free: 4 planuri + 3 tonuri formal/creative (Desktop+Mobile RO/EN/ES).
+- Word TOTAL = placintă; BMC QR; Dashboard fără Gratis; planId sync retry.
+- Optimize budget % exact; language lock pe toate instrumentele edit; SWOT fără explicații goale după Plan Profesional / Fonduri UE / ton.
+- Fișiere cheie: `lib/budgetOptimize.ts`, `app/api/edit/route.ts`, `lib/promptConfig.ts`, `lib/normalizePlanResult.ts`, `hooks/useCompleteMissingPlanFields.ts`, Studio/Demo Desktop+Mobile.
+
 ## RĂMÂNE DE FĂCUT
-- Deploy Hetzner (PDF CTA + ES/EN Demo + auth action + Studio tones + Dashboard/BMC/sync + ToneEditor fix + Word total)
-- Smoke test cont gratuit EN+ES Desktop/Mobile: 4 generări → Pricing; 3× formal/creative → Pricing; persuasive → Pricing
-- Smoke Word EN/ES: placintă TOTAL = TOTAL ESTIMADO / ESTIMATED TOTAL
-- Smoke Dashboard `/en/dashboard` + `/es/dashboard` fără badge Gratis
+- Deploy Hetzner (tot batch-ul Studio de mai sus)
+- Smoke Studio Standard/Full ES: Plan Profesional → 100% spaniolă + FODA cu explicații
+- Smoke optimize budget 20% → costuri × 0.8; Word TOTAL = placintă
+- Smoke free account EN/ES: 4 planuri / 3 tonuri → Pricing
 - S3-A opțional (generate Studio pe Mobile)
 
 

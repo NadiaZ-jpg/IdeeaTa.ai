@@ -1,6 +1,16 @@
 import { GoogleGenAI } from "@google/genai";
 import { NextRequest, NextResponse } from "next/server";
-import { getEditInstruction, getEditPrompt, getSegmentPrompt, getMetaPrompt } from "@/lib/promptConfig";
+import { getEditInstruction, getEditPrompt, getSegmentPrompt, getMetaPrompt, getEditLanguageLock } from "@/lib/promptConfig";
+import {
+  mergeBudgetReductionWithAiExplanations,
+  parseBudgetReductionPercent,
+} from "@/lib/budgetOptimize";
+import {
+  mergeSwotPreservingExplanations,
+  normalizePlanResult,
+  planNeedsExplanationFill,
+} from "@/lib/normalizePlanResult";
+import { fillMissingPlanExplanations } from "@/lib/fillMissingPlanExplanations";
 
 export const maxDuration = 60;
 
@@ -47,6 +57,7 @@ export async function POST(req: NextRequest) {
     const { result, action, customStyle, targetSection, locale, isRetry, currency } = await req.json();
     const isEn = locale === "en" || locale === "es";
     let instruction = getEditInstruction(action, locale, customStyle, targetSection, currency);
+    instruction += "\n\n" + getEditLanguageLock(locale || "ro");
 
     if (isRetry) {
       if (locale === "en") {
@@ -218,6 +229,46 @@ export async function POST(req: NextRequest) {
           ? [...result.sectiuni_aditionale, ...parsed.sectiuni_aditionale]
           : parsed.sectiuni_aditionale;
       }
+
+      // Deterministic budget math — never trust Gemini for the percentage cut
+      if (action === "optimize_budget") {
+        const percent = parseBudgetReductionPercent(targetSection);
+        if (percent) {
+          const planCurrency =
+            currency ||
+            result?.selectedCurrency ||
+            (locale === "en" || locale === "es" ? "EUR" : "LEI");
+          const originalItems = result?.plan_financiar?.buget_investitii;
+          const aiItems = mergedResult?.plan_financiar?.buget_investitii;
+          mergedResult.plan_financiar = {
+            ...mergedResult.plan_financiar,
+            buget_investitii: mergeBudgetReductionWithAiExplanations(
+              originalItems,
+              aiItems,
+              percent,
+              locale || "ro",
+              planCurrency
+            ),
+          };
+        }
+      }
+
+      // Language-safe normalize + never wipe SWOT explanations on rewrite tools
+      mergedResult = normalizePlanResult(mergedResult);
+      if (result?.analiza_swot && mergedResult?.analiza_swot) {
+        mergedResult.analiza_swot = mergeSwotPreservingExplanations(
+          result.analiza_swot,
+          mergedResult.analiza_swot
+        );
+      }
+      if (planNeedsExplanationFill(mergedResult)) {
+        mergedResult = await fillMissingPlanExplanations(
+          mergedResult,
+          (locale === "en" || locale === "es" ? locale : "ro") as "ro" | "en" | "es",
+          45000
+        );
+      }
+
     return NextResponse.json({ 
       updatedResult: JSON.stringify(mergedResult),
       editedPlan: mergedResult

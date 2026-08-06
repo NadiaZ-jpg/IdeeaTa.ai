@@ -269,6 +269,16 @@ CRITICAL: The entire generated content (including item names, slogans, CAEN expl
 Nu include niciun alt text în afară de blocul JSON. Nu formata cu ghilimele de bloc markdown (\`\`\`json) dacă este posibil, dar dacă o faci, acestea vor fi eliminate la parsare.`;
 }
 
+export function getEditLanguageLock(locale: "ro" | "en" | "es"): string {
+  if (locale === "en") {
+    return `CRITICAL LANGUAGE LOCK: Every JSON string VALUE must be 100% English prose. Do not mix Spanish or Romanian sentences. Standard finance acronyms (IRR, NPV, ROI, TAM, SAM, SOM, CAC, LTV, KPI, DNSH, MVP) may remain as acronyms, but full sentences must be English. For SWOT, every item MUST include a non-empty "explicatie_tehnica" (2-4 sentences). Never return titles without explanations.`;
+  }
+  if (locale === "es") {
+    return `BLOQUEO CRÍTICO DE IDIOMA: TODOS los valores de texto del JSON deben estar 100% en español. Prohibido mezclar inglés o rumano en las oraciones (ej. no escribas "Prepare for an explosive market entry" ni mezcles "usuarios activos" dentro de frases en inglés). Puedes dejar acrónimos financieros estándar (TIR/IRR, VAN/NPV, ROI, TAM, SAM, SOM, CAC, LTV, KPI, DNSH, MVP), pero las frases completas DEBEN ser en español. Si el plan tiene párrafos en otro idioma, tradúcelos al español. En SWOT, CADA ítem DEBE incluir "explicatie_tehnica" no vacía (2-4 frases). Nunca devuelvas solo títulos sin explicación.`;
+  }
+  return `BLOCĂJ CRITIC LIMBĂ: TOATE valorile text din JSON trebuie să fie 100% în română. Interzis amestecul cu engleză sau spaniolă în propoziții. Poți păstra acronime financiare standard (IRR, NPV, ROI, TAM, SAM, SOM, CAC, LTV, KPI, DNSH, MVP), dar frazele complete TREBUIE să fie în română. La SWOT, FIECARE item TREBUIE să aibă "explicatie_tehnica" nevidă (2-4 propoziții). Nu returna doar titluri fără explicații.`;
+}
+
 export function getEditInstruction(action: string, locale: "ro" | "en" | "es", customStyle?: string, targetSection?: string, currency: "LEI" | "EUR" = "LEI"): string {
   const isEn = locale === "en";
   const isEs = locale === "es";
@@ -300,7 +310,7 @@ export function getEditInstruction(action: string, locale: "ro" | "en" | "es", c
       return `Rewrite the textual content to have a ${mappedStyle || 'formal, corporate and professional'} tone, keeping the exact structure. Do not change any numbers.`;
     }
     if (action === "optimize_budget") {
-      return `Reduce costs in 'plan_financiar.buget_investitii' by approximately ${targetSection}%, adjust explanations showing how the savings were achieved, and translate the text inside the 'item' and 'explicatie' properties to English if they are in another language. IMPORTANT: DO NOT rename the JSON keys 'item' and 'explicatie' themselves. Keep everything else untouched.`;
+      return `Reduce EVERY cost in 'plan_financiar.buget_investitii' by EXACTLY ${targetSection}% (new_cost = round(old_cost * (1 - ${targetSection}/100))). Do not invent different percentages per item. Update each 'explicatie' to briefly explain how that exact saving was achieved. Keep JSON keys 'item', 'cost', 'explicatie'. Keep currency labels consistent (EUR). Do not change other plan sections.`;
     }
     if (action === "add_sections") {
       return `Generate NEW text sections for the business plan, referring strictly to the requested topics: "${targetSection || 'anything you deem necessary'}". 
@@ -358,7 +368,7 @@ IMPORTANT: Keep the original JSON structure, but rewrite and enrich the content 
       return `Reescribe el contenido de texto para tener un tono ${mappedStyle || 'formal, corporativo y profesional'}, manteniendo la estructura exacta. No cambies ningún número.`;
     }
     if (action === "optimize_budget") {
-      return `Reduce los costes en 'plan_financiar.buget_investitii' en aproximadamente un ${targetSection}%, ajusta las explicaciones mostrando cómo se lograron los ahorros, y traduce el texto dentro de las propiedades 'item' y 'explicatie' al español. IMPORTANTE: NO cambies los nombres de las claves JSON 'item' y 'explicatie' bajo ninguna circunstancia. Mantén todo lo demás intacto.`;
+      return `Reduce CADA coste en 'plan_financiar.buget_investitii' en EXACTAMENTE un ${targetSection}% (nuevo_coste = redondear(coste_anterior * (1 - ${targetSection}/100))). No inventes porcentajes distintos por ítem. Actualiza cada 'explicatie' explicando brevemente ese ahorro exacto. Mantén las claves JSON 'item', 'cost', 'explicatie' y la moneda EUR. No cambies otras secciones del plan.`;
     }
     if (action === "add_sections") {
       return `Genera NUEVAS secciones de texto para el plan de negocios, refiriéndose estrictamente a los temas solicitados: "${targetSection || 'lo que consideres necesario'}". 
@@ -416,7 +426,7 @@ IMPORTANTE: ¡Mantén la estructura JSON original, pero reescribe y enriquece el
     return `Rescrie conținutul pentru a avea un ton ${mappedStyle || 'formal, corporativ și profesionist'}, păstrând structura exactă. Nu modifica cifrele.`;
   }
   if (action === "optimize_budget") {
-    return `Redu costurile din 'plan_financiar.buget_investitii' cu aproximativ ${targetSection}%, ajustează explicațiile arătând cum s-a făcut economia și tradu conținutul text din proprietățile 'item' și 'explicatie' în limba română dacă sunt în altă limbă. Toate valorile rezultate pentru costuri în bugetul de investiții la câmpul 'cost' trebuie exprimate obligatoriu în moneda: ${currency}. IMPORTANT: ESTE STRICT INTERZIS să schimbi numele cheilor JSON (ele trebuie să rămână 'item' și 'explicatie'). Păstrează restul neatins.`;
+    return `Redu FIECARE cost din 'plan_financiar.buget_investitii' cu EXACT ${targetSection}% (cost_nou = rotunjire(cost_vechi * (1 - ${targetSection}/100))). Nu inventa procente diferite pe item. Actualizează fiecare 'explicatie' explicând pe scurt economia exactă. Cheile JSON rămân 'item', 'cost', 'explicatie'. Costurile rămân în moneda: ${currency}. Nu modifica alte secțiuni.`;
   }
   if (action === "add_sections") {
     return `Generează SECȚIUNI NOI de text pentru planul de afaceri, referitoare strict la subiectele cerute: "${targetSection || 'orice consideri necesar'}". 
@@ -521,6 +531,7 @@ ${instruction}
 
 Trebuie să răspunzi EXCLUSIV cu un JSON valid.
 IMPORTANT PENTRU JSON: 
+- Întregul conținut text (valori) TREBUIE să fie strict în limba română. Nu amesteca engleză sau spaniolă.
 - NU folosi rânduri noi reale (unescaped newlines) în interiorul string-urilor! Pentru paragrafe, folosește strict '\\n' (escapat).
 - ESCAPEAZĂ obligatoriu ghilimelele duble din interiorul textului folosind backslash (\\"). Cel mai sigur este să folosești doar ghilimele simple (') în interiorul textului.
 - FĂRĂ virgule la finalul ultimului element din obiect sau array (fără trailing commas).
@@ -540,6 +551,7 @@ Debes responder EXCLUSIVAMENTE con un JSON válido, respetando la estructura ori
 Si recibiste un solo campo, devuélvelo en el mismo formato JSON.
 IMPORTANTE PARA EL JSON:
 - Todos los valores de la respuesta (incluidos nombres, eslóganes, títulos SWOT y descripciones técnicas) DEBEN estar estrictamente en español. NO escribas palabras en rumano o inglés.
+- Para SWOT: cada elemento DEBE tener "titlu" y "explicatie_tehnica" (2-4 frases, nunca vacía). Mantén las claves JSON en rumano (puncte_tari, puncte_slabe, oportunitati, amenintari).
 - ¡NO utilices saltos de línea reales (unescaped newlines) dentro de los textos! Para los párrafos, usa estrictamente '\\n' (escapado).
 - IMPORTANTE: Si necesitas usar comillas en los textos generados, usa estrictamente comillas simples ('). NO uses comillas dobles (") dentro de los textos bajo ninguna circunstancia, ya que romperán la estructura JSON.
 - SIN comas al final del último elemento (no trailing commas).
@@ -557,6 +569,7 @@ You must respond EXCLUSIVELY with a valid JSON, respecting the original structur
 If you received a single field, return it in the same JSON format.
 IMPORTANT FOR JSON: 
 - The entire response values (including names, slogans, SWOT titles, and technical descriptions) MUST be strictly in English. Do NOT write any Romanian or Spanish words.
+- For SWOT: every item MUST have "titlu" and non-empty "explicatie_tehnica" (2-4 sentences). Keep Romanian JSON keys (puncte_tari, puncte_slabe, oportunitati, amenintari).
 - DO NOT use real unescaped newlines inside strings! For paragraphs, strictly use '\\n' (escaped).
 - IMPORTANT: If you need to use quotes inside the generated texts, strictly use single quotes ('). DO NOT use double quotes (") inside the text values under any circumstances, as they break the JSON structure.
 - NO trailing commas.
@@ -573,6 +586,8 @@ ${JSON.stringify(segment)}
 Trebuie să răspunzi EXCLUSIV cu un JSON valid, respectând structura originală a segmentului primit.
 Dacă ai primit un singur câmp, returnează-l în același format JSON.
 IMPORTANT PENTRU JSON: 
+- Întregul conținut text (valori) TREBUIE să fie strict în limba română. Nu amesteca engleză sau spaniolă.
+- Pentru SWOT: fiecare element trebuie să aibă "titlu" și "explicatie_tehnica" (2-4 propoziții, niciodată goală).
 - NU folosi rânduri noi reale (unescaped newlines) în interiorul string-urilor! Pentru paragrafe, folosește strict '\\n' (escapat).
 - IMPORTANT: Dacă ai nevoie să folosești ghilimele în textele generate, folosește strict ghilimele simple ('). NU folosi ghilimele duble (") în interiorul textelor sub nicio formă, deoarece vor strica structura JSON-ului.
 - FĂRĂ virgule la finalul ultimului element din obiect sau array (fără trailing commas).

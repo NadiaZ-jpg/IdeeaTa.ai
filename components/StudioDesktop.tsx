@@ -342,7 +342,7 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
     } else if (action === "optimize_budget") {
       if (!customInput) return; // Anulat
       let percent = parseInt(customInput.replace(/%/g, ''));
-      if (isNaN(percent) || percent <= 0) {
+      if (isNaN(percent) || percent <= 0 || percent > 90) {
         alert(t("alertValidPercent", locale));
         return;
       }

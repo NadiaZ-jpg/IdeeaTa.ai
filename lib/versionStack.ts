@@ -185,34 +185,42 @@ export function buildStackedVersionKey(stack: VersionToolStep[]): string {
   return `stack_${parts.join("-")}_${Date.now()}`;
 }
 
-function stepLabel(step: VersionToolStep, locale: VersionLocale, ui?: Record<string, string>): string {
+/** Loose UI string bag (UI_STRINGS[locale] has mixed fields). */
+export type VersionUiStrings = Record<string, unknown>;
+
+function uiStr(ui: VersionUiStrings | undefined, key: string): string | undefined {
+  const v = ui?.[key];
+  return typeof v === "string" ? v : undefined;
+}
+
+function stepLabel(step: VersionToolStep, locale: VersionLocale, ui?: VersionUiStrings): string {
   if (step.type === "eu_funds") {
-    return ui?.versionEuFunds || (locale === "en" ? "EU Funds" : locale === "es" ? "Fondos UE" : "Fonduri UE");
+    return uiStr(ui, "versionEuFunds") || (locale === "en" ? "EU Funds" : locale === "es" ? "Fondos UE" : "Fonduri UE");
   }
   if (step.type === "investor") {
-    return ui?.versionInvestor || (locale === "en" ? "Investors" : locale === "es" ? "Inversores" : "Investitori");
+    return uiStr(ui, "versionInvestor") || (locale === "en" ? "Investors" : locale === "es" ? "Inversores" : "Investitori");
   }
   if (step.type === "budget") {
     const base =
-      ui?.versionBudget ||
+      uiStr(ui, "versionBudget") ||
       (locale === "en" ? "Budget" : locale === "es" ? "Presupuesto" : "Buget");
     return step.percent ? `${base} -${step.percent}%` : base;
   }
   if (step.type === "expert") {
-    return ui?.versionExpert || (locale === "en" ? "Expert" : locale === "es" ? "Experto" : "Expert");
+    return uiStr(ui, "versionExpert") || (locale === "en" ? "Expert" : locale === "es" ? "Experto" : "Expert");
   }
   // tone
   const tone = step.tone || "formal";
   if (tone === "creative") {
-    return ui?.toneCreative || (locale === "en" ? "Creative" : locale === "es" ? "Creativo" : "Creativ");
+    return uiStr(ui, "toneCreative") || (locale === "en" ? "Creative" : locale === "es" ? "Creativo" : "Creativ");
   }
   if (tone === "persuasive") {
-    return ui?.tonePersuasive || (locale === "en" ? "Persuasive" : locale === "es" ? "Persuasivo" : "Persuasiv");
+    return uiStr(ui, "tonePersuasive") || (locale === "en" ? "Persuasive" : locale === "es" ? "Persuasivo" : "Persuasiv");
   }
   if (tone === "friendly") {
-    return ui?.toneFriendly || (locale === "en" ? "Friendly" : locale === "es" ? "Amigable" : "Prietenos");
+    return uiStr(ui, "toneFriendly") || (locale === "en" ? "Friendly" : locale === "es" ? "Amigable" : "Prietenos");
   }
-  return ui?.toneProfessional || (locale === "en" ? "Professional" : locale === "es" ? "Profesional" : "Profesional");
+  return uiStr(ui, "toneProfessional") || (locale === "en" ? "Professional" : locale === "es" ? "Profesional" : "Profesional");
 }
 
 function stepIcon(step: VersionToolStep): string {
@@ -228,10 +236,10 @@ export function formatVersionTabTitle(
   vKey: string,
   plan: any,
   locale: VersionLocale,
-  ui?: Record<string, string>
+  ui?: VersionUiStrings
 ): string {
   if (vKey === "original") {
-    return `📝 ${ui?.versionOriginal || (locale === "en" ? "Original Version" : locale === "es" ? "Versión Original" : "Varianta Originală")}`;
+    return `📝 ${uiStr(ui, "versionOriginal") || (locale === "en" ? "Original Version" : locale === "es" ? "Versión Original" : "Varianta Originală")}`;
   }
   const stack = resolveVersionStack(vKey, plan);
   if (stack.length === 0) {
@@ -256,29 +264,29 @@ export type CombineMenuItem = {
 export function getCombineMenuItems(
   locale: VersionLocale,
   access: VersionStackAccess,
-  ui?: Record<string, string>
+  ui?: VersionUiStrings
 ): CombineMenuItem[] {
   if (!canUseVersionCombine(access)) return [];
 
   const items: CombineMenuItem[] = [
     {
       id: "tone_formal",
-      label: ui?.toneProfessional || (locale === "en" ? "Professional tone" : locale === "es" ? "Tono profesional" : "Ton profesional"),
+      label: uiStr(ui, "toneProfessional") || (locale === "en" ? "Professional tone" : locale === "es" ? "Tono profesional" : "Ton profesional"),
       combine: { action: "professional_tone", customStyle: "formal" },
     },
     {
       id: "tone_creative",
-      label: ui?.toneCreative || (locale === "en" ? "Creative tone" : locale === "es" ? "Tono creativo" : "Ton creativ"),
+      label: uiStr(ui, "toneCreative") || (locale === "en" ? "Creative tone" : locale === "es" ? "Tono creativo" : "Ton creativ"),
       combine: { action: "professional_tone", customStyle: "creative" },
     },
     {
       id: "tone_persuasive",
-      label: ui?.tonePersuasive || (locale === "en" ? "Persuasive tone" : locale === "es" ? "Tono persuasivo" : "Ton persuasiv"),
+      label: uiStr(ui, "tonePersuasive") || (locale === "en" ? "Persuasive tone" : locale === "es" ? "Tono persuasivo" : "Ton persuasiv"),
       combine: { action: "professional_tone", customStyle: "persuasive" },
     },
     {
       id: "tone_friendly",
-      label: ui?.toneFriendly || (locale === "en" ? "Friendly tone" : locale === "es" ? "Tono amigable" : "Ton prietenos"),
+      label: uiStr(ui, "toneFriendly") || (locale === "en" ? "Friendly tone" : locale === "es" ? "Tono amigable" : "Ton prietenos"),
       combine: { action: "professional_tone", customStyle: "friendly" },
     },
   ];
@@ -287,19 +295,19 @@ export function getCombineMenuItems(
     items.push(
       {
         id: "budget",
-        label: ui?.optimizeBudget || (locale === "en" ? "Optimize budget" : locale === "es" ? "Optimizar presupuesto" : "Optimizează bugetul"),
+        label: uiStr(ui, "optimizeBudget") || (locale === "en" ? "Optimize budget" : locale === "es" ? "Optimizar presupuesto" : "Optimizează bugetul"),
         combine: { action: "optimize_budget" },
         requiresProTools: true,
       },
       {
         id: "eu_funds",
-        label: ui?.versionEuFunds || (locale === "en" ? "EU Funds" : locale === "es" ? "Fondos UE" : "Fonduri UE"),
+        label: uiStr(ui, "versionEuFunds") || (locale === "en" ? "EU Funds" : locale === "es" ? "Fondos UE" : "Fonduri UE"),
         combine: { action: "eu_funds_optimization" },
         requiresProTools: true,
       },
       {
         id: "investor",
-        label: ui?.versionInvestor || (locale === "en" ? "Investors plan" : locale === "es" ? "Plan inversores" : "Plan investitori"),
+        label: uiStr(ui, "versionInvestor") || (locale === "en" ? "Investors plan" : locale === "es" ? "Plan inversores" : "Plan investitori"),
         combine: { action: "investor_ready" },
         requiresProTools: true,
       }

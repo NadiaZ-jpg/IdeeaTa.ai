@@ -61,12 +61,12 @@ export function useCompleteMissingPlanFields(
   useEffect(() => {
     if (!enabled || !result || !needsFill || !planId) return;
 
+    const beforeCount = swotItemCount(result);
+    const beforeEmpty = emptySwotExplCount(result);
     const planKey = `${planId}:fields-v5:e${beforeEmpty}:s${beforeCount}`;
     if (attemptedKeys.current.has(planKey)) return;
     if (inFlightKey.current === planKey) return;
 
-    const beforeCount = swotItemCount(result);
-    const beforeEmpty = emptySwotExplCount(result);
     let cancelled = false;
     inFlightKey.current = planKey;
 

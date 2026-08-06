@@ -31,6 +31,11 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
   const isEn = locale === "en";
   const isEs = locale === "es";
   const ALL_EXAMPLES = getExamples(locale);
+  const randomIdeas = ALL_EXAMPLES;
+  const usedIdeasRef = useRef<number[]>([]);
+  const inputRef = useRef<HTMLTextAreaElement | null>(null);
+  const examplesCarouselRef = useRef<HTMLDivElement | null>(null);
+  const [exampleIndex, setExampleIndex] = useState(0);
   const [skill, setSkill] = useState("");
   const [demoCount, setDemoCount] = useState(0);
   const [resultState, setResultState] = useState<any>(null);
@@ -544,6 +549,7 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
               <div className="space-y-1.5">
                 <label className="text-xs font-semibold text-zinc-400">{t("businessIdeaLabel", locale)}</label>
                 <textarea
+                  ref={inputRef}
                   value={skill}
                   onChange={(e) => setSkill(e.target.value)}
                   placeholder={ui.inputPlaceholder}
@@ -551,51 +557,113 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
                 />
               </div>
 
-              <button
-                onClick={() => handleGenerate()}
-                disabled={!skill.trim()}
-                className="w-full bg-gradient-to-r from-emerald-600 to-teal-500 hover:from-emerald-500 hover:to-teal-400 disabled:opacity-50 text-white font-bold py-4 rounded-xl text-sm transition-all shadow-lg shadow-emerald-950/20 active:scale-[0.98] flex items-center justify-center gap-2"
-              >
-                <span>{locale === "en" ? "Generate Free Plan" : locale === "es" ? "Generar Plan Gratuito" : "Generează Planul Gratuit"}</span>
-                <span>🚀</span>
-              </button>
+              <div className="flex flex-col gap-3">
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (usedIdeasRef.current.length >= randomIdeas.length) {
+                      usedIdeasRef.current = [];
+                    }
+                    let nextIndex = Math.floor(Math.random() * randomIdeas.length);
+                    while (
+                      usedIdeasRef.current.includes(nextIndex) ||
+                      randomIdeas[nextIndex].long === skill
+                    ) {
+                      nextIndex = Math.floor(Math.random() * randomIdeas.length);
+                    }
+                    usedIdeasRef.current.push(nextIndex);
+                    setSkill(randomIdeas[nextIndex].long);
+                    setTimeout(() => inputRef.current?.focus(), 50);
+                  }}
+                  className="w-full min-h-[44px] inline-flex items-center justify-center gap-2 text-zinc-300 font-bold text-sm px-4 py-3 rounded-xl transition-all hover:bg-zinc-800/50 hover:text-emerald-400 border border-zinc-800"
+                >
+                  {ui.inspireMeSparkles}
+                </button>
+
+                <button
+                  onClick={() => handleGenerate()}
+                  disabled={!skill.trim()}
+                  className="w-full min-h-[44px] bg-gradient-to-r from-emerald-600 to-teal-500 hover:from-emerald-500 hover:to-teal-400 disabled:opacity-50 text-white font-bold py-4 rounded-xl text-sm transition-all shadow-lg shadow-emerald-950/20 active:scale-[0.98] flex items-center justify-center gap-2"
+                >
+                  <span>{ui.generatePlan}</span>
+                  <span>→</span>
+                </button>
+              </div>
               {!user && (
                 <div className="text-center mt-2">
                   <span className="text-[11px] font-bold text-emerald-400">
                     {demoCount >= 3 ? (
-                      locale === "en" 
-                        ? "🔒 You have used your 3 free guest plan generations. Register for free to unlock +1 more plan." 
-                        : locale === "es"
-                        ? "🔒 Has agotado las 3 generaciones gratuitas como invitado. Regístrate gratis para desbloquear +1 plan más."
-                        : "🔒 Ai epuizat cele 3 planuri gratuite fără cont. Înregistrează-te gratuit pentru a debloca încă +1 plan."
+                      `🔒 ${ui.limitReached}`
                     ) : (
-                      locale === "en"
-                        ? `🎁 You have ${3 - demoCount} free guest plan generations remaining. Create a free account later for +1 more.`
-                        : locale === "es"
-                        ? `🎁 Te quedan ${3 - demoCount} generaciones de planes gratuitos como invitado. Crea una cuenta gratuita más tarde para +1 más.`
-                        : `🎁 Mai ai dreptul la ${3 - demoCount} planuri gratuite fără cont. Creează cont gratuit ulterior pentru încă +1 plan.`
+                      `🎁 ${ui.limitRemaining.replace("{{count}}", String(3 - demoCount))}`
                     )}
                   </span>
                 </div>
               )}
             </div>
 
-            {/* Examples Carousel */}
+            {/* Examples Carousel — același nr. ca Desktop (18), cu UX de vizibilitate */}
             <div className="space-y-3">
-              <h4 className="text-xs font-bold text-zinc-400 px-1">{t("getInspiredBy", locale)}</h4>
-              <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-none snap-x px-1">
-                {examplesList.map((ex, idx) => (
-                  <button
-                    key={idx}
-                    onClick={() => {
-                      setSkill(ex.long);
-                      handleGenerate(ex.long);
-                    }}
-                    className="flex-shrink-0 bg-zinc-900/60 border border-zinc-800 hover:border-emerald-500/30 rounded-xl p-4 w-[240px] text-left snap-start transition-all"
-                  >
-                    <span className="text-[10px] text-emerald-400 font-bold uppercase tracking-wider block mb-1">{ex.short}</span>
-                    <p className="text-xs font-semibold text-zinc-200 line-clamp-2">{ex.long}</p>
-                  </button>
+              <div className="flex items-center justify-between gap-2 px-1">
+                <h4 className="text-sm font-bold text-white">{ui.businessExamplesTitle}</h4>
+                <span className="text-[11px] font-bold text-emerald-400 tabular-nums shrink-0">
+                  {ui.examplesCounter
+                    .replace("{{current}}", String(exampleIndex + 1))
+                    .replace("{{total}}", String(examplesList.length))}
+                </span>
+              </div>
+              <p className="text-[11px] text-zinc-500 px-1">{ui.examplesSwipeHint} →</p>
+              <div className="relative">
+                <div
+                  ref={examplesCarouselRef}
+                  onScroll={() => {
+                    const el = examplesCarouselRef.current;
+                    if (!el || el.children.length === 0) return;
+                    const first = el.children[0] as HTMLElement;
+                    const style = window.getComputedStyle(el);
+                    const gap = parseFloat(style.columnGap || style.gap || "12") || 12;
+                    const step = first.offsetWidth + gap;
+                    if (step <= 0) return;
+                    const idx = Math.round(el.scrollLeft / step);
+                    setExampleIndex(Math.min(Math.max(idx, 0), examplesList.length - 1));
+                  }}
+                  className="flex gap-3 overflow-x-auto pb-3 pt-1 snap-x snap-mandatory px-1 scroll-pl-1"
+                  style={{ scrollbarWidth: "thin" }}
+                >
+                  {examplesList.map((ex, idx) => (
+                    <button
+                      key={idx}
+                      type="button"
+                      onClick={() => {
+                        setSkill(ex.long);
+                        setTimeout(() => inputRef.current?.focus(), 50);
+                      }}
+                      className={`flex-shrink-0 bg-zinc-900/60 border rounded-xl p-4 w-[78%] max-w-[280px] text-left snap-start transition-all min-h-[44px] ${
+                        idx === exampleIndex
+                          ? "border-emerald-500/50 ring-1 ring-emerald-500/20"
+                          : "border-zinc-800 hover:border-emerald-500/30"
+                      }`}
+                    >
+                      <span className="text-[10px] text-emerald-400 font-bold uppercase tracking-wider block mb-1">
+                        {ex.short}
+                      </span>
+                      <p className="text-xs font-semibold text-zinc-200 line-clamp-2">{ex.long}</p>
+                    </button>
+                  ))}
+                </div>
+                {/* Fade pe dreapta = semnal că mai sunt carduri */}
+                {exampleIndex < examplesList.length - 1 && (
+                  <div className="pointer-events-none absolute top-0 right-0 bottom-3 w-10 bg-gradient-to-l from-[#09090b] to-transparent" />
+                )}
+              </div>
+              <div className="flex justify-center gap-1 flex-wrap px-2 max-w-full">
+                {examplesList.map((_, i) => (
+                  <span
+                    key={i}
+                    className={`h-1.5 w-1.5 rounded-full transition-all ${
+                      i === exampleIndex ? "bg-emerald-400 scale-125" : "bg-zinc-700"
+                    }`}
+                  />
                 ))}
               </div>
             </div>

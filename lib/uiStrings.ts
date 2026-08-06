@@ -66,6 +66,8 @@ type UIStringsShape = {
   studioMobileBadge: string; studioMobileTitle: string; studioGenerateDesktopOnly: string;
   studioGenerateDesktopHint: string; studioBackToDashboard: string; studioTryDemoMobile: string;
   studioLoadingWorkspace: string;
+  examplesSwipeHint: string;
+  examplesCounter: string;
   printBtn: string; resetBtn: string; newPlan: string; confirmUnlockPlan: string;
   placeholdersArray: string[]; paymentConfirmedEU: string; loadingMessagesArray: string[];
   routes: { login: string; dashboard: string; demoNew: string };
@@ -195,6 +197,8 @@ export const UI_STRINGS: Record<Locale, UIStringsShape> = {
     studioBackToDashboard: "Mergi la Dashboard",
     studioTryDemoMobile: "Încearcă Demo pe mobil",
     studioLoadingWorkspace: "Se încarcă spațiul tău de lucru Studio...",
+    examplesSwipeHint: "Glisează pentru mai multe idei",
+    examplesCounter: "{{current}} / {{total}}",
     printBtn: "Printează",
     resetBtn: "Plan Nou", newPlan: "Plan Nou",
     confirmUnlockPlan: "Folosești 1 credit pentru a debloca descărcarea completă a planului",
@@ -334,6 +338,8 @@ export const UI_STRINGS: Record<Locale, UIStringsShape> = {
     studioBackToDashboard: "Go to Dashboard",
     studioTryDemoMobile: "Try Demo on mobile",
     studioLoadingWorkspace: "Loading your Studio workspace...",
+    examplesSwipeHint: "Swipe for more ideas",
+    examplesCounter: "{{current}} / {{total}}",
     printBtn: "Print",
     resetBtn: "New Plan", newPlan: "New Plan",
     confirmUnlockPlan: "You will use 1 credit to unlock the full download of this plan",
@@ -473,6 +479,8 @@ export const UI_STRINGS: Record<Locale, UIStringsShape> = {
     studioBackToDashboard: "Ir al Panel",
     studioTryDemoMobile: "Probar Demo en movil",
     studioLoadingWorkspace: "Cargando tu espacio de trabajo de Studio...",
+    examplesSwipeHint: "Desliza para ver mas ideas",
+    examplesCounter: "{{current}} / {{total}}",
     printBtn: "Imprimir",
     resetBtn: "Nuevo Plan", newPlan: "Nuevo Plan",
     confirmUnlockPlan: "Usaras 1 credito para desbloquear la descarga completa de este plan",

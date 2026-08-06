@@ -452,6 +452,12 @@ Dacă oricare dintre aceste verificări este omisă în procesul de planificare,
 - S3-A opțional (generate Studio pe Mobile)
 - Checkpoint git S7+S8 (la cerere)
 
+## FREEZE (6 August 2026 — DemoMobile: Inspiră-mă + carusel UX)
+- **components/DemoMobile.tsx** — Buton `inspireMeSparkles` (umple textarea, ca Desktop). Carusel păstrat: titlu `businessExamplesTitle`, contor `current/total` (18), hint swipe, peek card (`w-[78%]`), fade dreapta, dots, scrollbar thin. Click exemplu = doar umple textarea (nu mai auto-generate).
+- **lib/uiStrings.ts** — `examplesSwipeHint`, `examplesCounter` pe RO/EN/ES.
+- **Build verificat local:** ✅ `npx tsc --noEmit` OK · `npm run build` OK
+
+
 
 
 

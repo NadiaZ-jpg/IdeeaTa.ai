@@ -422,10 +422,25 @@ Dacă oricare dintre aceste verificări este omisă în procesul de planificare,
 - **Ops:** pe Hetzner păstrează FIREBASE_* în `.env` și în `.next/standalone/.env` după rebuild.
 - **Build verificat local:** ✅ `npx tsc --noEmit` OK · `npm run build` OK
 
+## FREEZE (6 August 2026 — Sesiunea S5: Metadata SEO localizată RO/EN/ES)
+- **lib/siteMetadata.ts** — Fișier NOU. `getSiteMetadata(locale)` cu title, description, keywords, Open Graph pe RO/EN/ES (domeniu ideeata.ai).
+- **components/HtmlLang.tsx** — Fișier NOU. Setează `document.documentElement.lang` pe /en și /es.
+- **app/en/layout.tsx** / **app/es/layout.tsx** — Metadata EN/ES + HtmlLang.
+- **app/layout.tsx** — Folosește `getSiteMetadata('ro')` (fără text hardcodat duplicat).
+- **Build verificat local:** ✅ `npx tsc --noEmit` OK · `npm run build` OK (clean `.next`)
+
+## FREEZE (6 August 2026 — Sesiunea S6: Legal RO Stripe → Lemon Squeezy)
+- **app/privacy/page.tsx** — 3 mențiuni Stripe → Lemon Squeezy (aliniat EN/ES).
+- **app/termeni/page.tsx** — Procesarea plăților: Lemon Squeezy.
+- **app/cookies/page.tsx** — Cookie plăți: Lemon Squeezy.
+- EN/ES legal: neschimbate (deja Lemon). Zero „Stripe” rămas în paginile legale RO.
+- **Build verificat local:** ✅ `npx tsc --noEmit` OK · `npm run build` OK
+
 ## RĂMÂNE DE FĂCUT
-- S5–S8: metadata SEO, legal RO, i18n, tap targets
-- S3-A (opțional): generate Studio pe Mobile
+- S7–S8: i18n hygiene, tap targets DemoMobile
 - Deploy Hetzner + checkpoint git (la cerere)
+
+
 
 
 

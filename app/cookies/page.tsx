@@ -22,7 +22,7 @@ export default function CookiesPage() {
         <p>Aceste cookie-uri sunt esențiale pentru ca aplicația IdeeaTa.ai să funcționeze corect. Ele nu pot fi oprite.</p>
         <ul>
           <li><strong>Autentificare (Firebase):</strong> Mențin sesiunea dumneavoastră activă după ce v-ați logat cu Google sau Facebook. Fără ele, ar trebui să vă logați din nou la fiecare click.</li>
-          <li><strong>Procesare Plăți (Stripe):</strong> Stripe utilizează cookie-uri și elemente locale pentru detectarea fraudelor și asigurarea securității datelor bancare în timpul plății.</li>
+          <li><strong>Procesare Plăți (Lemon Squeezy):</strong> Lemon Squeezy utilizează cookie-uri și elemente locale pentru detectarea fraudelor și asigurarea securității datelor bancare în timpul plății.</li>
           <li><strong>Salvarea Temporară a Planului (Local Storage):</strong> Salvăm temporar planul pe care îl scrieți în memoria browserului (Local Storage) pentru ca, dacă închideți accidental fereastra, să nu vă pierdeți munca.</li>
         </ul>
 

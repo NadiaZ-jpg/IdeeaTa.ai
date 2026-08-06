@@ -14,7 +14,7 @@ export default function PrivacyPage() {
         <ul>
           <li><strong>Date de Autentificare și Profil:</strong> Numele, adresa de e-mail, fotografia de profil (atunci când vă autentificați prin Google sau Facebook prin Firebase Auth).</li>
           <li><strong>Datele Generate de Utilizator (User Content):</strong> Ideile de afaceri introduse, planurile de afaceri generate, opțiunile de buget și link-urile distribuite (share). Acestea sunt stocate în siguranță în baza noastră de date Firestore, pentru a vă permite accesul la ele din secțiunea "Contul Meu".</li>
-          <li><strong>Date de Tranzacție:</strong> Dacă faceți upgrade la funcții premium, nu colectăm și nu stocăm direct datele cardului dumneavoastră. Toate procesările de plăți sunt realizate securizat de către <strong>Stripe</strong>. Noi primim doar confirmarea plății și un ID de tranzacție.</li>
+          <li><strong>Date de Tranzacție:</strong> Dacă faceți upgrade la funcții premium, nu colectăm și nu stocăm direct datele cardului dumneavoastră. Toate procesările de plăți sunt realizate securizat de către <strong>Lemon Squeezy</strong>. Noi primim doar confirmarea plății și un ID de tranzacție.</li>
           <li><strong>Date Tehnice și de Utilizare:</strong> Adresa IP, tipul de browser, dispozitivul folosit și date analitice de bază colectate pentru optimizarea platformei și combaterea abuzurilor (ex: rate limiting).</li>
         </ul>
 
@@ -22,7 +22,7 @@ export default function PrivacyPage() {
         <ul>
           <li><strong>Pentru a furniza serviciul:</strong> Procesarea ideii dvs. prin intermediul API-urilor AI (Google Gemini) pentru a vă returna planul de afaceri.</li>
           <li><strong>Pentru a salva istoricul:</strong> Stocarea planurilor în Firebase pentru ca dvs. să le puteți accesa și edita ulterior.</li>
-          <li><strong>Pentru a procesa plăți:</strong> Validarea accesului la „Studio AI Interactiv” în urma plății prin Stripe.</li>
+          <li><strong>Pentru a procesa plăți:</strong> Validarea accesului la „Studio AI Interactiv” în urma plății prin Lemon Squeezy.</li>
           <li><strong>Pentru suport și securitate:</strong> Prevenirea fraudelor, investigarea erorilor (bug tracking) și acordarea de suport tehnic dacă ne contactați.</li>
           <li><strong>Comunicare:</strong> Pentru a vă trimite e-mailuri tranzacționale (chitanțe, resetare parolă) și, ocazional, e-mailuri de onboarding, de la care vă puteți dezabona oricând.</li>
         </ul>
@@ -32,7 +32,7 @@ export default function PrivacyPage() {
         <ul>
           <li><strong>Google (Firebase / Firestore):</strong> Pentru găzduirea bazei de date, autentificare și stocarea planurilor.</li>
           <li><strong>Google (Gemini AI):</strong> Pentru a genera textul. Rețineți că trimitem doar fragmentele de text (prompt-urile) introduse de dvs. Nu trimitem datele dvs. de identificare personală la motorul AI.</li>
-          <li><strong>Stripe:</strong> Pentru a vă procesa în siguranță plățile.</li>
+          <li><strong>Lemon Squeezy:</strong> Pentru a vă procesa în siguranță plățile.</li>
           <li><strong>Google AdSense:</strong> Dacă sunt afișate reclame, furnizorii de publicitate pot folosi tehnologii proprii pentru reclame personalizate (vezi Politica de Cookie-uri).</li>
         </ul>
 

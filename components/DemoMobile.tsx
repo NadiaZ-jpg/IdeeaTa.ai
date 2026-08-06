@@ -22,6 +22,8 @@ import { t } from '@/lib/translations';
 import { UI_STRINGS } from '@/lib/uiStrings';
 import dynamic from 'next/dynamic';
 import { formatObjectNumbers, formatNumberedText } from "@/lib/utils";
+import { useSharedPlanLoader } from "@/hooks/useSharedPlanLoader";
+import { createAndCopySharedPlanLink } from "@/lib/sharePlan";
 
 const BudgetPieChart = dynamic(() => import('@/components/BudgetChart').then(mod => mod.BudgetPieChart), { ssr: false });
 export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "es" }) {
@@ -117,6 +119,8 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
   const [unlockedPlans, setUnlockedPlans] = useState<string[]>([]);
   const [promoCodeUnlocked, setPromoCodeUnlocked] = useState(false);
   const [isPaidState, setIsPaidState] = useState(false);
+  const [isSharedView, setIsSharedView] = useState(false);
+  const [skipLocalRestore, setSkipLocalRestore] = useState(false);
 
   const isPaid = (typeof window !== 'undefined' && localStorage.getItem(`isPaid_${result?.nume}`) === "true") || isPaidState;
   const isAdmin = !!(user && (user.email === "adrian@ideeata.ai" || user.email === "contact@ideeata.ai" || user.email === "nadiaramonaz@gmail.com"));
@@ -259,25 +263,37 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
     return () => unsubscribe();
   }, []);
 
-  // Restaurare plan din localStorage la mount
+  // Încărcare plan partajat (?sharedId=) — același helper ca pe Desktop
+  const { isCheckingShared } = useSharedPlanLoader({
+    onLoaded: (plan) => {
+      setSkipLocalRestore(true);
+      setResult(plan);
+    },
+    onSharedView: () => setIsSharedView(true),
+    resetDemoCounters: true,
+    setDemoCount,
+  });
+
+  // Restaurare plan din localStorage la mount (doar dacă nu e sharedId)
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      const saved = localStorage.getItem("current_generated_plan");
-      const savedVersionsStr = localStorage.getItem("current_versions");
-      if (saved) {
-        try {
-          if (savedVersionsStr) {
-            const {versions: v, activeVersionId: a} = JSON.parse(savedVersionsStr);
-            setVersionsState(v);
-            setActiveVersionId(a);
-          }
-          setResultState(formatObjectNumbers(JSON.parse(saved)));
-        } catch (e) {
-          console.error(e);
+    if (typeof window === "undefined" || isCheckingShared || skipLocalRestore) return;
+    if (new URLSearchParams(window.location.search).get("sharedId")) return;
+
+    const saved = localStorage.getItem("current_generated_plan");
+    const savedVersionsStr = localStorage.getItem("current_versions");
+    if (saved) {
+      try {
+        if (savedVersionsStr) {
+          const {versions: v, activeVersionId: a} = JSON.parse(savedVersionsStr);
+          setVersionsState(v);
+          setActiveVersionId(a);
         }
+        setResultState(formatObjectNumbers(JSON.parse(saved)));
+      } catch (e) {
+        console.error(e);
       }
     }
-  }, []);
+  }, [isCheckingShared, skipLocalRestore]);
 
   const handleGenerate = async (nicheExample?: string) => {
     const inputSkill = nicheExample || skill;
@@ -455,13 +471,25 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
     setShowExportModal(true);
   };
 
-  const handleShare = () => {
-    if (typeof window !== "undefined") {
-      navigator.clipboard.writeText(window.location.href);
-      setShowShareSuccess(true);
-      setTimeout(() => setShowShareSuccess(false), 2000);
+  const handleShare = async () => {
+    if (!result) return;
+    try {
+      const url = await createAndCopySharedPlanLink(result, locale);
+      if (url) {
+        setShowShareSuccess(true);
+        setTimeout(() => setShowShareSuccess(false), 2000);
+      } else {
+        alert(ui.shareError);
+      }
+    } catch (err) {
+      console.error(err);
+      alert(ui.shareError);
     }
   };
+
+  if (isAuthLoading || isCheckingShared) {
+    return <div className="min-h-screen bg-black" />;
+  }
 
   return (
     <div className="min-h-screen bg-[#09090b] text-white font-sans relative overflow-x-hidden flex flex-col pb-16">
@@ -592,7 +620,7 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
 
             {showShareSuccess && (
               <div className="bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs text-center py-2 rounded-lg animate-pulse font-bold">
-                {locale === "en" ? "Link copied to clipboard!" : locale === "es" ? "¡Enlace copiado al portapapeles!" : "Link copiat în clipboard!"}
+                {ui.shareCopied}
               </div>
             )}
 
@@ -683,11 +711,12 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
 
                 {/* Conversion banners under tabs */}
                 <ConversionBanners 
-                  isSharedView={false} 
+                  isSharedView={isSharedView} 
                   user={user} 
                   result={result} 
                   onResetApp={() => {
                     setResult(null);
+                    setIsSharedView(false);
                     localStorage.removeItem("current_generated_plan");
                   }} 
                   onAuthClick={() => setShowAuthModal(true)} 

@@ -62,7 +62,10 @@ type UIStringsShape = {
   forgotPassword: string; noAccount: string; hasAccount: string;
   forgotPasswordTitle: string; sendResetEmail: string; backToLogin: string; resetEmailSent: string;
   // MISC
-  currencyNotice: string; shareBtn: string; shareCopied: string;
+  currencyNotice: string; shareBtn: string; shareCopied: string; shareError: string;
+  studioMobileBadge: string; studioMobileTitle: string; studioGenerateDesktopOnly: string;
+  studioGenerateDesktopHint: string; studioBackToDashboard: string; studioTryDemoMobile: string;
+  studioLoadingWorkspace: string;
   printBtn: string; resetBtn: string; newPlan: string; confirmUnlockPlan: string;
   placeholdersArray: string[]; paymentConfirmedEU: string; loadingMessagesArray: string[];
   routes: { login: string; dashboard: string; demoNew: string };
@@ -184,7 +187,15 @@ export const UI_STRINGS: Record<Locale, UIStringsShape> = {
     backToLogin: "Inapoi la autentificare",
     resetEmailSent: "Email de resetare trimis! Verifica casuta postala.",
     currencyNotice: "Sumele sunt estimate si pot varia in functie de piata.",
-    shareBtn: "Partajeaza", shareCopied: "Link copiat!", printBtn: "Printeaza",
+    shareBtn: "Partajeaza", shareCopied: "Link copiat in clipboard!", shareError: "Nu s-a putut crea linkul de partajare. Incearca din nou.",
+    studioMobileBadge: "Studio Mobil",
+    studioMobileTitle: "Generare Studio pe desktop",
+    studioGenerateDesktopOnly: "Pe telefon si tableta poti edita un plan deja salvat. Generarea unui plan nou in Studio se face pe desktop.",
+    studioGenerateDesktopHint: "Deschide Dashboard pe un ecran mai mare pentru a crea un plan, sau incearca Demo pe mobil.",
+    studioBackToDashboard: "Mergi la Dashboard",
+    studioTryDemoMobile: "Incearca Demo pe mobil",
+    studioLoadingWorkspace: "Se incarca spatiul tau de lucru Studio...",
+    printBtn: "Printeaza",
     resetBtn: "Plan Nou", newPlan: "Plan Nou",
     confirmUnlockPlan: "Folosesti 1 credit pentru a debloca descarcarea completa a planului",
     placeholdersArray: ["Consultanță Securitate Cibernetică...", "Studio de Design Interior...", "Fermă Urbană de Microplante...", "Dezvoltare Soluții...", "Cafenea de Specialitate...", "Platformă de Cursuri Online...", "Spălătorie Auto Ecologică..."],
@@ -315,7 +326,15 @@ export const UI_STRINGS: Record<Locale, UIStringsShape> = {
     backToLogin: "Back to login",
     resetEmailSent: "Reset email sent! Check your inbox.",
     currencyNotice: "Amounts are estimated and may vary depending on the market.",
-    shareBtn: "Share", shareCopied: "Link copied!", printBtn: "Print",
+    shareBtn: "Share", shareCopied: "Link copied to clipboard!", shareError: "Could not create the share link. Please try again.",
+    studioMobileBadge: "Mobile Studio",
+    studioMobileTitle: "Studio generation on desktop",
+    studioGenerateDesktopOnly: "On phone and tablet you can edit a saved plan. Creating a new Studio plan is available on desktop.",
+    studioGenerateDesktopHint: "Open Dashboard on a larger screen to create a plan, or try Demo on mobile.",
+    studioBackToDashboard: "Go to Dashboard",
+    studioTryDemoMobile: "Try Demo on mobile",
+    studioLoadingWorkspace: "Loading your Studio workspace...",
+    printBtn: "Print",
     resetBtn: "New Plan", newPlan: "New Plan",
     confirmUnlockPlan: "You will use 1 credit to unlock the full download of this plan",
     placeholdersArray: ["Cybersecurity Consulting...", "Interior Design Studio...", "Urban Microgreens Farm...", "Software Development...", "Specialty Coffee Shop...", "Online Courses Platform...", "Eco Car Wash..."],
@@ -446,7 +465,15 @@ export const UI_STRINGS: Record<Locale, UIStringsShape> = {
     backToLogin: "Volver al inicio de sesion",
     resetEmailSent: "Email de restablecimiento enviado! Revisa tu bandeja de entrada.",
     currencyNotice: "Las cantidades son estimadas y pueden variar segun el mercado.",
-    shareBtn: "Compartir", shareCopied: "Enlace copiado!", printBtn: "Imprimir",
+    shareBtn: "Compartir", shareCopied: "Enlace copiado al portapapeles!", shareError: "No se pudo crear el enlace para compartir. Intentalo de nuevo.",
+    studioMobileBadge: "Studio Movil",
+    studioMobileTitle: "Generacion Studio en escritorio",
+    studioGenerateDesktopOnly: "En telefono y tablet puedes editar un plan ya guardado. Crear un plan nuevo en Studio esta disponible en escritorio.",
+    studioGenerateDesktopHint: "Abre el Panel en una pantalla mas grande para crear un plan, o prueba Demo en movil.",
+    studioBackToDashboard: "Ir al Panel",
+    studioTryDemoMobile: "Probar Demo en movil",
+    studioLoadingWorkspace: "Cargando tu espacio de trabajo de Studio...",
+    printBtn: "Imprimir",
     resetBtn: "Nuevo Plan", newPlan: "Nuevo Plan",
     confirmUnlockPlan: "Usaras 1 credito para desbloquear la descarga completa de este plan",
     placeholdersArray: ["Consultoría en Ciberseguridad...", "Estudio de Diseño de Interiores...", "Granja Urbana de Microplantas...", "Desarrollo de Software...", "Cafetería de Especialidad...", "Plataforma de Cursos Online...", "Lavado de Coches Ecológico..."],

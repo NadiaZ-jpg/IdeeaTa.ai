@@ -4,6 +4,7 @@ import { jsPDF } from "jspdf";
 import { toPng } from "html-to-image";
 import { generatePptx } from "@/lib/generatePptx";
 import { generateDocxBlob } from "@/lib/generateDocx";
+import { createSharedPlan, buildSharedPlanUrl } from "@/lib/sharePlan";
 
 interface UseExportActionsProps {
   result: any;
@@ -80,17 +81,7 @@ export function useExportActions({
     try {
       let generatedShareId: string | null = null;
       if (mode === 'pdf-summary' || mode === 'pdf') {
-        try {
-          const res = await fetch('/api/share', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ planData: result, locale })
-          });
-          const data = await res.json();
-          if (data.id) generatedShareId = data.id;
-        } catch (err) {
-          console.error("Eroare generare share link:", err);
-        }
+        generatedShareId = await createSharedPlan(result, locale);
       }
 
       if (mode === 'pptx' || mode === 'pdf' || mode === 'pdf-summary') {
@@ -127,7 +118,7 @@ export function useExportActions({
         let pdfUrl = 'https://ideeata.ai/';
         const currentShareId = result?.id || generatedShareId;
         if (currentShareId) {
-          pdfUrl = `https://ideeata.ai/shared/${currentShareId}`;
+          pdfUrl = buildSharedPlanUrl(currentShareId);
         }
 
         const pdfFooters: Record<string, string> = {

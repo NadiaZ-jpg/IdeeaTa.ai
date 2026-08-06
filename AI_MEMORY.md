@@ -393,8 +393,41 @@ Dacă oricare dintre aceste verificări este omisă în procesul de planificare,
 - **Build verificat local:** ✅ `✓ Compiled successfully` — toate paginile statice generate (44/44).
 - **Checkpoint Git final realizat:** `Checkpoint-01-August-2026-RemedieriStudio-Complet`
 
+## FREEZE (6 August 2026 — Sesiunea S1: Load sharedId pe Mobile/Tablet)
+- **hooks/useSharedPlanLoader.ts** — Fișier NOU. Helper-e `fetchSharedPlan`, `readSharedIdFromLocation`, `clearSharedIdFromUrl`, `resetDemoShareCounters` + hook `useSharedPlanLoader` pentru încărcarea `?sharedId=` via `/api/share/{id}`. Acoperă RO/EN/ES (fără UI nou; același API pe toate limbile). Tabletă = același arbore Mobile (&lt;1024).
+- **components/DemoDesktop.tsx** — Înlocuire chirurgicală a fetch-ului inline cu helper-ele din hook (comportament neschimbat).
+- **components/DemoMobile.tsx** — (override freeze demo mobile) Integrat `useSharedPlanLoader`: load shared plan pe Mobile/Tablet, `isSharedView` real pentru ConversionBanners, skip restore localStorage când există share, ecran negru scurt în timpul check. Studio neatinss (fără override studio).
+- **Build verificat local:** ✅ `npx tsc --noEmit` OK · `npm run build` OK (pagini RO/EN/ES incl. /demo, /en/demo, /es/demo).
+- **Acoperire REGULA #21:** RO/EN/ES (rute locale neschimbate) · Desktop + Mobile/Tablet pe Demo.
+
+## FREEZE (6 August 2026 — Sesiunea S2: Create share durable pe Mobile)
+- **lib/sharePlan.ts** — Fișier NOU. `createSharedPlan`, `buildSharedPlanUrl` (ideeata.ai), `createAndCopySharedPlanLink` — REGULA #5.
+- **lib/uiStrings.ts** — `shareCopied` actualizat + `shareError` nou pe RO/EN/ES.
+- **components/DemoMobile.tsx** / **StudioMobile.tsx** — Share nu mai copiază `window.location.href`; creează `/api/share` + clipboard `https://ideeata.ai/shared/{id}`; toast din `ui.shareCopied`.
+- **hooks/useExportActions.ts** — DRY: folosește `createSharedPlan` / `buildSharedPlanUrl`.
+- **Build verificat local:** ✅ `npx tsc --noEmit` OK · `npm run build` OK
+- **Acoperire REGULA #21:** RO/EN/ES (`shareCopied`/`shareError`) · Mobile/Tablet Demo+Studio · Desktop export DRY
+
+## FREEZE (6 August 2026 — Sesiunea S3-B: Studio Mobile mesaj desktop-only)
+- **components/StudioMobileGenerateHint.tsx** — Fișier NOU. Empty-state localizat: generare Studio nouă pe desktop; CTA Dashboard + Demo (tap ≥44px).
+- **lib/uiStrings.ts** — Chei `studioMobile*` / `studioGenerate*` / `studioLoadingWorkspace` pe RO/EN/ES.
+- **components/StudioMobile.tsx** — Înlocuit spinner infinit când lipsește `planId` (sau timeout 4s la plan negăsit) cu `StudioMobileGenerateHint`. Edit pe `planId` existent neschimbat. Varianta A (generate real) amânată.
+- **Build verificat local:** ✅ `npx tsc --noEmit` OK · `npm run build` OK
+- **Acoperire REGULA #21:** RO/EN/ES · Mobile/Tablet Studio · tap targets pe CTA
+
+## FREEZE (6 August 2026 — Sesiunea S4: Promo paywall fără bypass în production)
+- **app/api/validate-promo/route.ts** — Dacă lipsesc credențialele Firebase Admin: în `NODE_ENV=production` răspunde **503** (fără `isDevBypass`). Bypass pe env rămâne **doar** în development; preferă `PROMO_ADMIN` / `PROMO_STANDARD` / `PROMO_FONDURI` (server-only), cu fallback temporar la `NEXT_PUBLIC_*`. Mesaje eroare RO/EN/ES.
+- **.env.example** — Documentează Firebase Admin + PROMO_* server-only.
+- **PricingModal** — neschimbat; `isDevBypass` client write rămâne doar când API-ul (dev) îl returnează.
+- **Ops:** pe Hetzner păstrează FIREBASE_* în `.env` și în `.next/standalone/.env` după rebuild.
+- **Build verificat local:** ✅ `npx tsc --noEmit` OK · `npm run build` OK
+
 ## RĂMÂNE DE FĂCUT
-- Niciun task restant. Sistemul este robust și pregătit pentru testare în producție.
+- S5–S8: metadata SEO, legal RO, i18n, tap targets
+- S3-A (opțional): generate Studio pe Mobile
+- Deploy Hetzner + checkpoint git (la cerere)
+
+
 
 
 

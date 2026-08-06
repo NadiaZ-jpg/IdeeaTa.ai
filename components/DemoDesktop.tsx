@@ -28,6 +28,7 @@ import { DemoBrochurePreview } from "@/components/pdf/DemoBrochurePreview";
 import { DemoPresentationSlides } from "@/components/pdf/DemoPresentationSlides";
 import { truncateText, splitTextIntoSlides, getDynamicTextSize } from '@/lib/planHelpers';
 import { useExportActions } from '@/hooks/useExportActions';
+import { fetchSharedPlan, resetDemoShareCounters, clearSharedIdFromUrl } from '@/hooks/useSharedPlanLoader';
 import { useUIState } from '@/hooks/useUIState';
 import { ActionBar } from '@/components/ActionBar';
 import { MockupPreview } from '@/components/MockupPreview';
@@ -548,18 +549,13 @@ export default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" | 
       const sharedId = urlParams.get("sharedId");
       
       if (sharedId) {
-        fetch(`/api/share/${sharedId}`)
-          .then(res => res.json())
-          .then(data => {
-            if (data && data.data) {
-              setResult(formatObjectNumbers(data.data));
+        fetchSharedPlan(sharedId)
+          .then(plan => {
+            if (plan) {
+              setResult(plan);
               setIsSharedView(true);
-              if (typeof window !== "undefined") {
-                localStorage.setItem('demoGenerateCount', '0');
-                localStorage.setItem('demoEditCount', '0');
-                setDemoCount(0);
-              }
-              window.history.replaceState({}, document.title, window.location.pathname);
+              resetDemoShareCounters(setDemoCount);
+              clearSharedIdFromUrl();
             }
           })
           .catch(err => console.error("Eroare incarcare shareId:", err))

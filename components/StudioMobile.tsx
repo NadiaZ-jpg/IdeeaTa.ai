@@ -15,6 +15,8 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { t } from '@/lib/translations';
 import { UI_STRINGS } from '@/lib/uiStrings';
+import { createAndCopySharedPlanLink } from '@/lib/sharePlan';
+import { StudioMobileGenerateHint } from '@/components/StudioMobileGenerateHint';
 import dynamic from 'next/dynamic';
 import { useExportActions } from "@/hooks/useExportActions";
 import { StudioPdfSlides } from "@/components/pdf/StudioPdfSlides";
@@ -294,11 +296,19 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
     }
   };
 
-  const handleShare = () => {
-    if (typeof window !== "undefined") {
-      navigator.clipboard.writeText(window.location.href);
-      setShowShareSuccess(true);
-      setTimeout(() => setShowShareSuccess(false), 2000);
+  const handleShare = async () => {
+    if (!result) return;
+    try {
+      const url = await createAndCopySharedPlanLink(result, locale);
+      if (url) {
+        setShowShareSuccess(true);
+        setTimeout(() => setShowShareSuccess(false), 2000);
+      } else {
+        alert(ui.shareError);
+      }
+    } catch (err) {
+      console.error(err);
+      alert(ui.shareError);
     }
   };
 
@@ -326,11 +336,39 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
     await handleDownloadAction(mode);
   };
 
+  const [studioLoadTimedOut, setStudioLoadTimedOut] = useState(false);
+
+  useEffect(() => {
+    if (result || typeof window === "undefined") return;
+    const planId = new URLSearchParams(window.location.search).get("planId");
+    if (!planId || !user) return;
+    const timer = setTimeout(() => setStudioLoadTimedOut(true), 4000);
+    return () => clearTimeout(timer);
+  }, [result, user]);
+
   if (!result) {
+    if (!user) {
+      return (
+        <div className="min-h-screen bg-[#09090b] text-white flex flex-col items-center justify-center p-6 text-center">
+          <div className="w-10 h-10 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin mb-4"></div>
+          <p className="text-zinc-400 text-sm">{ui.studioLoadingWorkspace}</p>
+        </div>
+      );
+    }
+
+    const planId =
+      typeof window !== "undefined"
+        ? new URLSearchParams(window.location.search).get("planId")
+        : null;
+
+    if (!planId || studioLoadTimedOut) {
+      return <StudioMobileGenerateHint locale={locale} />;
+    }
+
     return (
       <div className="min-h-screen bg-[#09090b] text-white flex flex-col items-center justify-center p-6 text-center">
         <div className="w-10 h-10 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin mb-4"></div>
-        <p className="text-zinc-400 text-sm">{locale === "en" ? "Loading your Studio workspace..." : locale === "es" ? "Cargando tu espacio de trabajo de Studio..." : "Se încarcă spațiul tău de lucru Studio..."}</p>
+        <p className="text-zinc-400 text-sm">{ui.studioLoadingWorkspace}</p>
       </div>
     );
   }
@@ -368,7 +406,7 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
         
         {showShareSuccess && (
           <div className="bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs text-center py-2 rounded-lg animate-pulse font-bold">
-            {locale === "en" ? "Link copied to clipboard!" : locale === "es" ? "¡Enlace copiado al portapapeles!" : "Link copiat în clipboard!"}
+            {ui.shareCopied}
           </div>
         )}
 

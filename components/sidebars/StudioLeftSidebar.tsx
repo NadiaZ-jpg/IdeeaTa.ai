@@ -239,7 +239,13 @@ export function StudioLeftSidebar({
                               if (e.key === 'Enter') {
                                 e.preventDefault();
                                 if (aiPromptInput.trim() || activeAiPrompt.isConfirm) {
-                                  handleAiEdit(activeAiPrompt.action, undefined, aiPromptInput);
+                                  handleAiEdit(
+                                    activeAiPrompt.action,
+                                    undefined,
+                                    aiPromptInput,
+                                    false,
+                                    activeAiPrompt.combineOptions
+                                  );
                                 }
                               }
                             }}
@@ -252,7 +258,15 @@ export function StudioLeftSidebar({
                           <div className="flex gap-2">
                           <button 
                             type="button" 
-                            onClick={() => handleAiEdit(activeAiPrompt.action, undefined, aiPromptInput)}
+                            onClick={() =>
+                              handleAiEdit(
+                                activeAiPrompt.action,
+                                undefined,
+                                aiPromptInput,
+                                false,
+                                activeAiPrompt.combineOptions
+                              )
+                            }
                             disabled={!activeAiPrompt.isConfirm && !aiPromptInput.trim()}
                             className="flex-1 bg-emerald-600 hover:bg-emerald-500 disabled:bg-zinc-800 disabled:text-zinc-500 text-white font-bold text-xs py-2 rounded-lg transition-colors"
                           >
@@ -271,12 +285,20 @@ export function StudioLeftSidebar({
                     )}
                 </div>
             
-            {/* User Tip */}
-              <div className="mt-6 flex items-start gap-2 bg-emerald-500/10 border border-emerald-500/20 p-4 rounded-2xl w-full">
-              <span className="text-emerald-400 mt-0.5 text-lg">💡</span>
-              <p className="text-[13px] text-emerald-100/70 leading-relaxed">
-                <span dangerouslySetInnerHTML={{ __html: ui.editorTip }}></span>
-              </p>
+            {/* User Tips */}
+            <div className="mt-6 flex flex-col gap-3 w-full">
+              <div className="flex items-start gap-2 bg-emerald-500/10 border border-emerald-500/20 p-4 rounded-2xl w-full">
+                <span className="text-emerald-400 mt-0.5 text-lg shrink-0">💡</span>
+                <p className="text-[13px] text-emerald-100/70 leading-relaxed">
+                  <span dangerouslySetInnerHTML={{ __html: ui.editorTip }} />
+                </p>
+              </div>
+              <div className="flex items-start gap-2 bg-emerald-500/10 border border-emerald-500/20 p-4 rounded-2xl w-full">
+                <span className="text-emerald-400 mt-0.5 text-lg shrink-0">🪄</span>
+                <p className="text-[13px] text-emerald-100/70 leading-relaxed">
+                  <span dangerouslySetInnerHTML={{ __html: ui.versionToolsTip }} />
+                </p>
+              </div>
             </div>
     </div>
   );

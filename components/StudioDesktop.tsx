@@ -118,7 +118,14 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
   const [isEditing, setIsEditing] = useState(false);
   const [backupResult, setBackupResult] = useState<any>(null);
   const [isEditingAi, setIsEditingAi] = useState(false);
-  const [activeAiPrompt, setActiveAiPrompt] = useState<{action: string, title: string, placeholder?: string, desc?: string, isConfirm?: boolean} | null>(null);
+  const [activeAiPrompt, setActiveAiPrompt] = useState<{
+    action: string;
+    title: string;
+    placeholder?: string;
+    desc?: string;
+    isConfirm?: boolean;
+    combineOptions?: { basePlan?: any; sourceVersionId?: string };
+  } | null>(null);
   const [aiPromptInput, setAiPromptInput] = useState("");
   const [showToneOptions, setShowToneOptions] = useState(false);
   const [aiLoadingMessageIndex, setAiLoadingMessageIndex] = useState(0);
@@ -369,9 +376,13 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
       targetSection = percent.toString(); 
     }
 
+    // Toolbar tools = sibling tabs from Original. Combine (+) = append onto source tab stack.
+    const isCombine = !!(options?.sourceVersionId || options?.basePlan);
     const sourceId = options?.sourceVersionId || activeVersionId;
-    const baseSource = options?.basePlan || result;
-    const currentStack = resolveVersionStack(sourceId, baseSource);
+    const baseSource = isCombine
+      ? (options?.basePlan || result)
+      : (versions.original ?? result);
+    const currentStack = isCombine ? resolveVersionStack(sourceId, baseSource) : [];
     const nextStep = toolStepFromAction(action, customStyle, budgetPercent);
     let nextStack = currentStack;
     if (nextStep) {
@@ -455,13 +466,18 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
                 : activeVersionId);
           
           const formattedResult = withVersionStack(formatObjectNumbers(parsed), nextStack);
-          
+          const originalSnapshot = versions.original ?? (isCombine ? undefined : baseSource);
+          const base =
+            versions && Object.keys(versions).length > 0
+              ? versions
+              : { original: originalSnapshot || baseSource };
           const nextVersions = {
-            ...versions,
-            [vKey]: formattedResult
+            ...base,
+            ...(!base.original && originalSnapshot ? { original: originalSnapshot } : {}),
+            [vKey]: formattedResult,
           };
-          
-          setVersionsState(nextVersions);
+
+          setVersions(nextVersions);
           setActiveVersionId(vKey);
           setResult(formattedResult);
           
@@ -530,6 +546,7 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
             : locale === "es"
             ? "¿Qué porcentaje deseas reducir de los costos presupuestados?"
             : "Cu ce procent dorești să reduci costurile bugetate?",
+        combineOptions: { basePlan: sourcePlan, sourceVersionId },
       });
       return;
     }

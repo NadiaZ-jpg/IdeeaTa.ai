@@ -250,9 +250,13 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
       targetSection = String(percent);
     }
 
+    // Toolbar tools = sibling tabs from Original. Combine (+) = append onto source tab stack.
+    const isCombine = !!(options?.sourceVersionId || options?.basePlan);
     const sourceId = options?.sourceVersionId || activeVersionId;
-    const baseSource = options?.basePlan || result;
-    const currentStack = resolveVersionStack(sourceId, baseSource);
+    const baseSource = isCombine
+      ? (options?.basePlan || result)
+      : (versions.original ?? result);
+    const currentStack = isCombine ? resolveVersionStack(sourceId, baseSource) : [];
     const nextStep = toolStepFromAction(action, isTone ? customInput : undefined, budgetPercent);
     let nextStack = currentStack;
     if (nextStep) {
@@ -302,10 +306,14 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
         const vKey = nextStep
           ? buildStackedVersionKey(nextStack)
           : `edit_${Date.now()}`;
-        setVersions((prev: any) => ({
-          ...(Object.keys(prev).length ? prev : { original: baseSource }),
-          [vKey]: parsed,
-        }));
+        const originalSnapshot = versions.original ?? (isCombine ? undefined : baseSource);
+        setVersions((prev: any) => {
+          const base = Object.keys(prev).length ? prev : { original: originalSnapshot || baseSource };
+          if (!base.original && originalSnapshot) {
+            return { ...base, original: originalSnapshot, [vKey]: parsed };
+          }
+          return { ...base, [vKey]: parsed };
+        });
         setActiveVersionId(vKey);
         setResult(parsed);
         localStorage.setItem("current_generated_plan", JSON.stringify(parsed));
@@ -659,6 +667,22 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
                 )}
               </div>
             )}
+
+            {/* Studio tips (RO/EN/ES) — same guidance as Desktop sidebar */}
+            <div className="flex flex-col gap-2.5 w-full">
+              <div className="flex items-start gap-2 bg-emerald-500/10 border border-emerald-500/20 p-3.5 rounded-2xl w-full">
+                <span className="text-emerald-400 mt-0.5 text-base shrink-0">💡</span>
+                <p className="text-[12px] text-emerald-100/70 leading-relaxed">
+                  <span dangerouslySetInnerHTML={{ __html: ui.editorTip }} />
+                </p>
+              </div>
+              <div className="flex items-start gap-2 bg-emerald-500/10 border border-emerald-500/20 p-3.5 rounded-2xl w-full">
+                <span className="text-emerald-400 mt-0.5 text-base shrink-0">🪄</span>
+                <p className="text-[12px] text-emerald-100/70 leading-relaxed">
+                  <span dangerouslySetInnerHTML={{ __html: ui.versionToolsTip }} />
+                </p>
+              </div>
+            </div>
 
             {/* Tab Selection */}
             <div className="flex md:flex-col bg-zinc-950/90 backdrop-blur-md border border-zinc-800/80 rounded-xl p-1 overflow-x-auto md:overflow-visible scrollbar-none md:gap-1 w-full shadow-inner">

@@ -6,7 +6,8 @@
  * - Free: no combine stack (limit 0)
  * - Standard: max 2 tools per version stack
  * - Full Access: max 4 tools per version stack
- * - Combine always applies on an existing tab's content → creates a NEW tab
+ * - Toolbar tools (sidebar): each run creates a NEW sibling tab from Original (stack depth 1)
+ * - Combine (+) on a tab: applies on that tab's content → NEW tab with appended stack
  * - Download uses the active tab's plan
  */
 

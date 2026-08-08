@@ -28,11 +28,13 @@ import { canUseFreeToneEdit, consumeFreeToneEdit, isFreeToneKey, isProToneKey, t
 import {
   buildStackedVersionKey,
   canUseVersionCombine,
+  combineFullAccessHint,
   combineWithLabel,
   formatVersionTabTitle,
   gateVersionStackAppend,
   getCombineMenuItems,
   getVersionStackLimit,
+  isStandardOnlyCombineAccess,
   noCombineAccessMessage,
   resolveVersionStack,
   stackLimitReachedMessage,
@@ -658,6 +660,19 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
                                   {item.label}
                                 </button>
                               ))}
+                              {isStandardOnlyCombineAccess(versionStackAccess) && (
+                                <button
+                                  type="button"
+                                  className="w-full text-left text-[10px] leading-snug px-3 py-2.5 mt-1 rounded-lg text-amber-300/90 bg-amber-500/5 border border-amber-500/20 hover:bg-amber-500/10 font-semibold min-h-[44px]"
+                                  onClick={() => {
+                                    setCombineMenuFor(null);
+                                    setShowVersionDropdown(false);
+                                    setShowPricingModal(true);
+                                  }}
+                                >
+                                  {combineFullAccessHint(locale)}
+                                </button>
+                              )}
                             </div>
                           )}
                         </div>

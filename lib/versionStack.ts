@@ -324,6 +324,26 @@ export function combineWithLabel(locale: VersionLocale): string {
   return "Combină cu…";
 }
 
+/** Standard (not Full/Admin): show upgrade hint under Combine menu. */
+export function isStandardOnlyCombineAccess(access: VersionStackAccess): boolean {
+  return !!(
+    access.hasStandardAccess &&
+    !access.hasFullAccess &&
+    !access.hasProTools &&
+    !access.isAdmin
+  );
+}
+
+export function combineFullAccessHint(locale: VersionLocale): string {
+  if (locale === "en") {
+    return "Full Access unlocks: Optimize budget, EU Funds, and Investors plan in this menu.";
+  }
+  if (locale === "es") {
+    return "Full Access desbloquea: Optimizar presupuesto, Fondos UE y Plan inversores en este menú.";
+  }
+  return "Full Access deblochează: Optimizează bugetul, Fonduri UE și Plan investitori în acest meniu.";
+}
+
 export function stackLimitReachedMessage(
   locale: VersionLocale,
   limit: number,

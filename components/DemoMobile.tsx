@@ -158,7 +158,18 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
         
         const planName = result?.nume || "";
         const planUnlocked = (data.unlockedPlans || []).includes(planName);
-        setIsPaidState(planUnlocked || data.subscriptionActive || false);
+        // Align with Desktop: isPaid from Firestore / promo / subscription / per-plan unlock
+        setIsPaidState(
+          !!(
+            data.isPaid ||
+            planUnlocked ||
+            data.subscriptionActive ||
+            data.promoCodeUnlocked ||
+            data.promoCodeTier === "standard" ||
+            data.promoCodeTier === "eu-funds" ||
+            data.promoCodeTier === "full-access"
+          )
+        );
       }
     });
 
@@ -1189,8 +1200,19 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
       <PricingModal
         isOpen={showPricingModal}
         onClose={() => setShowPricingModal(false)}
-        onSuccess={() => {
+        onSuccess={(tier) => {
           setShowPricingModal(false);
+          setPromoCodeUnlocked(true);
+          if (tier === "full-access") {
+            setSubscriptionActive(true);
+            setEuFundsUnlocked(true);
+            setIsPaidState(true);
+          } else if (tier === "eu-funds") {
+            setEuFundsUnlocked(true);
+            setIsPaidState(true);
+          } else if (tier === "standard") {
+            setIsPaidState(true);
+          }
           alert(locale === "en" ? "Payment simulated successfully! Premium access is now unlocked." : locale === "es" ? "¡Pago simulado con éxito! El acceso premium ya está desbloqueado." : "Plată simulată cu succes! Accesul premium este acum deblocat.");
         }}
         onRequireLogin={() => {

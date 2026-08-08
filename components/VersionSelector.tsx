@@ -5,10 +5,12 @@ import {
   VersionLocale,
   VersionStackAccess,
   canUseVersionCombine,
+  combineFullAccessHint,
   combineWithLabel,
   formatVersionTabTitle,
   getCombineMenuItems,
   getVersionStackLimit,
+  isStandardOnlyCombineAccess,
   resolveVersionStack,
   stackLimitReachedMessage,
 } from "@/lib/versionStack";
@@ -122,6 +124,18 @@ export function VersionSelector({
                     {item.label}
                   </button>
                 ))}
+                {access && isStandardOnlyCombineAccess(access) && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setMenuFor(null);
+                      onRequireUpgrade?.();
+                    }}
+                    className="w-full text-left text-[10px] leading-snug px-3 py-2.5 mt-1 rounded-lg text-amber-300/90 bg-amber-500/5 border border-amber-500/20 hover:bg-amber-500/10 font-semibold min-h-[44px]"
+                  >
+                    {combineFullAccessHint(locale)}
+                  </button>
+                )}
               </div>
             )}
           </div>

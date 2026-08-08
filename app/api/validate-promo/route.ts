@@ -177,60 +177,81 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Verificare utilizare multiplă & limite (C1 + C2)
-    const promoTier = promoData.tier || "full-access";
-    const usedBy: string[] = promoData.usedBy || [];
-    const usageLimit = promoData.usageLimit !== undefined ? Number(promoData.usageLimit) : null;
-
-    if (usedBy.includes(userId)) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: getErrorMsg(
-            "Ai folosit deja acest cod promoțional pe acest cont.",
-            "You have already used this promo code on this account.",
-            "Ya has usado este código promocional en esta cuenta."
-          ),
-        },
-        { status: 400 }
-      );
-    }
-
-    if (usageLimit !== null && usedBy.length >= usageLimit) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: getErrorMsg(
-            "Acest cod promoțional a atins limita maximă de utilizări.",
-            "This promo code has reached its maximum usage limit.",
-            "Este código promocional ha alcanzado su límite máximo de uso."
-          ),
-        },
-        { status: 400 }
-      );
-    }
-
-    // Deblocăm permisiunile în funcție de tier (C2)
+    // Atomic redeem: re-check limit + usedBy + user entitlements
     const userRef = adminDb.collection("users").doc(userId);
-    const userUpdate: any = {
-      promoCodeUnlocked: true,
-      promoCodeTier: promoTier,
-    };
+    const promoTier = promoData.tier || "full-access";
 
-    if (promoTier === "full-access") {
-      userUpdate.euFundsUnlocked = true;
-      userUpdate.subscriptionActive = true;
-    } else if (promoTier === "eu-funds") {
-      userUpdate.euFundsUnlocked = true;
-    } else if (promoTier === "standard") {
-      userUpdate.isPaid = true;
+    try {
+      await adminDb.runTransaction(async (tx: any) => {
+        const freshPromo = await tx.get(promoRef);
+        if (!freshPromo.exists) throw new Error("INVALID_PROMO");
+        const fresh = freshPromo.data() || {};
+        if (fresh.active !== true) throw new Error("INACTIVE_PROMO");
+        const used: string[] = Array.isArray(fresh.usedBy) ? fresh.usedBy : [];
+        const limit =
+          fresh.usageLimit !== undefined ? Number(fresh.usageLimit) : null;
+        if (used.includes(userId)) throw new Error("ALREADY_USED");
+        if (limit !== null && used.length >= limit) throw new Error("LIMIT_REACHED");
+
+        const userUpdate: any = {
+          promoCodeUnlocked: true,
+          promoCodeTier: promoTier,
+        };
+        if (promoTier === "full-access") {
+          userUpdate.euFundsUnlocked = true;
+          userUpdate.subscriptionActive = true;
+        } else if (promoTier === "eu-funds") {
+          userUpdate.euFundsUnlocked = true;
+        } else if (promoTier === "standard") {
+          userUpdate.standardPackageActive = true;
+        }
+
+        tx.set(userRef, userUpdate, { merge: true });
+        tx.update(promoRef, { usedBy: [...used, userId] });
+      });
+    } catch (e: any) {
+      const code = e?.message;
+      if (code === "ALREADY_USED") {
+        return NextResponse.json(
+          {
+            success: false,
+            error: getErrorMsg(
+              "Ai folosit deja acest cod promoțional pe acest cont.",
+              "You have already used this promo code on this account.",
+              "Ya has usado este código promocional en esta cuenta."
+            ),
+          },
+          { status: 400 }
+        );
+      }
+      if (code === "LIMIT_REACHED") {
+        return NextResponse.json(
+          {
+            success: false,
+            error: getErrorMsg(
+              "Acest cod promoțional a atins limita maximă de utilizări.",
+              "This promo code has reached its maximum usage limit.",
+              "Este código promocional ha alcanzado su límite máximo de uso."
+            ),
+          },
+          { status: 400 }
+        );
+      }
+      if (code === "INACTIVE_PROMO" || code === "INVALID_PROMO") {
+        return NextResponse.json(
+          {
+            success: false,
+            error: getErrorMsg(
+              "Codul promoțional a expirat sau este inactiv.",
+              "Promo code expired or inactive.",
+              "El código promocional ha expirado o está inactivo."
+            ),
+          },
+          { status: 400 }
+        );
+      }
+      throw e;
     }
-
-    await userRef.update(userUpdate);
-
-    await promoRef.update({
-      usedBy: [...usedBy, userId],
-    });
 
     console.log(`[Promo] User ${userId} unlocked access tier "${promoTier}" via database code: ${actualCode}`);
 
@@ -246,7 +267,7 @@ export async function POST(req: NextRequest) {
   } catch (error: any) {
     console.error("Error validating promo code:", error);
     return NextResponse.json(
-      { success: false, error: error.message || "Eroare la validarea codului promoțional." },
+      { success: false, error: "Promo validation failed", code: "PROMO_FAILED" },
       { status: 500 }
     );
   }

@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import { auth } from '@/lib/firebase';
 import { migrateLocalPlansToFirebase } from '@/lib/migrationManager';
 import { signInWithPopup, GoogleAuthProvider, FacebookAuthProvider, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, sendPasswordResetEmail, sendEmailVerification } from 'firebase/auth';
+import { passwordResetActionCodeSettings } from '@/lib/authActionUrls';
 import { useRouter } from 'next/navigation';
 import { QRCodeSVG } from 'qrcode.react';
 
@@ -81,7 +82,7 @@ export default function LoginContent({ locale = "ro" }: { locale?: "ro" | "en" |
     setIsEmailLoading(true);
     setAuthError(null);
     try {
-      await sendPasswordResetEmail(auth, email);
+      await sendPasswordResetEmail(auth, email, passwordResetActionCodeSettings(locale));
       setResetEmailSent(true);
     } catch (error: any) {
       console.error("Eroare resetare parola:", error);

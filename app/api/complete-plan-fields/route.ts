@@ -2,39 +2,39 @@ import { NextRequest, NextResponse } from "next/server";
 import { fillMissingPlanExplanations } from "@/lib/fillMissingPlanExplanations";
 import { planNeedsExplanationFill } from "@/lib/normalizePlanResult";
 import { adminAuth } from "@/lib/firebase-admin";
-import { clientIpFromRequest, consumeRateLimit } from "@/lib/apiRateLimit";
+import { consumeRateLimit } from "@/lib/apiRateLimit";
 
 export const maxDuration = 60;
 
 const HOUR_MS = 60 * 60 * 1000;
 
-/** Fills empty SWOT/budget explanations for an already-generated plan (view/edit). */
+/** Fills empty SWOT/budget explanations — auth required (Gemini cost). */
 export async function POST(req: NextRequest) {
   try {
     const authHeader = req.headers.get("Authorization");
-    if (authHeader?.startsWith("Bearer ")) {
-      try {
-        const decoded = await adminAuth.verifyIdToken(authHeader.substring(7));
-        if (!(await consumeRateLimit(`complete:user:${decoded.uid}`, 24, HOUR_MS))) {
-          return NextResponse.json(
-            { error: "Too many requests", code: "RATE_LIMIT" },
-            { status: 429 }
-          );
-        }
-      } catch {
-        return NextResponse.json(
-          { error: "Unauthorized", code: "AUTH_REQUIRED" },
-          { status: 401 }
-        );
-      }
-    } else {
-      const ip = clientIpFromRequest(req);
-      if (!(await consumeRateLimit(`complete:guest:${ip}`, 12, HOUR_MS))) {
-        return NextResponse.json(
-          { error: "Too many requests", code: "RATE_LIMIT" },
-          { status: 429 }
-        );
-      }
+    if (!authHeader?.startsWith("Bearer ")) {
+      return NextResponse.json(
+        { error: "Unauthorized", code: "AUTH_REQUIRED" },
+        { status: 401 }
+      );
+    }
+
+    let uid: string;
+    try {
+      const decoded = await adminAuth.verifyIdToken(authHeader.substring(7));
+      uid = decoded.uid;
+    } catch {
+      return NextResponse.json(
+        { error: "Unauthorized", code: "AUTH_REQUIRED" },
+        { status: 401 }
+      );
+    }
+
+    if (!(await consumeRateLimit(`complete:user:${uid}`, 24, HOUR_MS))) {
+      return NextResponse.json(
+        { error: "Too many requests", code: "RATE_LIMIT" },
+        { status: 429 }
+      );
     }
 
     const { plan, locale } = await req.json();
@@ -48,10 +48,13 @@ export async function POST(req: NextRequest) {
     const completed = await fillMissingPlanExplanations(plan, loc);
     return NextResponse.json({
       plan: completed,
-      filled: planNeedsExplanationFill(completed) ? false : true,
+      filled: true,
     });
-  } catch (e: any) {
-    console.error("[complete-plan-fields]", e);
-    return NextResponse.json({ error: e?.message || "Complete failed" }, { status: 500 });
+  } catch (error: any) {
+    console.error("[complete-plan-fields]", error);
+    return NextResponse.json(
+      { error: error?.message || "Complete failed" },
+      { status: 500 }
+    );
   }
 }

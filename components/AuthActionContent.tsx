@@ -3,7 +3,12 @@
 import React, { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { applyActionCode, checkActionCode } from "firebase/auth";
+import {
+  applyActionCode,
+  checkActionCode,
+  confirmPasswordReset,
+  verifyPasswordResetCode,
+} from "firebase/auth";
 import { auth } from "@/lib/firebase";
 import { Loader2, CheckCircle2, AlertTriangle } from "lucide-react";
 
@@ -19,7 +24,15 @@ const COPY: Record<
     errorTitle: string;
     errorBody: string;
     loginBtn: string;
-    brand: string;
+    resetTitle: string;
+    resetBody: string;
+    resetSubmit: string;
+    resetSuccessTitle: string;
+    resetSuccessBody: string;
+    newPassword: string;
+    confirmPassword: string;
+    mismatch: string;
+    weak: string;
   }
 > = {
   ro: {
@@ -30,7 +43,15 @@ const COPY: Record<
     errorTitle: "Link invalid sau expirat",
     errorBody: "Solicită un email nou de confirmare din cont sau din pagina de login.",
     loginBtn: "Mergi la login",
-    brand: "IdeeaTa.ai",
+    resetTitle: "Setează o parolă nouă",
+    resetBody: "Alege o parolă de cel puțin 6 caractere.",
+    resetSubmit: "Salvează parola",
+    resetSuccessTitle: "Parola a fost actualizată",
+    resetSuccessBody: "Te poți conecta cu noua parolă.",
+    newPassword: "Parolă nouă",
+    confirmPassword: "Confirmă parola",
+    mismatch: "Parolele nu coincid.",
+    weak: "Parola trebuie să aibă cel puțin 6 caractere.",
   },
   en: {
     verifying: "Verifying your email address...",
@@ -40,7 +61,15 @@ const COPY: Record<
     errorTitle: "Invalid or expired link",
     errorBody: "Request a new confirmation email from your account or the login page.",
     loginBtn: "Go to login",
-    brand: "IdeeaTa.ai",
+    resetTitle: "Set a new password",
+    resetBody: "Choose a password with at least 6 characters.",
+    resetSubmit: "Save password",
+    resetSuccessTitle: "Password updated",
+    resetSuccessBody: "You can sign in with your new password.",
+    newPassword: "New password",
+    confirmPassword: "Confirm password",
+    mismatch: "Passwords do not match.",
+    weak: "Password must be at least 6 characters.",
   },
   es: {
     verifying: "Confirmando tu correo electrónico...",
@@ -50,7 +79,15 @@ const COPY: Record<
     errorTitle: "Enlace inválido o caducado",
     errorBody: "Solicita un nuevo correo de confirmación desde tu cuenta o la página de inicio de sesión.",
     loginBtn: "Ir al login",
-    brand: "IdeeaTa.ai",
+    resetTitle: "Establece una nueva contraseña",
+    resetBody: "Elige una contraseña de al menos 6 caracteres.",
+    resetSubmit: "Guardar contraseña",
+    resetSuccessTitle: "Contraseña actualizada",
+    resetSuccessBody: "Puedes iniciar sesión con tu nueva contraseña.",
+    newPassword: "Nueva contraseña",
+    confirmPassword: "Confirmar contraseña",
+    mismatch: "Las contraseñas no coinciden.",
+    weak: "La contraseña debe tener al menos 6 caracteres.",
   },
 };
 
@@ -70,7 +107,11 @@ export default function AuthActionContent({ locale }: { locale: Locale }) {
   const t = COPY[locale] || COPY.ro;
   const router = useRouter();
   const searchParams = useSearchParams();
-  const [status, setStatus] = useState<"loading" | "success" | "error">("loading");
+  const [status, setStatus] = useState<"loading" | "success" | "error" | "resetForm">("loading");
+  const [password, setPassword] = useState("");
+  const [confirm, setConfirm] = useState("");
+  const [formError, setFormError] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
 
   const mode = searchParams.get("mode") || "";
   const oobCode = searchParams.get("oobCode") || "";
@@ -87,29 +128,71 @@ export default function AuthActionContent({ locale }: { locale: Locale }) {
         /* ignore */
       }
     }
-    return localeDashboard(locale);
-  }, [continueUrl, locale]);
+    return mode === "resetPassword" ? localeLogin(locale) : localeDashboard(locale);
+  }, [continueUrl, locale, mode]);
 
   useEffect(() => {
     let cancelled = false;
     (async () => {
-      if (!oobCode || mode !== "verifyEmail") {
+      if (!oobCode) {
         if (!cancelled) setStatus("error");
         return;
       }
-      try {
-        await checkActionCode(auth, oobCode);
-        await applyActionCode(auth, oobCode);
-        if (!cancelled) setStatus("success");
-      } catch (e) {
-        console.error("[AuthAction]", e);
-        if (!cancelled) setStatus("error");
+      if (mode === "verifyEmail") {
+        try {
+          await checkActionCode(auth, oobCode);
+          await applyActionCode(auth, oobCode);
+          if (!cancelled) setStatus("success");
+        } catch (e) {
+          console.error("[AuthAction] verifyEmail", e);
+          if (!cancelled) setStatus("error");
+        }
+        return;
       }
+      if (mode === "resetPassword") {
+        try {
+          await verifyPasswordResetCode(auth, oobCode);
+          if (!cancelled) setStatus("resetForm");
+        } catch (e) {
+          console.error("[AuthAction] resetPassword", e);
+          if (!cancelled) setStatus("error");
+        }
+        return;
+      }
+      if (!cancelled) setStatus("error");
     })();
     return () => {
       cancelled = true;
     };
   }, [mode, oobCode]);
+
+  const handleResetSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setFormError(null);
+    if (password.length < 6) {
+      setFormError(t.weak);
+      return;
+    }
+    if (password !== confirm) {
+      setFormError(t.mismatch);
+      return;
+    }
+    setSubmitting(true);
+    try {
+      await confirmPasswordReset(auth, oobCode, password);
+      setStatus("success");
+    } catch (err) {
+      console.error("[AuthAction] confirmPasswordReset", err);
+      setStatus("error");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const successTitle =
+    mode === "resetPassword" ? t.resetSuccessTitle : t.successTitle;
+  const successBody =
+    mode === "resetPassword" ? t.resetSuccessBody : t.successBody;
 
   return (
     <div className="min-h-screen bg-[#09090b] text-white flex flex-col items-center justify-center p-6 font-sans relative overflow-hidden">
@@ -128,11 +211,48 @@ export default function AuthActionContent({ locale }: { locale: Locale }) {
           </>
         )}
 
+        {status === "resetForm" && (
+          <>
+            <h1 className="text-2xl font-black mb-2">{t.resetTitle}</h1>
+            <p className="text-zinc-400 mb-6">{t.resetBody}</p>
+            <form onSubmit={handleResetSubmit} className="text-left space-y-4">
+              <div>
+                <label className="text-xs text-zinc-500 font-semibold">{t.newPassword}</label>
+                <input
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="mt-1 w-full bg-zinc-950 border border-zinc-700 rounded-xl px-4 py-3 text-white"
+                  autoComplete="new-password"
+                />
+              </div>
+              <div>
+                <label className="text-xs text-zinc-500 font-semibold">{t.confirmPassword}</label>
+                <input
+                  type="password"
+                  value={confirm}
+                  onChange={(e) => setConfirm(e.target.value)}
+                  className="mt-1 w-full bg-zinc-950 border border-zinc-700 rounded-xl px-4 py-3 text-white"
+                  autoComplete="new-password"
+                />
+              </div>
+              {formError && <p className="text-red-400 text-sm">{formError}</p>}
+              <button
+                type="submit"
+                disabled={submitting}
+                className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3.5 rounded-xl transition-all disabled:opacity-50"
+              >
+                {submitting ? "…" : t.resetSubmit}
+              </button>
+            </form>
+          </>
+        )}
+
         {status === "success" && (
           <>
             <CheckCircle2 className="w-14 h-14 text-emerald-500 mx-auto mb-4" />
-            <h1 className="text-2xl font-black mb-2">{t.successTitle}</h1>
-            <p className="text-zinc-400 mb-8">{t.successBody}</p>
+            <h1 className="text-2xl font-black mb-2">{successTitle}</h1>
+            <p className="text-zinc-400 mb-8">{successBody}</p>
             <button
               type="button"
               onClick={() => router.push(continueHref)}

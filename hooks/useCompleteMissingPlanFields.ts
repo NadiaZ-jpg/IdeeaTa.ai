@@ -84,9 +84,10 @@ export function useCompleteMissingPlanFields(
           const headers: Record<string, string> = { "Content-Type": "application/json" };
           try {
             const token = auth.currentUser ? await auth.currentUser.getIdToken() : null;
-            if (token) headers.Authorization = `Bearer ${token}`;
+            if (!token) break;
+            headers.Authorization = `Bearer ${token}`;
           } catch {
-            /* guest */
+            break;
           }
           const res = await fetch("/api/complete-plan-fields", {
             method: "POST",

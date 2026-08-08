@@ -53,7 +53,7 @@ export async function POST(req: NextRequest) {
         const userDoc = await adminDb.collection("users").doc(userId).get();
         const userData = userDoc.exists ? userDoc.data() : {};
 
-        // Account-level only — never unlockedPlans / current-doc unlock
+        // Account-level paid (legacy isPaid / Pro / EU / promo) — not standardPackage alone
         const isAccountPaid = !!(
           userData?.isPaid ||
           userData?.subscriptionActive ||
@@ -61,7 +61,12 @@ export async function POST(req: NextRequest) {
           userData?.promoCodeUnlocked
         );
 
-        if (!isAccountPaid && plansSnap.size >= FREE_ACCOUNT_PLAN_LIMIT) {
+        const lifetime =
+          typeof userData?.lifetimePlanCount === "number"
+            ? userData.lifetimePlanCount
+            : plansSnap.size;
+
+        if (!isAccountPaid && lifetime >= FREE_ACCOUNT_PLAN_LIMIT) {
           return NextResponse.json(
             {
               error: "LIMIT_REACHED",
@@ -74,6 +79,14 @@ export async function POST(req: NextRequest) {
             },
             { status: 403 }
           );
+        }
+
+        // Increment lifetime before Gemini — delete+regenerate cannot reset quota
+        if (!isAccountPaid) {
+          await adminDb
+            .collection("users")
+            .doc(userId)
+            .set({ lifetimePlanCount: lifetime + 1 }, { merge: true });
         }
       } catch (e: any) {
         console.error("[Generate API Auth Guard Error]:", e.message);

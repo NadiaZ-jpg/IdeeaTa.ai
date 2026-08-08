@@ -77,9 +77,10 @@ export async function POST(req: NextRequest) {
         const updatedPlans = !unlocked.includes(planName) ? [...unlocked, planName] : unlocked;
         const updatedIds =
           planId && !unlockedIds.includes(planId) ? [...unlockedIds, planId] : unlockedIds;
+        // Per-plan unlock + package flag for tones/Combine — NOT account-wide isPaid
         await userRef.set(
           {
-            isPaid: true,
+            standardPackageActive: true,
             unlockedPlans: updatedPlans,
             unlockedPlanIds: updatedIds,
             lemonSqueezyCustomerId: payload.data.attributes.customer_id,
@@ -87,7 +88,7 @@ export async function POST(req: NextRequest) {
           { merge: true }
         );
         console.log(
-          `Deblocat Standard (isPaid + plan "${planName}" / id=${planId}) pentru user: ${userId}`
+          `Deblocat Standard (plan "${planName}" / id=${planId}, standardPackageActive) pentru user: ${userId}`
         );
       } else if (tier === "eu-funds") {
         await userRef.set(

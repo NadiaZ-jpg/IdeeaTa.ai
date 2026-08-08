@@ -52,7 +52,8 @@ export async function POST(req: NextRequest) {
         : [];
 
       const alreadyById = !!(planId && unlockedPlanIds.includes(planId));
-      const alreadyByName = unlockedPlans.includes(planName);
+      // Name match only for legacy clients that omit planId — never free-pass a new id
+      const alreadyByName = !planId && unlockedPlans.includes(planName);
       if (alreadyById || alreadyByName) {
         return {
           success: true,
@@ -61,6 +62,10 @@ export async function POST(req: NextRequest) {
           planName,
           planId,
         };
+      }
+
+      if (!planId) {
+        return { success: false, code: "PLAN_ID_REQUIRED", credits };
       }
 
       if (credits < 1) {
@@ -96,9 +101,10 @@ export async function POST(req: NextRequest) {
     });
 
     if (!result.success) {
+      const status = result.code === "PLAN_ID_REQUIRED" ? 400 : 403;
       return NextResponse.json(
-        { error: "No credits", code: result.code || "NO_CREDITS", credits: result.credits },
-        { status: 403 }
+        { error: result.code === "PLAN_ID_REQUIRED" ? "planId required" : "No credits", code: result.code || "NO_CREDITS", credits: result.credits },
+        { status }
       );
     }
 

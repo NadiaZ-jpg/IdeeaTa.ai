@@ -48,6 +48,7 @@ function hasStandardEntitlement(data: any, email?: string | null): boolean {
   return !!(
     isAdminEmail(email) ||
     data?.isPaid ||
+    data?.standardPackageActive ||
     data?.promoCodeUnlocked ||
     data?.subscriptionActive ||
     data?.euFundsUnlocked ||

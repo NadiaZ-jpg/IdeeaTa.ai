@@ -256,7 +256,7 @@ export function PricingModal({
                 </li>
                 <li className="flex items-start gap-2.5">
                   <span className="text-emerald-500 font-bold">✓</span>
-                  <span>{locale === "en" ? "Unlimited Assisted Tone (all variations)" : locale === "es" ? "Tono asistido ilimitado (todas las variantes)" : "Ton Asistat nelimitat (toate variantele)"}</span>
+                  <span>{locale === "en" ? "Unlimited formal & creative tone (assisted)" : locale === "es" ? "Tono formal y creativo ilimitado (asistido)" : "Ton formal & creativ nelimitat (asistat)"}</span>
                 </li>
               </ul>
             </div>
@@ -297,7 +297,7 @@ export function PricingModal({
                 <li className="flex items-start gap-2.5">
                   <span className="text-amber-500 font-bold">✓</span>
                   <span className="text-zinc-200 font-medium">
-                    {locale === "en" ? "All 4 Assisted Tone variations" : locale === "es" ? "Las 4 variaciones de Tono Asistido" : <>Toate cele <strong>4 variante de Ton Asistat</strong></>}
+                    {locale === "en" ? "+ Persuasive & friendly tones (all 4)" : locale === "es" ? "+ Tonos persuasivo y amable (los 4)" : <>+ Tonuri persuasiv & prietenos (toate <strong>4</strong>)</>}
                   </span>
                 </li>
                 <li className="flex items-start gap-2.5">

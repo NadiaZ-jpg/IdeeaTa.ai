@@ -28,7 +28,8 @@ import { useSharedPlanLoader } from "@/hooks/useSharedPlanLoader";
 import { createAndCopySharedPlanLink } from "@/lib/sharePlan";
 import { FREE_ACCOUNT_PLAN_LIMIT, GUEST_DEMO_PLAN_LIMIT } from "@/lib/planQuota";
 import { isAdminEmail } from "@/lib/adminEmails";
-import { isPlanUnlockedByLists } from "@/lib/planUnlock";
+import { isPlanExportUnlocked, hasAccountStandardAccess } from "@/lib/planUnlock";
+import { stripPaymentSuccessParams } from "@/lib/paymentReturn";
 import { canUseFreeToneEdit, consumeFreeToneEdit, isFreeToneKey, isProToneKey, toneVersionKey } from "@/lib/toneQuota";
 import {
   buildStackedVersionKey,
@@ -153,22 +154,31 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
   const [unlockedPlanIds, setUnlockedPlanIds] = useState<string[]>([]);
   const [promoCodeUnlocked, setPromoCodeUnlocked] = useState(false);
   const [isPaidState, setIsPaidState] = useState(false);
+  const [standardPackageActive, setStandardPackageActive] = useState(false);
   const [isSharedView, setIsSharedView] = useState(false);
   const [skipLocalRestore, setSkipLocalRestore] = useState(false);
 
   const isPaid = isPaidState;
   const isAdmin = isAdminEmail(user?.email);
-  const planUnlocked = isPlanUnlockedByLists(result, unlockedPlans, unlockedPlanIds);
-  const hasStandardAccess = !!(
-    isPaid ||
-    promoCodeUnlocked ||
-    isAdmin ||
-    subscriptionActive ||
-    euFundsUnlocked ||
-    planUnlocked
-  );
+  const hasStandardAccess = hasAccountStandardAccess({
+    isPaid,
+    standardPackageActive,
+    promoCodeUnlocked,
+    isAdmin,
+    subscriptionActive,
+    euFundsUnlocked,
+  });
   const hasProAccess = !!(isAdmin || subscriptionActive || euFundsUnlocked);
-  const isPlanPaid = hasStandardAccess;
+  const isPlanPaid = isPlanExportUnlocked({
+    result,
+    unlockedPlans,
+    unlockedPlanIds,
+    isPaid,
+    promoCodeUnlocked,
+    isAdmin,
+    subscriptionActive,
+    euFundsUnlocked,
+  });
   const versionStackAccess: VersionStackAccess = {
     isAdmin,
     hasStandardAccess,
@@ -209,6 +219,7 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
       setUnlockedPlanIds([]);
       setPromoCodeUnlocked(false);
       setIsPaidState(false);
+      setStandardPackageActive(false);
       return;
     }
 
@@ -222,12 +233,43 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
         setUnlockedPlans(data.unlockedPlans || []);
         setUnlockedPlanIds(data.unlockedPlanIds || []);
         setPromoCodeUnlocked(data.promoCodeUnlocked || false);
-        setIsPaidState(!!(data.isPaid || data.promoCodeUnlocked));
+        setIsPaidState(!!data.isPaid);
+        setStandardPackageActive(!!data.standardPackageActive);
       }
     });
 
     return () => unsubscribe();
   }, [user, result?.nume]);
+
+  useEffect(() => {
+    if (typeof window === "undefined" || !user) return;
+    const urlParams = new URLSearchParams(window.location.search);
+    const paymentSuccess = urlParams.get("payment_success") === "true";
+    const tier = urlParams.get("tier");
+    if (!paymentSuccess) return;
+    (async () => {
+      try {
+        const token = await user.getIdToken();
+        const res = await fetch(
+          `/api/verify-checkout?tier=${encodeURIComponent(tier || "")}`,
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+        const data = await res.json();
+        if (data.success) {
+          if (tier === "standard") {
+            alert(ui.paymentConfirmedEU.replace("{plan}", result?.nume || "Plan"));
+          } else if (tier === "eu-funds") {
+            alert(t("paymentConfirmedEU", locale));
+          } else if (tier === "pro") {
+            alert(ui.alertUnlimitedPro || t("paymentConfirmedEU", locale));
+          }
+          stripPaymentSuccessParams();
+        }
+      } catch (error) {
+        console.error("Eroare la verificarea plății:", error);
+      }
+    })();
+  }, [user]);
 
   const [pendingDownloadMode, setPendingDownloadMode] = useState<'pdf' | 'pptx' | 'word' | 'pdf-summary' | null>(null);
   const [showExportModal, setShowExportModal] = useState(false);
@@ -1065,7 +1107,7 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
               {/* Left Column (Navigation & Versions) - 4 cols */}
               <div className="w-full md:col-span-4 flex flex-col gap-4 sticky md:top-20 z-20">
                 {/* Version History Selector Mobile */}
-                {versions && Object.keys(versions).length > 0 && (
+                {!isSharedView && versions && Object.keys(versions).length > 0 && (
                   <div className="relative z-20 font-sans">
                     <button 
                       onClick={() => setShowVersionDropdown(!showVersionDropdown)}
@@ -1178,6 +1220,7 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
                   </div>
                 )}
 
+                {!isSharedView && (
                 <MobileProToolsPanel
                   ui={ui}
                   locale={locale}
@@ -1196,13 +1239,16 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
                   showExpert
                   onOpenExpert={() => setShowExpertDrawer(true)}
                 />
+                )}
 
+                {!isSharedView && (
                 <div className="flex items-start gap-2 bg-emerald-500/10 border border-emerald-500/20 p-3.5 rounded-2xl w-full">
                   <span className="text-emerald-400 mt-0.5 text-base shrink-0">🏛️</span>
                   <p className="text-[12px] text-emerald-100/70 leading-relaxed">
                     <span dangerouslySetInnerHTML={{ __html: ui.expertLibraryTip }} />
                   </p>
                 </div>
+                )}
 
                 {/* Mobile Tab bar */}
                 <div className="flex md:flex-col bg-zinc-950/90 backdrop-blur-md border border-zinc-800/80 rounded-xl p-1 overflow-x-auto md:overflow-visible scrollbar-none md:gap-1 w-full shadow-inner">
@@ -1534,12 +1580,10 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
           if (tier === "full-access") {
             setSubscriptionActive(true);
             setEuFundsUnlocked(true);
-            setIsPaidState(true);
           } else if (tier === "eu-funds") {
             setEuFundsUnlocked(true);
-            setIsPaidState(true);
           } else if (tier === "standard") {
-            setIsPaidState(true);
+            setStandardPackageActive(true);
           }
           alert(locale === "en" ? "Payment simulated successfully! Premium access is now unlocked." : locale === "es" ? "¡Pago simulado con éxito! El acceso premium ya está desbloqueado." : "Plată simulată cu succes! Accesul premium este acum deblocat.");
         }}

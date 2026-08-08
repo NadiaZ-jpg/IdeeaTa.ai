@@ -31,7 +31,9 @@ import { fetchSharedPlanPayload, resetDemoShareCounters, clearSharedIdFromUrl, r
 import { resolveSharedViewCurrency, shouldShowCurrencyToggle } from '@/lib/pdfCtaBehavior';
 import { FREE_ACCOUNT_PLAN_LIMIT, GUEST_DEMO_PLAN_LIMIT, clearLocalPlanState } from '@/lib/planQuota';
 import { isAdminEmail } from '@/lib/adminEmails';
-import { isPlanUnlockedByLists } from '@/lib/planUnlock';
+import { isPlanExportUnlocked, hasAccountStandardAccess } from '@/lib/planUnlock';
+import { stripPaymentSuccessParams } from '@/lib/paymentReturn';
+import { passwordResetActionCodeSettings } from '@/lib/authActionUrls';
 import { canUseFreeToneEdit, consumeFreeToneEdit, isProToneKey, toneVersionKey } from '@/lib/toneQuota';
 import { useCompleteMissingPlanFields } from '@/hooks/useCompleteMissingPlanFields';
 import { useUIState } from '@/hooks/useUIState';
@@ -143,6 +145,7 @@ export default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" | 
     }
   }, [activeAiPrompt]);
   const [isPaid, setIsPaid] = useState(false);
+  const [standardPackageActive, setStandardPackageActive] = useState(false);
   const [isPaying, setIsPaying] = useState(false);
   const [pendingDownloadMode, setPendingDownloadMode] = useState<"PDF" | "DOCX" | "PPTX" | null>(null);
   const [credits, setCredits] = useState(0);
@@ -250,6 +253,19 @@ export default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" | 
 
   const saveEditing = () => {
     setIsEditing(false);
+    const nextVersions = {
+      ...versions,
+      [activeVersionId]: result
+    };
+    setVersionsState(nextVersions);
+    void syncCurrentPlanToFirestore(result, nextVersions, activeVersionId);
+    if (typeof window !== "undefined") {
+      localStorage.setItem("current_generated_plan", JSON.stringify(result));
+      localStorage.setItem(
+        "current_versions",
+        JSON.stringify({ versions: nextVersions, activeVersionId })
+      );
+    }
     if (typeof window !== "undefined" && window.location.search.includes('edit=true')) {
       window.history.replaceState({}, document.title, window.location.pathname + '?view=idea');
     }
@@ -453,8 +469,6 @@ export default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" | 
 
           void syncCurrentPlanToFirestore(formattedResult, nextVersions, vKey);
           
-          setIsEditingAi(false);
-          
           setTimeout(() => {
              if (action === "professional_tone" || action === "eu_funds_optimization" || action === "investor_ready") {
                 if (typeof window !== "undefined") {
@@ -488,6 +502,8 @@ export default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" | 
     } catch (e) {
       console.error(e);
       setAiEditError(t("errorUnexpectedEdit", locale));
+    } finally {
+      setIsEditingAi(false);
     }
   };
 
@@ -561,14 +577,25 @@ export default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" | 
   const [user, setUser] = useState<User | null>(null);
   const [promoCodeUnlocked, setPromoCodeUnlocked] = useState(false);
   const isAdmin = user ? isAdminEmail(user.email) : false;
-  const isPlanPaid =
-    promoCodeUnlocked ||
-    isAdmin ||
-    subscriptionActive ||
-    isPlanUnlockedByLists(result, unlockedPlans, unlockedPlanIds) ||
-    isPaid;
-  const isStudioPaid = promoCodeUnlocked || isAdmin || subscriptionActive || euFundsUnlocked || isPaid;
-  const hasStandardAccess = isPaid || promoCodeUnlocked || isAdmin || subscriptionActive || isPlanPaid || isStudioPaid;
+  const isPlanPaid = isPlanExportUnlocked({
+    result,
+    unlockedPlans,
+    unlockedPlanIds,
+    isPaid,
+    promoCodeUnlocked,
+    isAdmin,
+    subscriptionActive,
+    euFundsUnlocked,
+  });
+  const hasStandardAccess = hasAccountStandardAccess({
+    isPaid,
+    standardPackageActive,
+    promoCodeUnlocked,
+    isAdmin,
+    subscriptionActive,
+    euFundsUnlocked,
+  });
+  const isStudioPaid = hasStandardAccess;
   const hasProAccess = isAdmin || subscriptionActive || euFundsUnlocked;
   const isContentCopyProtected = !hasStandardAccess;
   const versionStackAccess: VersionStackAccess = {
@@ -633,6 +660,7 @@ export default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" | 
       setUnlockedPlanIds([]);
       setPromoCodeUnlocked(false);
       setIsPaid(false);
+      setStandardPackageActive(false);
       return;
     }
 
@@ -647,6 +675,7 @@ export default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" | 
         setUnlockedPlanIds(data.unlockedPlanIds || []);
         setPromoCodeUnlocked(data.promoCodeUnlocked || false);
         setIsPaid(data.isPaid || false);
+        setStandardPackageActive(!!data.standardPackageActive);
       } else {
         // Entitlements (credits/isPaid/…) are Admin-only — see firestore.rules
         setDoc(userRef, {
@@ -679,7 +708,7 @@ export default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" | 
             } else if (tier === "eu-funds") {
               alert(t("paymentConfirmedEU", locale));
             }
-            window.history.replaceState({}, document.title, window.location.pathname);
+            stripPaymentSuccessParams();
           }
         } catch (error) {
           console.error("Eroare la verificarea plății:", error);
@@ -912,7 +941,7 @@ export default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" | 
     setIsEmailLoading(true);
     setAuthError(null);
     try {
-      await sendPasswordResetEmail(auth, email);
+      await sendPasswordResetEmail(auth, email, passwordResetActionCodeSettings(locale));
       setResetEmailSent(true);
     } catch (error: any) {
       if (error.code === 'auth/user-not-found') {
@@ -2042,7 +2071,7 @@ export default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" | 
           } else if (tier === "eu-funds") {
             setEuFundsUnlocked(true);
           } else if (tier === "standard") {
-            setIsPaid(true);
+            setStandardPackageActive(true);
           }
         }}
         onRequireLogin={() => {

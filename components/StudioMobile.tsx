@@ -19,7 +19,8 @@ import { StudioMobileGenerateHint } from '@/components/StudioMobileGenerateHint'
 import { getExamples } from '@/lib/examples';
 import { FREE_ACCOUNT_PLAN_LIMIT } from '@/lib/planQuota';
 import { isAdminEmail } from '@/lib/adminEmails';
-import { isPlanUnlockedByLists } from '@/lib/planUnlock';
+import { isPlanExportUnlocked, hasAccountStandardAccess } from '@/lib/planUnlock';
+import { stripPaymentSuccessParams } from '@/lib/paymentReturn';
 import dynamic from 'next/dynamic';
 import { useExportActions } from "@/hooks/useExportActions";
 import { useCompleteMissingPlanFields } from "@/hooks/useCompleteMissingPlanFields";
@@ -81,19 +82,31 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
   
   const isAdmin = isAdminEmail(user?.email);
   const [isPaidState, setIsPaidState] = useState(false);
+  const [standardPackageActive, setStandardPackageActive] = useState(false);
   const isPaid = isPaidState;
 
-  const isPlanPaid =
-    promoCodeUnlocked ||
-    isAdmin ||
-    subscriptionActive ||
-    isPlanUnlockedByLists(result, unlockedPlans, unlockedPlanIds) ||
-    isPaid;
-  const isStudioPaid = promoCodeUnlocked || isAdmin || subscriptionActive || euFundsUnlocked || isPaid;
+  const isPlanPaid = isPlanExportUnlocked({
+    result,
+    unlockedPlans,
+    unlockedPlanIds,
+    isPaid,
+    promoCodeUnlocked,
+    isAdmin,
+    subscriptionActive,
+    euFundsUnlocked,
+  });
+  const isStudioPaid = hasAccountStandardAccess({
+    isPaid,
+    standardPackageActive,
+    promoCodeUnlocked,
+    isAdmin,
+    subscriptionActive,
+    euFundsUnlocked,
+  });
   const hasProAccess = !!(isAdmin || subscriptionActive || euFundsUnlocked);
   const versionStackAccess: VersionStackAccess = {
     isAdmin,
-    hasStandardAccess: !!(isPlanPaid || isStudioPaid),
+    hasStandardAccess: isStudioPaid,
     hasFullAccess: hasProAccess,
     hasProTools: hasProAccess,
   };
@@ -258,6 +271,7 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
       setUnlockedPlanIds([]);
       setPromoCodeUnlocked(false);
       setIsPaidState(false);
+      setStandardPackageActive(false);
       return;
     }
 
@@ -272,6 +286,7 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
         setUnlockedPlanIds(data.unlockedPlanIds || []);
         setPromoCodeUnlocked(data.promoCodeUnlocked || false);
         setIsPaidState(data.isPaid || false);
+        setStandardPackageActive(!!data.standardPackageActive);
       } else {
         // Entitlements (credits/isPaid/…) are Admin-only — see firestore.rules
         setDoc(userRef, {
@@ -282,6 +297,36 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
     });
 
     return () => unsubscribe();
+  }, [user]);
+
+  useEffect(() => {
+    if (typeof window === "undefined" || !user) return;
+    const urlParams = new URLSearchParams(window.location.search);
+    const paymentSuccess = urlParams.get("payment_success") === "true";
+    const tier = urlParams.get("tier");
+    if (!paymentSuccess) return;
+    (async () => {
+      try {
+        const token = await user.getIdToken();
+        const res = await fetch(
+          `/api/verify-checkout?tier=${encodeURIComponent(tier || "")}`,
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+        const data = await res.json();
+        if (data.success) {
+          if (tier === "standard") {
+            alert(ui.paymentConfirmedEU.replace("{plan}", result?.nume || "Plan"));
+          } else if (tier === "eu-funds") {
+            alert(t("paymentConfirmedEU", locale));
+          } else if (tier === "pro") {
+            alert(ui.alertUnlimitedPro);
+          }
+          stripPaymentSuccessParams();
+        }
+      } catch (error) {
+        console.error("Eroare la verificarea plății:", error);
+      }
+    })();
   }, [user]);
 
   const handleAiEdit = async (
@@ -727,7 +772,7 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
             versions: { original: finalResult },
             activeVersionId: "original",
             createdAt: new Date().toISOString(),
-            isPaid: isPlanPaid,
+            isPaid: false,
             selectedCurrency: locale === "ro" ? "LEI" : "EUR",
           });
         } catch (parseError) {
@@ -1277,7 +1322,7 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
                 <ToneEditor
                   user={user}
                   locale={locale}
-                  hasStandardAccess={isStudioPaid || isPlanPaid}
+                  hasStandardAccess={isStudioPaid}
                   hasProAccess={hasProAccess}
                   isAdmin={isAdmin}
                   isEditingAi={isEditingAi}
@@ -1475,7 +1520,7 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
           } else if (tier === "eu-funds") {
             setEuFundsUnlocked(true);
           } else if (tier === "standard") {
-            setIsPaidState(true);
+            setStandardPackageActive(true);
           }
           alert(locale === "en" ? "Payment simulated successfully! Premium access is now unlocked." : locale === "es" ? "¡Pago simulado con éxito! El acceso premium ya está desbloqueado." : "Plată simulată cu succes! Accesul premium este acum deblocat.");
         }}

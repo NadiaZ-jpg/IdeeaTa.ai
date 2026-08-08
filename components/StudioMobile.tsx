@@ -150,9 +150,13 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
   // Sincronizare automată Firebase
   useStudioFirebaseSync({
     user,
-    setResultState: setResult,
+    onPlanLoaded: (data) => {
+      setStudioLoadTimedOut(false);
+      setResult(data);
+    },
     setVersionsState: setVersions,
     setActiveVersionId,
+    onPlanMissing: () => setStudioLoadTimedOut(true),
   });
 
   useEffect(() => {

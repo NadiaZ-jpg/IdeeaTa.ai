@@ -149,6 +149,7 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
   const [isSharedView, setIsSharedView] = useState(false);
   const [isCheckingShared, setIsCheckingShared] = useState(true);
   const [studioLoadTimedOut, setStudioLoadTimedOut] = useState(false);
+  const [studioPlanMissing, setStudioPlanMissing] = useState(false);
 
   // UI State (modale, dropdown-uri, tab-uri) — gestionate centralizat în useUIState
   const {
@@ -675,7 +676,21 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
     return () => unsubscribe();
   }, [user]);
 
-  useStudioFirebaseSync({ user, setResultState, setVersionsState, setActiveVersionId, setCurrency });
+  useStudioFirebaseSync({
+    user,
+    onPlanLoaded: (data) => {
+      setStudioPlanMissing(false);
+      setStudioLoadTimedOut(false);
+      setResultState(data);
+    },
+    setVersionsState,
+    setActiveVersionId,
+    setCurrency,
+    onPlanMissing: () => {
+      setStudioPlanMissing(true);
+      setStudioLoadTimedOut(true);
+    },
+  });
 
   // Când venim din Dashboard cu ?planId=, așteaptă Firestore (ca pe Mobile) — nu arăta ecranul de generare.
   useEffect(() => {
@@ -685,8 +700,9 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
     }
     const planId = new URLSearchParams(window.location.search).get("planId");
     if (!planId) return;
+    setStudioPlanMissing(false);
     setStudioLoadTimedOut(false);
-    const timer = setTimeout(() => setStudioLoadTimedOut(true), 4000);
+    const timer = setTimeout(() => setStudioLoadTimedOut(true), 8000);
     return () => clearTimeout(timer);
   }, [result, user]);
 
@@ -1258,14 +1274,33 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
     );
   }
 
-  // Deschidere proiect din Dashboard: loading până vine planul (sau timeout)
+  // Deschidere proiect din Dashboard: loading până vine planul (sau timeout / missing)
   if (user && !result && typeof window !== "undefined") {
     const planId = new URLSearchParams(window.location.search).get("planId");
-    if (planId && !studioLoadTimedOut) {
+    if (planId && !studioLoadTimedOut && !studioPlanMissing) {
       return (
         <div className="min-h-screen bg-[#09090b] text-white flex flex-col items-center justify-center p-6 text-center">
           <div className="w-12 h-12 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin mb-4"></div>
           <p className="text-zinc-400 text-sm">{ui.studioLoadingWorkspace}</p>
+        </div>
+      );
+    }
+    if (planId && (studioPlanMissing || studioLoadTimedOut)) {
+      return (
+        <div className="min-h-screen bg-[#09090b] text-white flex flex-col items-center justify-center p-6 text-center gap-4">
+          <p className="text-zinc-300 text-sm max-w-md">
+            {locale === "en"
+              ? "Could not load this project. It may have been deleted or the connection timed out."
+              : locale === "es"
+              ? "No se pudo cargar este proyecto. Puede haber sido eliminado o la conexión expiró."
+              : "Nu s-a putut încărca acest proiect. Poate a fost șters sau conexiunea a expirat."}
+          </p>
+          <a
+            href={ui.routes.dashboard}
+            className="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-5 py-2.5 rounded-xl text-sm"
+          >
+            {ui.myPlans}
+          </a>
         </div>
       );
     }

@@ -17,7 +17,7 @@ export type MobileAiPrompt = {
 type Props = {
   ui: any;
   locale: Locale;
-  t: (key: string, locale: Locale) => string;
+  t: any;
   user: any;
   result: any;
   hasProAccess: boolean;

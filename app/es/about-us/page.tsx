@@ -28,7 +28,7 @@ export default function AboutUsPageEs() {
         <p>Queremos convertirnos en el socio digital número 1 para las empresas emergentes en Europa. Creemos que ninguna buena idea debe perderse solo porque el fundador no sabe cómo redactar un plan de negocios.</p>
         
         <div className="flex justify-center mt-12">
-          <Link href="/es/demo?start=nou" className="bg-emerald-600 hover:bg-emerald-500 text-white px-8 py-4 rounded-xl font-bold transition-all shadow-lg shadow-emerald-900/30 no-underline">
+          <Link href="/es/demo?start=nuevo" className="bg-emerald-600 hover:bg-emerald-500 text-white px-8 py-4 rounded-xl font-bold transition-all shadow-lg shadow-emerald-900/30 no-underline">
             Valida tu idea ahora mismo
           </Link>
         </div>

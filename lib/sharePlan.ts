@@ -38,13 +38,16 @@ export function buildClipboardShareUrl(
 /** POST /api/share — returnează id-ul documentului sau null. */
 export async function createSharedPlan(
   planData: any,
-  locale: AppLocale = "ro"
+  locale: AppLocale = "ro",
+  idToken?: string | null
 ): Promise<string | null> {
   if (!planData?.nume) return null;
   try {
+    const headers: Record<string, string> = { "Content-Type": "application/json" };
+    if (idToken) headers.Authorization = `Bearer ${idToken}`;
     const res = await fetch("/api/share", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers,
       body: JSON.stringify({ planData, locale: normalizeAppLocale(locale) }),
     });
     const data = await res.json();
@@ -62,9 +65,10 @@ export async function createSharedPlan(
  */
 export async function createAndCopySharedPlanLink(
   planData: any,
-  locale: AppLocale = "ro"
+  locale: AppLocale = "ro",
+  idToken?: string | null
 ): Promise<string | null> {
-  const id = await createSharedPlan(planData, locale);
+  const id = await createSharedPlan(planData, locale, idToken);
   if (!id) return null;
   const url = buildClipboardShareUrl(id, locale);
   if (typeof navigator !== "undefined" && navigator.clipboard?.writeText) {

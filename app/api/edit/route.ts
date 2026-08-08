@@ -14,6 +14,7 @@ import { fillMissingPlanExplanations } from "@/lib/fillMissingPlanExplanations";
 import { adminAuth, adminDb } from "@/lib/firebase-admin";
 import { isAdminEmail } from "@/lib/adminEmails";
 import { isProToneKey } from "@/lib/toneQuota";
+import { clientIpFromRequest, consumeRateLimit } from "@/lib/apiRateLimit";
 
 export const maxDuration = 60;
 
@@ -21,6 +22,7 @@ const apiKey = process.env.GEMINI_API_KEY?.trim() || "";
 const ai = new GoogleGenAI({ apiKey });
 
 const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+const HOUR_MS = 60 * 60 * 1000;
 
 const PRO_EDIT_ACTIONS = new Set([
   "eu_funds_optimization",
@@ -29,27 +31,51 @@ const PRO_EDIT_ACTIONS = new Set([
   "add_sections",
 ]);
 
+const ALLOWED_EDIT_ACTIONS = new Set([
+  ...PRO_EDIT_ACTIONS,
+  "professional_tone",
+  "shorten_for_export",
+]);
+
 async function assertEditEntitlement(
   req: NextRequest,
   action: string,
   customStyle?: string
 ): Promise<NextResponse | null> {
+  if (!ALLOWED_EDIT_ACTIONS.has(action)) {
+    return NextResponse.json(
+      { error: "Forbidden", code: "UNKNOWN_ACTION" },
+      { status: 403 }
+    );
+  }
+
   const needsPro =
     PRO_EDIT_ACTIONS.has(action) ||
     (action === "professional_tone" && isProToneKey(customStyle));
 
-  if (!needsPro) return null;
-
   const authHeader = req.headers.get("Authorization");
   if (!authHeader?.startsWith("Bearer ")) {
-    return NextResponse.json(
-      { error: "Unauthorized", code: "AUTH_REQUIRED" },
-      { status: 401 }
-    );
+    // Guests: only free tones, heavily rate-limited
+    if (needsPro) {
+      return NextResponse.json(
+        { error: "Unauthorized", code: "AUTH_REQUIRED" },
+        { status: 401 }
+      );
+    }
+    const ip = clientIpFromRequest(req);
+    if (!consumeRateLimit(`edit:guest:${ip}`, 8, HOUR_MS)) {
+      return NextResponse.json(
+        { error: "Too many requests", code: "RATE_LIMIT" },
+        { status: 429 }
+      );
+    }
+    return null;
   }
 
   try {
     const decoded = await adminAuth.verifyIdToken(authHeader.substring(7));
+    if (!needsPro) return null;
+
     const userDoc = await adminDb.collection("users").doc(decoded.uid).get();
     const data = userDoc.exists ? userDoc.data() : {};
     const hasPro =
@@ -58,14 +84,11 @@ async function assertEditEntitlement(
       data?.promoCodeTier === "eu-funds" ||
       data?.promoCodeTier === "full-access";
 
-    // Full Pro tools (EU / Investor / Budget / Expert). Standard promo isPaid alone is not enough.
-    if (!hasPro) {
-      if (!isAdminEmail(decoded.email)) {
-        return NextResponse.json(
-          { error: "Forbidden", code: "PRO_REQUIRED" },
-          { status: 403 }
-        );
-      }
+    if (!hasPro && !isAdminEmail(decoded.email)) {
+      return NextResponse.json(
+        { error: "Forbidden", code: "PRO_REQUIRED" },
+        { status: 403 }
+      );
     }
   } catch (err) {
     console.error("[edit] auth/entitlement failed:", err);

@@ -1,10 +1,40 @@
 import { NextRequest, NextResponse } from "next/server";
-import { adminDb, isFirebaseAdminReady } from "@/lib/firebase-admin";
+import { adminAuth, adminDb, isFirebaseAdminReady } from "@/lib/firebase-admin";
 import { FieldValue } from "firebase-admin/firestore";
 import { saveLocalSharedPlan } from "@/lib/localSharedPlans";
+import { consumeRateLimit } from "@/lib/apiRateLimit";
+
+const HOUR_MS = 60 * 60 * 1000;
+const MAX_PLAN_JSON_CHARS = 800_000;
 
 export async function POST(req: NextRequest) {
   try {
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader?.startsWith("Bearer ")) {
+      return NextResponse.json(
+        { error: "Unauthorized", code: "AUTH_REQUIRED" },
+        { status: 401 }
+      );
+    }
+
+    let uid: string;
+    try {
+      const decoded = await adminAuth.verifyIdToken(authHeader.substring(7));
+      uid = decoded.uid;
+    } catch {
+      return NextResponse.json(
+        { error: "Unauthorized", code: "AUTH_REQUIRED" },
+        { status: 401 }
+      );
+    }
+
+    if (!consumeRateLimit(`share:user:${uid}`, 30, HOUR_MS)) {
+      return NextResponse.json(
+        { error: "Too many requests", code: "RATE_LIMIT" },
+        { status: 429 }
+      );
+    }
+
     const body = await req.json();
     const { planData, locale } = body;
 
@@ -13,6 +43,10 @@ export async function POST(req: NextRequest) {
     }
 
     const cleanPlanData = JSON.parse(JSON.stringify(planData));
+    const serialized = JSON.stringify(cleanPlanData);
+    if (serialized.length > MAX_PLAN_JSON_CHARS) {
+      return NextResponse.json({ error: "Plan too large" }, { status: 413 });
+    }
 
     if (!isFirebaseAdminReady) {
       if (process.env.NODE_ENV === "production") {
@@ -22,12 +56,11 @@ export async function POST(req: NextRequest) {
           { status: 503 }
         );
       }
-      // Development: persist locally so PDF CTA / share still work without Admin SDK
       const id = await saveLocalSharedPlan({
         data: cleanPlanData,
         locale: locale || "ro",
       });
-      console.warn(`[share] Local fallback id=${id} (add Firebase Admin credentials for Firestore)`);
+      console.warn(`[share] Local fallback id=${id}`);
       return NextResponse.json({ id, localFallback: true });
     }
 
@@ -36,6 +69,7 @@ export async function POST(req: NextRequest) {
       locale: locale || "ro",
       createdAt: FieldValue.serverTimestamp(),
       views: 0,
+      createdBy: uid,
     });
 
     return NextResponse.json({ id: docRef.id });

@@ -19,6 +19,7 @@ const STATIC_LOCALE_PATHS: Array<Record<AppLocale, string>> = [
   { ro: "/studio", en: "/en/studio", es: "/es/studio" },
   { ro: "/login", en: "/en/login", es: "/es/login" },
   { ro: "/dashboard", en: "/en/dashboard", es: "/es/dashboard" },
+  { ro: "/auth/action", en: "/en/auth/action", es: "/es/auth/action" },
   {
     ro: RESOURCE_HUB.ro.path,
     en: RESOURCE_HUB.en.path,

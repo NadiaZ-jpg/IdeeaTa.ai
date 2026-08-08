@@ -186,7 +186,7 @@ export default function DashboardContent({ locale = "ro" }: { locale?: "ro" | "e
                 className="bg-[#FFDD00] text-black px-3 py-1 rounded-md font-bold text-xs hover:bg-[#FFEA4D] hover:scale-105 transition-all flex items-center gap-1.5 shadow-sm cursor-pointer"
                 title={ui.supportCoffeeTitle}
               >
-                <span>☕</span> Buy me a coffee
+                <span>☕</span> {ui.buyMeACoffee}
               </button>
               <LanguageSwitcher currentLocale={locale} />
               <span className="text-sm text-zinc-400 hidden sm:inline-block font-semibold">

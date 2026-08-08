@@ -1,6 +1,6 @@
 /**
  * Free-account tone rewrite quota (Studio + Demo).
- * First 2 tones (formal / creative) — max FREE_TONE_EDIT_LIMIT uses total.
+ * Free tones (formal / creative) — max FREE_TONE_EDIT_LIMIT uses total.
  * Persuasive / friendly require Standard/Pro.
  */
 

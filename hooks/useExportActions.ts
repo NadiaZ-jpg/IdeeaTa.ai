@@ -9,6 +9,8 @@ import { createSharedPlan, buildSharedPlanUrl } from "@/lib/sharePlan";
 import { attachPdfCtaLinks, normalizeAppLocale } from "@/lib/pdfCtaBehavior";
 import { UI_STRINGS } from "@/lib/uiStrings";
 import { buildExportVersionFileSuffix } from "@/lib/studioActiveVersion";
+import { planUnlockPayload } from "@/lib/planUnlock";
+import { auth } from "@/lib/firebase";
 
 interface UseExportActionsProps {
   result: any;
@@ -30,7 +32,7 @@ interface UseExportActionsProps {
   /** Active history tab — filename suffix (Desktop/Mobile Studio + Demo). */
   activeVersionId?: string;
   /** Optimistic unlock after credit spend (parent can fold into isPlanPaid). */
-  onPlanUnlockedByCredit?: (planName: string) => void;
+  onPlanUnlockedByCredit?: (planName: string, planId?: string) => void;
 }
 
 export function useExportActions({
@@ -56,9 +58,10 @@ export function useExportActions({
   const sessionUnlockedRef = useRef<Set<string>>(new Set());
 
   const handleDownloadAction = async (mode: 'pdf' | 'pptx' | 'word' | 'pdf-summary', bypassPaymentCheck = false) => {
-    const planName = result?.nume || "Plan de Afaceri";
+    const { planName, planId } = planUnlockPayload(result || {});
+    const unlockKey = planId || planName;
     const versionSuffix = buildExportVersionFileSuffix(activeVersionId, result, locale);
-    const sessionUnlocked = sessionUnlockedRef.current.has(planName);
+    const sessionUnlocked = sessionUnlockedRef.current.has(unlockKey);
     const effectivelyPaid =
       bypassPaymentCheck ||
       isAdmin ||
@@ -85,12 +88,14 @@ export function useExportActions({
 
         try {
           const userRef = doc(db, "users", user!.uid);
-          await setDoc(userRef, {
+          const unlockFields: Record<string, any> = {
             credits: increment(-1),
-            unlockedPlans: arrayUnion(planName)
-          }, { merge: true });
-          sessionUnlockedRef.current.add(planName);
-          onPlanUnlockedByCredit?.(planName);
+            unlockedPlans: arrayUnion(planName),
+          };
+          if (planId) unlockFields.unlockedPlanIds = arrayUnion(planId);
+          await setDoc(userRef, unlockFields, { merge: true });
+          sessionUnlockedRef.current.add(unlockKey);
+          onPlanUnlockedByCredit?.(planName, planId);
         } catch (e) {
           console.error("Eroare la scaderea creditului:", e);
           alert(t("errorProcessingCredit", locale));
@@ -107,7 +112,13 @@ export function useExportActions({
     try {
       let generatedShareId: string | null = null;
       if (mode === 'pdf-summary' || mode === 'pdf') {
-        generatedShareId = await createSharedPlan(result, locale);
+        let token: string | null = null;
+        try {
+          token = auth.currentUser ? await auth.currentUser.getIdToken() : null;
+        } catch {
+          /* guest share */
+        }
+        generatedShareId = await createSharedPlan(result, locale, token);
       }
 
       if (mode === 'pptx' || mode === 'pdf' || mode === 'pdf-summary') {

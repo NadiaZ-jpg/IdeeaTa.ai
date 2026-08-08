@@ -1,13 +1,31 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getLemonCheckoutUrl, withCheckoutParams } from "@/lib/lemonCheckout";
+import { adminAuth } from "@/lib/firebase-admin";
 
 export async function POST(req: NextRequest) {
   try {
-    const { tier, userId, email, planName, locale = "ro" } = await req.json();
-
-    if (!userId) {
-      return NextResponse.json({ error: "Utilizator neautentificat" }, { status: 401 });
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader?.startsWith("Bearer ")) {
+      return NextResponse.json(
+        { error: "Unauthorized", code: "AUTH_REQUIRED" },
+        { status: 401 }
+      );
     }
+
+    let uid: string;
+    let emailFromToken: string | undefined;
+    try {
+      const decoded = await adminAuth.verifyIdToken(authHeader.substring(7));
+      uid = decoded.uid;
+      emailFromToken = decoded.email;
+    } catch {
+      return NextResponse.json(
+        { error: "Unauthorized", code: "AUTH_REQUIRED" },
+        { status: 401 }
+      );
+    }
+
+    const { tier, email, planName, planId, locale = "ro" } = await req.json();
 
     const baseUrl = getLemonCheckoutUrl(tier, locale);
     if (!baseUrl) {
@@ -15,10 +33,11 @@ export async function POST(req: NextRequest) {
     }
 
     const checkoutUrl = withCheckoutParams(baseUrl, {
-      userId,
+      userId: uid,
       tier,
-      email,
+      email: email || emailFromToken,
       planName,
+      planId,
     });
 
     return NextResponse.json({ url: checkoutUrl });

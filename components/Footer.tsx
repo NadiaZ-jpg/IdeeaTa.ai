@@ -51,9 +51,9 @@ export function Footer() {
             target="_blank" 
             rel="noopener noreferrer" 
             className="hover:text-[#FFDD00] text-zinc-400 font-bold transition-colors flex items-center gap-1"
-            title="Buy me a coffee"
+            title={t('buyMeACoffee', locale)}
           >
-            <span>☕</span> Buy me a coffee
+            <span>☕</span> {t('buyMeACoffee', locale)}
           </a>
         </div>
       </div>

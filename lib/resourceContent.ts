@@ -206,8 +206,8 @@ export const RESOURCE_ARTICLES: ResourceArticle[] = [
     },
     ctaHref: {
       ro: "/demo?start=nou",
-      en: "/en/demo?start=nou",
-      es: "/es/demo?start=nou",
+      en: "/en/demo?start=new",
+      es: "/es/demo?start=nuevo",
     },
   },
   {
@@ -340,8 +340,8 @@ export const RESOURCE_ARTICLES: ResourceArticle[] = [
     },
     ctaHref: {
       ro: "/demo?start=nou",
-      en: "/en/demo?start=nou",
-      es: "/es/demo?start=nou",
+      en: "/en/demo?start=new",
+      es: "/es/demo?start=nuevo",
     },
   },
   {

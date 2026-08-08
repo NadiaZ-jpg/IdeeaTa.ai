@@ -6,7 +6,7 @@ import { EditForm } from "@/components/EditForm";
 import dynamic from 'next/dynamic';
 import { auth, db } from '@/lib/firebase';
 import { signInWithPopup, GoogleAuthProvider, FacebookAuthProvider, onAuthStateChanged, User, getRedirectResult, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, sendPasswordResetEmail, sendEmailVerification } from 'firebase/auth';
-import { doc, onSnapshot, setDoc, getDoc, increment, arrayUnion, collection, getDocs } from 'firebase/firestore';
+import { doc, onSnapshot, setDoc, collection, getDocs } from 'firebase/firestore';
 import { PricingModal } from '@/components/PricingModal';
 import { LanguageSwitcher } from '@/components/LanguageSwitcher';
 import BuyMeACoffeeModal from '@/components/BuyMeACoffeeModal';
@@ -31,6 +31,7 @@ import { fetchSharedPlanPayload, resetDemoShareCounters, clearSharedIdFromUrl, r
 import { resolveSharedViewCurrency, shouldShowCurrencyToggle } from '@/lib/pdfCtaBehavior';
 import { FREE_ACCOUNT_PLAN_LIMIT, GUEST_DEMO_PLAN_LIMIT, clearLocalPlanState } from '@/lib/planQuota';
 import { isAdminEmail } from '@/lib/adminEmails';
+import { isPlanUnlockedByLists } from '@/lib/planUnlock';
 import { canUseFreeToneEdit, consumeFreeToneEdit, isProToneKey, toneVersionKey } from '@/lib/toneQuota';
 import { useCompleteMissingPlanFields } from '@/hooks/useCompleteMissingPlanFields';
 import { useUIState } from '@/hooks/useUIState';
@@ -148,6 +149,7 @@ export default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" | 
   const [euFundsUnlocked, setEuFundsUnlocked] = useState(false);
   const [subscriptionActive, setSubscriptionActive] = useState(false);
   const [unlockedPlans, setUnlockedPlans] = useState<string[]>([]);
+  const [unlockedPlanIds, setUnlockedPlanIds] = useState<string[]>([]);
   const [aiEditError, setAiEditError] = useState<string | null>(null);
   const [lastEditParams, setLastEditParams] = useState<{action: string, customStyle?: string, customInput?: string} | null>(null);
   const [isSharedView, setIsSharedView] = useState(false);
@@ -293,7 +295,7 @@ export default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" | 
       return;
     }
 
-    // Cont gratuit: primele 2 tonuri (formal/creative), max FREE_TONE_EDIT_LIMIT (consum după succes)
+    // Cont gratuit: tonuri free (formal/creative), max FREE_TONE_EDIT_LIMIT (consum după succes)
     if (isActionFree && !isProTone && !isAdmin && !hasStandardAccess) {
        if (!user) {
          setShowAuthModal(true);
@@ -548,7 +550,12 @@ export default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" | 
   const [user, setUser] = useState<User | null>(null);
   const [promoCodeUnlocked, setPromoCodeUnlocked] = useState(false);
   const isAdmin = user ? isAdminEmail(user.email) : false;
-  const isPlanPaid = promoCodeUnlocked || isAdmin || subscriptionActive || (result && unlockedPlans.includes(result.nume)) || isPaid;
+  const isPlanPaid =
+    promoCodeUnlocked ||
+    isAdmin ||
+    subscriptionActive ||
+    isPlanUnlockedByLists(result, unlockedPlans, unlockedPlanIds) ||
+    isPaid;
   const isStudioPaid = promoCodeUnlocked || isAdmin || subscriptionActive || euFundsUnlocked || isPaid;
   const hasStandardAccess = isPaid || promoCodeUnlocked || isAdmin || subscriptionActive || isPlanPaid || isStudioPaid;
   const hasProAccess = isAdmin || subscriptionActive || euFundsUnlocked;
@@ -623,6 +630,7 @@ export default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" | 
         setEuFundsUnlocked(data.euFundsUnlocked || false);
         setSubscriptionActive(data.subscriptionActive || false);
         setUnlockedPlans(data.unlockedPlans || []);
+        setUnlockedPlanIds(data.unlockedPlanIds || []);
         setPromoCodeUnlocked(data.promoCodeUnlocked || false);
         setIsPaid(data.isPaid || false);
       } else {
@@ -643,34 +651,22 @@ export default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" | 
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
     const paymentSuccess = urlParams.get("payment_success") === "true";
-    const sessionId = urlParams.get("session_id");
     const tier = urlParams.get("tier");
 
-    if (paymentSuccess && sessionId && user) {
+    if (paymentSuccess && user) {
       const verifyPayment = async () => {
         try {
-          const res = await fetch(`/api/verify-checkout?session_id=${sessionId}`);
+          const token = await user.getIdToken();
+          const res = await fetch(
+            `/api/verify-checkout?tier=${encodeURIComponent(tier || "")}`,
+            { headers: { Authorization: `Bearer ${token}` } }
+          );
           const data = await res.json();
-          if (data.success && data.userId === user.uid) {
-            const userRef = doc(db, "users", user.uid);
-            const userSnap = await getDoc(userRef);
-            const processedSessions = userSnap.data()?.processedSessions || [];
-
-            if (!processedSessions.includes(sessionId)) {
-              if (tier === "standard") {
-                const planToUnlock = data.planName || result?.nume || "Plan de Afaceri";
-                await setDoc(userRef, {
-                  unlockedPlans: arrayUnion(planToUnlock),
-                  processedSessions: arrayUnion(sessionId)
-                }, { merge: true });
-                alert(ui.paymentConfirmedEU.replace("{plan}", planToUnlock));
-              } else if (tier === "eu-funds") {
-                await setDoc(userRef, {
-                  euFundsUnlocked: true,
-                  processedSessions: arrayUnion(sessionId)
-                }, { merge: true });
-                alert(t("paymentConfirmedEU", locale));
-              }
+          if (data.success) {
+            if (tier === "standard") {
+              alert(ui.paymentConfirmedEU.replace("{plan}", result?.nume || "Plan"));
+            } else if (tier === "eu-funds") {
+              alert(t("paymentConfirmedEU", locale));
             }
             window.history.replaceState({}, document.title, window.location.pathname);
           }
@@ -687,7 +683,9 @@ export default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" | 
     if (typeof window !== "undefined") {
       setDemoCount(parseInt(localStorage.getItem("demoGenerateCount") || "0", 10));
       const urlParams = new URLSearchParams(window.location.search);
-      const isStartNou = urlParams.get("start") === "nou";
+      const isStartNou = ["nou", "new", "nuevo"].includes(
+        (urlParams.get("start") || "").toLowerCase()
+      );
       if (isStartNou) {
         localStorage.removeItem("current_versions");
         localStorage.removeItem("current_generated_plan");
@@ -1060,7 +1058,7 @@ export default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" | 
       setLoading(true);
       setMessageIndex(0);
       setResult(null);
-      setIsPaid(false);
+      // Do NOT clear isPaid — account entitlements come from Firestore snapshot.
     }
 
     try {
@@ -1076,6 +1074,7 @@ export default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" | 
             skill,
             locale,
             currency: locale === "ro" ? currency : "EUR",
+            surface: "demo",
           }),
         }),
         new Promise(resolve => setTimeout(resolve, 2000))
@@ -1184,7 +1183,6 @@ export default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" | 
   const resetApp = () => {
     setResult(null);
     setCurrency(locale === "ro" ? "LEI" : "EUR");
-    setIsPaid(false);
     setIsSharedView(false);
     if (typeof window !== "undefined") {
       localStorage.removeItem("current_generated_plan");
@@ -1210,8 +1208,11 @@ export default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" | 
     setIsSharedView,
     t,
     activeVersionId,
-    onPlanUnlockedByCredit: (planName) => {
+    onPlanUnlockedByCredit: (planName, planId) => {
       setUnlockedPlans((prev) => (prev.includes(planName) ? prev : [...prev, planName]));
+      if (planId) {
+        setUnlockedPlanIds((prev) => (prev.includes(planId) ? prev : [...prev, planId]));
+      }
     },
   });
 
@@ -1364,7 +1365,7 @@ export default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" | 
               className="bg-[#FFDD00] text-black px-3 py-1 rounded-md font-bold text-xs hover:bg-[#FFEA4D] hover:scale-105 transition-all flex items-center gap-1.5 w-max shadow-sm cursor-pointer"
               title={ui.supportCoffeeTitle}
             >
-              <span>☕</span> Buy me a coffee
+              <span>☕</span> {ui.buyMeACoffee}
             </button>
           </div>
           <div className="flex items-center gap-4 text-xs font-medium">
@@ -1937,6 +1938,14 @@ export default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" | 
               onSelectVersion={(vKey, vData) => {
                 setActiveVersionId(vKey);
                 setResultState(vData);
+                if (typeof window !== "undefined") {
+                  localStorage.setItem(
+                    "current_versions",
+                    JSON.stringify({ versions, activeVersionId: vKey })
+                  );
+                  localStorage.setItem("current_generated_plan", JSON.stringify(vData));
+                }
+                void syncCurrentPlanToFirestore(vData, versions, vKey);
               }}
               ui={ui}
               locale={locale}
@@ -2061,10 +2070,16 @@ export default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" | 
               ...result,
               sectiuni_aditionale: [...currentSecs, newSection]
             };
-            setResult(updated);
+            const nextVersions = {
+              ...(versions && Object.keys(versions).length ? versions : { original: updated }),
+              [activeVersionId]: updated,
+            };
+            setVersions(nextVersions);
+            setResultState(updated);
             if (typeof window !== "undefined") {
               localStorage.setItem("current_generated_plan", JSON.stringify(updated));
             }
+            void syncCurrentPlanToFirestore(updated, nextVersions, activeVersionId);
             setTimeout(() => {
               const el = document.getElementById(`custom-section-${newIndex}`) || document.getElementById("section-custom");
               if (el) {

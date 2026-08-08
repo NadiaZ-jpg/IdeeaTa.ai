@@ -22,6 +22,7 @@ export const translations = {
     termsAndConditions: "Termeni și Condiții",
     privacyPolicy: "Politica de Confidențialitate",
     allRightsReserved: "Toate drepturile rezervate.",
+    buyMeACoffee: "Cumpără-mi o cafea",
 
     // Footer & CookieBanner
     aboutUs: "Despre Noi",
@@ -207,6 +208,7 @@ export const translations = {
     termsAndConditions: "Terms & Conditions",
     privacyPolicy: "Privacy Policy",
     allRightsReserved: "All rights reserved.",
+    buyMeACoffee: "Buy me a coffee",
 
     // Footer & CookieBanner
     aboutUs: "About Us",
@@ -392,6 +394,7 @@ export const translations = {
     termsAndConditions: "Términos y Condiciones",
     privacyPolicy: "Política de Privacidad",
     allRightsReserved: "Todos los derechos reservados.",
+    buyMeACoffee: "Invítame un café",
 
     // Footer & CookieBanner
     aboutUs: "Sobre Nosotros",

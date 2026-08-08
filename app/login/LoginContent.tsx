@@ -315,9 +315,9 @@ export default function LoginContent({ locale = "ro" }: { locale?: "ro" | "en" |
             <QRCodeSVG
               value={
                 isEn
-                  ? "https://ideeata.ai/en/demo?start=nou"
+                  ? "https://ideeata.ai/en/demo?start=new"
                   : isEs
-                  ? "https://ideeata.ai/es/demo?start=nou"
+                  ? "https://ideeata.ai/es/demo?start=nuevo"
                   : "https://ideeata.ai/demo?start=nou"
               }
               size={88}

@@ -10,7 +10,7 @@ type UIStringsShape = {
   // NAVBAR
   pricing: string; logOut: string; logIn: string; tryFree: string; myPlans: string;
   badgeStudioGrants: string; badgeStandardUnlocked: string; badgePreviewOnly: string;
-  supportCoffeeTitle: string; businessExamplesTitle: string;
+  supportCoffeeTitle: string; buyMeACoffee: string; businessExamplesTitle: string;
   generationTime: string; generationTimeSub: string;
   exportFormat: string; documentStructure: string; documentStructureSub: string; grantsInvestors: string;
   // HERO
@@ -118,6 +118,7 @@ export const UI_STRINGS: Record<Locale, UIStringsShape> = {
     myPlans: "Proiectele Mele", badgeStudioGrants: "STUDIO & FONDURI",
     badgeStandardUnlocked: "STANDARD DEBLOCAT", badgePreviewOnly: "PREVIZUALIZARE",
     supportCoffeeTitle: "Susține IdeeaTa.ai cu o cafea",
+    buyMeACoffee: "Cumpără-mi o cafea",
     businessExamplesTitle: "Exemple de Afaceri",
     generationTime: "Timp de generare", generationTimeSub: "Sub 60 sec",
     exportFormat: "Format export", documentStructure: "Structura Document",
@@ -265,6 +266,7 @@ export const UI_STRINGS: Record<Locale, UIStringsShape> = {
     myPlans: "My Plans", badgeStudioGrants: "STUDIO & GRANTS",
     badgeStandardUnlocked: "STANDARD UNLOCKED", badgePreviewOnly: "PREVIEW ONLY",
     supportCoffeeTitle: "Support IdeeaTa.ai with a coffee",
+    buyMeACoffee: "Buy me a coffee",
     businessExamplesTitle: "Business Examples",
     generationTime: "Generation Time", generationTimeSub: "Under 60 sec",
     exportFormat: "Export Format", documentStructure: "Document Structure",
@@ -355,7 +357,7 @@ export const UI_STRINGS: Record<Locale, UIStringsShape> = {
     placeholdersArray: ["Cybersecurity Consulting...", "Interior Design Studio...", "Urban Microgreens Farm...", "Software Development...", "Specialty Coffee Shop...", "Online Courses Platform...", "Eco Car Wash..."],
     paymentConfirmedEU: "Payment confirmed! The plan \"{plan}\" has been unlocked for download.",
     loadingMessagesArray: ["Analyzing idea...", "Structuring chapters...", "Generating financial forecasts...", "Finalizing details..."],
-    routes: { login: "/en/login", dashboard: "/en/dashboard", demoNew: "/en/demo?start=nou" },
+    routes: { login: "/en/login", dashboard: "/en/dashboard", demoNew: "/en/demo?start=new" },
     copyingDisabled: "Copying text is disabled in the Demo version. Click on 🎁 DOWNLOAD FREE SUMMARY to get the plan.",
     investmentBudget: "Investment Budget", estimatedTotal: "Estimated Total:", additionalSection: "Additional Section", part: "Part",
     strategicObjectives: "Strategic Objectives", marketCompetition: "Market & Competition", promotion: "Promotion", businessPlan: "Business Plan", yourBusiness: "Your Business",
@@ -412,6 +414,7 @@ export const UI_STRINGS: Record<Locale, UIStringsShape> = {
     myPlans: "Mis Planes", badgeStudioGrants: "STUDIO Y BECAS",
     badgeStandardUnlocked: "STANDARD DESBLOQUEADO", badgePreviewOnly: "SOLO VISTA PREVIA",
     supportCoffeeTitle: "Apoya a IdeeaTa.ai con un café",
+    buyMeACoffee: "Invítame un café",
     businessExamplesTitle: "Ejemplos de Negocios",
     generationTime: "Tiempo de Generación", generationTimeSub: "Menos de 60 seg",
     exportFormat: "Formato de Exportación", documentStructure: "Estructura del Documento",
@@ -502,7 +505,7 @@ export const UI_STRINGS: Record<Locale, UIStringsShape> = {
     placeholdersArray: ["Consultoría en Ciberseguridad...", "Estudio de Diseño de Interiores...", "Granja Urbana de Microplantas...", "Desarrollo de Software...", "Cafetería de Especialidad...", "Plataforma de Cursos Online...", "Lavado de Coches Ecológico..."],
     paymentConfirmedEU: "¡Pago confirmado! El plan \"{plan}\" ha sido desbloqueado para descargar.",
     loadingMessagesArray: ["Analizando idea...", "Estructurando capítulos...", "Generando previsiones financieras...", "Finalizando detalles..."],
-    routes: { login: "/es/login", dashboard: "/es/dashboard", demoNew: "/es/demo?start=nou" },
+    routes: { login: "/es/login", dashboard: "/es/dashboard", demoNew: "/es/demo?start=nuevo" },
     copyingDisabled: "Copiar texto está desactivado en la versión Demo. Haz clic en 🎁 DESCARGAR RESUMEN GRATUITO para obtener el plan.",
     investmentBudget: "Presupuesto de Inversión", estimatedTotal: "Total Estimado:", additionalSection: "Sección Adicional", part: "Parte",
     strategicObjectives: "Objetivos Estratégicos", marketCompetition: "Mercado y Competencia", promotion: "Promoción", businessPlan: "Plan de Negocios", yourBusiness: "Tu Empresa",

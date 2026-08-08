@@ -1,19 +1,35 @@
 import { NextRequest, NextResponse } from "next/server";
-import { adminDb } from "@/lib/firebase-admin";
+import { adminAuth, adminDb } from "@/lib/firebase-admin";
 
+/**
+ * Poll entitlement after Lemon return URL.
+ * Auth required — userId always from token (never from query spoof).
+ */
 export async function GET(req: NextRequest) {
   try {
-    const { searchParams } = new URL(req.url);
-    const userId = searchParams.get("userId");
-    const tier   = searchParams.get("tier");
-
-    if (!userId) {
-      return NextResponse.json({ error: "Lipseste userId" }, { status: 400 });
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader?.startsWith("Bearer ")) {
+      return NextResponse.json(
+        { error: "Unauthorized", code: "AUTH_REQUIRED" },
+        { status: 401 }
+      );
     }
 
-    // Citim documentul utilizatorului direct din Firestore.
-    // Webhook-ul Lemon Squeezy a scris deja datele acolo (async).
-    const userRef  = adminDb.collection("users").doc(userId);
+    let uid: string;
+    try {
+      const decoded = await adminAuth.verifyIdToken(authHeader.substring(7));
+      uid = decoded.uid;
+    } catch {
+      return NextResponse.json(
+        { error: "Unauthorized", code: "AUTH_REQUIRED" },
+        { status: 401 }
+      );
+    }
+
+    const { searchParams } = new URL(req.url);
+    const tier = searchParams.get("tier");
+
+    const userRef = adminDb.collection("users").doc(uid);
     const userSnap = await userRef.get();
 
     if (!userSnap.exists) {
@@ -22,27 +38,37 @@ export async function GET(req: NextRequest) {
 
     const data = userSnap.data() || {};
 
-    // Verificam daca webhook-ul a scris deja permisiunile corecte
     let isUnlocked = false;
     if (tier === "standard") {
-      isUnlocked = Array.isArray(data.unlockedPlans) && data.unlockedPlans.length > 0;
+      isUnlocked = !!(
+        data.isPaid ||
+        data.promoCodeUnlocked ||
+        (Array.isArray(data.unlockedPlans) && data.unlockedPlans.length > 0) ||
+        (Array.isArray(data.unlockedPlanIds) && data.unlockedPlanIds.length > 0)
+      );
     } else if (tier === "eu-funds") {
       isUnlocked = data.euFundsUnlocked === true;
     } else if (tier === "pro") {
       isUnlocked = data.subscriptionActive === true;
+    } else {
+      // No tier: any paid entitlement
+      isUnlocked = !!(
+        data.isPaid ||
+        data.subscriptionActive ||
+        data.euFundsUnlocked ||
+        data.promoCodeUnlocked
+      );
     }
 
     if (isUnlocked) {
-      return NextResponse.json({ success: true, userId, tier });
+      return NextResponse.json({ success: true, tier: tier || null });
     }
 
-    // Webhook inca nu a ajuns (latenta normala de cateva secunde)
     return NextResponse.json({ success: false, pending: true });
-
   } catch (error: any) {
     console.error("Error verifying checkout:", error);
     return NextResponse.json(
-      { error: error.message || "Eroare la verificarea platii" },
+      { error: error.message || "Checkout verify failed" },
       { status: 500 }
     );
   }

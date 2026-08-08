@@ -5,7 +5,7 @@ import { EditForm } from "@/components/EditForm";
 import dynamic from 'next/dynamic';
 import { auth, db } from '@/lib/firebase';
 import { signInWithPopup, GoogleAuthProvider, FacebookAuthProvider, onAuthStateChanged, User, getRedirectResult, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, sendPasswordResetEmail, sendEmailVerification, getAuth } from 'firebase/auth';
-import { doc, onSnapshot, setDoc, getDoc, increment, arrayUnion, collection, getDocs } from 'firebase/firestore';
+import { doc, onSnapshot, setDoc, collection, getDocs } from 'firebase/firestore';
 import { PricingModal } from '@/components/PricingModal';
 import { LanguageSwitcher } from '@/components/LanguageSwitcher';
 import BuyMeACoffeeModal from '@/components/BuyMeACoffeeModal';
@@ -19,6 +19,7 @@ import { formatObjectNumbers, formatNumberedText } from "@/lib/utils";
 import { EXPERT_TEMPLATES, ExpertTemplate } from '@/lib/templatesData';
 import { FREE_ACCOUNT_PLAN_LIMIT, clearLocalPlanState } from '@/lib/planQuota';
 import { isAdminEmail } from '@/lib/adminEmails';
+import { isPlanUnlockedByLists } from '@/lib/planUnlock';
 import { canUseFreeToneEdit, consumeFreeToneEdit, isProToneKey, toneVersionKey } from '@/lib/toneQuota';
 import {
   buildStackedVersionKey,
@@ -144,6 +145,7 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
   const [euFundsUnlocked, setEuFundsUnlocked] = useState(false);
   const [subscriptionActive, setSubscriptionActive] = useState(false);
   const [unlockedPlans, setUnlockedPlans] = useState<string[]>([]);
+  const [unlockedPlanIds, setUnlockedPlanIds] = useState<string[]>([]);
   const [aiEditError, setAiEditError] = useState<string | null>(null);
   const [lastEditParams, setLastEditParams] = useState<{action: string, customStyle?: string, customInput?: string} | null>(null);
   const [isSharedView, setIsSharedView] = useState(false);
@@ -347,7 +349,7 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
       return;
     }
 
-    // Cont gratuit: primele 2 tonuri, max FREE_TONE_EDIT_LIMIT (consum după succes)
+    // Cont gratuit: tonuri free, max FREE_TONE_EDIT_LIMIT (consum după succes)
     if (isToneAction && !isProTone && !isAdmin && !hasStandardAccess) {
       if (!canUseFreeToneEdit(false)) {
         setShowPricingModal(true);
@@ -605,7 +607,12 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
   const [user, setUser] = useState<User | null>(null);
   const [promoCodeUnlocked, setPromoCodeUnlocked] = useState(false);
   const isAdmin = user ? isAdminEmail(user.email) : false;
-  const isPlanPaid = promoCodeUnlocked || isAdmin || subscriptionActive || (result && unlockedPlans.includes(result.nume)) || isPaid;
+  const isPlanPaid =
+    promoCodeUnlocked ||
+    isAdmin ||
+    subscriptionActive ||
+    isPlanUnlockedByLists(result, unlockedPlans, unlockedPlanIds) ||
+    isPaid;
   const isStudioPaid = promoCodeUnlocked || isAdmin || subscriptionActive || euFundsUnlocked || isPaid;
   const hasStandardAccess = isPaid || promoCodeUnlocked || isAdmin || subscriptionActive || isPlanPaid || isStudioPaid;
   const hasProAccess = isAdmin || subscriptionActive || euFundsUnlocked;
@@ -650,6 +657,7 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
       setEuFundsUnlocked(false);
       setSubscriptionActive(false);
       setUnlockedPlans([]);
+      setUnlockedPlanIds([]);
       return;
     }
 
@@ -661,6 +669,7 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
         setEuFundsUnlocked(data.euFundsUnlocked || false);
         setSubscriptionActive(data.subscriptionActive || false);
         setUnlockedPlans(data.unlockedPlans || []);
+        setUnlockedPlanIds(data.unlockedPlanIds || []);
         setPromoCodeUnlocked(data.promoCodeUnlocked || false);
         setIsPaid(data.isPaid || false);
       } else {
@@ -742,40 +751,24 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
     const paymentSuccess = urlParams.get("payment_success") === "true";
-    const sessionId = urlParams.get("session_id");
     const tier = urlParams.get("tier");
 
-    if (paymentSuccess && sessionId && user) {
+    if (paymentSuccess && user) {
       const verifyPayment = async () => {
         try {
-          const res = await fetch(`/api/verify-checkout?session_id=${sessionId}`);
+          const token = await user.getIdToken();
+          const res = await fetch(
+            `/api/verify-checkout?tier=${encodeURIComponent(tier || "")}`,
+            { headers: { Authorization: `Bearer ${token}` } }
+          );
           const data = await res.json();
-          if (data.success && data.userId === user.uid) {
-            const userRef = doc(db, "users", user.uid);
-            const userSnap = await getDoc(userRef);
-            const processedSessions = userSnap.data()?.processedSessions || [];
-
-            if (!processedSessions.includes(sessionId)) {
-              if (tier === "standard") {
-                const planToUnlock = data.planName || result?.nume || "Plan de Afaceri";
-                await setDoc(userRef, {
-                  unlockedPlans: arrayUnion(planToUnlock),
-                  processedSessions: arrayUnion(sessionId)
-                }, { merge: true });
-                alert(ui.paymentConfirmedEU.replace("{plan}", planToUnlock));
-              } else if (tier === "eu-funds") {
-                await setDoc(userRef, {
-                  euFundsUnlocked: true,
-                  processedSessions: arrayUnion(sessionId)
-                }, { merge: true });
-                alert(t("paymentConfirmedEU", locale));
-              } else if (tier === "pro") {
-                await setDoc(userRef, {
-                  subscriptionActive: true,
-                  processedSessions: arrayUnion(sessionId)
-                }, { merge: true });
-                alert(ui.alertUnlimitedPro);
-              }
+          if (data.success) {
+            if (tier === "standard") {
+              alert(ui.paymentConfirmedEU.replace("{plan}", result?.nume || "Plan"));
+            } else if (tier === "eu-funds") {
+              alert(t("paymentConfirmedEU", locale));
+            } else if (tier === "pro") {
+              alert(ui.alertUnlimitedPro);
             }
             window.history.replaceState({}, document.title, window.location.pathname);
           }
@@ -1075,8 +1068,15 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
         return;
       }
 
-      // LIMITATOR STUDIO — Maxim 4 planuri gratuite în Dashboard (inclusiv cele migrate din Demo)
-      if (user && !isPlanPaid && !isAdmin) {
+      // LIMITATOR STUDIO — Maxim 4 planuri gratuite (account flags, not per-plan unlock)
+      if (user && !isAdmin) {
+        const accountPaid = !!(
+          isPaid ||
+          promoCodeUnlocked ||
+          subscriptionActive ||
+          euFundsUnlocked
+        );
+        if (!accountPaid) {
         try {
           const plansRef = collection(db, "users", user.uid, "plans");
           const snap = await getDocs(plansRef);
@@ -1092,11 +1092,12 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
             return;
           }
         }
+        }
       }
       setLoading(true);
       setMessageIndex(0);
       setResult(null);
-      setIsPaid(false);
+      // Do NOT clear isPaid — account entitlements come from Firestore snapshot.
     }
 
     try {
@@ -1112,6 +1113,7 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
             skill,
             locale,
             currency: locale === "ro" ? currency : "EUR",
+            surface: "studio",
           }),
         }),
         new Promise(resolve => setTimeout(resolve, 2000))
@@ -1153,8 +1155,13 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
           finalResult.id = planId;
 
           if (retryCount === 0 && typeof window !== "undefined") {
-            const soft = !isPlanPaid && !isAdmin;
-            if (soft) {
+            const accountPaid = !!(
+              isPaid ||
+              promoCodeUnlocked ||
+              subscriptionActive ||
+              euFundsUnlocked
+            );
+            if (!accountPaid && !isAdmin) {
               const studioCount = parseInt(localStorage.getItem('studioGenerateCount') || '0', 10);
               localStorage.setItem('studioGenerateCount', (studioCount + 1).toString());
             }
@@ -1221,7 +1228,6 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
     }
     setResult(null);
     setCurrency(locale === "ro" ? "LEI" : "EUR");
-    setIsPaid(false);
     setIsSharedView(false);
     if (typeof window !== "undefined") {
       localStorage.removeItem("current_generated_plan");
@@ -1248,8 +1254,11 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
     setIsSharedView,
     t,
     activeVersionId,
-    onPlanUnlockedByCredit: (planName) => {
+    onPlanUnlockedByCredit: (planName, planId) => {
       setUnlockedPlans((prev) => (prev.includes(planName) ? prev : [...prev, planName]));
+      if (planId) {
+        setUnlockedPlanIds((prev) => (prev.includes(planId) ? prev : [...prev, planId]));
+      }
     },
   });
 
@@ -1423,7 +1432,7 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
                 className="bg-[#FFDD00] text-black px-3 py-1 rounded-md font-bold text-xs hover:bg-[#FFEA4D] hover:scale-105 transition-all flex items-center gap-1.5 w-max shadow-sm cursor-pointer"
                 title={ui.supportCoffeeTitle}
               >
-                <span>☕</span> Buy me a coffee
+                <span>☕</span> {ui.buyMeACoffee}
               </button>
             </div>
 
@@ -1758,9 +1767,9 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
                   <div className="w-12 h-12 rounded-xl bg-zinc-900 border border-zinc-800 text-emerald-400 flex items-center justify-center text-2xl mb-4 group-hover:scale-125 group-hover:rotate-12 group-hover:-translate-y-1 transition-all duration-300 shadow-inner">
                     🧠
                   </div>
-                  <h4 className="text-2xl font-bold text-white mb-3">Analiză SWOT Completă</h4>
+                  <h4 className="text-2xl font-bold text-white mb-3">{t('swotCardTitle', locale)}</h4>
                   <p className="text-zinc-400 text-base md:text-lg leading-relaxed">
-                    Puncte tari, slăbiciuni, oportunități și amenințări detaliate cu explicații tehnice adaptate domeniului ales.
+                    {t('swotCardDesc', locale)}
                   </p>
                 </div>
               </div>
@@ -1780,9 +1789,9 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
                   <div className="w-12 h-12 rounded-xl bg-zinc-900 border border-zinc-800 text-emerald-400 flex items-center justify-center text-2xl mb-4 group-hover:scale-125 group-hover:rotate-12 group-hover:-translate-y-1 transition-all duration-300 shadow-inner">
                     💸
                   </div>
-                  <h4 className="text-2xl font-bold text-white mb-3">Bugetare Detaliată</h4>
+                  <h4 className="text-2xl font-bold text-white mb-3">{t('budgetCardTitle', locale)}</h4>
                   <p className="text-zinc-400 text-base md:text-lg leading-relaxed">
-                    Distribuția automată a costurilor de pornire și justificare clară pentru fiecare cheltuială estimată.
+                    {t('budgetCardDesc', locale)}
                   </p>
                 </div>
               </div>
@@ -1802,9 +1811,9 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
                   <div className="w-12 h-12 rounded-xl bg-zinc-900 border border-zinc-800 text-emerald-400 flex items-center justify-center text-2xl mb-4 group-hover:scale-125 group-hover:rotate-12 group-hover:-translate-y-1 transition-all duration-300 shadow-inner">
                     🌟
                   </div>
-                  <h4 className="text-2xl font-bold text-white mb-3">Optimizat Fonduri</h4>
+                  <h4 className="text-2xl font-bold text-white mb-3">{t('fundsCardTitle', locale)}</h4>
                   <p className="text-zinc-400 text-base md:text-lg leading-relaxed">
-                    Structură și jargon specifice ghidurilor de finanțare pentru a-ți crește șansele de a obține granturi nerambursabile.
+                    {t('fundsCardDesc', locale)}
                   </p>
                 </div>
               </div>
@@ -1824,9 +1833,9 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
                   <div className="w-12 h-12 rounded-xl bg-zinc-900 border border-zinc-800 text-emerald-400 flex items-center justify-center text-2xl mb-4 group-hover:scale-125 group-hover:rotate-12 group-hover:-translate-y-1 transition-all duration-300 shadow-inner">
                     🏦
                   </div>
-                  <h4 className="text-2xl font-bold text-white mb-3">Plan Profesionist</h4>
+                  <h4 className="text-2xl font-bold text-white mb-3">{t('proPlanCardTitle', locale)}</h4>
                   <p className="text-zinc-400 text-base md:text-lg leading-relaxed">
-                    Rescrie complet planul pentru a atrage investitori și bănci. Include limbaj corporativ, metrici financiare (CAC/LTV) și strategii de mitigare a riscului.
+                    {t('proPlanCardDesc', locale)}
                   </p>
                 </div>
               </div>
@@ -1846,9 +1855,9 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
                   <div className="w-12 h-12 rounded-xl bg-zinc-900 border border-zinc-800 text-emerald-400 flex items-center justify-center text-2xl mb-4 group-hover:scale-125 group-hover:rotate-12 group-hover:-translate-y-1 transition-all duration-300 shadow-inner">
                     🪄
                   </div>
-                  <h4 className="text-2xl font-bold text-white mb-3">Studio Asistat Interactiv</h4>
+                  <h4 className="text-2xl font-bold text-white mb-3">{t('studioCardTitle', locale)}</h4>
                   <p className="text-zinc-400 text-base md:text-lg leading-relaxed">
-                    Adaptează planul din mers. Adaugă secțiuni noi, taie procente din buget sau rescrie textul cu ajutorul asistentului inteligent.
+                    {t('studioCardDesc', locale)}
                   </p>
                 </div>
               </div>
@@ -1868,9 +1877,9 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
                   <div className="w-12 h-12 rounded-xl bg-zinc-900 border border-zinc-800 text-emerald-400 flex items-center justify-center text-2xl mb-4 group-hover:scale-125 group-hover:rotate-12 group-hover:-translate-y-1 transition-all duration-300 shadow-inner">
                     🚀
                   </div>
-                  <h4 className="text-2xl font-bold text-white mb-3">Export Corporate</h4>
+                  <h4 className="text-2xl font-bold text-white mb-3">{t('exportCardTitle', locale)}</h4>
                   <p className="text-zinc-400 text-base md:text-lg leading-relaxed">
-                    Descarcă broșura de prezentare PowerPoint (.pptx), raportul PDF sau documentul editabil Word (.doc).
+                    {t('exportCardDesc', locale)}
                   </p>
                 </div>
               </div>

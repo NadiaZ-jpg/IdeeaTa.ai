@@ -3,6 +3,7 @@
 import { useEffect, useRef } from "react";
 import { planNeedsExplanationFill } from "@/lib/normalizePlanResult";
 import { formatObjectNumbers } from "@/lib/utils";
+import { auth } from "@/lib/firebase";
 
 type Locale = "ro" | "en" | "es";
 
@@ -80,9 +81,16 @@ export function useCompleteMissingPlanFields(
           if (cancelled) return;
           if (!planNeedsExplanationFill(current)) break;
 
+          const headers: Record<string, string> = { "Content-Type": "application/json" };
+          try {
+            const token = auth.currentUser ? await auth.currentUser.getIdToken() : null;
+            if (token) headers.Authorization = `Bearer ${token}`;
+          } catch {
+            /* guest */
+          }
           const res = await fetch("/api/complete-plan-fields", {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
+            headers,
             body: JSON.stringify({ plan: current, locale }),
           });
           if (!res.ok) continue;

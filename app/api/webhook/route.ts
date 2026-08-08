@@ -42,17 +42,20 @@ export async function POST(req: NextRequest) {
 
     if (eventName === "order_created") {
       if (tier === "standard") {
-        const planName = customData.planName || "Plan de Afaceri";
+        const planName = customData.planName || "Plan";
+        const planId = customData.planId ? String(customData.planId) : null;
         const unlocked = userData?.unlockedPlans || [];
+        const unlockedIds = userData?.unlockedPlanIds || [];
         const updatedPlans = !unlocked.includes(planName) ? [...unlocked, planName] : unlocked;
-        // isPaid = account-level Standard (same as promo STANDARD_NADIA).
-        // unlockedPlans = per-plan unlock for Dashboard.
+        const updatedIds =
+          planId && !unlockedIds.includes(planId) ? [...unlockedIds, planId] : unlockedIds;
         await userRef.set({
           isPaid: true,
           unlockedPlans: updatedPlans,
+          unlockedPlanIds: updatedIds,
           lemonSqueezyCustomerId: payload.data.attributes.customer_id,
         }, { merge: true });
-        console.log(`Deblocat Standard (isPaid + plan "${planName}") pentru user: ${userId}`);
+        console.log(`Deblocat Standard (isPaid + plan "${planName}" / id=${planId}) pentru user: ${userId}`);
       } else if (tier === "eu-funds") {
         await userRef.set({
           euFundsUnlocked: true,
@@ -68,17 +71,7 @@ export async function POST(req: NextRequest) {
         }, { merge: true });
         console.log(`Activat abonament PRO pentru user: ${userId} via order_created`);
       } else {
-        // Missing/unknown tier (custom_data incomplete) — still unlock Standard for one-time orders
-        console.warn(`[Webhook] order_created without known tier (got: ${String(tier)}). userId=${userId}`);
-        const planName = customData.planName || "Plan de Afaceri";
-        const unlocked = userData?.unlockedPlans || [];
-        const updatedPlans = !unlocked.includes(planName) ? [...unlocked, planName] : unlocked;
-        await userRef.set({
-          isPaid: true,
-          unlockedPlans: updatedPlans,
-          lemonSqueezyCustomerId: payload.data.attributes.customer_id,
-        }, { merge: true });
-        console.log(`Fallback Standard unlock (no/unknown tier) pentru user: ${userId}`);
+        console.warn(`[Webhook] order_created without known tier (got: ${String(tier)}). userId=${userId} — no unlock`);
       }
     } else if (eventName === "subscription_created") {
       // In cazul abonamentelor PRO recurente, s-ar putea sa vina acest event in loc de order_created sau suplimentar

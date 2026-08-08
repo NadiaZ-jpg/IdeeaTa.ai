@@ -4,7 +4,7 @@ export default function CookiesPage() {
   return (
     <div className="min-h-screen bg-[#09090b] text-zinc-300 py-24 px-4 sm:px-8">
       <div className="max-w-4xl mx-auto prose prose-invert prose-emerald text-justify">
-        <Link href="/en/demo?start=nou" className="text-zinc-500 hover:text-white transition-colors text-sm font-bold flex items-center gap-2 mb-8 inline-flex no-underline">
+        <Link href="/en/demo?start=new" className="text-zinc-500 hover:text-white transition-colors text-sm font-bold flex items-center gap-2 mb-8 inline-flex no-underline">
           <span>←</span>
           <span>Back to application</span>
         </Link>
@@ -52,7 +52,7 @@ export default function CookiesPage() {
         <p><em>If you have any further questions, contact us at: <a href="mailto:contact@ideeata.ai" className="text-emerald-400">contact@ideeata.ai</a>.</em></p>
         
         <div className="flex justify-center mt-12 mb-12">
-          <Link href="/en/demo?start=nou" className="bg-emerald-600 hover:bg-emerald-500 text-white px-8 py-4 rounded-xl font-bold transition-all shadow-lg shadow-emerald-900/30 no-underline">
+          <Link href="/en/demo?start=new" className="bg-emerald-600 hover:bg-emerald-500 text-white px-8 py-4 rounded-xl font-bold transition-all shadow-lg shadow-emerald-900/30 no-underline">
             Validate your idea right now
           </Link>
         </div>

@@ -28,6 +28,7 @@ import { useSharedPlanLoader } from "@/hooks/useSharedPlanLoader";
 import { createAndCopySharedPlanLink } from "@/lib/sharePlan";
 import { FREE_ACCOUNT_PLAN_LIMIT, GUEST_DEMO_PLAN_LIMIT } from "@/lib/planQuota";
 import { isAdminEmail } from "@/lib/adminEmails";
+import { isPlanUnlockedByLists } from "@/lib/planUnlock";
 import { canUseFreeToneEdit, consumeFreeToneEdit, isFreeToneKey, isProToneKey, toneVersionKey } from "@/lib/toneQuota";
 import {
   buildStackedVersionKey,
@@ -149,6 +150,7 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
   const [euFundsUnlocked, setEuFundsUnlocked] = useState(false);
   const [subscriptionActive, setSubscriptionActive] = useState(false);
   const [unlockedPlans, setUnlockedPlans] = useState<string[]>([]);
+  const [unlockedPlanIds, setUnlockedPlanIds] = useState<string[]>([]);
   const [promoCodeUnlocked, setPromoCodeUnlocked] = useState(false);
   const [isPaidState, setIsPaidState] = useState(false);
   const [isSharedView, setIsSharedView] = useState(false);
@@ -156,8 +158,17 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
 
   const isPaid = isPaidState;
   const isAdmin = isAdminEmail(user?.email);
-  const hasStandardAccess = !!(isPaid || promoCodeUnlocked || isAdmin || subscriptionActive || euFundsUnlocked);
+  const planUnlocked = isPlanUnlockedByLists(result, unlockedPlans, unlockedPlanIds);
+  const hasStandardAccess = !!(
+    isPaid ||
+    promoCodeUnlocked ||
+    isAdmin ||
+    subscriptionActive ||
+    euFundsUnlocked ||
+    planUnlocked
+  );
   const hasProAccess = !!(isAdmin || subscriptionActive || euFundsUnlocked);
+  const isPlanPaid = hasStandardAccess;
   const versionStackAccess: VersionStackAccess = {
     isAdmin,
     hasStandardAccess,
@@ -195,6 +206,7 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
       setEuFundsUnlocked(false);
       setSubscriptionActive(false);
       setUnlockedPlans([]);
+      setUnlockedPlanIds([]);
       setPromoCodeUnlocked(false);
       setIsPaidState(false);
       return;
@@ -208,22 +220,9 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
         setEuFundsUnlocked(data.euFundsUnlocked || false);
         setSubscriptionActive(data.subscriptionActive || false);
         setUnlockedPlans(data.unlockedPlans || []);
+        setUnlockedPlanIds(data.unlockedPlanIds || []);
         setPromoCodeUnlocked(data.promoCodeUnlocked || false);
-        
-        const planName = result?.nume || "";
-        const planUnlocked = (data.unlockedPlans || []).includes(planName);
-        // Align with Desktop: isPaid from Firestore / promo / subscription / per-plan unlock
-        setIsPaidState(
-          !!(
-            data.isPaid ||
-            planUnlocked ||
-            data.subscriptionActive ||
-            data.promoCodeUnlocked ||
-            data.promoCodeTier === "standard" ||
-            data.promoCodeTier === "eu-funds" ||
-            data.promoCodeTier === "full-access"
-          )
-        );
+        setIsPaidState(!!(data.isPaid || data.promoCodeUnlocked));
       }
     });
 
@@ -240,18 +239,21 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
     fxRate,
     user,
     isAdmin,
-    isPlanPaid: isPaid,
+    isPlanPaid,
     subscriptionActive,
     euFundsUnlocked,
     credits,
     setIsDownloading,
     setPendingDownloadMode,
     setShowPricingModal,
-    setIsSharedView: () => {},
+    setIsSharedView,
     t,
     activeVersionId,
-    onPlanUnlockedByCredit: (planName) => {
+    onPlanUnlockedByCredit: (planName, planId) => {
       setUnlockedPlans((prev) => (prev.includes(planName) ? prev : [...prev, planName]));
+      if (planId) {
+        setUnlockedPlanIds((prev) => (prev.includes(planId) ? prev : [...prev, planId]));
+      }
     },
   });
   
@@ -359,7 +361,19 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
   // Restaurare plan din localStorage la mount (doar dacă nu e sharedId)
   useEffect(() => {
     if (typeof window === "undefined" || isCheckingShared || skipLocalRestore) return;
-    if (new URLSearchParams(window.location.search).get("sharedId")) return;
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get("sharedId")) return;
+
+    const isStartNou = ["nou", "new", "nuevo"].includes(
+      (urlParams.get("start") || "").toLowerCase()
+    );
+    if (isStartNou) {
+      localStorage.removeItem("current_versions");
+      localStorage.removeItem("current_generated_plan");
+      localStorage.removeItem("resultState");
+      window.history.replaceState({}, document.title, window.location.pathname);
+      return;
+    }
 
     const saved = localStorage.getItem("current_generated_plan");
     const savedVersionsStr = localStorage.getItem("current_versions");
@@ -422,7 +436,12 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
       const res = await fetch("/api/generate", {
         method: "POST",
         headers,
-        body: JSON.stringify({ skill: inputSkill, locale, currency: locale === "ro" ? "LEI" : "EUR" }),
+        body: JSON.stringify({
+          skill: inputSkill,
+          locale,
+          currency: locale === "ro" ? "LEI" : "EUR",
+          surface: "demo",
+        }),
       });
 
       if (!res.ok) {
@@ -459,6 +478,9 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
           "current_versions",
           JSON.stringify({ versions: initialVersions, activeVersionId: "original" })
         );
+        if (typeof window !== "undefined") {
+          window.history.pushState({ view: "idea" }, "", window.location.pathname + "?view=idea");
+        }
 
         if (!user) {
           const count = parseInt(localStorage.getItem("demoGenerateCount") || "0", 10);
@@ -796,8 +818,13 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
 
   const handleShare = async () => {
     if (!result) return;
+    if (!user) {
+      setShowAuthModal(true);
+      return;
+    }
     try {
-      const url = await createAndCopySharedPlanLink(result, locale);
+      const token = await user.getIdToken();
+      const url = await createAndCopySharedPlanLink(result, locale, token);
       if (url) {
         setShowShareSuccess(true);
         setTimeout(() => setShowShareSuccess(false), 2000);
@@ -1049,6 +1076,13 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
                                     setResultState(vData);
                                     setShowVersionDropdown(false);
                                     setCombineMenuFor(null);
+                                    if (typeof window !== "undefined") {
+                                      localStorage.setItem(
+                                        "current_versions",
+                                        JSON.stringify({ versions, activeVersionId: vKey })
+                                      );
+                                      localStorage.setItem("current_generated_plan", JSON.stringify(vData));
+                                    }
                                     void syncCurrentPlanToFirestore(vData, versions, vKey);
                                   }}
                                   className={`flex-1 text-left px-3 py-2.5 rounded-xl text-xs font-semibold flex items-center justify-between transition-all cursor-pointer min-h-[44px] ${activeVersionId === vKey ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/30" : "text-zinc-400 hover:bg-zinc-900 hover:text-white"}`}
@@ -1289,7 +1323,7 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
                     <ToneEditor
                       user={user}
                       locale={locale}
-                      hasStandardAccess={isPaid || promoCodeUnlocked || subscriptionActive || euFundsUnlocked}
+                      hasStandardAccess={hasStandardAccess}
                       isAdmin={isAdmin}
                       isEditingAi={isEditingAi}
                       setShowAuthModal={setShowAuthModal}
@@ -1532,7 +1566,7 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
                 className="w-full bg-zinc-950 border border-zinc-800 text-zinc-300 hover:text-white font-bold py-3.5 rounded-xl text-xs transition-all active:scale-95 text-left px-4 flex justify-between items-center"
               >
                 <span>📝 {locale === "en" ? "Word Document (.docx)" : locale === "es" ? "Documento Word (.docx)" : "Document Word (.docx)"}</span>
-                {!isPaid && <span className="text-[10px] bg-amber-500/10 text-amber-400 px-2 py-0.5 rounded font-black uppercase">🔒 PRO</span>}
+                {!isPlanPaid && <span className="text-[10px] bg-amber-500/10 text-amber-400 px-2 py-0.5 rounded font-black uppercase">🔒 PRO</span>}
               </button>
 
               {/* PowerPoint (PPTX) Premium */}
@@ -1545,7 +1579,7 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
                 className="w-full bg-zinc-950 border border-zinc-800 text-zinc-300 hover:text-white font-bold py-3.5 rounded-xl text-xs transition-all active:scale-95 text-left px-4 flex justify-between items-center"
               >
                 <span>📊 {locale === "en" ? "PowerPoint Presentation (.pptx)" : locale === "es" ? "Presentación PowerPoint (.pptx)" : "Prezentare PowerPoint (.pptx)"}</span>
-                {!isPaid && <span className="text-[10px] bg-amber-500/10 text-amber-400 px-2 py-0.5 rounded font-black uppercase">🔒 PRO</span>}
+                {!isPlanPaid && <span className="text-[10px] bg-amber-500/10 text-amber-400 px-2 py-0.5 rounded font-black uppercase">🔒 PRO</span>}
               </button>
 
               {/* PDF Complet Premium */}
@@ -1558,7 +1592,7 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
                 className="w-full bg-zinc-950 border border-zinc-800 text-zinc-300 hover:text-white font-bold py-3.5 rounded-xl text-xs transition-all active:scale-95 text-left px-4 flex justify-between items-center"
               >
                 <span>📕 {locale === "en" ? "Full PDF Document" : locale === "es" ? "Documento PDF Completo" : "Document PDF Complet"}</span>
-                {!isPaid && <span className="text-[10px] bg-amber-500/10 text-amber-400 px-2 py-0.5 rounded font-black uppercase">🔒 PRO</span>}
+                {!isPlanPaid && <span className="text-[10px] bg-amber-500/10 text-amber-400 px-2 py-0.5 rounded font-black uppercase">🔒 PRO</span>}
               </button>
             </div>
           </div>
@@ -1610,10 +1644,16 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
               ...result,
               sectiuni_aditionale: [...currentSecs, newSection],
             };
-            setResult(updated);
+            const nextVersions = {
+              ...(versions && Object.keys(versions).length ? versions : { original: updated }),
+              [activeVersionId]: updated,
+            };
+            setVersions(nextVersions);
+            setResultState(updated);
             if (typeof window !== "undefined") {
               localStorage.setItem("current_generated_plan", JSON.stringify(updated));
             }
+            void syncCurrentPlanToFirestore(updated, nextVersions, activeVersionId);
             setShowExpertDrawer(false);
           }}
           onClose={() => setShowExpertDrawer(false)}

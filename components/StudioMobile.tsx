@@ -19,6 +19,7 @@ import { StudioMobileGenerateHint } from '@/components/StudioMobileGenerateHint'
 import { getExamples } from '@/lib/examples';
 import { FREE_ACCOUNT_PLAN_LIMIT } from '@/lib/planQuota';
 import { isAdminEmail } from '@/lib/adminEmails';
+import { isPlanUnlockedByLists } from '@/lib/planUnlock';
 import dynamic from 'next/dynamic';
 import { useExportActions } from "@/hooks/useExportActions";
 import { useCompleteMissingPlanFields } from "@/hooks/useCompleteMissingPlanFields";
@@ -74,13 +75,20 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
   const [euFundsUnlocked, setEuFundsUnlocked] = useState(false);
   const [subscriptionActive, setSubscriptionActive] = useState(false);
   const [unlockedPlans, setUnlockedPlans] = useState<string[]>([]);
+  const [unlockedPlanIds, setUnlockedPlanIds] = useState<string[]>([]);
   const [promoCodeUnlocked, setPromoCodeUnlocked] = useState(false);
+  const [isSharedView, setIsSharedView] = useState(false);
   
   const isAdmin = isAdminEmail(user?.email);
   const [isPaidState, setIsPaidState] = useState(false);
   const isPaid = isPaidState;
 
-  const isPlanPaid = promoCodeUnlocked || isAdmin || subscriptionActive || (result && unlockedPlans.includes(result.nume)) || isPaid;
+  const isPlanPaid =
+    promoCodeUnlocked ||
+    isAdmin ||
+    subscriptionActive ||
+    isPlanUnlockedByLists(result, unlockedPlans, unlockedPlanIds) ||
+    isPaid;
   const isStudioPaid = promoCodeUnlocked || isAdmin || subscriptionActive || euFundsUnlocked || isPaid;
   const hasProAccess = !!(isAdmin || subscriptionActive || euFundsUnlocked);
   const versionStackAccess: VersionStackAccess = {
@@ -234,6 +242,7 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
       setEuFundsUnlocked(false);
       setSubscriptionActive(false);
       setUnlockedPlans([]);
+      setUnlockedPlanIds([]);
       setPromoCodeUnlocked(false);
       return;
     }
@@ -246,6 +255,7 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
         setEuFundsUnlocked(data.euFundsUnlocked || false);
         setSubscriptionActive(data.subscriptionActive || false);
         setUnlockedPlans(data.unlockedPlans || []);
+        setUnlockedPlanIds(data.unlockedPlanIds || []);
         setPromoCodeUnlocked(data.promoCodeUnlocked || false);
         setIsPaidState(data.isPaid || false);
       } else {
@@ -511,8 +521,13 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
 
   const handleShare = async () => {
     if (!result) return;
+    if (!user) {
+      router.push(locale === "en" ? "/en/login" : locale === "es" ? "/es/login" : "/login");
+      return;
+    }
     try {
-      const url = await createAndCopySharedPlanLink(result, locale);
+      const token = await user.getIdToken();
+      const url = await createAndCopySharedPlanLink(result, locale, token);
       if (url) {
         setShowShareSuccess(true);
         setTimeout(() => setShowShareSuccess(false), 2000);
@@ -542,11 +557,14 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
     setIsDownloading,
     setPendingDownloadMode,
     setShowPricingModal,
-    setIsSharedView: () => {},
+    setIsSharedView,
     t,
     activeVersionId,
-    onPlanUnlockedByCredit: (planName) => {
+    onPlanUnlockedByCredit: (planName, planId) => {
       setUnlockedPlans((prev) => (prev.includes(planName) ? prev : [...prev, planName]));
+      if (planId) {
+        setUnlockedPlanIds((prev) => (prev.includes(planId) ? prev : [...prev, planId]));
+      }
     },
   });
 
@@ -574,7 +592,13 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
     let shouldStopLoading = true;
 
     if (retryCount === 0) {
-      if (!isPlanPaid && !isAdmin) {
+      const accountPaid = !!(
+        isPaid ||
+        promoCodeUnlocked ||
+        subscriptionActive ||
+        euFundsUnlocked
+      );
+      if (!accountPaid && !isAdmin) {
         try {
           const snap = await getDocs(collection(db, "users", user.uid, "plans"));
           if (snap.size >= FREE_ACCOUNT_PLAN_LIMIT) {
@@ -608,6 +632,7 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
           skill,
           locale,
           currency: locale === "ro" ? "LEI" : "EUR",
+          surface: "studio",
         }),
       });
 
@@ -650,9 +675,17 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
             String(finalResult.nume || "Plan").replace(/[^a-zA-Z0-9]/g, "_") + "_" + Date.now();
           finalResult.id = planId;
 
-          if (retryCount === 0 && !isPlanPaid && !isAdmin) {
-            const studioCount = parseInt(localStorage.getItem("studioGenerateCount") || "0", 10);
-            localStorage.setItem("studioGenerateCount", (studioCount + 1).toString());
+          if (retryCount === 0 && !isAdmin) {
+            const accountPaid = !!(
+              isPaid ||
+              promoCodeUnlocked ||
+              subscriptionActive ||
+              euFundsUnlocked
+            );
+            if (!accountPaid) {
+              const studioCount = parseInt(localStorage.getItem("studioGenerateCount") || "0", 10);
+              localStorage.setItem("studioGenerateCount", (studioCount + 1).toString());
+            }
           }
 
           setVersions({ original: finalResult });

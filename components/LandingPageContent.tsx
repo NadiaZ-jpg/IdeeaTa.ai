@@ -68,7 +68,7 @@ export default function LandingPageContent({ locale = "ro" }: { locale?: "ro" | 
             )
           )}
           <Link 
-            href={isEn ? "/en/demo?start=nou" : isEs ? "/es/demo?start=nou" : "/demo?start=nou"} 
+            href={isEn ? "/en/demo?start=new" : isEs ? "/es/demo?start=nuevo" : "/demo?start=nou"} 
             className="text-sm font-bold bg-white text-black px-5 py-2.5 rounded-full hover:bg-zinc-200 transition-all hover:scale-105 shadow-[0_0_20px_rgba(255,255,255,0.1)]"
           >
             {isEn ? "Try for Free" : isEs ? "Probar Gratis" : "Testează Gratuit"}
@@ -116,7 +116,7 @@ export default function LandingPageContent({ locale = "ro" }: { locale?: "ro" | 
 
         <div className="flex flex-col sm:flex-row gap-4 items-center">
           <Link 
-            href={isEn ? "/en/demo?start=nou" : isEs ? "/es/demo?start=nou" : "/demo?start=nou"}
+            href={isEn ? "/en/demo?start=new" : isEs ? "/es/demo?start=nuevo" : "/demo?start=nou"}
             className="group relative px-8 py-4 bg-emerald-500 hover:bg-emerald-400 text-black font-black text-lg rounded-full transition-all hover:scale-105 shadow-[0_0_40px_rgba(16,185,129,0.3)] overflow-hidden"
           >
             <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out"></div>
@@ -208,7 +208,7 @@ export default function LandingPageContent({ locale = "ro" }: { locale?: "ro" | 
       <section className="relative z-10 py-24 px-6 text-center border-t border-zinc-800/50">
         <h2 className="text-3xl font-bold text-white mb-6">{t('readyToTurnDream', locale)}</h2>
         <Link 
-          href={isEn ? "/en/demo?start=nou" : isEs ? "/es/demo?start=nou" : "/demo?start=nou"}
+          href={isEn ? "/en/demo?start=new" : isEs ? "/es/demo?start=nuevo" : "/demo?start=nou"}
           className="inline-block px-8 py-4 bg-white text-black font-bold rounded-full hover:bg-zinc-200 transition-transform hover:scale-105 shadow-xl"
         >
           {t('startFreeNow', locale)}

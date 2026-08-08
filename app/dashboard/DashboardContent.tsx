@@ -281,7 +281,7 @@ export default function DashboardContent({ locale = "ro" }: { locale?: "ro" | "e
             {plans.map((plan) => (
               <div 
                 key={plan.id}
-                onClick={() => router.push(isEn ? `/en/studio?planId=${plan.id}` : isEs ? `/es/studio?planId=${plan.id}` : `/studio?planId=${plan.id}`)}
+                onClick={() => router.push(isEn ? `/en/studio?planId=${plan.id}&view=idea` : isEs ? `/es/studio?planId=${plan.id}&view=idea` : `/studio?planId=${plan.id}&view=idea`)}
                 className="bg-zinc-900/60 border border-zinc-800 hover:border-emerald-500/50 rounded-2xl p-6 transition-all duration-300 cursor-pointer group flex flex-col hover:-translate-y-1 hover:shadow-[0_10px_30px_-15px_rgba(16,185,129,0.3)] relative overflow-hidden"
               >
                 <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-emerald-500 to-emerald-400 transform origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-300"></div>

@@ -148,6 +148,7 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
   const [lastEditParams, setLastEditParams] = useState<{action: string, customStyle?: string, customInput?: string} | null>(null);
   const [isSharedView, setIsSharedView] = useState(false);
   const [isCheckingShared, setIsCheckingShared] = useState(true);
+  const [studioLoadTimedOut, setStudioLoadTimedOut] = useState(false);
 
   // UI State (modale, dropdown-uri, tab-uri) — gestionate centralizat în useUIState
   const {
@@ -676,6 +677,19 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
 
   useStudioFirebaseSync({ user, setResultState, setVersionsState, setActiveVersionId, setCurrency });
 
+  // Când venim din Dashboard cu ?planId=, așteaptă Firestore (ca pe Mobile) — nu arăta ecranul de generare.
+  useEffect(() => {
+    if (result || !user) {
+      setStudioLoadTimedOut(false);
+      return;
+    }
+    const planId = new URLSearchParams(window.location.search).get("planId");
+    if (!planId) return;
+    setStudioLoadTimedOut(false);
+    const timer = setTimeout(() => setStudioLoadTimedOut(true), 4000);
+    return () => clearTimeout(timer);
+  }, [result, user]);
+
   const handleResendVerification = async () => {
     if (user && user.email) {
       try {
@@ -772,6 +786,11 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
           .finally(() => setIsCheckingShared(false));
       } else {
         setIsCheckingShared(false);
+        const planIdFromUrl = urlParams.get("planId");
+        // Din Dashboard cu planId: nu restaura localStorage (poate fi alt plan / gol) — așteaptă Firestore.
+        if (planIdFromUrl) {
+          return;
+        }
         const savedVersionsStr = localStorage.getItem("current_versions");
         if (savedVersionsStr) {
           const {versions: v, activeVersionId: a} = JSON.parse(savedVersionsStr);
@@ -808,7 +827,10 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
     const handlePopState = () => {
       const searchParams = new URLSearchParams(window.location.search);
       const isEdit = searchParams.get('edit') === 'true';
-      const isIdea = searchParams.get('view') === 'idea' || searchParams.has('sharedId');
+      const isIdea =
+        searchParams.get('view') === 'idea' ||
+        searchParams.has('sharedId') ||
+        searchParams.has('planId');
       const isLogin = searchParams.get('login') === 'true';
 
       // Gestioneaza Studio Editare
@@ -1164,7 +1186,7 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
       if (typeof window !== "undefined") {
         localStorage.removeItem("current_generated_plan");
       }
-      window.location.href = '/demo';
+      window.location.href = ui.routes.demoNew;
       return;
     }
     setResult(null);
@@ -1173,6 +1195,8 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
     setIsSharedView(false);
     if (typeof window !== "undefined") {
       localStorage.removeItem("current_generated_plan");
+      const path = window.location.pathname;
+      window.history.replaceState({}, document.title, path);
     }
     window.scrollTo({ top: 0, behavior: "instant" });
   };
@@ -1232,6 +1256,19 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
         <div className="w-12 h-12 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin"></div>
       </div>
     );
+  }
+
+  // Deschidere proiect din Dashboard: loading până vine planul (sau timeout)
+  if (user && !result && typeof window !== "undefined") {
+    const planId = new URLSearchParams(window.location.search).get("planId");
+    if (planId && !studioLoadTimedOut) {
+      return (
+        <div className="min-h-screen bg-[#09090b] text-white flex flex-col items-center justify-center p-6 text-center">
+          <div className="w-12 h-12 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin mb-4"></div>
+          <p className="text-zinc-400 text-sm">{ui.studioLoadingWorkspace}</p>
+        </div>
+      );
+    }
   }
 
   return (
@@ -1435,7 +1472,12 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
           <>
           <div className="w-full flex flex-col items-center justify-center mb-12 lg:mb-16 relative">
             <div className="inline-flex items-center gap-2.5 px-5 py-2.5 rounded-full bg-zinc-900/90 border border-emerald-500/30 text-emerald-400 text-sm font-black uppercase tracking-wider shadow-[0_0_30px_rgba(16,185,129,0.1)] hover:border-emerald-400/50 transition-all duration-300 animate-pulse relative z-10">
-              <span className="text-base">✨</span> Nu începe o afacere înainte să verifici IdeeaTa.ai
+              <span className="text-base">✨</span>{" "}
+              {locale === "en"
+                ? "Don't start a business before checking IdeeaTa.ai"
+                : locale === "es"
+                ? "No empieces un negocio antes de consultar IdeeaTa.ai"
+                : "Nu începe o afacere înainte să verifici IdeeaTa.ai"}
             </div>
             {/* Elegant curved line bridging the gap below the pill */}
             <div className="w-full max-w-2xl mt-4 opacity-50 relative -top-6 -z-10 hidden md:block">
@@ -1457,14 +1499,20 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
             
             <div>
               <h2 className="text-3xl md:text-4xl lg:text-[3.5rem] font-black mb-8 leading-[1.1] not-italic text-white tracking-tighter text-left max-w-[90%]">
-                Transformă-ți <span className="text-emerald-400">experiența</span> într-un business validat.
+                {locale === "en" ? (
+                  <>Turn your <span className="text-emerald-400">expertise</span> into a validated business.</>
+                ) : locale === "es" ? (
+                  <>Convierte tu <span className="text-emerald-400">experiencia</span> en un negocio validado.</>
+                ) : (
+                  <>Transformă-ți <span className="text-emerald-400">experiența</span> într-un business validat.</>
+                )}
               </h2>
               
               <p className="text-zinc-400 text-xl lg:text-2xl leading-relaxed not-italic font-medium text-left">
-                Descrie la ce ești bun, iar noi îți vom genera un plan de afaceri complet.
+                {ui.heroDesc1}
               </p>
               <p className="text-zinc-400 text-xl lg:text-2xl mt-4 leading-relaxed not-italic font-medium text-left">
-                Analiză SWOT, proiecții financiare și strategie de piață.
+                {ui.heroDesc2}
               </p>
             </div>
 

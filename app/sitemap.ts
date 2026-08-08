@@ -6,7 +6,6 @@ const ORIGIN = "https://ideeata.ai";
 const STATIC_PATHS = [
   "/",
   "/demo",
-  "/login",
   "/despre-noi",
   "/contact",
   "/termeni",
@@ -14,7 +13,6 @@ const STATIC_PATHS = [
   "/cookies",
   "/en",
   "/en/demo",
-  "/en/login",
   "/en/about-us",
   "/en/contact",
   "/en/terms",
@@ -22,7 +20,6 @@ const STATIC_PATHS = [
   "/en/cookies",
   "/es",
   "/es/demo",
-  "/es/login",
   "/es/about-us",
   "/es/contact",
   "/es/terms",

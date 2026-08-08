@@ -52,7 +52,7 @@ const SITE_COPY: Record<SiteLocale, SiteCopy> = {
   es: {
     title: "IdeeaTa.ai - Genera un Plan de Negocios en 2 Segundos",
     description:
-      "Valida tu idea de negocio en solo 2 segundos con Inteligencia Artificial. Obtén un análisis DAFO completo, proyección de presupuesto optimizada y documentos listos para inversores.",
+      "Valida tu idea de negocio en solo 2 segundos con Inteligencia Artificial. Obtén un análisis FODA completo, proyección de presupuesto optimizada y documentos listos para inversores.",
     keywords: [
       "plan de negocios",
       "ideas de negocio",
@@ -63,7 +63,7 @@ const SITE_COPY: Record<SiteLocale, SiteCopy> = {
     ],
     ogTitle: "IdeeaTa.ai - Plan de Negocios Generado por IA",
     ogDescription:
-      "Convierte tu idea en un plan de negocios completo en segundos. Incluye Presupuesto, DAFO y análisis financieros.",
+      "Convierte tu idea en un plan de negocios completo en segundos. Incluye Presupuesto, FODA y análisis financieros.",
     ogLocale: "es_ES",
     path: "/es",
   },

@@ -12,6 +12,7 @@ import {
 } from "@/lib/normalizePlanResult";
 import { fillMissingPlanExplanations } from "@/lib/fillMissingPlanExplanations";
 import { adminAuth, adminDb } from "@/lib/firebase-admin";
+import { isAdminEmail } from "@/lib/adminEmails";
 import { isProToneKey } from "@/lib/toneQuota";
 
 export const maxDuration = 60;
@@ -59,13 +60,7 @@ async function assertEditEntitlement(
 
     // Full Pro tools (EU / Investor / Budget / Expert). Standard promo isPaid alone is not enough.
     if (!hasPro) {
-      // Allow admins by email if set on user doc later; client also gates admins.
-      const email = (decoded.email || "").toLowerCase();
-      const isAdmin =
-        email === "contact@ideeata.ai" ||
-        email === "nadiaramonaz@gmail.com" ||
-        email === "adrian@ideeata.ai";
-      if (!isAdmin) {
+      if (!isAdminEmail(decoded.email)) {
         return NextResponse.json(
           { error: "Forbidden", code: "PRO_REQUIRED" },
           { status: 403 }

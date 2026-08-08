@@ -204,8 +204,8 @@ export default function LandingPageContent({ locale = "ro" }: { locale?: "ro" | 
         <AdBanner dataAdSlot="3098389905" className="w-full" />
       </div>
 
-      {/* Footer CTA */}
-      <footer className="relative z-10 py-24 px-6 text-center border-t border-zinc-800/50">
+      {/* Final CTA — legal links live in global Footer (avoid double footer) */}
+      <section className="relative z-10 py-24 px-6 text-center border-t border-zinc-800/50">
         <h2 className="text-3xl font-bold text-white mb-6">{t('readyToTurnDream', locale)}</h2>
         <Link 
           href={isEn ? "/en/demo?start=nou" : isEs ? "/es/demo?start=nou" : "/demo?start=nou"}
@@ -213,29 +213,7 @@ export default function LandingPageContent({ locale = "ro" }: { locale?: "ro" | 
         >
           {t('startFreeNow', locale)}
         </Link>
-        <div className="mt-16 text-zinc-600 text-sm flex flex-col items-center gap-2">
-          <div className="flex gap-4 items-center flex-wrap justify-center">
-            <Link href={isEn ? "/en/terms" : isEs ? "/es/terms" : "/termeni"} className="hover:text-zinc-400 transition-colors">
-              {t('termsAndConditions', locale)}
-            </Link>
-            <span>&bull;</span>
-            <Link href={isEn ? "/en/privacy" : isEs ? "/es/privacy" : "/privacy"} className="hover:text-zinc-400 transition-colors">
-              {t('privacyPolicy', locale)}
-            </Link>
-            <span>&bull;</span>
-            <a 
-              href="https://buymeacoffee.com/ideeata" 
-              target="_blank" 
-              rel="noopener noreferrer" 
-              className="hover:text-[#FFDD00] text-zinc-400 font-bold transition-colors flex items-center gap-1"
-              title="Buy me a coffee"
-            >
-              <span>☕</span> Buy me a coffee
-            </a>
-          </div>
-          <p>&copy; {new Date().getFullYear()} IdeeaTa.ai - {t('allRightsReserved', locale)}</p>
-        </div>
-      </footer>
+      </section>
     </div>
   );
 }

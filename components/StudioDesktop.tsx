@@ -18,6 +18,7 @@ import { getExamples } from '@/lib/examples';
 import { formatObjectNumbers, formatNumberedText } from "@/lib/utils";
 import { EXPERT_TEMPLATES, ExpertTemplate } from '@/lib/templatesData';
 import { FREE_ACCOUNT_PLAN_LIMIT, clearLocalPlanState } from '@/lib/planQuota';
+import { isAdminEmail } from '@/lib/adminEmails';
 import { canUseFreeToneEdit, consumeFreeToneEdit, isProToneKey, toneVersionKey } from '@/lib/toneQuota';
 import {
   buildStackedVersionKey,
@@ -603,8 +604,7 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
   
   const [user, setUser] = useState<User | null>(null);
   const [promoCodeUnlocked, setPromoCodeUnlocked] = useState(false);
-  const ADMIN_EMAILS = ['contact@ideeata.ai', 'nadiaramonaz@gmail.com'];
-  const isAdmin = user ? ADMIN_EMAILS.includes(user.email || '') : false;
+  const isAdmin = user ? isAdminEmail(user.email) : false;
   const isPlanPaid = promoCodeUnlocked || isAdmin || subscriptionActive || (result && unlockedPlans.includes(result.nume)) || isPaid;
   const isStudioPaid = promoCodeUnlocked || isAdmin || subscriptionActive || euFundsUnlocked || isPaid;
   const hasStandardAccess = isPaid || promoCodeUnlocked || isAdmin || subscriptionActive || isPlanPaid || isStudioPaid;
@@ -1092,8 +1092,6 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
             return;
           }
         }
-        const studioCount = parseInt(localStorage.getItem('studioGenerateCount') || '0', 10);
-        localStorage.setItem('studioGenerateCount', (studioCount + 1).toString());
       }
       setLoading(true);
       setMessageIndex(0);
@@ -1153,6 +1151,14 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
           const finalResult = JSON.parse(cleanJson);
           const planId = finalResult.nume.replace(/[^a-zA-Z0-9]/g, '_') + "_" + Date.now();
           finalResult.id = planId;
+
+          if (retryCount === 0 && typeof window !== "undefined") {
+            const soft = !isPlanPaid && !isAdmin;
+            if (soft) {
+              const studioCount = parseInt(localStorage.getItem('studioGenerateCount') || '0', 10);
+              localStorage.setItem('studioGenerateCount', (studioCount + 1).toString());
+            }
+          }
 
           setResult(formatObjectNumbers(finalResult));
           window.history.pushState({ view: 'idea' }, '', window.location.pathname + '?planId=' + planId + '&view=idea');

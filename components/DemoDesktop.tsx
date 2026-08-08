@@ -30,6 +30,7 @@ import { useExportActions } from '@/hooks/useExportActions';
 import { fetchSharedPlanPayload, resetDemoShareCounters, clearSharedIdFromUrl, redirectIfSharedLocaleMismatch } from '@/hooks/useSharedPlanLoader';
 import { resolveSharedViewCurrency, shouldShowCurrencyToggle } from '@/lib/pdfCtaBehavior';
 import { FREE_ACCOUNT_PLAN_LIMIT, GUEST_DEMO_PLAN_LIMIT, clearLocalPlanState } from '@/lib/planQuota';
+import { isAdminEmail } from '@/lib/adminEmails';
 import { canUseFreeToneEdit, consumeFreeToneEdit, isProToneKey, toneVersionKey } from '@/lib/toneQuota';
 import { useCompleteMissingPlanFields } from '@/hooks/useCompleteMissingPlanFields';
 import { useUIState } from '@/hooks/useUIState';
@@ -546,8 +547,7 @@ export default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" | 
   
   const [user, setUser] = useState<User | null>(null);
   const [promoCodeUnlocked, setPromoCodeUnlocked] = useState(false);
-  const ADMIN_EMAILS = ['contact@ideeata.ai', 'nadiaramonaz@gmail.com'];
-  const isAdmin = user ? ADMIN_EMAILS.includes(user.email || '') : false;
+  const isAdmin = user ? isAdminEmail(user.email) : false;
   const isPlanPaid = promoCodeUnlocked || isAdmin || subscriptionActive || (result && unlockedPlans.includes(result.nume)) || isPaid;
   const isStudioPaid = promoCodeUnlocked || isAdmin || subscriptionActive || euFundsUnlocked || isPaid;
   const hasStandardAccess = isPaid || promoCodeUnlocked || isAdmin || subscriptionActive || isPlanPaid || isStudioPaid;
@@ -1044,8 +1044,6 @@ export default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" | 
             setShowAuthModal(true);
             return;
           }
-          localStorage.setItem("demoGenerateCount", (count + 1).toString());
-          setDemoCount(count + 1);
         } else if (!isAdmin && !accountPaid) {
           try {
             const plansRef = collection(db, "users", user.uid, "plans");
@@ -1128,6 +1126,11 @@ export default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" | 
               "current_versions",
               JSON.stringify({ versions: initialVersions, activeVersionId: "original" })
             );
+            if (!user && retryCount === 0) {
+              const count = parseInt(localStorage.getItem("demoGenerateCount") || "0", 10);
+              localStorage.setItem("demoGenerateCount", (count + 1).toString());
+              setDemoCount(count + 1);
+            }
           }
           window.history.pushState({ view: 'idea' }, '', window.location.pathname + '?view=idea');
           setSkill(""); 

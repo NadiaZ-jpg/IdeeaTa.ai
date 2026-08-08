@@ -27,6 +27,7 @@ import { formatObjectNumbers, formatNumberedText } from "@/lib/utils";
 import { useSharedPlanLoader } from "@/hooks/useSharedPlanLoader";
 import { createAndCopySharedPlanLink } from "@/lib/sharePlan";
 import { FREE_ACCOUNT_PLAN_LIMIT, GUEST_DEMO_PLAN_LIMIT } from "@/lib/planQuota";
+import { isAdminEmail } from "@/lib/adminEmails";
 import { canUseFreeToneEdit, consumeFreeToneEdit, isFreeToneKey, isProToneKey, toneVersionKey } from "@/lib/toneQuota";
 import {
   buildStackedVersionKey,
@@ -154,7 +155,7 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
   const [skipLocalRestore, setSkipLocalRestore] = useState(false);
 
   const isPaid = isPaidState;
-  const isAdmin = !!(user && (user.email === "adrian@ideeata.ai" || user.email === "contact@ideeata.ai" || user.email === "nadiaramonaz@gmail.com"));
+  const isAdmin = isAdminEmail(user?.email);
   const hasStandardAccess = !!(isPaid || promoCodeUnlocked || isAdmin || subscriptionActive || euFundsUnlocked);
   const hasProAccess = !!(isAdmin || subscriptionActive || euFundsUnlocked);
   const versionStackAccess: VersionStackAccess = {
@@ -398,8 +399,6 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
         setShowAuthModal(true);
         return;
       }
-      localStorage.setItem("demoGenerateCount", (count + 1).toString());
-      setDemoCount(count + 1);
     } else if (!isAdmin && !isPaid) {
       try {
         const snap = await getDocs(collection(db, "users", user.uid, "plans"));
@@ -460,6 +459,12 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
           "current_versions",
           JSON.stringify({ versions: initialVersions, activeVersionId: "original" })
         );
+
+        if (!user) {
+          const count = parseInt(localStorage.getItem("demoGenerateCount") || "0", 10);
+          localStorage.setItem("demoGenerateCount", (count + 1).toString());
+          setDemoCount(count + 1);
+        }
 
         // Guest only: listă locală pentru migrare la login.
         // Logat → doar Firestore (altfel migrate creează duplicate cu alt id).

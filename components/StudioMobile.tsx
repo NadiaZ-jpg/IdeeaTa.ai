@@ -18,6 +18,7 @@ import { createAndCopySharedPlanLink } from '@/lib/sharePlan';
 import { StudioMobileGenerateHint } from '@/components/StudioMobileGenerateHint';
 import { getExamples } from '@/lib/examples';
 import { FREE_ACCOUNT_PLAN_LIMIT } from '@/lib/planQuota';
+import { isAdminEmail } from '@/lib/adminEmails';
 import dynamic from 'next/dynamic';
 import { useExportActions } from "@/hooks/useExportActions";
 import { useCompleteMissingPlanFields } from "@/hooks/useCompleteMissingPlanFields";
@@ -75,7 +76,7 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
   const [unlockedPlans, setUnlockedPlans] = useState<string[]>([]);
   const [promoCodeUnlocked, setPromoCodeUnlocked] = useState(false);
   
-  const isAdmin = !!(user && (user.email === "adrian@ideeata.ai" || user.email === "contact@ideeata.ai" || user.email === "nadiaramonaz@gmail.com"));
+  const isAdmin = isAdminEmail(user?.email);
   const [isPaidState, setIsPaidState] = useState(false);
   const isPaid = isPaidState;
 
@@ -588,8 +589,6 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
             return;
           }
         }
-        const studioCount = parseInt(localStorage.getItem("studioGenerateCount") || "0", 10);
-        localStorage.setItem("studioGenerateCount", (studioCount + 1).toString());
       }
       setLoading(true);
       setMessageIndex(0);
@@ -650,6 +649,11 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
           const planId =
             String(finalResult.nume || "Plan").replace(/[^a-zA-Z0-9]/g, "_") + "_" + Date.now();
           finalResult.id = planId;
+
+          if (retryCount === 0 && !isPlanPaid && !isAdmin) {
+            const studioCount = parseInt(localStorage.getItem("studioGenerateCount") || "0", 10);
+            localStorage.setItem("studioGenerateCount", (studioCount + 1).toString());
+          }
 
           setVersions({ original: finalResult });
           setActiveVersionId("original");

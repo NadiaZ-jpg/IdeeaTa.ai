@@ -108,5 +108,6 @@ export const useStudioFirebaseSync = ({
     return () => {
       cancelled = true;
     };
+    // IMPORTANT: deps length must stay constant (HMR-safe). Callbacks live in refs.
   }, [user]);
 };

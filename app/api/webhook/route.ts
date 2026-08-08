@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { adminDb } from "@/lib/firebase-admin";
 import crypto from "crypto";
+import { resolveTierFromLemonOrder } from "@/lib/lemonCheckout";
 
 const webhookSecret = process.env.LEMON_SQUEEZY_WEBHOOK_SECRET || "";
 
@@ -14,7 +15,6 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Missing secret" }, { status: 500 });
     }
 
-    // Verificăm semnătura criptografică
     const hmac = crypto.createHmac("sha256", webhookSecret);
     const digest = Buffer.from(hmac.update(rawBody).digest("hex"), "utf8");
     const signature = Buffer.from(signatureHeader, "utf8");
@@ -29,11 +29,25 @@ export async function POST(req: NextRequest) {
     const customData = payload.meta.custom_data || {};
 
     const userId = customData.userId;
-    const tier = customData.tier;
+    // Tier from paid variant/product — never trust spoofable custom_data.tier alone
+    const tierFromVariant = resolveTierFromLemonOrder(payload);
+    const tier = tierFromVariant;
 
     if (!userId) {
       console.error("Webhook primit dar fara userId in custom_data");
-      return NextResponse.json({ received: true }); // Ignoram comenzile fara userId
+      return NextResponse.json({ received: true });
+    }
+
+    if (
+      (eventName === "order_created" || eventName === "subscription_created") &&
+      !tier
+    ) {
+      console.warn(
+        `[Webhook] Could not map variant/product to tier. userId=${userId} custom_tier=${String(
+          customData.tier
+        )} variant=${payload?.data?.attributes?.first_order_item?.variant_id}`
+      );
+      return NextResponse.json({ received: true });
     }
 
     const userRef = adminDb.collection("users").doc(userId);
@@ -49,39 +63,55 @@ export async function POST(req: NextRequest) {
         const updatedPlans = !unlocked.includes(planName) ? [...unlocked, planName] : unlocked;
         const updatedIds =
           planId && !unlockedIds.includes(planId) ? [...unlockedIds, planId] : unlockedIds;
-        await userRef.set({
-          isPaid: true,
-          unlockedPlans: updatedPlans,
-          unlockedPlanIds: updatedIds,
-          lemonSqueezyCustomerId: payload.data.attributes.customer_id,
-        }, { merge: true });
-        console.log(`Deblocat Standard (isPaid + plan "${planName}" / id=${planId}) pentru user: ${userId}`);
+        await userRef.set(
+          {
+            isPaid: true,
+            unlockedPlans: updatedPlans,
+            unlockedPlanIds: updatedIds,
+            lemonSqueezyCustomerId: payload.data.attributes.customer_id,
+          },
+          { merge: true }
+        );
+        console.log(
+          `Deblocat Standard (isPaid + plan "${planName}" / id=${planId}) pentru user: ${userId}`
+        );
       } else if (tier === "eu-funds") {
-        await userRef.set({
-          euFundsUnlocked: true,
-          isPaid: true,
-          lemonSqueezyCustomerId: payload.data.attributes.customer_id,
-        }, { merge: true });
+        await userRef.set(
+          {
+            euFundsUnlocked: true,
+            isPaid: true,
+            lemonSqueezyCustomerId: payload.data.attributes.customer_id,
+          },
+          { merge: true }
+        );
         console.log(`Deblocat modul Fonduri Europene pentru user: ${userId}`);
       } else if (tier === "pro") {
-        await userRef.set({
-          subscriptionActive: true,
-          isPaid: true,
-          lemonSqueezyCustomerId: payload.data.attributes.customer_id,
-        }, { merge: true });
+        await userRef.set(
+          {
+            subscriptionActive: true,
+            isPaid: true,
+            subscriptionId: payload.data.id || null,
+            lemonSqueezyCustomerId: payload.data.attributes.customer_id,
+          },
+          { merge: true }
+        );
         console.log(`Activat abonament PRO pentru user: ${userId} via order_created`);
-      } else {
-        console.warn(`[Webhook] order_created without known tier (got: ${String(tier)}). userId=${userId} — no unlock`);
       }
     } else if (eventName === "subscription_created") {
-      // In cazul abonamentelor PRO recurente, s-ar putea sa vina acest event in loc de order_created sau suplimentar
-      if (tier === "pro") {
-        await userRef.set({
-          subscriptionActive: true,
-          subscriptionId: payload.data.id,
-          lemonSqueezyCustomerId: payload.data.attributes.customer_id,
-        }, { merge: true });
-        console.log(`Activat abonament PRO pentru user: ${userId} via subscription_created`);
+      if (tier === "pro" || tier === "eu-funds") {
+        await userRef.set(
+          {
+            subscriptionActive: tier === "pro" ? true : userData?.subscriptionActive || false,
+            euFundsUnlocked: tier === "eu-funds" ? true : userData?.euFundsUnlocked || false,
+            isPaid: true,
+            subscriptionId: payload.data.id,
+            lemonSqueezyCustomerId: payload.data.attributes.customer_id,
+          },
+          { merge: true }
+        );
+        console.log(
+          `Activat ${tier} pentru user: ${userId} via subscription_created`
+        );
       }
     } else if (eventName === "subscription_cancelled" || eventName === "subscription_expired") {
       const subscriptionId = payload.data.id;
@@ -92,11 +122,33 @@ export async function POST(req: NextRequest) {
 
       if (!snapshot.empty) {
         const docRef = snapshot.docs[0].ref;
-        await docRef.set({
-          subscriptionActive: false,
-          subscriptionId: null,
-        }, { merge: true });
+        await docRef.set(
+          {
+            subscriptionActive: false,
+            subscriptionId: null,
+          },
+          { merge: true }
+        );
         console.log(`Dezactivat abonament pentru user: ${docRef.id}`);
+      } else {
+        // Fallback: cancel by customer id if subscriptionId was never stored
+        const customerId = payload.data.attributes?.customer_id;
+        if (customerId) {
+          const byCustomer = await adminDb
+            .collection("users")
+            .where("lemonSqueezyCustomerId", "==", customerId)
+            .limit(1)
+            .get();
+          if (!byCustomer.empty) {
+            await byCustomer.docs[0].ref.set(
+              { subscriptionActive: false, subscriptionId: null },
+              { merge: true }
+            );
+            console.log(
+              `Dezactivat abonament (customer fallback) pentru user: ${byCustomer.docs[0].id}`
+            );
+          }
+        }
       }
     } else {
       console.log(`Webhook neprocesat de tip: ${eventName}`);

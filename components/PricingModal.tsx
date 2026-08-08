@@ -1,8 +1,7 @@
 import { useState } from "react";
 import { auth, db } from "@/lib/firebase";
 import { doc, updateDoc } from "firebase/firestore";
-import { getLemonCheckoutUrl, withCheckoutParams } from "@/lib/lemonCheckout";
- 
+
 interface PricingModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -12,23 +11,41 @@ interface PricingModalProps {
   userEmail: string | null;
   currency: string; // "LEI" or "EUR"
   planName?: string;
+  planId?: string;
   locale?: "ro" | "en" | "es";
 }
- 
-export function PricingModal({ isOpen, onClose, onSuccess, onRequireLogin, userId, userEmail, currency, planName, locale = "ro" }: PricingModalProps) {
+
+export function PricingModal({
+  isOpen,
+  onClose,
+  onSuccess,
+  onRequireLogin,
+  userId,
+  userEmail,
+  currency,
+  planName,
+  planId,
+  locale = "ro",
+}: PricingModalProps) {
   const [loadingTier, setLoadingTier] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [promoInput, setPromoInput] = useState("");
   const [promoLoading, setPromoLoading] = useState(false);
- 
+
   if (!isOpen) return null;
- 
+
   const handleCheckout = async (tier: string) => {
     if (!userId) {
       if (onRequireLogin) {
         onRequireLogin();
       } else {
-        setError(locale === "en" ? "Please create a free account to continue." : locale === "es" ? "Por favor, crea una cuenta gratuita para continuar." : "Te rugăm să îți creezi un cont gratuit pentru a continua.");
+        setError(
+          locale === "en"
+            ? "Please create a free account to continue."
+            : locale === "es"
+            ? "Por favor, crea una cuenta gratuita para continuar."
+            : "Te rugăm să îți creezi un cont gratuit pentru a continua."
+        );
       }
       return;
     }
@@ -36,19 +53,57 @@ export function PricingModal({ isOpen, onClose, onSuccess, onRequireLogin, userI
     setLoadingTier(tier);
     setError(null);
     try {
-      const baseUrl = getLemonCheckoutUrl(tier, locale);
-      if (!baseUrl) {
-        throw new Error(locale === "en" ? "Invalid package." : locale === "es" ? "Paquete inválido." : "Pachet invalid.");
+      const currentUser = auth.currentUser;
+      if (!currentUser) {
+        if (onRequireLogin) onRequireLogin();
+        else {
+          setError(
+            locale === "en"
+              ? "Please create a free account to continue."
+              : locale === "es"
+              ? "Por favor, crea una cuenta gratuita para continuar."
+              : "Te rugăm să îți creezi un cont gratuit pentru a continua."
+          );
+        }
+        return;
       }
-      window.location.href = withCheckoutParams(baseUrl, {
-        userId,
-        tier,
-        email: userEmail,
-        planName,
+      const token = await currentUser.getIdToken();
+      const res = await fetch("/api/checkout", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          tier,
+          email: userEmail || currentUser.email,
+          planName,
+          planId,
+          locale,
+        }),
       });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || !data?.url) {
+        throw new Error(
+          data?.error ||
+            (locale === "en"
+              ? "Invalid package."
+              : locale === "es"
+              ? "Paquete inválido."
+              : "Pachet invalid.")
+        );
+      }
+      window.location.href = data.url;
     } catch (err: any) {
       console.error(err);
-      setError(err.message || (locale === "en" ? "An error occurred. Please try again." : locale === "es" ? "Ocurrió un error. Por favor, inténtalo de nuevo." : "A apărut o eroare. Te rugăm să încerci din nou."));
+      setError(
+        err.message ||
+          (locale === "en"
+            ? "An error occurred. Please try again."
+            : locale === "es"
+            ? "Ocurrió un error. Por favor, inténtalo de nuevo."
+            : "A apărut o eroare. Te rugăm să încerci din nou.")
+      );
       setLoadingTier(null);
     }
   };

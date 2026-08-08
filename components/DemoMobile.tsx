@@ -413,7 +413,10 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
         setShowAuthModal(true);
         return;
       }
-    } else if (!isAdmin && !isPaid) {
+    } else if (
+      !isAdmin &&
+      !(isPaid || promoCodeUnlocked || subscriptionActive || euFundsUnlocked)
+    ) {
       try {
         const snap = await getDocs(collection(db, "users", user.uid, "plans"));
         if (snap.size >= FREE_ACCOUNT_PLAN_LIMIT) {
@@ -539,13 +542,21 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
     if (!result) return;
 
     const isTone = action === "professional_tone";
-    const hasPaidTones = !!(isAdmin || isPaid || promoCodeUnlocked || subscriptionActive || euFundsUnlocked);
+    const hasProTones = !!(isAdmin || subscriptionActive || euFundsUnlocked);
+    const hasFreeToneBypass = !!(
+      isAdmin ||
+      isPaid ||
+      promoCodeUnlocked ||
+      subscriptionActive ||
+      euFundsUnlocked ||
+      hasStandardAccess
+    );
 
-    if (isTone && isProToneKey(customInput) && !hasPaidTones) {
+    if (isTone && isProToneKey(customInput) && !hasProTones) {
       setShowPricingModal(true);
       return;
     }
-    if (isTone && isFreeToneKey(customInput) && !hasPaidTones) {
+    if (isTone && isFreeToneKey(customInput) && !hasFreeToneBypass) {
       if (!user) {
         setShowAuthModal(true);
         return;
@@ -675,7 +686,7 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
         setActiveVersionId(vKey);
         setResultState(parsed);
         localStorage.setItem("current_generated_plan", JSON.stringify(parsed));
-        if (isTone && isFreeToneKey(customInput) && !hasPaidTones) {
+        if (isTone && isFreeToneKey(customInput) && !hasFreeToneBypass) {
           consumeFreeToneEdit(false);
         }
         await syncCurrentPlanToFirestore(parsed, nextVersions, vKey);
@@ -1324,6 +1335,7 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
                       user={user}
                       locale={locale}
                       hasStandardAccess={hasStandardAccess}
+                      hasProAccess={hasProAccess}
                       isAdmin={isAdmin}
                       isEditingAi={isEditingAi}
                       setShowAuthModal={setShowAuthModal}
@@ -1527,6 +1539,7 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
         userEmail={user?.email || ""}
         currency={locale === "ro" ? "LEI" : "EUR"}
         planName={result?.nume || (locale === "en" ? "Business Plan" : locale === "es" ? "Plan de Negocios" : "Plan de Afaceri")}
+        planId={result?.id}
         locale={locale}
       />
       {/* Meniu Exporturi Bottom-Sheet */}

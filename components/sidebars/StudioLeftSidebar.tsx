@@ -79,7 +79,7 @@ export function StudioLeftSidebar({
                             <button 
                               type="button"
                               onClick={() => {
-                                if (!hasStandardAccess && !isAdmin) {
+                                if (!hasProAccess && !isAdmin) {
                                   setShowPricingModal(true);
                                   return;
                                 }
@@ -89,14 +89,14 @@ export function StudioLeftSidebar({
                               className="w-full text-xs text-left px-4 py-2.5 rounded-lg hover:bg-zinc-900 text-zinc-400 hover:text-white transition-all font-semibold flex items-center justify-between gap-2"
                             >
                               <span className="min-w-0">{ui.tonePersuasive}</span>
-                              {(!hasStandardAccess && !isAdmin) && (
+                              {(!hasProAccess && !isAdmin) && (
                                 <span className="shrink-0 min-w-[3.25rem] text-center text-[9px] font-bold uppercase tracking-wide text-amber-400/90 border border-amber-500/30 bg-amber-500/5 px-2 py-1 rounded-md">Pro</span>
                               )}
                             </button>
                             <button 
                               type="button"
                               onClick={() => {
-                                if (!hasStandardAccess && !isAdmin) {
+                                if (!hasProAccess && !isAdmin) {
                                   setShowPricingModal(true);
                                   return;
                                 }
@@ -106,7 +106,7 @@ export function StudioLeftSidebar({
                               className="w-full text-xs text-left px-4 py-2.5 rounded-lg hover:bg-zinc-900 text-zinc-400 hover:text-white transition-all font-semibold flex items-center justify-between gap-2"
                             >
                               <span className="min-w-0">{ui.toneFriendly}</span>
-                              {(!hasStandardAccess && !isAdmin) && (
+                              {(!hasProAccess && !isAdmin) && (
                                 <span className="shrink-0 min-w-[3.25rem] text-center text-[9px] font-bold uppercase tracking-wide text-amber-400/90 border border-amber-500/30 bg-amber-500/5 px-2 py-1 rounded-md">Pro</span>
                               )}
                             </button>

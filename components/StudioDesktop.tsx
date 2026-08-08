@@ -171,8 +171,8 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
     if (!user) return;
     try {
       const searchParams = new URLSearchParams(window.location.search);
-      let planId = searchParams.get("planId");
-      const isNewPlan = !planId;
+      let planId = searchParams.get("planId") || updatedResult?.id || null;
+      const isNewPlan = !searchParams.get("planId");
       if (!planId) {
         const safeName = updatedResult?.nume?.replace(/[^a-zA-Z0-9]/g, '_') || 'Business';
         planId = safeName + "_" + Date.now();
@@ -181,6 +181,7 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
       const versToSave = updatedVersions || versions;
       const payload: any = {
         ...updatedResult,
+        id: planId,
         updatedAt: new Date().toISOString(),
         selectedCurrency: currency,
         activeVersionId: activeVersionIdRef.current,
@@ -191,7 +192,7 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
       await setDoc(planRef, payload, { merge: true });
       console.log("Plan sincronizat automat în Firestore:", planId);
 
-      if (isNewPlan) {
+      if (isNewPlan || searchParams.get("planId") !== planId) {
         window.history.replaceState(null, "", window.location.pathname + `?planId=${planId}&view=idea`);
       }
     } catch (err) {
@@ -343,8 +344,8 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
     const isToneAction = action === "professional_tone";
     const isProTone = isToneAction && isProToneKey(customStyle);
 
-    // Tonuri 3–4 necesită Standard/Pro
-    if (isProTone && !isAdmin && !hasStandardAccess) {
+    // Tonuri persuasive/friendly necesită Pro (aliniat cu /api/edit)
+    if (isProTone && !isAdmin && !hasProAccess) {
       setShowPricingModal(true);
       return;
     }
@@ -658,6 +659,8 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
       setSubscriptionActive(false);
       setUnlockedPlans([]);
       setUnlockedPlanIds([]);
+      setPromoCodeUnlocked(false);
+      setIsPaid(false);
       return;
     }
 
@@ -1125,7 +1128,7 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
         try {
           data = JSON.parse(resText);
         } catch (e) {
-          throw new Error(res.ok ? "Răspuns neașteptat de la server. Vă rugăm să reîncercați." : "Eroare la comunicarea cu serverul.");
+          throw new Error(res.ok ? t("errorInvalidFormat", locale) : t("errorNetworkError", locale));
         }
 
         if (!res.ok) {
@@ -1133,10 +1136,10 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
             setShowPricingModal(true);
             return;
           }
-          throw new Error(data.error || `Eroare server: ${res.status}`);
+          throw new Error(data.error || `${t("errorServerPrefix", locale)}${res.status}`);
         }
       } catch (err: any) {
-        throw new Error(err.message || "Eroare de conexiune la server.");
+        throw new Error(err.message || t("errorNetworkError", locale));
       }
       if (data.fx_rate) setFxRate(data.fx_rate);
 
@@ -1448,11 +1451,11 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
                 </span>
               ) : euFundsUnlocked ? (
                 <span className="bg-amber-500/20 border border-amber-500/40 text-amber-300 px-2 py-0.5 rounded-full font-black uppercase tracking-wider">
-                  STUDIO &amp; FONDURI
+                  {ui.badgeStudioGrants}
                 </span>
               ) : isPlanPaid ? (
                 <span className="bg-blue-500/20 border border-blue-500/40 text-blue-400 px-2 py-0.5 rounded-full font-black uppercase tracking-wider">
-                  STANDARD DEBLOCAT
+                  {ui.badgeStandardUnlocked}
                 </span>
               ) : (
                 <span className="bg-zinc-800 border border-zinc-700 text-zinc-300 px-2 py-0.5 rounded-full font-bold">
@@ -1976,7 +1979,7 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
             currency={currency}
             setCurrency={setCurrency}
             isDownloading={isDownloading}
-            isPlanPaid={isPlanPaid}
+            isPlanPaid={hasStandardAccess}
             isEditing={isEditing}
             isSharedView={isSharedView}
             showCurrencyToggle={shouldShowCurrencyToggle(locale, isSharedView)}
@@ -1989,7 +1992,14 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
               onSelectVersion={(vKey, vData) => {
                 setActiveVersionId(vKey);
                 setResultState(vData);
-                void syncCurrentPlanToFirestore(vData);
+                if (typeof window !== "undefined") {
+                  localStorage.setItem(
+                    "current_versions",
+                    JSON.stringify({ versions, activeVersionId: vKey })
+                  );
+                  localStorage.setItem("current_generated_plan", JSON.stringify(vData));
+                }
+                void syncCurrentPlanToFirestore(vData, versions);
               }}
               ui={ui}
               locale={locale}
@@ -2087,6 +2097,7 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
         userEmail={user?.email || ""}
         currency={currency}
         planName={result?.nume || ui.businessPlan}
+        planId={result?.id}
         locale={locale}
       />
       {showAuthModal && (

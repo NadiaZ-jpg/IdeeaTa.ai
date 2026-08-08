@@ -14,8 +14,10 @@ type Locale = "ro" | "en" | "es";
 interface ToneEditorProps {
   user: User | null;
   locale?: Locale;
-  /** Standard/Pro unlock — tones 3–4 require this */
+  /** Standard unlock — skip free-tone quota */
   hasStandardAccess?: boolean;
+  /** Pro unlock — persuasive / friendly tones */
+  hasProAccess?: boolean;
   isAdmin?: boolean;
   isEditingAi: boolean;
   setShowAuthModal: (v: boolean) => void;
@@ -27,13 +29,14 @@ interface ToneEditorProps {
  * Mobile rewrite-tone control (Studio + Demo).
  * - Without account → "Gratis cu cont"
  * - Free account → formal + creative (shared FREE_TONE_EDIT_LIMIT)
- * - Persuasive / friendly → Pro
+ * - Persuasive / friendly → Pro (hasProAccess)
  * Quota is consumed by parent handleAiEdit after successful API (not here).
  */
 export function ToneEditor({
   user,
   locale = "ro",
   hasStandardAccess = false,
+  hasProAccess = false,
   isAdmin = false,
   isEditingAi,
   setShowAuthModal,
@@ -42,7 +45,8 @@ export function ToneEditor({
 }: ToneEditorProps) {
   const [showToneOptions, setShowToneOptions] = useState(false);
   const ui = UI_STRINGS[locale] || UI_STRINGS.ro;
-  const canUseProTones = !!(isAdmin || hasStandardAccess);
+  const canUseProTones = !!(isAdmin || hasProAccess);
+  const skipFreeToneQuota = !!(isAdmin || hasStandardAccess || hasProAccess);
 
   const freeWithAccountBadge =
     locale === "en" ? "Free w/ account" : locale === "es" ? "Gratis con cuenta" : "Gratis cu cont";
@@ -61,7 +65,7 @@ export function ToneEditor({
       return;
     }
 
-    if (isFreeTone && !canUseProTones && !canUseFreeToneEdit(false)) {
+    if (isFreeTone && !skipFreeToneQuota && !canUseFreeToneEdit(false)) {
       setShowPricingModal(true);
       return;
     }

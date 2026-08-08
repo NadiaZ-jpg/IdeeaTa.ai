@@ -14,7 +14,13 @@ export async function POST(req: NextRequest) {
     const authHeader = req.headers.get("Authorization");
     if (authHeader?.startsWith("Bearer ")) {
       try {
-        await adminAuth.verifyIdToken(authHeader.substring(7));
+        const decoded = await adminAuth.verifyIdToken(authHeader.substring(7));
+        if (!consumeRateLimit(`complete:user:${decoded.uid}`, 24, HOUR_MS)) {
+          return NextResponse.json(
+            { error: "Too many requests", code: "RATE_LIMIT" },
+            { status: 429 }
+          );
+        }
       } catch {
         return NextResponse.json(
           { error: "Unauthorized", code: "AUTH_REQUIRED" },
@@ -23,7 +29,7 @@ export async function POST(req: NextRequest) {
       }
     } else {
       const ip = clientIpFromRequest(req);
-      if (!consumeRateLimit(`complete:${ip}`, 12, HOUR_MS)) {
+      if (!consumeRateLimit(`complete:guest:${ip}`, 12, HOUR_MS)) {
         return NextResponse.json(
           { error: "Too many requests", code: "RATE_LIMIT" },
           { status: 429 }

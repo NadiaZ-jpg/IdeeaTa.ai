@@ -67,7 +67,7 @@ export function ActionBar({
   const downloadBlock = (
     <div className="relative group w-full md:w-auto flex-none">
       <div className="flex items-center gap-1.5 bg-zinc-900 border border-zinc-700/60 p-1 rounded-xl h-10 w-full md:w-auto overflow-x-auto md:overflow-visible">
-        {!isPlanPaid || (mode === "demo" && isEditing) ? (
+        {!isPlanPaid ? (
           <button
             type="button"
             onClick={() => onDownloadAction("pdf-summary")}
@@ -82,7 +82,7 @@ export function ActionBar({
           <>
             <button
               type="button"
-              onClick={() => (mode === "demo" && onShowExportModal ? onShowExportModal() : onDownloadAction("pdf"))}
+              onClick={() => onDownloadAction("pdf")}
               disabled={isDownloading !== null}
               className="flex-none hover:bg-zinc-800 text-[10px] sm:text-[11px] h-full px-3 rounded-lg font-black uppercase tracking-wider transition-all flex items-center justify-center whitespace-nowrap gap-1 cursor-pointer text-zinc-300 hover:text-white"
             >
@@ -91,7 +91,7 @@ export function ActionBar({
             <div className="w-px h-4 bg-zinc-800 flex-none" />
             <button
               type="button"
-              onClick={() => (mode === "demo" && onShowExportModal ? onShowExportModal() : onDownloadAction("pptx"))}
+              onClick={() => onDownloadAction("pptx")}
               disabled={isDownloading !== null}
               className="flex-none hover:bg-zinc-800 text-[10px] sm:text-[11px] h-full px-3 rounded-lg font-black uppercase tracking-wider transition-all flex items-center justify-center whitespace-nowrap gap-1 cursor-pointer text-zinc-300 hover:text-white"
             >
@@ -100,7 +100,7 @@ export function ActionBar({
             <div className="w-px h-4 bg-zinc-800 flex-none" />
             <button
               type="button"
-              onClick={() => (mode === "demo" && onShowExportModal ? onShowExportModal() : onDownloadAction("word"))}
+              onClick={() => onDownloadAction("word")}
               disabled={isDownloading !== null}
               className="flex-none hover:bg-zinc-800 text-[10px] sm:text-[11px] h-full px-3 rounded-lg font-black uppercase tracking-wider transition-all flex items-center justify-center whitespace-nowrap gap-1 cursor-pointer text-zinc-300 hover:text-white"
             >

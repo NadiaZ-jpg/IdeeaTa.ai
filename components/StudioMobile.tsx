@@ -244,6 +244,7 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
       setUnlockedPlans([]);
       setUnlockedPlanIds([]);
       setPromoCodeUnlocked(false);
+      setIsPaidState(false);
       return;
     }
 
@@ -282,13 +283,13 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
     if (!result || !user) return;
 
     const isTone = action === "professional_tone";
-    const hasPaidTones = !!(isAdmin || isStudioPaid || isPlanPaid);
+    const hasProTones = !!(isAdmin || hasProAccess);
 
-    if (isTone && isProToneKey(customInput) && !hasPaidTones) {
+    if (isTone && isProToneKey(customInput) && !hasProTones) {
       setShowPricingModal(true);
       return;
     }
-    if (isTone && isFreeToneKey(customInput) && !hasPaidTones && !canUseFreeToneEdit(false)) {
+    if (isTone && isFreeToneKey(customInput) && !(isAdmin || isStudioPaid || isPlanPaid) && !canUseFreeToneEdit(false)) {
       setShowPricingModal(true);
       return;
     }
@@ -403,7 +404,7 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
         setActiveVersionId(vKey);
         setResult(parsed);
         localStorage.setItem("current_generated_plan", JSON.stringify(parsed));
-        if (isTone && isFreeToneKey(customInput) && !hasPaidTones) {
+        if (isTone && isFreeToneKey(customInput) && !(isAdmin || isStudioPaid || isPlanPaid)) {
           consumeFreeToneEdit(false);
         }
 
@@ -1256,6 +1257,7 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
                   user={user}
                   locale={locale}
                   hasStandardAccess={isStudioPaid || isPlanPaid}
+                  hasProAccess={hasProAccess}
                   isAdmin={isAdmin}
                   isEditingAi={isEditingAi}
                   setShowAuthModal={() => router.push(locale === "en" ? "/en/login" : locale === "es" ? "/es/login" : "/login")}
@@ -1464,6 +1466,7 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
         userEmail={user?.email || ""}
         currency={locale === "es" || locale === "en" ? "EUR" : "LEI"}
         planName={result?.nume || (locale === "en" ? "Business Plan" : locale === "es" ? "Plan de Negocios" : "Plan de Afaceri")}
+        planId={result?.id}
         locale={locale}
       />
 

@@ -279,8 +279,8 @@ export default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" | 
     const isActionFree = action === "professional_tone";
     const isProTone = isActionFree && isProToneKey(customStyle);
 
-    // Tonuri 3–4 (persuasive/friendly) necesită Standard/Pro
-    if (isProTone && !isAdmin && !hasStandardAccess) {
+    // Tonuri persuasive/friendly necesită Pro (aliniat cu /api/edit)
+    if (isProTone && !isAdmin && !hasProAccess) {
       if (!user) setShowAuthModal(true);
       else setShowPricingModal(true);
       return;
@@ -619,6 +619,9 @@ export default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" | 
       setEuFundsUnlocked(false);
       setSubscriptionActive(false);
       setUnlockedPlans([]);
+      setUnlockedPlanIds([]);
+      setPromoCodeUnlocked(false);
+      setIsPaid(false);
       return;
     }
 
@@ -1086,7 +1089,7 @@ export default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" | 
         try {
           data = JSON.parse(resText);
         } catch (e) {
-          throw new Error(res.ok ? "Răspuns neașteptat de la server. Vă rugăm să reîncercați." : "Eroare la comunicarea cu serverul.");
+          throw new Error(res.ok ? t("errorInvalidFormat", locale) : t("errorNetworkError", locale));
         }
 
         if (!res.ok) {
@@ -1094,10 +1097,10 @@ export default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" | 
             setShowPricingModal(true);
             return;
           }
-          throw new Error(data.error || `Eroare server: ${res.status}`);
+          throw new Error(data.error || `${t("errorServerPrefix", locale)}${res.status}`);
         }
       } catch (err: any) {
-        throw new Error(err.message || "Eroare de conexiune la server.");
+        throw new Error(err.message || t("errorNetworkError", locale));
       }
       if (data.fx_rate) setFxRate(data.fx_rate);
 
@@ -1921,11 +1924,10 @@ export default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" | 
             onStartEditing={startEditing}
             onDownloadAction={downloadAction}
             onShowPricingModal={() => setShowPricingModal(true)}
-            onShowExportModal={() => setShowStudioExportModal(true)}
             currency={currency}
             setCurrency={setCurrency}
             isDownloading={isDownloading}
-            isPlanPaid={isPlanPaid}
+            isPlanPaid={hasStandardAccess}
             isEditing={isEditing}
             isSharedView={isSharedView}
             showCurrencyToggle={shouldShowCurrencyToggle(locale, isSharedView)}
@@ -2043,6 +2045,7 @@ export default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" | 
         userEmail={user?.email || ""}
         currency={currency}
         planName={result?.nume || ui.businessPlan}
+        planId={result?.id}
         locale={locale}
       />
       {showAuthModal && (

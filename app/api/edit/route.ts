@@ -74,6 +74,14 @@ async function assertEditEntitlement(
 
   try {
     const decoded = await adminAuth.verifyIdToken(authHeader.substring(7));
+    if (
+      !consumeRateLimit(`edit:user:${decoded.uid}`, needsPro ? 40 : 20, HOUR_MS)
+    ) {
+      return NextResponse.json(
+        { error: "Too many requests", code: "RATE_LIMIT" },
+        { status: 429 }
+      );
+    }
     if (!needsPro) return null;
 
     const userDoc = await adminDb.collection("users").doc(decoded.uid).get();

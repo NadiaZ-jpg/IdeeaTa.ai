@@ -4,6 +4,7 @@ import { db } from '@/lib/firebase';
 import { formatObjectNumbers } from '@/lib/utils';
 import { User } from 'firebase/auth';
 import { readStagedStudioPlan, clearStagedStudioPlan } from '@/lib/studioPlanHandoff';
+import { resolveLoadedStudioPlan } from '@/lib/studioActiveVersion';
 
 interface UseStudioFirebaseSyncProps {
   user: User | null;
@@ -47,21 +48,18 @@ export const useStudioFirebaseSync = ({
 
     const applyPlan = (raw: Record<string, unknown>) => {
       const data = formatObjectNumbers(raw) as Record<string, any>;
-      if (data.selectedCurrency && setCurrencyRef.current) {
-        setCurrencyRef.current(data.selectedCurrency);
+      const { versions, activeVersionId, displayResult } = resolveLoadedStudioPlan(data);
+
+      if (displayResult.selectedCurrency && setCurrencyRef.current) {
+        setCurrencyRef.current(displayResult.selectedCurrency);
       }
-      if (data.versions && typeof data.versions === "object" && Object.keys(data.versions).length > 0) {
-        setVersionsStateRef.current(data.versions);
-        setActiveVersionIdRef.current(
-          data.versions.original ? "original" : Object.keys(data.versions)[0] || "original"
-        );
-      } else {
-        setVersionsStateRef.current({ original: data });
-        setActiveVersionIdRef.current("original");
-      }
-      onPlanLoadedRef.current(data);
+
+      setVersionsStateRef.current(versions);
+      setActiveVersionIdRef.current(activeVersionId);
+      onPlanLoadedRef.current(displayResult);
+
       try {
-        localStorage.setItem("current_generated_plan", JSON.stringify(data));
+        localStorage.setItem("current_generated_plan", JSON.stringify(displayResult));
       } catch {
         /* ignore */
       }

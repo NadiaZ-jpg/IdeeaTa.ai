@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { EXPERT_TEMPLATES, ExpertTemplate } from '@/lib/templatesData';
+import { EXPERT_TEMPLATES, ExpertTemplate, expertModulesAllFilterLabel } from '@/lib/templatesData';
 
 type Locale = "ro" | "en" | "es";
 
@@ -56,7 +56,7 @@ export const ExpertSectionsDrawer: React.FC<ExpertSectionsDrawerProps> = ({
             onClick={() => setSelectedExpertCategory("all")}
             className={`px-3 py-1.5 rounded-lg text-xs font-bold whitespace-nowrap transition-all ${selectedExpertCategory === "all" ? "bg-emerald-600 text-white" : "bg-zinc-800/60 text-zinc-400 hover:text-white"}`}
           >
-            {locale === "en" ? "All Modules (30+)" : locale === "es" ? "Todos los Módulos" : "Toate Modulele (30+)"}
+            {expertModulesAllFilterLabel(locale)}
           </button>
           {Array.from(new Set(EXPERT_TEMPLATES.map(t => t.category[locale] || t.category.ro))).map((cat, idx) => (
             <button

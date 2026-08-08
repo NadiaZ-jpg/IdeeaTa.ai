@@ -7,6 +7,7 @@ import { generateDocxBlob } from "@/lib/generateDocx";
 import { createSharedPlan, buildSharedPlanUrl } from "@/lib/sharePlan";
 import { attachPdfCtaLinks, normalizeAppLocale } from "@/lib/pdfCtaBehavior";
 import { UI_STRINGS } from "@/lib/uiStrings";
+import { buildExportVersionFileSuffix } from "@/lib/studioActiveVersion";
 
 interface UseExportActionsProps {
   result: any;
@@ -23,6 +24,8 @@ interface UseExportActionsProps {
   setShowPricingModal: (show: boolean) => void;
   setIsSharedView: (shared: boolean) => void;
   t: any;
+  /** Active history tab — filename suffix (Desktop/Mobile Studio + Demo). */
+  activeVersionId?: string;
 }
 
 export function useExportActions({
@@ -39,11 +42,13 @@ export function useExportActions({
   setPendingDownloadMode,
   setShowPricingModal,
   setIsSharedView,
-  t
+  t,
+  activeVersionId,
 }: UseExportActionsProps) {
   
   const handleDownloadAction = async (mode: 'pdf' | 'pptx' | 'word' | 'pdf-summary', bypassPaymentCheck = false) => {
     const planName = result?.nume || "Plan de Afaceri";
+    const versionSuffix = buildExportVersionFileSuffix(activeVersionId, result, locale);
 
     if (mode !== 'pdf-summary' && !isAdmin && !isPlanPaid && !subscriptionActive && !euFundsUnlocked && !bypassPaymentCheck) {
       if (!user) {
@@ -102,7 +107,7 @@ export function useExportActions({
 
       if (mode === 'pptx') {
         const planCurrency = result?.selectedCurrency || currency || (locale === "es" || locale === "en" ? "EUR" : "LEI");
-        await generatePptx(result, safeName, planCurrency, 0.201, locale, brochureLabel);
+        await generatePptx(result, `${safeName}${versionSuffix}`, planCurrency, 0.201, locale, brochureLabel);
       } else if (mode === 'pdf' || mode === 'pdf-summary') {
         let slidesArray = Array.from(document.querySelectorAll('.pdf-presentation-slide'));
         if (slidesArray.length === 0) {
@@ -157,7 +162,7 @@ export function useExportActions({
         }
         
         const suffix = mode === 'pdf-summary' ? `_${summaryFreeLabel}` : '';
-        pdf.save(`IdeeaTa_${presentationLabel}_${safeName}${suffix}.pdf`);
+        pdf.save(`IdeeaTa_${presentationLabel}_${safeName}${versionSuffix}${suffix}.pdf`);
       } else if (mode === 'word') {
           const chartElement = document.getElementById("docx-export-chart-hidden");
           let chartDataUrl = null;
@@ -171,7 +176,7 @@ export function useExportActions({
           const link = document.createElement('a');
           link.href = URL.createObjectURL(blob);
           const safeName2 = result?.nume?.replace(/[^a-zA-Z0-9]/g, '_') || 'Business';
-          link.download = `IdeeaTa_${documentLabel}_${safeName2}.docx`;
+          link.download = `IdeeaTa_${documentLabel}_${safeName2}${versionSuffix}.docx`;
           document.body.appendChild(link);
           link.click();
           document.body.removeChild(link);

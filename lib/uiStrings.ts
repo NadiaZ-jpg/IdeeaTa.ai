@@ -75,7 +75,7 @@ type UIStringsShape = {
   strategicObjectives: string; marketCompetition: string; promotion: string; businessPlan: string; yourBusiness: string;
   alertUnlimitedPro: string; rewriteTone: string; toneProfessional: string; toneCreative: string; tonePersuasive: string; toneFriendly: string;
   euGrantsOpt: string; optimizedForEUGrants: string; optimizeBudget: string; optimizeBudgetPlaceholder: string; expertSectionLibrary: string;
-  modules30: string; confirm: string; apply: string; cancel: string; contentProtected: string; animatedPlaceholder: string;
+  confirm: string; apply: string; cancel: string; contentProtected: string; animatedPlaceholder: string;
   inspireMeSparkles: string; businessExamplesSparkles: string; afterSparkles: string; swotFull: string; budget12m: string;
   marketStrategy: string; euFundsEligibility: string; exportPdfPptx: string; editingStudio: string; cancelCross: string;
   confirmSaveCheck: string; anotherIdea: string; directEditing: string; allTools: string; grantOpt: string;
@@ -85,7 +85,7 @@ type UIStringsShape = {
   objectives1y: string; objectives3y: string; missionValues: string; targetCustomers: string; competition: string;
   marketingStrategy: string; swotTitle: string; strengths: string; weaknesses: string; opportunities: string; threats: string;
   operationalPlan: string; workflowDesc: string; humanResources: string; locationFacilities: string;
-  optimizeBudgetCustom: string; editorTip: string; versionToolsTip: string;
+  optimizeBudgetCustom: string; editorTip: string; versionToolsTip: string; expertLibraryTip: string;
   // NEW ADDITIONS
   planGeneratedSmartly: string; filePresentation: string; fileSummaryFree: string; fileDocument: string; fileBrochure: string;
   howItLooks: string; perspective: string; previewTabs: string; animatedCharts: string; typingLive: string;
@@ -216,7 +216,7 @@ export const UI_STRINGS: Record<Locale, UIStringsShape> = {
     rewriteTone: "Rescrie tonul", toneProfessional: "💼 Profesional & Corporativ", toneCreative: "🎨 Entuziast & Creativ", tonePersuasive: "📈 Persuasiv & Vânzări", toneFriendly: "🤝 Prietenos & Casual",
     euGrantsOpt: "Optimizare Fonduri Europene", optimizedForEUGrants: "Optimizat pentru Fonduri Europene",
     optimizeBudget: "Optimizează Bugetul", optimizeBudgetPlaceholder: "ex: 10, 20, 30", expertSectionLibrary: "Librăria de Secțiuni Experte",
-    modules30: "30+ MODULE", confirm: "Confirmă", apply: "Aplică", cancel: "Anulează",
+    confirm: "Confirmă", apply: "Aplică", cancel: "Anulează",
     contentProtected: "Conținutul este protejat. Pentru a obține documentul, utilizați funcția de descărcare din aplicație.",
     animatedPlaceholder: "Crează un plan pentru... (ex: Consultanță securitate)",
     inspireMeSparkles: "✨ Inspiră-mă", businessExamplesSparkles: "💡 Exemple de Afaceri", afterSparkles: "După ✨",
@@ -232,7 +232,8 @@ export const UI_STRINGS: Record<Locale, UIStringsShape> = {
     operationalPlan: "Planul Operațional", workflowDesc: "1. Descriere Flux (Sustenabilitate / Verde)", humanResources: "2. Resurse Umane", locationFacilities: "3. Locație și Dotări",
     optimizeBudgetCustom: "Optimizează Bugetul (Personalizat)",
     editorTip: "<strong>Sfat:</strong> Aici editezi textul documentului. Pentru a adăuga <strong class='text-white'>imagini</strong>, logo sau a schimba aranjarea în pagină, apasă <em>Confirmă și Salvează</em>, apoi descarcă documentele.",
-    versionToolsTip: "<strong>Sfat:</strong> Fiecare instrument din panou creează un <strong class='text-white'>tab nou</strong> în Istoric (din Varianta Originală). Pe un tab, apasă <strong class='text-white'>+</strong> ca să combini alte instrumente pe aceeași versiune: <strong class='text-white'>Standard max. 2</strong>, <strong class='text-white'>Full Access max. 4</strong>. Contul gratuit salvează tab-uri separate, fără combinare. Descărcarea folosește tab-ul activ.",
+    versionToolsTip: "<strong>Sfat:</strong> Pe <strong class='text-white'>Varianta Originală</strong>, fiecare instrument din panou creează un <strong class='text-white'>tab nou</strong>. Dacă ești pe un alt tab, instrumentul se aplică pe <strong class='text-white'>tab-ul activ</strong> și creează o combinație (ex. Investitori + Buget -10%): <strong class='text-white'>Standard max. 2</strong>, <strong class='text-white'>Full Access max. 4</strong>. Poți folosi și <strong class='text-white'>+</strong> pe tab. Contul gratuit: un instrument pe tab, fără combinare. Descărcarea folosește tab-ul activ.",
+    expertLibraryTip: "<strong>Sfat:</strong> După <strong class='text-white'>Optimizare Fonduri UE</strong>, din bibliotecă adaugă: <strong class='text-white'>DNSH</strong>, <strong class='text-white'>Logistică verde</strong>, <strong class='text-white'>Egalitate de șanse</strong> (+ Digitalizare). După <strong class='text-white'>Plan Profesional</strong>: <strong class='text-white'>Funnel B2B</strong>, <strong class='text-white'>Prețuri</strong>, <strong class='text-white'>Matrice riscuri</strong> (+ HR).",
     planGeneratedSmartly: "Plan generat inteligent de IdeeaTa.ai", filePresentation: "Prezentare", fileSummaryFree: "Sumar_Gratuit", fileDocument: "Document", fileBrochure: "Brosura",
     howItLooks: "Cum arată un plan generat?", perspective: "Perspectivă", previewTabs: "Preview cu tabs", animatedCharts: "Grafice animate", typingLive: "Typing live",
     beforeAfter: "Înainte & După", generatedExample: "EXEMPLU GENERAT", coffeeShopName: "Cafenea de Specialitate 'Urban Beans'", paywallTitle: "Acesta a fost doar un scurt rezumat.", paywallDesc: "Pentru a obține <strong>Analiza SWOT detaliată, Bugetul de investiții, Strategia de Piață completă și Planul Operațional</strong>, creează-ți un cont gratuit!", paywallDescStudio: "Pentru a obține <strong>Analiza SWOT detaliată, Bugetul de investiții, Strategia de Piață completă și Planul Operațional</strong>, deblochează pachetul complet!",
@@ -362,7 +363,7 @@ export const UI_STRINGS: Record<Locale, UIStringsShape> = {
     rewriteTone: "Rewrite tone", toneProfessional: "💼 Professional & Corporate", toneCreative: "🎨 Enthusiastic & Creative", tonePersuasive: "📈 Persuasive & Sales", toneFriendly: "🤝 Friendly & Casual",
     euGrantsOpt: "EU Grants Optimization", optimizedForEUGrants: "Optimized for EU Grants",
     optimizeBudget: "Optimize Budget", optimizeBudgetPlaceholder: "e.g. 10, 20, 30", expertSectionLibrary: "Expert Section Library",
-    modules30: "30+ MODULES", confirm: "Confirm", apply: "Apply", cancel: "Cancel",
+    confirm: "Confirm", apply: "Apply", cancel: "Cancel",
     contentProtected: "Content is protected. To obtain the document, use the download function inside the application.",
     animatedPlaceholder: "Create a plan for... (e.g. Cybersecurity consulting)",
     inspireMeSparkles: "✨ Inspire me", businessExamplesSparkles: "💡 Business Examples", afterSparkles: "After ✨",
@@ -378,7 +379,8 @@ export const UI_STRINGS: Record<Locale, UIStringsShape> = {
     operationalPlan: "Operational Plan", workflowDesc: "1. Workflow Description (Sustainability / Green)", humanResources: "2. Human Resources", locationFacilities: "3. Location & Facilities",
     optimizeBudgetCustom: "Optimize Budget (Custom)",
     editorTip: "<strong>Tip:</strong> Here you edit the document text. To add <strong class='text-white'>images</strong>, logo or change the layout, press <em>Confirm & Save</em>, then download the documents.",
-    versionToolsTip: "<strong>Tip:</strong> Each tool in the panel creates a <strong class='text-white'>new tab</strong> in History (from the Original version). On a tab, tap <strong class='text-white'>+</strong> to combine more tools on the same version: <strong class='text-white'>Standard max. 2</strong>, <strong class='text-white'>Full Access max. 4</strong>. Free accounts save separate tabs, without combining. Downloads use the active tab.",
+    versionToolsTip: "<strong>Tip:</strong> On the <strong class='text-white'>Original</strong> tab, each panel tool creates a <strong class='text-white'>new tab</strong>. On any other tab, the tool runs on the <strong class='text-white'>active tab</strong> and creates a combination (e.g. Investors + Budget -10%): <strong class='text-white'>Standard max. 2</strong>, <strong class='text-white'>Full Access max. 4</strong>. You can also use <strong class='text-white'>+</strong> on a tab. Free accounts: one tool per tab, no combining. Downloads use the active tab.",
+    expertLibraryTip: "<strong>Tip:</strong> After <strong class='text-white'>EU Funds Optimization</strong>, add from the library: <strong class='text-white'>DNSH</strong>, <strong class='text-white'>Green logistics</strong>, <strong class='text-white'>Equal opportunity</strong> (+ Digitalization). After <strong class='text-white'>Professional Plan</strong>: <strong class='text-white'>B2B funnel</strong>, <strong class='text-white'>Pricing</strong>, <strong class='text-white'>Risk matrix</strong> (+ HR).",
     planGeneratedSmartly: "Business plan smartly generated by IdeeaTa.ai", filePresentation: "Presentation", fileSummaryFree: "Free_Summary", fileDocument: "Document", fileBrochure: "Brochure",
     howItLooks: "How does a generated plan look?", perspective: "Perspective", previewTabs: "Tabs Preview", animatedCharts: "Animated charts", typingLive: "Live typing",
     beforeAfter: "Before & After", generatedExample: "GENERATED EXAMPLE", coffeeShopName: "Specialty Coffee Shop 'Urban Beans'", paywallTitle: "This was just a short summary.", paywallDesc: "To get the detailed <strong>SWOT Analysis, Investment Budget, Full Market Strategy, and Operational Plan</strong>, create a free account!", paywallDescStudio: "To get the detailed <strong>SWOT Analysis, Investment Budget, Full Market Strategy, and Operational Plan</strong>, unlock the full package!",
@@ -508,7 +510,7 @@ export const UI_STRINGS: Record<Locale, UIStringsShape> = {
     rewriteTone: "Reescribir tono", toneProfessional: "💼 Profesional y Corporativo", toneCreative: "🎨 Entusiasta y Creativo", tonePersuasive: "📈 Persuasivo y Comercial", toneFriendly: "🤝 Amigable y Casual",
     euGrantsOpt: "Optimización de Subvenciones de la UE", optimizedForEUGrants: "Optimizado para Subvenciones de la UE",
     optimizeBudget: "Optimizar Presupuesto", optimizeBudgetPlaceholder: "ej: 10, 20, 30", expertSectionLibrary: "Biblioteca de Secciones Experta",
-    modules30: "30+ MÓDULOS", confirm: "Confirmar", apply: "Aplicar", cancel: "Cancelar",
+    confirm: "Confirmar", apply: "Aplicar", cancel: "Cancelar",
     contentProtected: "El contenido está protegido. Para obtener el documento, utiliza la función de descarga dentro de la aplicación.",
     animatedPlaceholder: "Crea un plan para... (ej. Consultoría en ciberseguridad)",
     inspireMeSparkles: "✨ Inspírame", businessExamplesSparkles: "💡 Ejemplos de Negocios", afterSparkles: "Después ✨",
@@ -524,7 +526,8 @@ export const UI_STRINGS: Record<Locale, UIStringsShape> = {
     operationalPlan: "Plan Operativo", workflowDesc: "1. Descripción del Flujo (Sostenibilidad / Verde)", humanResources: "2. Recursos Humanos", locationFacilities: "3. Ubicación e Instalaciones",
     optimizeBudgetCustom: "Optimizar Presupuesto (Personalizado)",
     editorTip: "<strong>Consejo:</strong> Aquí puedes editar el texto del documento. Para agregar <strong class='text-white'>imágenes</strong>, logo o cambiar el diseño, presiona <em>Confirmar y Guardar</em>, luego descarga los documentos.",
-    versionToolsTip: "<strong>Consejo:</strong> Cada herramienta del panel crea una <strong class='text-white'>pestaña nueva</strong> en el Historial (desde la Versión Original). En una pestaña, pulsa <strong class='text-white'>+</strong> para combinar más herramientas en la misma versión: <strong class='text-white'>Standard máx. 2</strong>, <strong class='text-white'>Full Access máx. 4</strong>. La cuenta gratuita guarda pestañas separadas, sin combinar. La descarga usa la pestaña activa.",
+    versionToolsTip: "<strong>Consejo:</strong> En la <strong class='text-white'>Versión Original</strong>, cada herramienta del panel crea una <strong class='text-white'>pestaña nueva</strong>. En otra pestaña, la herramienta se aplica a la <strong class='text-white'>pestaña activa</strong> y crea una combinación (ej. Inversores + Presupuesto -10%): <strong class='text-white'>Standard máx. 2</strong>, <strong class='text-white'>Full Access máx. 4</strong>. También puedes usar <strong class='text-white'>+</strong> en la pestaña. Cuenta gratuita: una herramienta por pestaña, sin combinar. La descarga usa la pestaña activa.",
+    expertLibraryTip: "<strong>Consejo:</strong> Tras <strong class='text-white'>Optimización Fondos UE</strong>, añade desde la biblioteca: <strong class='text-white'>DNSH</strong>, <strong class='text-white'>Logística verde</strong>, <strong class='text-white'>Igualdad de oportunidades</strong> (+ Digitalización). Tras el <strong class='text-white'>Plan Profesional</strong>: <strong class='text-white'>Embudo B2B</strong>, <strong class='text-white'>Precios</strong>, <strong class='text-white'>Matriz de riesgos</strong> (+ RR.HH.).",
     planGeneratedSmartly: "Plan de negocios generado inteligentemente por IdeeaTa.ai", filePresentation: "Presentacion", fileSummaryFree: "Resumen_Gratuito", fileDocument: "Documento", fileBrochure: "Folleto",
     howItLooks: "¿Cómo se ve un plan generado?", perspective: "Perspectiva", previewTabs: "Vista con pestañas", animatedCharts: "Gráficos animados", typingLive: "Escritura en vivo",
     beforeAfter: "Antes y Después", generatedExample: "EJEMPLO GENERADO", coffeeShopName: "Cafetería de Especialidad 'Urban Beans'", paywallTitle: "Este fue solo un breve resumen.", paywallDesc: "¡Para obtener el <strong>Análisis FODA detallado, el Presupuesto de Inversión, la Estrategia de Mercado y el Plan Operativo</strong>, crea una cuenta gratuita!", paywallDescStudio: "¡Para obtener el <strong>Análisis FODA detallado, el Presupuesto de Inversión, la Estrategia de Mercado y el Plan Operativo</strong>, desbloquea el paquete completo!",

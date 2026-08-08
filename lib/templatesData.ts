@@ -1,3 +1,5 @@
+export type ExpertLocale = "ro" | "en" | "es";
+
 export interface ExpertTemplate {
   id: string;
   category: {
@@ -238,3 +240,19 @@ export const EXPERT_TEMPLATES: ExpertTemplate[] = [
     }
   }
 ];
+
+/** Badge on library button — always matches EXPERT_TEMPLATES.length (RO/EN/ES). */
+export function expertModulesBadgeLabel(locale: ExpertLocale): string {
+  const n = EXPERT_TEMPLATES.length;
+  if (locale === "en") return `${n} MODULES`;
+  if (locale === "es") return `${n} MÓDULOS`;
+  return `${n} MODULE`; // RO plural of „modul”
+}
+
+/** "All modules" filter label in the expert drawer. */
+export function expertModulesAllFilterLabel(locale: ExpertLocale): string {
+  const n = EXPERT_TEMPLATES.length;
+  if (locale === "en") return `All Modules (${n})`;
+  if (locale === "es") return `Todos los Módulos (${n})`;
+  return `Toate Modulele (${n})`;
+}

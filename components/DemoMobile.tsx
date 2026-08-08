@@ -193,7 +193,8 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
     setPendingDownloadMode,
     setShowPricingModal,
     setIsSharedView: () => {},
-    t
+    t,
+    activeVersionId,
   });
   
   // Stările pentru asistentul AI Bottom-Sheet

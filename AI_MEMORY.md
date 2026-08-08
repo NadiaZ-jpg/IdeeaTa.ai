@@ -555,16 +555,16 @@ Dacă oricare dintre aceste verificări este omisă în procesul de planificare,
 - Free: max 1 tool pe lanț (tab simplu); **fără** meniu Combină.
 - Standard: max **2** tool-uri pe stack.
 - Full Access: max **4** tool-uri pe stack.
-- **Toolbar / panou Instrumente:** fiecare rulare = **tab sibling nou din Original** (nu append pe tab-ul curent).
-- „Combină cu…” (**+** pe tab) → tool pe conținutul tabului → **tab nou** `A + B` (stack append până la limită).
+- **Toolbar pe Original:** fiecare rulare = **tab sibling nou din Original** (stack gol).
+- **Toolbar pe tab non-Original** SAU „Combină cu…” (**+**): tool pe conținutul tabului activ → **tab nou** `A + B` (`resolveEditBaseForToolRun`).
 - Download = tab activ.
-- UI: `VersionSelector` Desktop (`flex-wrap` la overflow) + dropdown istoric Mobile; gate stack doar pe Combine.
+- UI: `VersionSelector` Desktop (`flex-wrap` la overflow) + dropdown istoric Mobile.
 
 ## FREEZE (6 August 2026 — Studio tools tip + same-session history tabs)
 **Bug:** 2+ instrumente în aceeași sesiune (fără ieșire) nu creau tab-uri — al doilea append-uia pe stack (Free limit 1 → blocat). Mergea doar după ieșire/reintrare.
 **Fix + UX (Desktop+Mobile, RO/EN/ES — EN paralel cu RO/ES):**
-- `StudioDesktop` / `StudioMobile` `handleAiEdit`: toolbar = Original + stack gol; Combine = `sourceVersionId` / `basePlan` / `combineOptions`.
-- `ui.versionToolsTip` în `lib/uiStrings.ts` (ro/en/es): tab nou per instrument, **+**, Standard 2 / Full 4, free fără combinare, download = tab activ.
+- `StudioDesktop` / `StudioMobile` `handleAiEdit` via `resolveEditBaseForToolRun`: Original → sibling; alt tab / Combine → append pe stack-ul activ.
+- `ui.versionToolsTip` în `lib/uiStrings.ts` (ro/en/es): pe Original = tab nou; pe alt tab = combinație; Standard 2 / Full 4; free fără combinare; download = tab activ.
 - Afișare: `StudioLeftSidebar` (Desktop) + `StudioMobile` (sub Istoric), lângă `editorTip`.
 - Fișiere: `StudioDesktop.tsx`, `StudioMobile.tsx`, `StudioLeftSidebar.tsx`, `VersionSelector.tsx`, `lib/uiStrings.ts`, `lib/versionStack.ts`.
 
@@ -593,13 +593,29 @@ Dacă oricare dintre aceste verificări este omisă în procesul de planificare,
 - **`lib/versionStack.ts`** — tab-uri `stack_*` decodează combinația (ex. `tcre-tfor` → aceleași label-uri ca Instrumente: ton creative + formal); `formatVersionTabTitle` RO/EN/ES.
 **ÎNGHEȚAT** — nu se scoate handoff-ul și nu se reintroduce ecranul „plan missing” fără aprobare.
 
+## FREEZE (8 August 2026 — Instrumente pe tab non-Original = Combină)
+**Regulă (Desktop+Mobile, RO/EN/ES):** pe tab ≠ Original, instrumentele din sidebar se comportă ca **+ Combină** (conținut tab activ + tool → tab nou `A + B`). Limite neschimbate: Free 1 / Standard 2 / Full 4.
+- `resolveEditBaseForToolRun` în `lib/versionStack.ts`; folosit în `StudioDesktop` + `StudioMobile` `handleAiEdit`.
+- Tip: `ui.versionToolsTip` ro/en/es actualizat.
+**ÎNGHEȚAT** — nu se revine la „toate instrumentele = sibling din Original” fără aprobare.
+
+## FREEZE (8 August 2026 — Load tab activ + export suffix + bibliotecă experți)
+**Desktop+Mobile, RO/EN/ES:**
+- **`lib/studioActiveVersion.ts` (NOU)** — `resolveLoadedStudioPlan` (UI = planul tabului activ, nu top-level Firestore); `buildExportVersionFileSuffix` pe download.
+- `useStudioFirebaseSync` + `useExportActions` (+ Demo Desktop/Mobile) folosesc helper-ul.
+- Badge bibliotecă: scos „30+”; `expertModulesBadgeLabel` / `expertModulesAllFilterLabel` = `EXPERT_TEMPLATES.length` (acum **9**).
+- Sfat nou `ui.expertLibraryTip` (ro/en/es): Fonduri UE → DNSH / Logistică verde / Egalitate (+ Digitalizare); Plan Profesional → Funnel B2B / Prețuri / Matrice riscuri (+ HR). Afișat în `StudioLeftSidebar` + `StudioMobile`.
+**ÎNGHEȚAT** — nu se reintroduce „30+” pe badge fără conținut real; nu se încarcă top-level over active tab fără aprobare.
+
 ## RĂMÂNE DE FĂCUT
 - Deploy Hetzner (tot batch-ul Studio de mai sus + handoff Dashboard)
 - Smoke Mis Planes → Studio: planul se deschide imediat (fără spinner 8s / redirect)
 - Smoke Studio Standard/Full ES: Plan Profesional → 100% spaniolă + FODA cu explicații
 - Smoke optimize budget 20% → costuri × 0.8; Word TOTAL = placintă
 - Smoke free account EN/ES: 4 planuri / 3 tonuri → Pricing
-- Smoke Studio EN/ES Desktop+Mobile: 2 instrumente în aceeași sesiune → 2 tab-uri; **+** Combine Standard 2 / Full 4; tab `stack_*` = nume instrumente
+- Smoke Studio EN/ES Desktop+Mobile: pe Original → 2 instrumente = 2 tab-uri; pe tab non-Original → append (ex. Investitori + Buget); **+** Combine Standard 2 / Full 4; tab `stack_*` = nume instrumente
+- Smoke tip bibliotecă + badge „9 MODULE” (nu 30+) pe Desktop/Mobile RO/EN/ES
+- Smoke load plan cu istoric: tab Original arată conținutul Original (nu ultimul top-level salvat)
 - Smoke Dashboard header: Tarife/Pricing/Precios + switcher RO/EN/ES pe căi locale
 - Lemon: webhook pe **IdeeTa International** + UUID-uri Live când treci din Test
 - S3-A opțional (generate Studio pe Mobile)

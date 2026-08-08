@@ -2,11 +2,12 @@
  * Version history + "Combine with…" rules for Studio (Desktop & Mobile).
  * Locales: RO / EN / ES.
  *
- * Product rules (frozen):
- * - Free: no combine stack (limit 0)
+ * Product rules:
+ * - Free: max 1 tool per tab (no further combine)
  * - Standard: max 2 tools per version stack
  * - Full Access: max 4 tools per version stack
- * - Toolbar tools (sidebar): each run creates a NEW sibling tab from Original (stack depth 1)
+ * - Toolbar on Original: NEW sibling tab (stack depth 1)
+ * - Toolbar on a non-original tab: same as Combine — apply on that tab → NEW tab with appended stack
  * - Combine (+) on a tab: applies on that tab's content → NEW tab with appended stack
  * - Download uses the active tab's plan
  */
@@ -170,6 +171,41 @@ export function resolveVersionStack(vKey: string, plan: any): VersionToolStep[] 
   const embedded = getVersionStack(plan);
   if (embedded.length > 0) return embedded;
   return inferStackFromVersionKey(vKey);
+}
+
+/**
+ * Where a Studio tool run should start from (Desktop + Mobile).
+ * - Explicit Combine (+) → source tab
+ * - Toolbar while a non-original tab is active → that tab (append stack)
+ * - Toolbar on Original → sibling from Original (empty stack)
+ */
+export function resolveEditBaseForToolRun(params: {
+  activeVersionId: string;
+  versions: Record<string, any>;
+  result: any;
+  combineOptions?: { basePlan?: any; sourceVersionId?: string } | null;
+}): {
+  isCombine: boolean;
+  sourceId: string;
+  baseSource: any;
+  currentStack: VersionToolStep[];
+} {
+  const explicitCombine = !!(
+    params.combineOptions?.sourceVersionId || params.combineOptions?.basePlan
+  );
+  const sourceId = params.combineOptions?.sourceVersionId || params.activeVersionId || "original";
+  const onNonOriginalTab = sourceId !== "original";
+  const isCombine = explicitCombine || onNonOriginalTab;
+
+  const baseSource = isCombine
+    ? params.combineOptions?.basePlan ||
+      params.versions?.[sourceId] ||
+      params.result
+    : params.versions?.original ?? params.result;
+
+  const currentStack = isCombine ? resolveVersionStack(sourceId, baseSource) : [];
+
+  return { isCombine, sourceId, baseSource, currentStack };
 }
 
 export type StackGateResult =

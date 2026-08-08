@@ -1,6 +1,7 @@
 import React from "react";
 import { ToolActionButton } from "@/components/tools/ToolActionButton";
 import { freeToneRemainingLabel } from "@/lib/toneQuota";
+import { expertModulesBadgeLabel } from "@/lib/templatesData";
 
 export function DemoLeftSidebar({ 
   user, 
@@ -229,7 +230,7 @@ export function DemoLeftSidebar({
                         disabled={isEditingAi}
                         locale={locale}
                         badge="modules"
-                        badgeLabel={ui.modules30}
+                        badgeLabel={expertModulesBadgeLabel(locale)}
                         onClick={() => {
                           if (!user) { setShowAuthModal(true); return; }
                           setShowExpertDrawer(true);

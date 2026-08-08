@@ -25,7 +25,7 @@ import {
   gateVersionStackAppend,
   getVersionStackLimit,
   noCombineAccessMessage,
-  resolveVersionStack,
+  resolveEditBaseForToolRun,
   stackLimitReachedMessage,
   toolStepFromAction,
   withVersionStack,
@@ -377,13 +377,13 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
       targetSection = percent.toString(); 
     }
 
-    // Toolbar tools = sibling tabs from Original. Combine (+) = append onto source tab stack.
-    const isCombine = !!(options?.sourceVersionId || options?.basePlan);
-    const sourceId = options?.sourceVersionId || activeVersionId;
-    const baseSource = isCombine
-      ? (options?.basePlan || result)
-      : (versions.original ?? result);
-    const currentStack = isCombine ? resolveVersionStack(sourceId, baseSource) : [];
+    // Original → sibling tab; non-original / Combine (+) → append on active (or source) tab
+    const { isCombine, baseSource, currentStack } = resolveEditBaseForToolRun({
+      activeVersionId,
+      versions,
+      result,
+      combineOptions: options,
+    });
     const nextStep = toolStepFromAction(action, customStyle, budgetPercent);
     let nextStack = currentStack;
     if (nextStep) {
@@ -1233,7 +1233,8 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
     setPendingDownloadMode,
     setShowPricingModal,
     setIsSharedView,
-    t
+    t,
+    activeVersionId,
   });
 
   const renderSidebar = () => (

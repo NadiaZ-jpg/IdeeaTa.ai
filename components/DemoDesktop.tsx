@@ -1057,7 +1057,8 @@ export default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" | 
     setPendingDownloadMode,
     setShowPricingModal,
     setIsSharedView,
-    t
+    t,
+    activeVersionId,
   });
 
   const renderSidebar = () => (

@@ -36,6 +36,7 @@ import {
   getVersionStackLimit,
   isStandardOnlyCombineAccess,
   noCombineAccessMessage,
+  resolveEditBaseForToolRun,
   resolveVersionStack,
   stackLimitReachedMessage,
   toolStepFromAction,
@@ -44,7 +45,7 @@ import {
   type VersionStackAccess,
 } from "@/lib/versionStack";
 
-import { EXPERT_TEMPLATES } from '@/lib/templatesData';
+import { EXPERT_TEMPLATES, expertModulesAllFilterLabel } from '@/lib/templatesData';
 
 const BudgetPieChart = dynamic(() => import('@/components/BudgetChart').then(mod => mod.BudgetPieChart), { ssr: false });
 
@@ -260,13 +261,13 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
       targetSection = String(percent);
     }
 
-    // Toolbar tools = sibling tabs from Original. Combine (+) = append onto source tab stack.
-    const isCombine = !!(options?.sourceVersionId || options?.basePlan);
-    const sourceId = options?.sourceVersionId || activeVersionId;
-    const baseSource = isCombine
-      ? (options?.basePlan || result)
-      : (versions.original ?? result);
-    const currentStack = isCombine ? resolveVersionStack(sourceId, baseSource) : [];
+    // Original → sibling tab; non-original / Combine (+) → append on active (or source) tab
+    const { isCombine, baseSource, currentStack } = resolveEditBaseForToolRun({
+      activeVersionId,
+      versions,
+      result,
+      combineOptions: options,
+    });
     const nextStep = toolStepFromAction(action, isTone ? customInput : undefined, budgetPercent);
     let nextStack = currentStack;
     if (nextStep) {
@@ -484,7 +485,8 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
     setPendingDownloadMode,
     setShowPricingModal,
     setIsSharedView: () => {},
-    t
+    t,
+    activeVersionId,
   });
 
   const downloadAction = async (mode: 'word' | 'pptx' | 'pdf' | 'pdf-summary') => {
@@ -708,6 +710,12 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
                 <span className="text-emerald-400 mt-0.5 text-base shrink-0">🪄</span>
                 <p className="text-[12px] text-emerald-100/70 leading-relaxed">
                   <span dangerouslySetInnerHTML={{ __html: ui.versionToolsTip }} />
+                </p>
+              </div>
+              <div className="flex items-start gap-2 bg-emerald-500/10 border border-emerald-500/20 p-3.5 rounded-2xl w-full">
+                <span className="text-emerald-400 mt-0.5 text-base shrink-0">🏛️</span>
+                <p className="text-[12px] text-emerald-100/70 leading-relaxed">
+                  <span dangerouslySetInnerHTML={{ __html: ui.expertLibraryTip }} />
                 </p>
               </div>
             </div>
@@ -1275,7 +1283,7 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
                 onClick={() => setSelectedExpertCategory("all")}
                 className={`flex-shrink-0 px-3 py-1.5 rounded-lg text-[10px] font-bold snap-start transition-all ${selectedExpertCategory === "all" ? "bg-emerald-600 text-white" : "bg-zinc-950 text-zinc-400 border border-zinc-800"}`}
               >
-                {locale === "en" ? "All Modules" : locale === "es" ? "Todos" : "Toate"}
+                {expertModulesAllFilterLabel(locale)}
               </button>
               {Array.from(new Set(EXPERT_TEMPLATES.map(t => t.category[locale] || t.category.ro))).map((cat, idx) => (
                 <button

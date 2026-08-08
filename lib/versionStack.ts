@@ -132,10 +132,38 @@ export function inferStackFromVersionKey(vKey: string): VersionToolStep[] {
   if (vKey.startsWith("investor")) return [{ type: "investor" }];
   if (vKey.startsWith("expert_")) return [{ type: "expert" }];
   if (vKey.startsWith("stack_")) {
-    // Encoded as stack_<types...>_<timestamp> — prefer meta on plan when present
-    return [];
+    // Encoded as stack_<codes... >_<timestamp> e.g. stack_tcre-tfor_1786191613126
+    const body = vKey.slice("stack_".length);
+    const lastUnderscore = body.lastIndexOf("_");
+    const partsStr = lastUnderscore > 0 ? body.slice(0, lastUnderscore) : body;
+    return partsStr
+      .split("-")
+      .map(parseStackKeyPart)
+      .filter(Boolean) as VersionToolStep[];
   }
   return [];
+}
+
+/** Decode one segment from buildStackedVersionKey (tcre, tfor, bgt, eu, inv, exp). */
+function parseStackKeyPart(code: string): VersionToolStep | null {
+  const c = String(code || "").toLowerCase();
+  if (!c) return null;
+  if (c === "bgt") return { type: "budget" };
+  if (c === "eu") return { type: "eu_funds" };
+  if (c === "inv") return { type: "investor" };
+  if (c === "exp") return { type: "expert" };
+  if (c.startsWith("t") && c.length >= 4) {
+    const toneCode = c.slice(1, 4);
+    const toneMap: Record<string, VersionToneStyle> = {
+      for: "formal",
+      cre: "creative",
+      per: "persuasive",
+      fri: "friendly",
+    };
+    const tone = toneMap[toneCode];
+    if (tone) return { type: "tone", tone };
+  }
+  return null;
 }
 
 export function resolveVersionStack(vKey: string, plan: any): VersionToolStep[] {
@@ -232,6 +260,19 @@ function stepIcon(step: VersionToolStep): string {
   return "🪄";
 }
 
+/** One step label exactly as in Studio tools / Combine menu (RO/EN/ES via ui). */
+function formatStepForTab(
+  step: VersionToolStep,
+  locale: VersionLocale,
+  ui?: VersionUiStrings
+): string {
+  // Tone options already include emoji in UI_STRINGS (same as Instrumente → Rescrie tonul)
+  if (step.type === "tone") {
+    return stepLabel(step, locale, ui);
+  }
+  return `${stepIcon(step)} ${stepLabel(step, locale, ui)}`;
+}
+
 /** Short tab title for Desktop/Mobile history (RO/EN/ES via ui + locale fallback). */
 export function formatVersionTabTitle(
   vKey: string,
@@ -246,12 +287,8 @@ export function formatVersionTabTitle(
   if (stack.length === 0) {
     return `📑 ${vKey}`;
   }
-  if (stack.length === 1) {
-    const s = stack[0];
-    return `${stepIcon(s)} ${stepLabel(s, locale, ui)}`;
-  }
-  // Combined: "🇪🇺 Fondos UE + 🪄 Persuasivo"
-  return stack.map((s) => `${stepIcon(s)} ${stepLabel(s, locale, ui)}`).join(" + ");
+  // Combined or single: same names the user sees in Instrumente / Combină cu…
+  return stack.map((s) => formatStepForTab(s, locale, ui)).join(" + ");
 }
 
 export type CombineMenuItem = {

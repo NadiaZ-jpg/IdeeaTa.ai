@@ -12,6 +12,8 @@ import { markPlanDeletedLocally, FREE_ACCOUNT_PLAN_LIMIT, clearLocalPlanState } 
 import { LanguageSwitcher } from '@/components/LanguageSwitcher';
 import BuyMeACoffeeModal from '@/components/BuyMeACoffeeModal';
 import { PricingModal } from '@/components/PricingModal';
+import { UI_STRINGS } from '@/lib/uiStrings';
+import { stagePlanForStudioOpen } from '@/lib/studioPlanHandoff';
 
 export default function DashboardContent({ locale = "ro" }: { locale?: "ro" | "en" | "es" }) {
   const router = useRouter();
@@ -27,6 +29,7 @@ export default function DashboardContent({ locale = "ro" }: { locale?: "ro" | "e
   
   const isEn = locale === "en";
   const isEs = locale === "es";
+  const ui = UI_STRINGS[locale] || UI_STRINGS.ro;
 
   // Cont gratuit: max 4 planuri în Firestore (inclusiv cele migrate din Demo)
   const studioLimitUsed = plans.length >= FREE_ACCOUNT_PLAN_LIMIT;
@@ -176,18 +179,26 @@ export default function DashboardContent({ locale = "ro" }: { locale?: "ro" | "e
         </Link>
         <div className="flex items-center gap-4">
           {user && (
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-3 sm:gap-4">
               <button 
                 type="button"
                 onClick={() => setShowBmcModal(true)}
                 className="bg-[#FFDD00] text-black px-3 py-1 rounded-md font-bold text-xs hover:bg-[#FFEA4D] hover:scale-105 transition-all flex items-center gap-1.5 shadow-sm cursor-pointer"
-                title={isEn ? "Support IdeeaTa.ai with a coffee" : isEs ? "Apoya a IdeeaTa.ai con un café" : "Susține IdeeaTa.ai cu o cafea"}
+                title={ui.supportCoffeeTitle}
               >
                 <span>☕</span> Buy me a coffee
               </button>
+              <LanguageSwitcher currentLocale={locale} />
               <span className="text-sm text-zinc-400 hidden sm:inline-block font-semibold">
                 {user.email}
               </span>
+              <button
+                type="button"
+                onClick={() => setShowPricingModal(true)}
+                className="text-sm font-semibold text-zinc-400 hover:text-white transition-colors cursor-pointer"
+              >
+                {ui.pricing}
+              </button>
               <button 
                 onClick={async () => {
                   clearLocalPlanState();
@@ -195,7 +206,7 @@ export default function DashboardContent({ locale = "ro" }: { locale?: "ro" | "e
                 }}
                 className="text-sm font-bold text-zinc-500 hover:text-white transition-colors cursor-pointer"
               >
-                {isEn ? "Log Out" : isEs ? "Cerrar sesión" : "Ieși din cont"}
+                {ui.logOut}
               </button>
             </div>
           )}
@@ -281,7 +292,10 @@ export default function DashboardContent({ locale = "ro" }: { locale?: "ro" | "e
             {plans.map((plan) => (
               <div 
                 key={plan.id}
-                onClick={() => router.push(isEn ? `/en/studio?planId=${plan.id}&view=idea` : isEs ? `/es/studio?planId=${plan.id}&view=idea` : `/studio?planId=${plan.id}&view=idea`)}
+                onClick={() => {
+                  stagePlanForStudioOpen(plan);
+                  router.push(isEn ? `/en/studio?planId=${plan.id}&view=idea` : isEs ? `/es/studio?planId=${plan.id}&view=idea` : `/studio?planId=${plan.id}&view=idea`);
+                }}
                 className="bg-zinc-900/60 border border-zinc-800 hover:border-emerald-500/50 rounded-2xl p-6 transition-all duration-300 cursor-pointer group flex flex-col hover:-translate-y-1 hover:shadow-[0_10px_30px_-15px_rgba(16,185,129,0.3)] relative overflow-hidden"
               >
                 <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-emerald-500 to-emerald-400 transform origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-300"></div>

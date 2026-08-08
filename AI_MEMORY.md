@@ -1,5 +1,5 @@
 # AI_MEMORY — IdeeaTa.ai
-> Ultima actualizare: 6 August 2026
+> Ultima actualizare: 8 August 2026
 
 ---
 
@@ -583,12 +583,24 @@ Dacă oricare dintre aceste verificări este omisă în procesul de planificare,
 - **Test UUIDs EUR:** Standard `fbf29edf-e265-4284-9dfa-62a074ffbdec`; Editing+Tools `bd8eba73-adf3-4e21-aa4a-0e3565d0a3ca`.
 - **TODO Live:** înlocui UUID-urile Test cu Live pe ambele store-uri; webhook pe store-ul EUR → același `/api/webhook`.
 
+## FREEZE (8 August 2026 — Dashboard→Studio handoff + istoric stack + pachete)
+**Problema:** după fix-urile `planId` (doar Firestore), Mis Planes → Studio putea rata load-ul → ecran „No se pudo cargar…” / redirect.
+**Fix (Desktop+Mobile, RO/EN/ES):**
+- **`lib/studioPlanHandoff.ts` (NOU)** — `stagePlanForStudioOpen` / `readStagedStudioPlan` / `clearStagedStudioPlan` via `sessionStorage` (Strict Mode safe).
+- **`app/dashboard/DashboardContent.tsx`** — la click pe proiect: handoff + `?planId=&view=idea`; header: **Tarife/Pricing/Precios** + `LanguageSwitcher` (căi `/dashboard` `/en/dashboard` `/es/dashboard`); `PricingModal` locale + valută LEI/EUR.
+- **`hooks/useStudioFirebaseSync.ts`** — aplică handoff imediat; Firestore confirmă în fundal; `onPlanMissing` doar dacă handoff lipsește.
+- **`StudioDesktop` / `StudioMobile`** — fără ecran de eroare plan missing; la eșec fără handoff → redirect silențios `ui.routes.dashboard`; LanguageSwitcher pe Studio; Mobile pachete = `ui.pricing` (nu „Upgrade PRO” hardcodat).
+- **`lib/versionStack.ts`** — tab-uri `stack_*` decodează combinația (ex. `tcre-tfor` → aceleași label-uri ca Instrumente: ton creative + formal); `formatVersionTabTitle` RO/EN/ES.
+**ÎNGHEȚAT** — nu se scoate handoff-ul și nu se reintroduce ecranul „plan missing” fără aprobare.
+
 ## RĂMÂNE DE FĂCUT
-- Deploy Hetzner (tot batch-ul Studio de mai sus)
+- Deploy Hetzner (tot batch-ul Studio de mai sus + handoff Dashboard)
+- Smoke Mis Planes → Studio: planul se deschide imediat (fără spinner 8s / redirect)
 - Smoke Studio Standard/Full ES: Plan Profesional → 100% spaniolă + FODA cu explicații
 - Smoke optimize budget 20% → costuri × 0.8; Word TOTAL = placintă
 - Smoke free account EN/ES: 4 planuri / 3 tonuri → Pricing
-- Smoke Studio EN/ES Desktop+Mobile: 2 instrumente în aceeași sesiune → 2 tab-uri; **+** Combine Standard 2 / Full 4
+- Smoke Studio EN/ES Desktop+Mobile: 2 instrumente în aceeași sesiune → 2 tab-uri; **+** Combine Standard 2 / Full 4; tab `stack_*` = nume instrumente
+- Smoke Dashboard header: Tarife/Pricing/Precios + switcher RO/EN/ES pe căi locale
 - Lemon: webhook pe **IdeeTa International** + UUID-uri Live când treci din Test
 - S3-A opțional (generate Studio pe Mobile)
 

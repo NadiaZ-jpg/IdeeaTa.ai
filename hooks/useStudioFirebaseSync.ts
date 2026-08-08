@@ -3,6 +3,7 @@ import { doc, getDoc, getDocFromServer } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { formatObjectNumbers } from '@/lib/utils';
 import { User } from 'firebase/auth';
+import { readStagedStudioPlan, clearStagedStudioPlan } from '@/lib/studioPlanHandoff';
 
 interface UseStudioFirebaseSyncProps {
   user: User | null;
@@ -27,6 +28,7 @@ export const useStudioFirebaseSync = ({
   const setVersionsStateRef = useRef(setVersionsState);
   const setActiveVersionIdRef = useRef(setActiveVersionId);
   const setCurrencyRef = useRef(setCurrency);
+  const handoffAppliedForIdRef = useRef<string | null>(null);
 
   onPlanLoadedRef.current = onPlanLoaded;
   onPlanMissingRef.current = onPlanMissing;
@@ -35,7 +37,6 @@ export const useStudioFirebaseSync = ({
   setCurrencyRef.current = setCurrency;
 
   useEffect(() => {
-    if (!user) return;
     if (typeof window === "undefined") return;
 
     const searchParams = new URLSearchParams(window.location.search);
@@ -43,14 +44,6 @@ export const useStudioFirebaseSync = ({
     if (!planId) return;
 
     let cancelled = false;
-    const planRef = doc(db, "users", user.uid, "plans", planId);
-
-    // Asigură view=idea imediat (evită UI „start” / clear pe back)
-    window.history.replaceState(
-      { view: "idea" },
-      "",
-      `${window.location.pathname}?planId=${encodeURIComponent(planId)}&view=idea`
-    );
 
     const applyPlan = (raw: Record<string, unknown>) => {
       const data = formatObjectNumbers(raw) as Record<string, any>;
@@ -73,6 +66,31 @@ export const useStudioFirebaseSync = ({
         /* ignore */
       }
     };
+
+    // 1) Handoff imediat din Dashboard (fără a aștepta auth/Firestore)
+    let openedFromHandoff = handoffAppliedForIdRef.current === planId;
+    if (!openedFromHandoff) {
+      const staged = readStagedStudioPlan(planId);
+      if (staged) {
+        applyPlan(staged);
+        handoffAppliedForIdRef.current = planId;
+        openedFromHandoff = true;
+        // Delay clear: Strict Mode remount încă poate citi handoff-ul
+        window.setTimeout(() => clearStagedStudioPlan(), 1500);
+      }
+    }
+
+    // Asigură view=idea imediat (evită UI „start” / clear pe back)
+    window.history.replaceState(
+      { view: "idea" },
+      "",
+      `${window.location.pathname}?planId=${encodeURIComponent(planId)}&view=idea`
+    );
+
+    // 2) Firestore când avem user (confirmare / refresh); nu redirect dacă handoff a reușit
+    if (!user) return;
+
+    const planRef = doc(db, "users", user.uid, "plans", planId);
 
     const loadPlan = async () => {
       const delaysMs = [0, 300, 800, 1500, 2500];
@@ -100,7 +118,10 @@ export const useStudioFirebaseSync = ({
       }
       if (!cancelled) {
         console.warn("Planul nu a fost gasit in baza de date:", planId);
-        onPlanMissingRef.current?.(planId);
+        // Doar dacă nu am deschis deja din Dashboard handoff
+        if (!openedFromHandoff && handoffAppliedForIdRef.current !== planId) {
+          onPlanMissingRef.current?.(planId);
+        }
       }
     };
 

@@ -156,7 +156,11 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
     },
     setVersionsState: setVersions,
     setActiveVersionId,
-    onPlanMissing: () => setStudioLoadTimedOut(true),
+    // Fără ecran de eroare: la eșec revenim silențios la Dashboard
+    onPlanMissing: () => {
+      setStudioLoadTimedOut(true);
+      router.replace(ui.routes.dashboard);
+    },
   });
 
   useEffect(() => {
@@ -493,9 +497,12 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
     if (result || typeof window === "undefined") return;
     const planId = new URLSearchParams(window.location.search).get("planId");
     if (!planId || !user) return;
-    const timer = setTimeout(() => setStudioLoadTimedOut(true), 4000);
+    const timer = setTimeout(() => {
+      setStudioLoadTimedOut(true);
+      router.replace(ui.routes.dashboard);
+    }, 8000);
     return () => clearTimeout(timer);
-  }, [result, user]);
+  }, [result, user, router, ui.routes.dashboard]);
 
   if (!result) {
     if (!user) {
@@ -512,7 +519,8 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
         ? new URLSearchParams(window.location.search).get("planId")
         : null;
 
-    if (!planId || studioLoadTimedOut) {
+    // Fără planId → hint generare desktop. Cu planId → spinner (la eșec redirect, fără mesaj).
+    if (!planId) {
       return <StudioMobileGenerateHint locale={locale} />;
     }
 
@@ -529,22 +537,23 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
       
       {/* Header */}
       <header className={`h-16 px-4 flex items-center justify-between border-b border-zinc-800/80 sticky top-0 bg-[#09090b]/80 backdrop-blur-md z-30 transition-transform duration-300 ${showHeader ? 'translate-y-0' : '-translate-y-full'}`}>
-        <Link href={ui.routes.dashboard} className="text-xs font-bold text-zinc-400 hover:text-white flex items-center gap-1">
+        <Link href={ui.routes.dashboard} className="text-xs font-bold text-zinc-400 hover:text-white flex items-center gap-1 min-h-[44px] min-w-[44px]">
           <span>←</span>
           <span>{locale === "en" ? "Dashboard" : locale === "es" ? "Panel" : "Dashboard"}</span>
         </Link>
         <span className="text-sm font-black">{locale === "en" ? "Mobile Studio" : locale === "es" ? "Studio Móvil" : "Studio Mobil"}</span>
         <div className="flex items-center gap-2">
+          <LanguageSwitcher currentLocale={locale} />
           <button
             onClick={handleShare}
-            className="bg-zinc-800 text-white font-bold p-2 rounded-lg text-xs"
+            className="bg-zinc-800 text-white font-bold p-2 rounded-lg text-xs min-h-[44px] min-w-[44px]"
             title={locale === "en" ? "Share" : locale === "es" ? "Compartir" : "Distribui"}
           >
             🔗
           </button>
           <button
             onClick={() => setShowExportModal(true)}
-            className="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-3 py-2 rounded-lg text-xs flex items-center gap-1"
+            className="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-3 py-2 rounded-lg text-xs flex items-center gap-1 min-h-[44px]"
           >
             <span>{locale === "en" ? "Export" : locale === "es" ? "Exportar" : "Export"}</span>
             <span>📥</span>
@@ -571,9 +580,9 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
           </div>
           <button
             onClick={() => setShowPricingModal(true)}
-            className="bg-gradient-to-r from-amber-500 to-orange-500 text-black text-[10px] font-bold px-2.5 py-1.5 rounded-lg shrink-0"
+            className="bg-gradient-to-r from-amber-500 to-orange-500 text-black text-[10px] font-bold px-2.5 py-1.5 rounded-lg shrink-0 min-h-[44px]"
           >
-            ⚡ Upgrade PRO
+            {ui.pricing}
           </button>
         </div>
 

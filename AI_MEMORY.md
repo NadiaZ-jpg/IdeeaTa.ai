@@ -576,12 +576,20 @@ Dacă oricare dintre aceste verificări este omisă în procesul de planificare,
 - Version stack + tip instrumente + tab-uri sibling în aceeași sesiune + wrap tab-uri.
 - Fișiere cheie: `lib/budgetOptimize.ts`, `app/api/edit/route.ts`, `lib/promptConfig.ts`, `lib/normalizePlanResult.ts`, `hooks/useCompleteMissingPlanFields.ts`, Studio/Demo Desktop+Mobile, `lib/versionStack.ts`, `lib/uiStrings.ts`.
 
+## FREEZE (8 August 2026 — Lemon dual store RON/EUR by locale)
+**Practică:** 2 magazine Lemon — `ideeta` (RON) + `ideeta-international` (EUR). Checkout ales după **`locale` URL** (nu limba browser): `ro`→RON, `en`/`es`→EUR.
+- `lib/lemonCheckout.ts` — URL-uri + `withCheckoutParams` (`userId`, `tier`, email, planName).
+- `PricingModal.tsx` + `app/api/checkout/route.ts` — folosesc helper-ul.
+- **Test UUIDs EUR:** Standard `fbf29edf-e265-4284-9dfa-62a074ffbdec`; Editing+Tools `bd8eba73-adf3-4e21-aa4a-0e3565d0a3ca`.
+- **TODO Live:** înlocui UUID-urile Test cu Live pe ambele store-uri; webhook pe store-ul EUR → același `/api/webhook`.
+
 ## RĂMÂNE DE FĂCUT
 - Deploy Hetzner (tot batch-ul Studio de mai sus)
 - Smoke Studio Standard/Full ES: Plan Profesional → 100% spaniolă + FODA cu explicații
 - Smoke optimize budget 20% → costuri × 0.8; Word TOTAL = placintă
 - Smoke free account EN/ES: 4 planuri / 3 tonuri → Pricing
 - Smoke Studio EN/ES Desktop+Mobile: 2 instrumente în aceeași sesiune → 2 tab-uri; **+** Combine Standard 2 / Full 4
+- Lemon: webhook pe **IdeeTa International** + UUID-uri Live când treci din Test
 - S3-A opțional (generate Studio pe Mobile)
 
 

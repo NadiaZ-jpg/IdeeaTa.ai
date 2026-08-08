@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { db } from "@/lib/firebase";
 import { doc, updateDoc } from "firebase/firestore";
+import { getLemonCheckoutUrl, withCheckoutParams } from "@/lib/lemonCheckout";
  
 interface PricingModalProps {
   isOpen: boolean;
@@ -35,26 +36,16 @@ export function PricingModal({ isOpen, onClose, onSuccess, onRequireLogin, userI
     setLoadingTier(tier);
     setError(null);
     try {
-      let checkoutUrl = "";
-      
-      // Lemon Squeezy Checkout URLs
-      if (tier === "standard") {
-        checkoutUrl = "https://ideeta.lemonsqueezy.com/checkout/buy/dbd62a14-ca39-47ea-8d4f-cd1ef1f3270e";
-      } else if (tier === "eu-funds") {
-        checkoutUrl = "https://ideeta.lemonsqueezy.com/checkout/buy/561d5420-b48c-446e-830e-c5a25ed30b13";
-      }
-
-      if (checkoutUrl) {
-        const urlObj = new URL(checkoutUrl);
-        if (userEmail) urlObj.searchParams.set("checkout[email]", userEmail);
-        urlObj.searchParams.set("checkout[custom][userId]", userId);
-        if (tier === "standard" && planName) {
-           urlObj.searchParams.set("checkout[custom][planName]", planName);
-        }
-        window.location.href = urlObj.toString();
-      } else {
+      const baseUrl = getLemonCheckoutUrl(tier, locale);
+      if (!baseUrl) {
         throw new Error(locale === "en" ? "Invalid package." : locale === "es" ? "Paquete inválido." : "Pachet invalid.");
       }
+      window.location.href = withCheckoutParams(baseUrl, {
+        userId,
+        tier,
+        email: userEmail,
+        planName,
+      });
     } catch (err: any) {
       console.error(err);
       setError(err.message || (locale === "en" ? "An error occurred. Please try again." : locale === "es" ? "Ocurrió un error. Por favor, inténtalo de nuevo." : "A apărut o eroare. Te rugăm să încerci din nou."));

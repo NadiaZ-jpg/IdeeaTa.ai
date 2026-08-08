@@ -45,23 +45,40 @@ export async function POST(req: NextRequest) {
         const planName = customData.planName || "Plan de Afaceri";
         const unlocked = userData?.unlockedPlans || [];
         const updatedPlans = !unlocked.includes(planName) ? [...unlocked, planName] : unlocked;
+        // isPaid = account-level Standard (same as promo STANDARD_NADIA).
+        // unlockedPlans = per-plan unlock for Dashboard.
         await userRef.set({
+          isPaid: true,
           unlockedPlans: updatedPlans,
           lemonSqueezyCustomerId: payload.data.attributes.customer_id,
         }, { merge: true });
-        console.log(`Deblocat planul "${planName}" pentru user: ${userId}`);
+        console.log(`Deblocat Standard (isPaid + plan "${planName}") pentru user: ${userId}`);
       } else if (tier === "eu-funds") {
         await userRef.set({
           euFundsUnlocked: true,
+          isPaid: true,
           lemonSqueezyCustomerId: payload.data.attributes.customer_id,
         }, { merge: true });
         console.log(`Deblocat modul Fonduri Europene pentru user: ${userId}`);
       } else if (tier === "pro") {
         await userRef.set({
           subscriptionActive: true,
+          isPaid: true,
           lemonSqueezyCustomerId: payload.data.attributes.customer_id,
         }, { merge: true });
         console.log(`Activat abonament PRO pentru user: ${userId} via order_created`);
+      } else {
+        // Missing/unknown tier (custom_data incomplete) — still unlock Standard for one-time orders
+        console.warn(`[Webhook] order_created without known tier (got: ${String(tier)}). userId=${userId}`);
+        const planName = customData.planName || "Plan de Afaceri";
+        const unlocked = userData?.unlockedPlans || [];
+        const updatedPlans = !unlocked.includes(planName) ? [...unlocked, planName] : unlocked;
+        await userRef.set({
+          isPaid: true,
+          unlockedPlans: updatedPlans,
+          lemonSqueezyCustomerId: payload.data.attributes.customer_id,
+        }, { merge: true });
+        console.log(`Fallback Standard unlock (no/unknown tier) pentru user: ${userId}`);
       }
     } else if (eventName === "subscription_created") {
       // In cazul abonamentelor PRO recurente, s-ar putea sa vina acest event in loc de order_created sau suplimentar

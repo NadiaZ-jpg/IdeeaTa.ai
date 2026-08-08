@@ -64,7 +64,7 @@ export async function POST(req: NextRequest) {
       // Doar development/local: bypass controlat (fără a expune obligatoriu NEXT_PUBLIC_*)
       console.warn("[Promo] Dev-only bypass (no Firebase Admin credentials).");
       const adminCode = readPromoEnv("PROMO_ADMIN", "NEXT_PUBLIC_PROMO_ADMIN", "ADMIN_NADIA");
-      const standardCode = readPromoEnv("PROMO_STANDARD", "NEXT_PUBLIC_PROMO_STANDARD", "STANDARD_PROMO");
+      const standardCode = readPromoEnv("PROMO_STANDARD", "NEXT_PUBLIC_PROMO_STANDARD", "STANDARD_NADIA");
       const fonduriCode = readPromoEnv("PROMO_FONDURI", "NEXT_PUBLIC_PROMO_FONDURI", "FONDURI_PROMO");
 
       if (actualCode === adminCode) {

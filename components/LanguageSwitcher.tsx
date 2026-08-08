@@ -1,33 +1,18 @@
 "use client";
 import React, { Suspense } from 'react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
+import { switchLocalePath, type AppLocale } from '@/lib/localePaths';
 
-function LanguageSwitcherInner({ currentLocale }: { currentLocale: "ro" | "en" | "es" }) {
+function LanguageSwitcherInner({ currentLocale }: { currentLocale: AppLocale }) {
   const pathname = usePathname();
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  const handleLanguageChange = (newLocale: "ro" | "en" | "es") => {
+  const handleLanguageChange = (newLocale: AppLocale) => {
     if (newLocale === currentLocale) return;
     localStorage.setItem("preferred_language", newLocale);
 
-    // Elimină prefixul de limbă curent din pathname (/en sau /es)
-    let cleanPath = pathname;
-    if (cleanPath.startsWith('/en')) {
-      cleanPath = cleanPath.slice(3) || '/';
-    } else if (cleanPath.startsWith('/es')) {
-      cleanPath = cleanPath.slice(3) || '/';
-    }
-
-    // Adaugă noul prefix de limbă
-    let newPath = cleanPath;
-    if (newLocale === 'en') {
-      newPath = `/en${cleanPath === '/' ? '' : cleanPath}`;
-    } else if (newLocale === 'es') {
-      newPath = `/es${cleanPath === '/' ? '' : cleanPath}`;
-    }
-
-    // Păstrează search params (ex: ?planId=XYZ sau ?sharedId=XYZ)
+    const newPath = switchLocalePath(pathname || "/", currentLocale, newLocale);
     const paramsStr = searchParams.toString();
     const finalUrl = newPath + (paramsStr ? `?${paramsStr}` : '');
     

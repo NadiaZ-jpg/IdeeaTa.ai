@@ -1,6 +1,7 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { ADSENSE_CLIENT, hasCookieConsent, loadAdSenseScript } from '@/lib/adsenseConsent';
 
 interface AdBannerProps {
   dataAdSlot: string;
@@ -16,17 +17,34 @@ export function AdBanner({
   className = '',
 }: AdBannerProps) {
   const adRef = useRef<HTMLModElement>(null);
+  const [allowed, setAllowed] = useState(false);
 
   useEffect(() => {
+    const sync = () => {
+      const ok = hasCookieConsent();
+      setAllowed(ok);
+      if (ok) loadAdSenseScript();
+    };
+    sync();
+    window.addEventListener('ideeta-cookie-consent', sync);
+    return () => window.removeEventListener('ideeta-cookie-consent', sync);
+  }, []);
+
+  useEffect(() => {
+    if (!allowed) return;
     try {
       if (adRef.current && !adRef.current.hasAttribute('data-adsbygoogle-status')) {
-        // @ts-ignore
+        loadAdSenseScript();
         (window.adsbygoogle = window.adsbygoogle || []).push({});
       }
     } catch (err) {
       console.warn('AdSense error:', err);
     }
-  }, []);
+  }, [allowed, dataAdSlot]);
+
+  if (!allowed) {
+    return null;
+  }
 
   return (
     <div className={`overflow-hidden flex justify-center items-center ${className}`}>
@@ -34,7 +52,7 @@ export function AdBanner({
         ref={adRef}
         className="adsbygoogle"
         style={{ display: 'block', width: '100%' }}
-        data-ad-client="ca-pub-5089980515174940"
+        data-ad-client={ADSENSE_CLIENT}
         data-ad-slot={dataAdSlot}
         data-ad-format={dataAdFormat}
         data-full-width-responsive={dataFullWidthResponsive}

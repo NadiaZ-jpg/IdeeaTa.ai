@@ -620,6 +620,14 @@ Dacă oricare dintre aceste verificări este omisă în procesul de planificare,
 - Script global + `ads.txt` neschimbate.
 **ÎNGHEȚAT** — nu se reintroduc ads pe loading/tool fără `override freeze adsense`.
 
+## FREEZE (8 August 2026 — Locale paths + Demo stack + AdSense consent)
+**override freeze adsense + demo** (aprob audit CRITICAL/HIGH):
+- `lib/localePaths.ts` + `LanguageSwitcher`: mapare slug Resurse/Despre/Termeni/Contact/Privacy/Cookies/Demo/Studio/Login/Dashboard (RO↔EN↔ES).
+- Demo Desktop: `resolveEditBaseForToolRun` + stack gates + Combine pe `VersionSelector` (ca Studio).
+- Demo Mobile: același stack pe `handleAiEdit` + `formatVersionTabTitle` pe istoric.
+- AdSense: script **doar după** `cookie_consent` (`lib/adsenseConsent.ts`, `AdSenseLoader`, `CookieBanner`, `AdBanner` nu randează fără consent). Meta `google-adsense-account` rămâne în layout.
+**ÎNGHEȚAT** — nu se reîncarcă adsbygoogle înainte de consent fără override.
+
 ## RĂMÂNE DE FĂCUT
 - Deploy Hetzner (Resurse + relocare AdSense A+C)
 - Smoke Desktop+Mobile RO/EN/ES: `/resurse` (+en/es), landing după Features are ad; Studio/Demo loading **fără** ads

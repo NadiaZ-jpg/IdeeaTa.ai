@@ -253,7 +253,13 @@ export function DemoLeftSidebar({
                               if (e.key === 'Enter') {
                                 e.preventDefault();
                                 if (aiPromptInput.trim() || activeAiPrompt.isConfirm) {
-                                  handleAiEdit(activeAiPrompt.action, undefined, aiPromptInput);
+                                  handleAiEdit(
+                                    activeAiPrompt.action,
+                                    undefined,
+                                    aiPromptInput,
+                                    false,
+                                    activeAiPrompt.combineOptions
+                                  );
                                 }
                               }
                             }}
@@ -266,7 +272,15 @@ export function DemoLeftSidebar({
                           <div className="flex gap-2">
                           <button 
                             type="button"
-                            onClick={() => handleAiEdit(activeAiPrompt.action, undefined, aiPromptInput)}
+                            onClick={() =>
+                              handleAiEdit(
+                                activeAiPrompt.action,
+                                undefined,
+                                aiPromptInput,
+                                false,
+                                activeAiPrompt.combineOptions
+                              )
+                            }
                             disabled={!activeAiPrompt.isConfirm && !aiPromptInput.trim()}
                             className="flex-1 bg-emerald-600 hover:bg-emerald-500 disabled:bg-zinc-800 disabled:text-zinc-500 text-white font-bold text-xs py-2 rounded-lg transition-colors"
                           >

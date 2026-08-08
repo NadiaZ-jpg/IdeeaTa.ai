@@ -26,6 +26,17 @@ import { useSharedPlanLoader } from "@/hooks/useSharedPlanLoader";
 import { createAndCopySharedPlanLink } from "@/lib/sharePlan";
 import { FREE_ACCOUNT_PLAN_LIMIT, GUEST_DEMO_PLAN_LIMIT } from "@/lib/planQuota";
 import { canUseFreeToneEdit, consumeFreeToneEdit, isFreeToneKey, isProToneKey, toneVersionKey } from "@/lib/toneQuota";
+import {
+  buildStackedVersionKey,
+  formatVersionTabTitle,
+  gateVersionStackAppend,
+  noCombineAccessMessage,
+  resolveEditBaseForToolRun,
+  stackLimitReachedMessage,
+  toolStepFromAction,
+  withVersionStack,
+  type VersionStackAccess,
+} from "@/lib/versionStack";
 
 const BudgetPieChart = dynamic(() => import('@/components/BudgetChart').then(mod => mod.BudgetPieChart), { ssr: false });
 export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "es" }) {
@@ -133,6 +144,14 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
 
   const isPaid = (typeof window !== 'undefined' && localStorage.getItem(`isPaid_${result?.nume}`) === "true") || isPaidState;
   const isAdmin = !!(user && (user.email === "adrian@ideeata.ai" || user.email === "contact@ideeata.ai" || user.email === "nadiaramonaz@gmail.com"));
+  const hasStandardAccess = !!(isPaid || promoCodeUnlocked || isAdmin || subscriptionActive || euFundsUnlocked);
+  const hasProAccess = !!(isAdmin || subscriptionActive || euFundsUnlocked);
+  const versionStackAccess: VersionStackAccess = {
+    isAdmin,
+    hasStandardAccess,
+    hasFullAccess: !!(isAdmin || subscriptionActive || euFundsUnlocked),
+    hasProTools: hasProAccess,
+  };
 
   useEffect(() => {
     if (!user) {
@@ -438,7 +457,11 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
     }
   };
 
-  const handleAiEdit = async (action: string, customInput?: string) => {
+  const handleAiEdit = async (
+    action: string,
+    customInput?: string,
+    options?: { basePlan?: any; sourceVersionId?: string }
+  ) => {
     if (!result) return;
 
     const isTone = action === "professional_tone";
@@ -459,6 +482,72 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
       }
     }
 
+    if (!isTone && !isAdmin && !hasProAccess) {
+      if (!user) {
+        setShowAuthModal(true);
+        return;
+      }
+      setShowPricingModal(true);
+      return;
+    }
+
+    let targetSection = "";
+    let budgetPercent: number | null = null;
+    if (action === "optimize_budget") {
+      const promptMsg =
+        locale === "en"
+          ? "By what percentage do you want to reduce the budgeted costs? (e.g. 20)"
+          : locale === "es"
+          ? "¿Qué porcentaje deseas reducir de los costos presupuestados? (ej. 20)"
+          : "Cu ce procent dorești să reduci costurile bugetate? (ex: 20)";
+      const entered = typeof window !== "undefined" ? window.prompt(promptMsg, customInput || "20") : null;
+      if (!entered) return;
+      const percent = parseInt(entered.replace(/%/g, "").trim(), 10);
+      if (isNaN(percent) || percent <= 0 || percent > 90) {
+        alert(
+          locale === "en"
+            ? "Please enter a valid percentage between 1 and 90 (e.g. 20)."
+            : locale === "es"
+            ? "Introduce un porcentaje válido entre 1 y 90 (ej. 20)."
+            : "Te rog introdu un procent valid între 1 și 90 (ex: 20)."
+        );
+        return;
+      }
+      budgetPercent = percent;
+      targetSection = String(percent);
+    }
+
+    const { isCombine, baseSource, currentStack } = resolveEditBaseForToolRun({
+      activeVersionId,
+      versions,
+      result,
+      combineOptions: options,
+    });
+    const nextStep = toolStepFromAction(action, isTone ? customInput : undefined, budgetPercent);
+    let nextStack = currentStack;
+    if (nextStep) {
+      const gate = gateVersionStackAppend(currentStack, nextStep, versionStackAccess);
+      if (!gate.ok) {
+        if (gate.reason === "no_access") {
+          alert(noCombineAccessMessage(locale));
+          setShowPricingModal(true);
+          return;
+        }
+        if (gate.reason === "limit") {
+          const isStandardOnly = !!(
+            versionStackAccess.hasStandardAccess &&
+            !versionStackAccess.hasFullAccess &&
+            !versionStackAccess.isAdmin
+          );
+          alert(stackLimitReachedMessage(locale, gate.limit, isStandardOnly));
+          if (isStandardOnly) setShowPricingModal(true);
+          return;
+        }
+        return;
+      }
+      nextStack = gate.nextStack;
+    }
+
     setIsEditingAi(true);
     setActiveAiPrompt(null);
 
@@ -467,28 +556,38 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          result,
+          result: baseSource,
           action,
-          customStyle: customInput || aiPromptInput,
+          customStyle: isTone ? (customInput || aiPromptInput) : "",
+          targetSection: targetSection || (action === "add_sections" ? customInput || aiPromptInput || "" : ""),
           locale,
-          currency: result?.selectedCurrency || (locale === "ro" ? "LEI" : "EUR")
+          currency: baseSource?.selectedCurrency || (locale === "ro" ? "LEI" : "EUR")
         })
       });
 
-      if (!res.ok) throw new Error("Eroare editare AI");
+      if (!res.ok) throw new Error("Eroare editare");
 
       const data = await res.json();
       if (data && data.editedPlan) {
-        const parsed = formatObjectNumbers(data.editedPlan);
-        if (action === "eu_funds_optimization") {
-          setActiveVersionId("eu_funds");
-        } else if (action === "investor_ready") {
-          setActiveVersionId("investor");
-        } else if (isTone) {
-          const vKey = toneVersionKey(customInput);
-          setVersions((prev: any) => ({ ...prev, [vKey]: parsed }));
-          setActiveVersionId(vKey);
-        }
+        const parsed = withVersionStack(formatObjectNumbers(data.editedPlan), nextStack);
+        const vKey = nextStep
+          ? buildStackedVersionKey(nextStack)
+          : (action === "eu_funds_optimization"
+              ? `eu_funds_${Date.now()}`
+              : action === "investor_ready"
+              ? `investor_${Date.now()}`
+              : isTone
+              ? toneVersionKey(customInput)
+              : `edit_${Date.now()}`);
+        const originalSnapshot = versions.original ?? (isCombine ? undefined : baseSource);
+        setVersions((prev: any) => {
+          const base = Object.keys(prev).length ? prev : { original: originalSnapshot || baseSource };
+          if (!base.original && originalSnapshot) {
+            return { ...base, original: originalSnapshot, [vKey]: parsed };
+          }
+          return { ...base, [vKey]: parsed };
+        });
+        setActiveVersionId(vKey);
         setResult(parsed);
         localStorage.setItem("current_generated_plan", JSON.stringify(parsed));
         if (isTone && isFreeToneKey(customInput) && !hasPaidTones) {
@@ -497,7 +596,7 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
       }
     } catch (e) {
       console.error(e);
-      alert(locale === "en" ? "Could not process AI request." : locale === "es" ? "No se pudo procesar la solicitud de IA." : "Nu s-a putut procesa comanda AI.");
+      alert(locale === "en" ? "Could not process the request." : locale === "es" ? "No se pudo procesar la solicitud." : "Nu s-a putut procesa comanda.");
     } finally {
       setIsEditingAi(false);
       setAiPromptInput("");
@@ -834,11 +933,8 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
                         <span>📜 {locale === "en" ? "Version History" : locale === "es" ? "Historial de Versiones" : "Istoric Versiuni"} ({Object.keys(versions).length})</span>
                       </span>
                       <span className="flex items-center gap-2">
-                        <span className="text-[10px] text-zinc-400 font-normal">
-                          {activeVersionId === "original" ? (locale === "en" ? "Original" : locale === "es" ? "Original" : "Originală")
-                          : activeVersionId === "eu_funds" ? (locale === "en" ? "EU Funds" : locale === "es" ? "Fondos UE" : "Fonduri UE")
-                          : activeVersionId === "investor" ? (locale === "en" ? "Investors" : locale === "es" ? "Inversores" : "Investitori")
-                          : activeVersionId}
+                        <span className="text-[10px] text-zinc-400 font-normal truncate max-w-[9rem]">
+                          {formatVersionTabTitle(activeVersionId, versions[activeVersionId] || result, locale, ui)}
                         </span>
                         <span className="text-[10px] text-zinc-500">▼</span>
                       </span>
@@ -862,10 +958,7 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
                               className={`w-full text-left px-3 py-2.5 rounded-xl text-xs font-semibold flex items-center justify-between transition-all cursor-pointer ${activeVersionId === vKey ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/30" : "text-zinc-400 hover:bg-zinc-900 hover:text-white"}`}
                             >
                               <span className="truncate">
-                                {vKey === "original" ? (locale === "en" ? "📝 Original Version" : locale === "es" ? "📝 Versión Original" : "📝 Varianta Originală")
-                                : vKey === "eu_funds" ? (locale === "en" ? "🇪🇺 EU Funds" : locale === "es" ? "🇪🇺 Fondos UE" : "🇪🇺 Optimizat Fonduri UE")
-                                : vKey === "investor" ? (locale === "en" ? "🏦 Investors Plan" : locale === "es" ? "🏦 Plan Inversores" : "🏦 Plan Investitori")
-                                : `📑 ${vKey}`}
+                                {formatVersionTabTitle(vKey, vData, locale, ui)}
                               </span>
                               {activeVersionId === vKey && <span className="text-emerald-400 text-xs">✓</span>}
                             </button>

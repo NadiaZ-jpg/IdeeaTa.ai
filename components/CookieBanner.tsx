@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { hasCookieConsent, loadAdSenseScript, setCookieConsentAccepted } from '@/lib/adsenseConsent';
 
 export function CookieBanner() {
   const [isVisible, setIsVisible] = useState(false);
@@ -10,14 +11,16 @@ export function CookieBanner() {
   const isEs = pathname?.startsWith('/es');
 
   useEffect(() => {
-    const consent = localStorage.getItem('cookie_consent');
-    if (!consent) {
+    if (!hasCookieConsent()) {
       setIsVisible(true);
+    } else {
+      loadAdSenseScript();
     }
   }, []);
 
   const acceptCookies = () => {
-    localStorage.setItem('cookie_consent', 'true');
+    setCookieConsentAccepted();
+    loadAdSenseScript();
     setIsVisible(false);
   };
 

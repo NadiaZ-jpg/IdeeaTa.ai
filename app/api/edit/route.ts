@@ -11,6 +11,8 @@ import {
   planNeedsExplanationFill,
 } from "@/lib/normalizePlanResult";
 import { fillMissingPlanExplanations } from "@/lib/fillMissingPlanExplanations";
+import { adminAuth, adminDb } from "@/lib/firebase-admin";
+import { isProToneKey } from "@/lib/toneQuota";
 
 export const maxDuration = 60;
 
@@ -18,6 +20,68 @@ const apiKey = process.env.GEMINI_API_KEY?.trim() || "";
 const ai = new GoogleGenAI({ apiKey });
 
 const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
+const PRO_EDIT_ACTIONS = new Set([
+  "eu_funds_optimization",
+  "investor_ready",
+  "optimize_budget",
+  "add_sections",
+]);
+
+async function assertEditEntitlement(
+  req: NextRequest,
+  action: string,
+  customStyle?: string
+): Promise<NextResponse | null> {
+  const needsPro =
+    PRO_EDIT_ACTIONS.has(action) ||
+    (action === "professional_tone" && isProToneKey(customStyle));
+
+  if (!needsPro) return null;
+
+  const authHeader = req.headers.get("Authorization");
+  if (!authHeader?.startsWith("Bearer ")) {
+    return NextResponse.json(
+      { error: "Unauthorized", code: "AUTH_REQUIRED" },
+      { status: 401 }
+    );
+  }
+
+  try {
+    const decoded = await adminAuth.verifyIdToken(authHeader.substring(7));
+    const userDoc = await adminDb.collection("users").doc(decoded.uid).get();
+    const data = userDoc.exists ? userDoc.data() : {};
+    const hasPro =
+      !!data?.subscriptionActive ||
+      !!data?.euFundsUnlocked ||
+      data?.promoCodeTier === "eu-funds" ||
+      data?.promoCodeTier === "full-access";
+
+    // Full Pro tools (EU / Investor / Budget / Expert). Standard promo isPaid alone is not enough.
+    if (!hasPro) {
+      // Allow admins by email if set on user doc later; client also gates admins.
+      const email = (decoded.email || "").toLowerCase();
+      const isAdmin =
+        email === "contact@ideeata.ai" ||
+        email === "nadiaramonaz@gmail.com" ||
+        email === "adrian@ideeata.ai";
+      if (!isAdmin) {
+        return NextResponse.json(
+          { error: "Forbidden", code: "PRO_REQUIRED" },
+          { status: 403 }
+        );
+      }
+    }
+  } catch (err) {
+    console.error("[edit] auth/entitlement failed:", err);
+    return NextResponse.json(
+      { error: "Unauthorized", code: "AUTH_REQUIRED" },
+      { status: 401 }
+    );
+  }
+
+  return null;
+}
 
 // Returns only the subset of the plan needed for a given action
 function extractRelevantSection(result: any, action: string) {
@@ -55,6 +119,10 @@ function extractRelevantSection(result: any, action: string) {
 export async function POST(req: NextRequest) {
   try {
     const { result, action, customStyle, targetSection, locale, isRetry, currency } = await req.json();
+
+    const denied = await assertEditEntitlement(req, action, customStyle);
+    if (denied) return denied;
+
     const isEn = locale === "en" || locale === "es";
     let instruction = getEditInstruction(action, locale, customStyle, targetSection, currency);
     instruction += "\n\n" + getEditLanguageLock(locale || "ro");

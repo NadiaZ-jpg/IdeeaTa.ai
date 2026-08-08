@@ -30,13 +30,21 @@ import { FREE_ACCOUNT_PLAN_LIMIT, GUEST_DEMO_PLAN_LIMIT } from "@/lib/planQuota"
 import { canUseFreeToneEdit, consumeFreeToneEdit, isFreeToneKey, isProToneKey, toneVersionKey } from "@/lib/toneQuota";
 import {
   buildStackedVersionKey,
+  canUseVersionCombine,
+  combineFullAccessHint,
+  combineWithLabel,
   formatVersionTabTitle,
   gateVersionStackAppend,
+  getCombineMenuItems,
+  getVersionStackLimit,
+  isStandardOnlyCombineAccess,
   noCombineAccessMessage,
   resolveEditBaseForToolRun,
+  resolveVersionStack,
   stackLimitReachedMessage,
   toolStepFromAction,
   withVersionStack,
+  type CombineAction,
   type VersionStackAccess,
 } from "@/lib/versionStack";
 
@@ -58,6 +66,7 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
   const activeVersionIdRef = useRef<string>("original");
   const [activeVersionId, _setActiveVersionId] = useState<string>("original");
   const [showVersionDropdown, setShowVersionDropdown] = useState(false);
+  const [combineMenuFor, setCombineMenuFor] = useState<string | null>(null);
 
   const setActiveVersionId = (id: string) => {
     activeVersionIdRef.current = id;
@@ -155,6 +164,30 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
     hasProTools: hasProAccess,
   };
 
+  const syncCurrentPlanToFirestore = async (
+    updatedResult: any,
+    updatedVersions?: Record<string, any>,
+    versionIdToSave?: string
+  ) => {
+    if (!user || !updatedResult?.id) return;
+    try {
+      const planRef = doc(db, "users", user.uid, "plans", updatedResult.id);
+      const versToSave = updatedVersions || versions;
+      const payload: any = {
+        ...updatedResult,
+        updatedAt: new Date().toISOString(),
+        selectedCurrency: updatedResult?.selectedCurrency || (locale === "ro" ? "LEI" : "EUR"),
+        activeVersionId: versionIdToSave || activeVersionId,
+      };
+      if (versToSave && Object.keys(versToSave).length > 0) {
+        payload.versions = versToSave;
+      }
+      await setDoc(planRef, payload, { merge: true });
+    } catch (err) {
+      console.error("Firestore save error:", err);
+    }
+  };
+
   useEffect(() => {
     if (!user) {
       setCredits(0);
@@ -203,6 +236,7 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
     result,
     locale,
     currency: result?.selectedCurrency || (locale === "ro" ? "LEI" : "EUR"),
+    fxRate,
     user,
     isAdmin,
     isPlanPaid: isPaid,
@@ -215,6 +249,9 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
     setIsSharedView: () => {},
     t,
     activeVersionId,
+    onPlanUnlockedByCredit: (planName) => {
+      setUnlockedPlans((prev) => (prev.includes(planName) ? prev : [...prev, planName]));
+    },
   });
   
   // Stările pentru asistentul AI Bottom-Sheet
@@ -414,10 +451,15 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
         const planId =
           String(finalResult.nume || "Plan").replace(/[^a-zA-Z0-9]/g, "_") + "_" + Date.now();
         finalResult.id = planId;
-        setVersionsState({});
+        const initialVersions = { original: finalResult };
         setActiveVersionId("original");
-        setResult(finalResult);
+        setVersions(initialVersions);
+        setResultState(finalResult);
         localStorage.setItem("current_generated_plan", JSON.stringify(finalResult));
+        localStorage.setItem(
+          "current_versions",
+          JSON.stringify({ versions: initialVersions, activeVersionId: "original" })
+        );
 
         // Guest only: listă locală pentru migrare la login.
         // Logat → doar Firestore (altfel migrate creează duplicate cu alt id).
@@ -438,6 +480,8 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
           try {
             await setDoc(doc(db, "users", user.uid, "plans", planId), {
               ...finalResult,
+              versions: initialVersions,
+              activeVersionId: "original",
               createdAt: new Date().toISOString(),
               isPaid: false,
             });
@@ -561,9 +605,13 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
     setActiveAiPrompt(null);
 
     try {
+      const token = user ? await user.getIdToken() : null;
+      const editHeaders: Record<string, string> = { "Content-Type": "application/json" };
+      if (token) editHeaders.Authorization = `Bearer ${token}`;
+
       const res = await fetch("/api/edit", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: editHeaders,
         body: JSON.stringify({
           result: baseSource,
           action,
@@ -589,19 +637,21 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
               ? toneVersionKey(customInput)
               : `edit_${Date.now()}`);
         const originalSnapshot = versions.original ?? (isCombine ? undefined : baseSource);
-        setVersions((prev: any) => {
-          const base = Object.keys(prev).length ? prev : { original: originalSnapshot || baseSource };
+        const nextVersions = (() => {
+          const base = Object.keys(versions).length ? versions : { original: originalSnapshot || baseSource };
           if (!base.original && originalSnapshot) {
             return { ...base, original: originalSnapshot, [vKey]: parsed };
           }
           return { ...base, [vKey]: parsed };
-        });
+        })();
+        setVersions(nextVersions);
         setActiveVersionId(vKey);
-        setResult(parsed);
+        setResultState(parsed);
         localStorage.setItem("current_generated_plan", JSON.stringify(parsed));
         if (isTone && isFreeToneKey(customInput) && !hasPaidTones) {
           consumeFreeToneEdit(false);
         }
+        await syncCurrentPlanToFirestore(parsed, nextVersions, vKey);
       }
     } catch (e) {
       console.error(e);
@@ -610,6 +660,34 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
       setIsEditingAi(false);
       setAiPromptInput("");
     }
+  };
+
+  const handleCombineWith = (sourceVersionId: string, combine: CombineAction) => {
+    const sourcePlan = versions[sourceVersionId];
+    if (!sourcePlan) return;
+    setActiveVersionId(sourceVersionId);
+    setResultState(sourcePlan);
+    setCombineMenuFor(null);
+    setShowVersionDropdown(false);
+
+    if (combine.action === "optimize_budget") {
+      void handleAiEdit("optimize_budget", undefined, {
+        basePlan: sourcePlan,
+        sourceVersionId,
+      });
+      return;
+    }
+    if (combine.action === "professional_tone") {
+      void handleAiEdit(combine.action, combine.customStyle, {
+        basePlan: sourcePlan,
+        sourceVersionId,
+      });
+      return;
+    }
+    void handleAiEdit(combine.action, undefined, {
+      basePlan: sourcePlan,
+      sourceVersionId,
+    });
   };
 
   const handleSocialLogin = async (provider: 'google' | 'facebook') => {
@@ -953,24 +1031,84 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
                       <div className="absolute top-full left-0 right-0 mt-1 bg-zinc-950 border border-zinc-800 rounded-2xl p-2 shadow-2xl z-30 animate-in fade-in slide-in-from-top-1 duration-150">
                         <div className="text-[9px] uppercase font-black tracking-widest text-zinc-500 px-3 py-2 border-b border-zinc-900 flex justify-between items-center">
                           <span>{locale === "en" ? "Saved Versions" : locale === "es" ? "Versiones Guardadas" : "Versiuni Salvate"}</span>
-                          <button onClick={() => setShowVersionDropdown(false)} className="text-zinc-500 hover:text-white text-xs p-2 -m-2 inline-flex items-center justify-center min-w-[36px] min-h-[36px]">✕</button>
+                          <button type="button" onClick={() => { setShowVersionDropdown(false); setCombineMenuFor(null); }} className="text-zinc-500 hover:text-white text-xs min-w-[44px] min-h-[44px]">✕</button>
                         </div>
-                        <div className="max-h-48 overflow-y-auto flex flex-col gap-1 mt-1">
+                        <div className="max-h-64 overflow-y-auto flex flex-col gap-1 mt-1">
                           {Object.entries(versions).map(([vKey, vData]) => (
-                            <button
-                              key={vKey}
-                              onClick={() => {
-                                setActiveVersionId(vKey);
-                                setResultState(vData);
-                                setShowVersionDropdown(false);
-                              }}
-                              className={`w-full text-left px-3 py-2.5 rounded-xl text-xs font-semibold flex items-center justify-between transition-all cursor-pointer ${activeVersionId === vKey ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/30" : "text-zinc-400 hover:bg-zinc-900 hover:text-white"}`}
-                            >
-                              <span className="truncate">
-                                {formatVersionTabTitle(vKey, vData, locale, ui)}
-                              </span>
-                              {activeVersionId === vKey && <span className="text-emerald-400 text-xs">✓</span>}
-                            </button>
+                            <div key={vKey} className="flex flex-col gap-1">
+                              <div className="flex items-stretch gap-1">
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setActiveVersionId(vKey);
+                                    setResultState(vData);
+                                    setShowVersionDropdown(false);
+                                    setCombineMenuFor(null);
+                                    void syncCurrentPlanToFirestore(vData, versions, vKey);
+                                  }}
+                                  className={`flex-1 text-left px-3 py-2.5 rounded-xl text-xs font-semibold flex items-center justify-between transition-all cursor-pointer min-h-[44px] ${activeVersionId === vKey ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/30" : "text-zinc-400 hover:bg-zinc-900 hover:text-white"}`}
+                                >
+                                  <span className="truncate pr-2">
+                                    {formatVersionTabTitle(vKey, vData, locale, ui)}
+                                  </span>
+                                  {activeVersionId === vKey && <span className="text-emerald-400 text-xs shrink-0">✓</span>}
+                                </button>
+                                {canUseVersionCombine(versionStackAccess) && (
+                                  <button
+                                    type="button"
+                                    title={combineWithLabel(locale)}
+                                    onClick={() => {
+                                      const stack = resolveVersionStack(vKey, vData);
+                                      const limit = getVersionStackLimit(versionStackAccess);
+                                      if (stack.length >= limit) {
+                                        const isStandardOnly = !!(
+                                          versionStackAccess.hasStandardAccess &&
+                                          !versionStackAccess.hasFullAccess &&
+                                          !versionStackAccess.isAdmin
+                                        );
+                                        alert(stackLimitReachedMessage(locale, limit, isStandardOnly));
+                                        if (isStandardOnly) setShowPricingModal(true);
+                                        return;
+                                      }
+                                      setCombineMenuFor(combineMenuFor === vKey ? null : vKey);
+                                    }}
+                                    className="shrink-0 px-3 rounded-xl text-emerald-400 border border-emerald-500/25 bg-emerald-500/5 text-xs font-black min-w-[44px] min-h-[44px]"
+                                  >
+                                    +
+                                  </button>
+                                )}
+                              </div>
+                              {combineMenuFor === vKey && (
+                                <div className="mx-1 mb-1 p-1.5 rounded-xl bg-zinc-900/80 border border-zinc-800">
+                                  <p className="text-[9px] uppercase font-black tracking-widest text-zinc-500 px-2 py-1">
+                                    {combineWithLabel(locale)}
+                                  </p>
+                                  {getCombineMenuItems(locale, versionStackAccess, ui).map((item) => (
+                                    <button
+                                      key={item.id}
+                                      type="button"
+                                      className="w-full text-left text-xs px-3 py-2.5 rounded-lg text-zinc-300 hover:bg-zinc-800 hover:text-white font-semibold min-h-[44px]"
+                                      onClick={() => handleCombineWith(vKey, item.combine)}
+                                    >
+                                      {item.label}
+                                    </button>
+                                  ))}
+                                  {isStandardOnlyCombineAccess(versionStackAccess) && (
+                                    <button
+                                      type="button"
+                                      className="w-full text-left text-[10px] leading-snug px-3 py-2.5 mt-1 rounded-lg text-amber-300/90 bg-amber-500/5 border border-amber-500/20 hover:bg-amber-500/10 font-semibold min-h-[44px]"
+                                      onClick={() => {
+                                        setCombineMenuFor(null);
+                                        setShowVersionDropdown(false);
+                                        setShowPricingModal(true);
+                                      }}
+                                    >
+                                      {combineFullAccessHint(locale)}
+                                    </button>
+                                  )}
+                                </div>
+                              )}
+                            </div>
                           ))}
                         </div>
                       </div>

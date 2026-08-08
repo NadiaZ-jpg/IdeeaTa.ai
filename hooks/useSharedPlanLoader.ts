@@ -64,12 +64,15 @@ export function clearSharedIdFromUrl(): void {
   window.history.replaceState({}, document.title, window.location.pathname);
 }
 
-/** Resetează contoarele demo după deschiderea unui share (comportament Desktop existent). */
+/** Resetează doar contoarele de edit după share — NU resetează demoGenerateCount (anti-abuse). */
 export function resetDemoShareCounters(setDemoCount?: (n: number) => void): void {
   if (typeof window === "undefined") return;
-  localStorage.setItem("demoGenerateCount", "0");
   localStorage.setItem("demoEditCount", "0");
-  setDemoCount?.(0);
+  // Keep guest generate quota intact when opening shared plans.
+  if (setDemoCount) {
+    const count = parseInt(localStorage.getItem("demoGenerateCount") || "0", 10) || 0;
+    setDemoCount(count);
+  }
 }
 
 type UseSharedPlanLoaderOptions = {

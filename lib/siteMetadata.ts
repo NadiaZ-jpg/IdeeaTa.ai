@@ -79,6 +79,15 @@ export function getSiteMetadata(locale: SiteLocale): Metadata {
     title: { absolute: copy.title },
     description: copy.description,
     keywords: copy.keywords,
+    alternates: {
+      canonical: url,
+      languages: {
+        ro: "https://ideeata.ai",
+        en: "https://ideeata.ai/en",
+        es: "https://ideeata.ai/es",
+        "x-default": "https://ideeata.ai",
+      },
+    },
     openGraph: {
       title: copy.ogTitle,
       description: copy.ogDescription,

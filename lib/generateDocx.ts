@@ -115,9 +115,9 @@ function spacer(): Paragraph {
   return new Paragraph({ spacing: { after: 160 } });
 }
 
-function formatPrice(val: any, locale: "ro" | "en" | "es" = "ro", currency?: string): string {
+function formatPrice(val: any, locale: "ro" | "en" | "es" = "ro", currency?: string, fxRate = 0.201): string {
   const activeCurrency = currency || (locale === "ro" ? "LEI" : "EUR");
-  return formatPriceLocalized(val, locale, activeCurrency);
+  return formatPriceLocalized(val, locale, activeCurrency, fxRate);
 }
 
 const swotItemParagraphs = (items: any[], title: string, color: string): Paragraph[] => {
@@ -248,9 +248,11 @@ export async function generateDocxBlob(
   result: any,
   chartDataUrl?: string | null,
   locale: "ro" | "en" | "es" = "ro",
-  currency?: string
+  currency?: string,
+  fxRate = 0.201
 ): Promise<Blob> {
   const children: (Paragraph | Table)[] = [];
+  const price = (val: any) => formatPrice(val, locale, currency, fxRate);
 
   // Generate a pure canvas pie chart if budget exists
   let finalChartDataUrl = null;
@@ -558,7 +560,7 @@ export async function generateDocxBlob(
         new Paragraph({
           children: [
             new TextRun({ text: `${itemTitle}: `, bold: true, font: FONT, size: 24 }),
-            new TextRun({ text: formatPrice(itemCost, locale, currency), color: COLOR_EMERALD, font: FONT, size: 24, bold: true }),
+            new TextRun({ text: price(itemCost), color: COLOR_EMERALD, font: FONT, size: 24, bold: true }),
           ],
           spacing: { after: 40 },
           bullet: { level: 0 },

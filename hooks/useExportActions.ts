@@ -1,3 +1,4 @@
+import { useRef } from "react";
 import { doc, setDoc, increment, arrayUnion } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { jsPDF } from "jspdf";
@@ -13,6 +14,8 @@ interface UseExportActionsProps {
   result: any;
   locale: "ro" | "en" | "es";
   currency: string;
+  /** Live FX (RON→EUR). Defaults to 0.201 when omitted. */
+  fxRate?: number;
   user: any;
   isAdmin: boolean;
   isPlanPaid: boolean;
@@ -26,12 +29,15 @@ interface UseExportActionsProps {
   t: any;
   /** Active history tab — filename suffix (Desktop/Mobile Studio + Demo). */
   activeVersionId?: string;
+  /** Optimistic unlock after credit spend (parent can fold into isPlanPaid). */
+  onPlanUnlockedByCredit?: (planName: string) => void;
 }
 
 export function useExportActions({
   result,
   locale,
   currency,
+  fxRate = 0.201,
   user,
   isAdmin,
   isPlanPaid,
@@ -44,13 +50,24 @@ export function useExportActions({
   setIsSharedView,
   t,
   activeVersionId,
+  onPlanUnlockedByCredit,
 }: UseExportActionsProps) {
-  
+  /** Session unlocks — prevents double credit spend before Firestore snapshot. */
+  const sessionUnlockedRef = useRef<Set<string>>(new Set());
+
   const handleDownloadAction = async (mode: 'pdf' | 'pptx' | 'word' | 'pdf-summary', bypassPaymentCheck = false) => {
     const planName = result?.nume || "Plan de Afaceri";
     const versionSuffix = buildExportVersionFileSuffix(activeVersionId, result, locale);
+    const sessionUnlocked = sessionUnlockedRef.current.has(planName);
+    const effectivelyPaid =
+      bypassPaymentCheck ||
+      isAdmin ||
+      isPlanPaid ||
+      subscriptionActive ||
+      euFundsUnlocked ||
+      sessionUnlocked;
 
-    if (mode !== 'pdf-summary' && !isAdmin && !isPlanPaid && !subscriptionActive && !euFundsUnlocked && !bypassPaymentCheck) {
+    if (mode !== 'pdf-summary' && !effectivelyPaid) {
       if (!user) {
         window.history.pushState({ login: true }, '', window.location.pathname + '?login=true');
         setIsSharedView(false);
@@ -72,6 +89,8 @@ export function useExportActions({
             credits: increment(-1),
             unlockedPlans: arrayUnion(planName)
           }, { merge: true });
+          sessionUnlockedRef.current.add(planName);
+          onPlanUnlockedByCredit?.(planName);
         } catch (e) {
           console.error("Eroare la scaderea creditului:", e);
           alert(t("errorProcessingCredit", locale));
@@ -96,18 +115,21 @@ export function useExportActions({
       }
 
       const safeName = result?.nume?.replace(/[^a-zA-Z0-9]/g, '_') || 'Business';
-      // Localized filenames for ALL export modes (free summary / paid pdf / word / pptx),
-      // independent of auth or package (guest, account, standard, full-access).
-      // Callers often pass `t` as translation fn — never use t.file* for names.
       const fileUi = UI_STRINGS[locale] || UI_STRINGS.ro;
       const presentationLabel = fileUi.filePresentation;
       const summaryFreeLabel = fileUi.fileSummaryFree;
       const documentLabel = fileUi.fileDocument;
       const brochureLabel = fileUi.fileBrochure;
 
+      // Prefer UI display currency (Desktop toggle), then plan field, then locale default.
+      const exportCurrency =
+        currency ||
+        result?.selectedCurrency ||
+        (locale === "es" || locale === "en" ? "EUR" : "LEI");
+      const exportFx = typeof fxRate === "number" && fxRate > 0 ? fxRate : 0.201;
+
       if (mode === 'pptx') {
-        const planCurrency = result?.selectedCurrency || currency || (locale === "es" || locale === "en" ? "EUR" : "LEI");
-        await generatePptx(result, `${safeName}${versionSuffix}`, planCurrency, 0.201, locale, brochureLabel);
+        await generatePptx(result, `${safeName}${versionSuffix}`, exportCurrency, exportFx, locale, brochureLabel);
       } else if (mode === 'pdf' || mode === 'pdf-summary') {
         let slidesArray = Array.from(document.querySelectorAll('.pdf-presentation-slide'));
         if (slidesArray.length === 0) {
@@ -129,8 +151,6 @@ export function useExportActions({
           format: [1280, 720]
         });
 
-        // CTA PDF: un singur modul (lib/pdfCtaBehavior) — RO/EN/ES, Desktop+Mobile.
-        // URL = /{locale}/demo?sharedId=… pe ideeata.ai (REGULA #5), nu /shared → /demo RO.
         const exportLocale = normalizeAppLocale(locale);
         const currentShareId = generatedShareId || result?.id;
         const pdfUrl = currentShareId
@@ -171,8 +191,7 @@ export function useExportActions({
                 chartDataUrl = await toPng(chartElement, { backgroundColor: '#ffffff' });
              } catch(e) { console.error(e); }
           }
-          const planCurrency = result.selectedCurrency || currency || (locale === "es" || locale === "en" ? "EUR" : "LEI");
-          const blob = await generateDocxBlob(result, chartDataUrl, locale, planCurrency);
+          const blob = await generateDocxBlob(result, chartDataUrl, locale, exportCurrency, exportFx);
           const link = document.createElement('a');
           link.href = URL.createObjectURL(blob);
           const safeName2 = result?.nume?.replace(/[^a-zA-Z0-9]/g, '_') || 'Business';

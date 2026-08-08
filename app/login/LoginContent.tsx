@@ -21,6 +21,11 @@ export default function LoginContent({ locale = "ro" }: { locale?: "ro" | "en" |
   const isEs = locale === "es";
 
   useEffect(() => {
+    try {
+      localStorage.setItem("preferred_language", locale);
+    } catch {
+      /* ignore */
+    }
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       if (currentUser) {
         await migrateLocalPlansToFirebase(currentUser);
@@ -308,7 +313,13 @@ export default function LoginContent({ locale = "ro" }: { locale?: "ro" | "en" |
         <div className="w-full mt-8 pt-8 border-t border-zinc-800 flex items-center gap-5">
           <div className="bg-white p-2.5 rounded-2xl shadow-lg shrink-0">
             <QRCodeSVG
-              value="https://ideeata.ai/demo?start=nou"
+              value={
+                isEn
+                  ? "https://ideeata.ai/en/demo?start=nou"
+                  : isEs
+                  ? "https://ideeata.ai/es/demo?start=nou"
+                  : "https://ideeata.ai/demo?start=nou"
+              }
               size={88}
               bgColor="#ffffff"
               fgColor="#09090b"
@@ -327,7 +338,7 @@ export default function LoginContent({ locale = "ro" }: { locale?: "ro" | "en" |
                 : "Scanează codul QR și generează primul tău plan de afaceri direct de pe mobil."}
             </p>
             <span className="text-emerald-400 text-xs font-semibold mt-2 block">
-              → ideeata.ai/demo
+              → {isEn ? "ideeata.ai/en/demo" : isEs ? "ideeata.ai/es/demo" : "ideeata.ai/demo"}
             </span>
           </div>
         </div>

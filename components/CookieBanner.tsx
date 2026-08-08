@@ -4,6 +4,8 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { hasCookieConsent, loadAdSenseScript, setCookieConsentAccepted } from '@/lib/adsenseConsent';
 
+const COOKIE_DECLINED_KEY = "cookie_consent_declined";
+
 export function CookieBanner() {
   const [isVisible, setIsVisible] = useState(false);
   const pathname = usePathname();
@@ -11,16 +13,35 @@ export function CookieBanner() {
   const isEs = pathname?.startsWith('/es');
 
   useEffect(() => {
-    if (!hasCookieConsent()) {
-      setIsVisible(true);
-    } else {
+    if (hasCookieConsent()) {
       loadAdSenseScript();
+      return;
     }
+    try {
+      if (localStorage.getItem(COOKIE_DECLINED_KEY) === "true") return;
+    } catch {
+      /* ignore */
+    }
+    setIsVisible(true);
   }, []);
 
   const acceptCookies = () => {
+    try {
+      localStorage.removeItem(COOKIE_DECLINED_KEY);
+    } catch {
+      /* ignore */
+    }
     setCookieConsentAccepted();
     loadAdSenseScript();
+    setIsVisible(false);
+  };
+
+  const declineCookies = () => {
+    try {
+      localStorage.setItem(COOKIE_DECLINED_KEY, "true");
+    } catch {
+      /* ignore */
+    }
     setIsVisible(false);
   };
 
@@ -32,7 +53,7 @@ export function CookieBanner() {
         <p>
           {isEn ? (
             <>
-              We use cookies to provide you with an optimal experience on the platform, including for authentication, processing payments and displaying relevant content. By continuing to browse, you agree to our{" "}
+              We use essential cookies for authentication and payments. Advertising cookies (AdSense) are loaded only if you accept. See our{" "}
               <Link href="/en/cookies" className="text-emerald-400 hover:underline">
                 Cookie Policy
               </Link>
@@ -40,7 +61,7 @@ export function CookieBanner() {
             </>
           ) : isEs ? (
             <>
-              Utilizamos cookies para ofrecerle una experiencia óptima en la plataforma, incluyendo la autenticación, el procesamiento de pagos y la visualización de contenido relevante. Al continuar navegando, acepta nuestra{" "}
+              Usamos cookies esenciales para autenticación y pagos. Las cookies publicitarias (AdSense) se cargan solo si aceptas. Consulta nuestra{" "}
               <Link href="/es/cookies" className="text-emerald-400 hover:underline">
                 Política de Cookies
               </Link>
@@ -48,8 +69,7 @@ export function CookieBanner() {
             </>
           ) : (
             <>
-              Utilizăm cookie-uri pentru a vă oferi o experiență optimă pe platformă, inclusiv pentru autentificare, procesarea plăților și afișarea de conținut relevant. 
-              Continuând să navigați, sunteți de acord cu{" "}
+              Folosim cookie-uri esențiale pentru autentificare și plăți. Cookie-urile publicitare (AdSense) se încarcă doar dacă accepți. Vezi{" "}
               <Link href="/cookies" className="text-emerald-400 hover:underline">
                 Politica de Cookie-uri
               </Link>
@@ -59,11 +79,19 @@ export function CookieBanner() {
         </p>
       </div>
       <div className="flex gap-3 shrink-0 w-full md:w-auto">
-        <button 
+        <button
+          type="button"
+          onClick={declineCookies}
+          className="w-full md:w-auto px-6 py-2.5 bg-zinc-800 hover:bg-zinc-700 text-zinc-200 font-bold rounded-xl transition-all"
+        >
+          {isEn ? "Essential only" : isEs ? "Solo esenciales" : "Doar esențiale"}
+        </button>
+        <button
+          type="button"
           onClick={acceptCookies}
           className="w-full md:w-auto px-6 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl transition-all"
         >
-          {isEn ? "I agree" : isEs ? "Estoy de acuerdo" : "Sunt de acord"}
+          {isEn ? "Accept" : isEs ? "Aceptar" : "Acceptă"}
         </button>
       </div>
     </div>

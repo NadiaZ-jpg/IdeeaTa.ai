@@ -2,6 +2,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { t } from '@/lib/translations';
+import { LanguageSwitcher } from '@/components/LanguageSwitcher';
 
 export function Footer() {
   const pathname = usePathname();
@@ -23,6 +24,7 @@ export function Footer() {
             <span className="text-emerald-500">💡</span> IdeeaTa.ai
           </div>
           <p className="text-zinc-500 text-sm">© {new Date().getFullYear()} {t('allRightsReserved', locale)}</p>
+          <LanguageSwitcher currentLocale={locale as "ro" | "en" | "es"} />
         </div>
         
         <div className="flex flex-wrap justify-center gap-6 text-sm font-medium text-zinc-400">

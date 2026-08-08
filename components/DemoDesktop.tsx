@@ -355,10 +355,14 @@ export default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" | 
     setAiPromptInput("");
     setShowToneOptions(false);
     try {
+      const token = user ? await user.getIdToken() : null;
+      const editHeaders: Record<string, string> = { "Content-Type": "application/json" };
+      if (token) editHeaders.Authorization = `Bearer ${token}`;
+
       const [res] = await Promise.all([
         fetch("/api/edit", {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: editHeaders,
           body: JSON.stringify({ result: baseSource, action, customStyle, targetSection, locale, isRetry, currency })
         }),
         new Promise(resolve => setTimeout(resolve, 2000))
@@ -423,7 +427,7 @@ export default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" | 
           
           setVersions(nextVersions);
           setActiveVersionId(vKey);
-          setResult(formattedResult);
+          setResultState(formattedResult);
           
           if (isActionFree && !isProTone && !isAdmin && !hasStandardAccess) {
             consumeFreeToneEdit(false);
@@ -432,6 +436,8 @@ export default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" | 
           if (typeof window !== "undefined") {
             localStorage.setItem("current_generated_plan", JSON.stringify(formattedResult));
           }
+
+          void syncCurrentPlanToFirestore(formattedResult, nextVersions, vKey);
           
           setIsEditingAi(false);
           
@@ -553,6 +559,31 @@ export default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" | 
     hasFullAccess: isAdmin || subscriptionActive || euFundsUnlocked,
     hasProTools: hasProAccess,
   };
+
+  const syncCurrentPlanToFirestore = async (
+    updatedResult: any,
+    updatedVersions?: Record<string, any>,
+    versionIdToSave?: string
+  ) => {
+    if (!user || !updatedResult?.id) return;
+    try {
+      const planRef = doc(db, "users", user.uid, "plans", updatedResult.id);
+      const versToSave = updatedVersions || versions;
+      const payload: any = {
+        ...updatedResult,
+        updatedAt: new Date().toISOString(),
+        selectedCurrency: updatedResult?.selectedCurrency || currency || (locale === "ro" ? "LEI" : "EUR"),
+        activeVersionId: versionIdToSave || activeVersionId,
+      };
+      if (versToSave && Object.keys(versToSave).length > 0) {
+        payload.versions = versToSave;
+      }
+      await setDoc(planRef, payload, { merge: true });
+    } catch (err) {
+      console.error("Firestore save error:", err);
+    }
+  };
+
   const [isAuthLoading, setIsAuthLoading] = useState(true);
   const [authError, setAuthError] = useState<string | null>(null);
   const [email, setEmail] = useState("");
@@ -1083,11 +1114,21 @@ export default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" | 
 
         try {
           cleanJson = cleanJson.replace(/,\s*([}\]])/g, '$1');
-          const finalResult = JSON.parse(cleanJson);
+          const finalResult = formatObjectNumbers(JSON.parse(cleanJson));
           const planId = finalResult.nume.replace(/[^a-zA-Z0-9]/g, '_') + "_" + Date.now();
           finalResult.id = planId;
+          const initialVersions = { original: finalResult };
 
-          setResult(formatObjectNumbers(finalResult));
+          setActiveVersionId("original");
+          setVersions(initialVersions);
+          setResultState(finalResult);
+          if (typeof window !== "undefined") {
+            localStorage.setItem("current_generated_plan", JSON.stringify(finalResult));
+            localStorage.setItem(
+              "current_versions",
+              JSON.stringify({ versions: initialVersions, activeVersionId: "original" })
+            );
+          }
           window.history.pushState({ view: 'idea' }, '', window.location.pathname + '?view=idea');
           setSkill(""); 
           
@@ -1101,6 +1142,8 @@ export default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" | 
               const planRef = doc(db, "users", user.uid, "plans", planId);
               await setDoc(planRef, {
                 ...finalResult,
+                versions: initialVersions,
+                activeVersionId: "original",
                 createdAt: new Date().toISOString(),
               });
               console.log("Plan salvat cu succes în Firestore:", planId);
@@ -1151,6 +1194,7 @@ export default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" | 
     result,
     locale,
     currency,
+    fxRate,
     user,
     isAdmin,
     isPlanPaid,
@@ -1163,6 +1207,9 @@ export default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" | 
     setIsSharedView,
     t,
     activeVersionId,
+    onPlanUnlockedByCredit: (planName) => {
+      setUnlockedPlans((prev) => (prev.includes(planName) ? prev : [...prev, planName]));
+    },
   });
 
   const renderSidebar = () => (

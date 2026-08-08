@@ -412,10 +412,14 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
     setAiPromptInput("");
     setShowToneOptions(false);
     try {
+      const token = user ? await user.getIdToken() : null;
+      const editHeaders: Record<string, string> = { "Content-Type": "application/json" };
+      if (token) editHeaders.Authorization = `Bearer ${token}`;
+
       const [res] = await Promise.all([
         fetch("/api/edit", {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: editHeaders,
           body: JSON.stringify({ result: baseSource, action, customStyle, targetSection, locale, isRetry, currency })
         }),
         new Promise(resolve => setTimeout(resolve, 2000))
@@ -1225,6 +1229,7 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
     result,
     locale,
     currency,
+    fxRate,
     user,
     isAdmin,
     isPlanPaid,
@@ -1237,6 +1242,9 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
     setIsSharedView,
     t,
     activeVersionId,
+    onPlanUnlockedByCredit: (planName) => {
+      setUnlockedPlans((prev) => (prev.includes(planName) ? prev : [...prev, planName]));
+    },
   });
 
   const renderSidebar = () => (

@@ -355,9 +355,13 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
     setIsEditingAi(true);
 
     try {
+      const token = user ? await user.getIdToken() : null;
+      const editHeaders: Record<string, string> = { "Content-Type": "application/json" };
+      if (token) editHeaders.Authorization = `Bearer ${token}`;
+
       const res = await fetch("/api/edit", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: editHeaders,
         body: JSON.stringify({
           result: baseSource,
           action,
@@ -527,6 +531,7 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
     result,
     locale,
     currency: result?.selectedCurrency || (locale === "ro" ? "LEI" : "EUR"),
+    fxRate,
     user,
     isAdmin,
     isPlanPaid: isPlanPaid,
@@ -539,6 +544,9 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
     setIsSharedView: () => {},
     t,
     activeVersionId,
+    onPlanUnlockedByCredit: (planName) => {
+      setUnlockedPlans((prev) => (prev.includes(planName) ? prev : [...prev, planName]));
+    },
   });
 
   const downloadAction = async (mode: 'word' | 'pptx' | 'pdf' | 'pdf-summary') => {
@@ -1527,7 +1535,7 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
             {/* List of templates */}
             <div className="flex flex-col gap-3 overflow-y-auto flex-grow max-h-[50vh] pr-1 scrollbar-none">
               {EXPERT_TEMPLATES.filter(tpl => selectedExpertCategory === "all" || (tpl.category[locale] || tpl.category.ro) === selectedExpertCategory).map((tpl) => {
-                const isPaid = isStudioPaid || isPlanPaid;
+                const canAddExpert = hasProAccess || isAdmin;
                 return (
                   <div 
                     key={tpl.id}
@@ -1551,7 +1559,7 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
                           setShowPricingModal(true);
                           return;
                         }
-                        if (!isStudioPaid && !isAdmin) {
+                        if (!canAddExpert) {
                           setShowExpertDrawer(false);
                           setShowPricingModal(true);
                           return;
@@ -1591,12 +1599,12 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
                         }, 300);
                       }}
                       className={`w-full py-2.5 rounded-lg text-[11px] font-bold text-center transition-all active:scale-[0.98] ${
-                        isPaid 
+                        canAddExpert 
                           ? "bg-emerald-600 text-white" 
                           : "bg-zinc-800 border border-zinc-700 text-zinc-300"
                       }`}
                     >
-                      {isPaid 
+                      {canAddExpert 
                         ? (locale === "en" ? "Add Section" : locale === "es" ? "Añadir Sección" : "Adaugă Secțiunea") 
                         : (locale === "en" ? "🔒 Add Section (PRO)" : locale === "es" ? "🔒 Añadir (PRO)" : "🔒 Adaugă (PRO)")
                       }

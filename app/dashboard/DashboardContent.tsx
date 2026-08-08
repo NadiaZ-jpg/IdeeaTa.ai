@@ -96,7 +96,7 @@ export default function DashboardContent({ locale = "ro" }: { locale?: "ro" | "e
         isEn 
           ? "An error occurred while deleting the plan. Please try again." 
           : isEs
-          ? "Ocurrió un error al eliminar the plan. Por favor, inténtalo de nuevo."
+          ? "Ocurrió un error al eliminar el plan. Por favor, inténtalo de nuevo."
           : "A apărut o eroare la ștergerea planului. Te rugăm să încerci din nou."
       );
     }

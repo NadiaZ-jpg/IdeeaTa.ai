@@ -1,4 +1,15 @@
 User-agent: *
 Allow: /
 
+Disallow: /dashboard
+Disallow: /en/dashboard
+Disallow: /es/dashboard
+Disallow: /studio
+Disallow: /en/studio
+Disallow: /es/studio
+Disallow: /login
+Disallow: /en/login
+Disallow: /es/login
+Disallow: /api/
+
 Sitemap: https://ideeata.ai/sitemap.xml

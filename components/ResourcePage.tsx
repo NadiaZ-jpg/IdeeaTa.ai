@@ -10,8 +10,10 @@ import {
   type ResourceSlug,
 } from "@/lib/resourceContent";
 
-/** Primary display unit — content pages, Desktop + Mobile, all locales. */
-const CONTENT_AD_SLOT = "3098389905";
+/** Primary mid-article unit — content pages, Desktop + Mobile, all locales. */
+const CONTENT_AD_SLOT_A = "3098389905";
+/** End-of-article unit (slot C from AdSense inventory). */
+const CONTENT_AD_SLOT_C = "8674150210";
 
 export function resourceMetadata(
   locale: ResourceLocale,
@@ -97,14 +99,18 @@ export function ResourceArticlePage({
               </section>
               {index === adAfterIndex && (
                 <div className="w-full min-h-[90px] py-2">
-                  <AdBanner dataAdSlot={CONTENT_AD_SLOT} className="w-full max-w-3xl mx-auto" />
+                  <AdBanner dataAdSlot={CONTENT_AD_SLOT_A} className="w-full max-w-3xl mx-auto" />
                 </div>
               )}
             </Fragment>
           ))}
         </div>
 
-        <div className="flex justify-center mt-14">
+        <div className="w-full min-h-[90px] mt-12 mb-4">
+          <AdBanner dataAdSlot={CONTENT_AD_SLOT_C} className="w-full max-w-3xl mx-auto" />
+        </div>
+
+        <div className="flex justify-center mt-10">
           <Link
             href={article.ctaHref[locale]}
             className="bg-emerald-600 hover:bg-emerald-500 text-white px-8 py-4 rounded-xl font-bold transition-all shadow-lg shadow-emerald-900/30 no-underline"
@@ -142,10 +148,6 @@ export function ResourcesHubPage({ locale }: { locale: ResourceLocale }) {
               <span className="text-emerald-400 text-sm font-bold">{readMore} →</span>
             </Link>
           ))}
-        </div>
-
-        <div className="w-full min-h-[90px] mt-12">
-          <AdBanner dataAdSlot={CONTENT_AD_SLOT} className="w-full max-w-3xl mx-auto" />
         </div>
       </div>
     </div>

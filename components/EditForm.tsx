@@ -87,7 +87,7 @@ export function EditForm({ result, updateField, removeField, readOnly = false, l
           </div>
 
           <div className="flex flex-col gap-2">
-            <label className="text-base text-zinc-400 font-bold uppercase tracking-wider">{locale === "en" ? "Slogan" : "Slogan"}</label>
+            <label className="text-base text-zinc-400 font-bold uppercase tracking-wider">{locale === "es" ? "Eslogan" : "Slogan"}</label>
             <input
               type="text" value={safeString(result.slogan || '')}
               onChange={readOnly ? noop : (e) => updateField(['slogan'], e.target.value)}

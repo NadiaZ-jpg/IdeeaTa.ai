@@ -16,6 +16,8 @@ import { formatPriceLocalized } from "@/lib/priceHelper";
 import { ConversionBanners } from '@/components/ConversionBanners';
 import { migrateLocalPlansToFirebase } from '@/lib/migrationManager';
 import { ToneEditor } from '@/components/ToneEditor';
+import { MobileProToolsPanel, type MobileAiPrompt } from '@/components/tools/MobileProToolsPanel';
+import { ExpertSectionsDrawer } from '@/components/modals/ExpertSectionsDrawer';
 import Link from 'next/link';
 import { getExamples } from '@/lib/examples';
 import { t } from '@/lib/translations';
@@ -217,8 +219,9 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
   
   // Stările pentru asistentul AI Bottom-Sheet
   const [isEditingAi, setIsEditingAi] = useState(false);
-  const [activeAiPrompt, setActiveAiPrompt] = useState<{action: string, title: string, placeholder?: string} | null>(null);
+  const [activeAiPrompt, setActiveAiPrompt] = useState<MobileAiPrompt | null>(null);
   const [aiPromptInput, setAiPromptInput] = useState("");
+  const [showExpertDrawer, setShowExpertDrawer] = useState(false);
   const [showShareSuccess, setShowShareSuccess] = useState(false);
   const [showHeader, setShowHeader] = useState(true);
   const lastScrollY = useRef(0);
@@ -494,13 +497,16 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
     let targetSection = "";
     let budgetPercent: number | null = null;
     if (action === "optimize_budget") {
-      const promptMsg =
-        locale === "en"
-          ? "By what percentage do you want to reduce the budgeted costs? (e.g. 20)"
-          : locale === "es"
-          ? "¿Qué porcentaje deseas reducir de los costos presupuestados? (ej. 20)"
-          : "Cu ce procent dorești să reduci costurile bugetate? (ex: 20)";
-      const entered = typeof window !== "undefined" ? window.prompt(promptMsg, customInput || "20") : null;
+      let entered = customInput?.trim() || "";
+      if (!entered) {
+        const promptMsg =
+          locale === "en"
+            ? "By what percentage do you want to reduce the budgeted costs? (e.g. 20)"
+            : locale === "es"
+            ? "¿Qué porcentaje deseas reducir de los costos presupuestados? (ej. 20)"
+            : "Cu ce procent dorești să reduci costurile bugetate? (ex: 20)";
+        entered = (typeof window !== "undefined" ? window.prompt(promptMsg, "20") : null) || "";
+      }
       if (!entered) return;
       const percent = parseInt(entered.replace(/%/g, "").trim(), 10);
       if (isNaN(percent) || percent <= 0 || percent > 90) {
@@ -516,6 +522,9 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
       budgetPercent = percent;
       targetSection = String(percent);
     }
+
+    setActiveAiPrompt(null);
+    setAiPromptInput("");
 
     const { isCombine, baseSource, currentStack } = resolveEditBaseForToolRun({
       activeVersionId,
@@ -969,6 +978,32 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
                   </div>
                 )}
 
+                <MobileProToolsPanel
+                  ui={ui}
+                  locale={locale}
+                  t={t}
+                  user={user}
+                  result={result}
+                  hasProAccess={hasProAccess}
+                  isEditingAi={isEditingAi}
+                  activeAiPrompt={activeAiPrompt}
+                  setActiveAiPrompt={setActiveAiPrompt}
+                  aiPromptInput={aiPromptInput}
+                  setAiPromptInput={setAiPromptInput}
+                  handleAiEdit={handleAiEdit}
+                  onRequireAuth={() => setShowAuthModal(true)}
+                  onRequirePro={() => setShowPricingModal(true)}
+                  showExpert
+                  onOpenExpert={() => setShowExpertDrawer(true)}
+                />
+
+                <div className="flex items-start gap-2 bg-emerald-500/10 border border-emerald-500/20 p-3.5 rounded-2xl w-full">
+                  <span className="text-emerald-400 mt-0.5 text-base shrink-0">🏛️</span>
+                  <p className="text-[12px] text-emerald-100/70 leading-relaxed">
+                    <span dangerouslySetInnerHTML={{ __html: ui.expertLibraryTip }} />
+                  </p>
+                </div>
+
                 {/* Mobile Tab bar */}
                 <div className="flex md:flex-col bg-zinc-950/90 backdrop-blur-md border border-zinc-800/80 rounded-xl p-1 overflow-x-auto md:overflow-visible scrollbar-none md:gap-1 w-full shadow-inner">
                   <button
@@ -1400,6 +1435,46 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
             formatNumberedText={formatNumberedText} 
           />
         </div>
+      )}
+
+      {/* Hidden chart for Word export (same as Desktop) */}
+      {result && (
+        <div
+          className="fixed left-[-9999px] top-0 pointer-events-none z-[-1] w-[800px] h-[400px] bg-white flex flex-col items-center justify-center"
+          id="docx-export-chart-hidden"
+        >
+          <BudgetPieChart
+            budget={result?.plan_financiar?.buget_investitii}
+            currency={result?.selectedCurrency || (locale === "ro" ? "LEI" : "EUR")}
+            isPdf={true}
+            locale={locale}
+          />
+        </div>
+      )}
+
+      {showExpertDrawer && (
+        <ExpertSectionsDrawer
+          locale={locale}
+          user={user}
+          hasProAccess={hasProAccess}
+          isAdmin={isAdmin}
+          businessName={result?.nume || ui.yourBusiness}
+          onRequireAuth={() => setShowAuthModal(true)}
+          onRequirePro={() => setShowPricingModal(true)}
+          onAddSection={(newSection) => {
+            const currentSecs = result?.sectiuni_aditionale || [];
+            const updated = {
+              ...result,
+              sectiuni_aditionale: [...currentSecs, newSection],
+            };
+            setResult(updated);
+            if (typeof window !== "undefined") {
+              localStorage.setItem("current_generated_plan", JSON.stringify(updated));
+            }
+            setShowExpertDrawer(false);
+          }}
+          onClose={() => setShowExpertDrawer(false)}
+        />
       )}
     </div>
   );

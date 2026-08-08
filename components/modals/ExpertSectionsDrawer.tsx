@@ -36,7 +36,7 @@ export const ExpertSectionsDrawer: React.FC<ExpertSectionsDrawerProps> = ({
           <div>
             <h3 className="text-xl font-black text-white flex items-center gap-2">
               <span className="text-emerald-400 text-2xl">🏛️</span>
-              {locale === "en" ? "Expert Section Library" : locale === "es" ? "Biblioteca de Secciones Experta" : "Librăria de Secțiuni Experte"}
+              {locale === "en" ? "Expert Section Library" : locale === "es" ? "Biblioteca de Secciones Expertas" : "Librăria de Secțiuni Experte"}
             </h3>
             <p className="text-xs text-zinc-400 mt-1">
               {locale === "en" ? "Select a pre-completed professional module to expand your plan instantly (0 API costs & zero lag)." : locale === "es" ? "Selecciona un módulo profesional precompletado para ampliar tu plan al instante." : "Alege un modul profesional pre-completat pentru extinderea instantanee a planului."}

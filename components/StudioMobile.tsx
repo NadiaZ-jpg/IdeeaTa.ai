@@ -45,6 +45,7 @@ import {
 } from "@/lib/versionStack";
 
 import { EXPERT_TEMPLATES, expertModulesAllFilterLabel } from '@/lib/templatesData';
+import { MobileProToolsPanel, type MobileAiPrompt } from '@/components/tools/MobileProToolsPanel';
 
 const BudgetPieChart = dynamic(() => import('@/components/BudgetChart').then(mod => mod.BudgetPieChart), { ssr: false });
 
@@ -78,13 +79,16 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
 
   const isPlanPaid = promoCodeUnlocked || isAdmin || subscriptionActive || (result && unlockedPlans.includes(result.nume)) || isPaid;
   const isStudioPaid = promoCodeUnlocked || isAdmin || subscriptionActive || euFundsUnlocked || isPaid;
+  const hasProAccess = !!(isAdmin || subscriptionActive || euFundsUnlocked);
   const versionStackAccess: VersionStackAccess = {
     isAdmin,
     hasStandardAccess: !!(isPlanPaid || isStudioPaid),
-    hasFullAccess: !!(isAdmin || subscriptionActive || euFundsUnlocked),
-    hasProTools: !!(isAdmin || subscriptionActive || euFundsUnlocked),
+    hasFullAccess: hasProAccess,
+    hasProTools: hasProAccess,
   };
   const [combineMenuFor, setCombineMenuFor] = useState<string | null>(null);
+  const [activeAiPrompt, setActiveAiPrompt] = useState<MobileAiPrompt | null>(null);
+  const [aiPromptInput, setAiPromptInput] = useState("");
 
   const syncCurrentPlanToFirestore = async (updatedResult: any, updatedVersions?: Record<string, any>) => {
     if (!user) return;
@@ -259,16 +263,25 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
       return;
     }
 
+    // Optimize budget + alte tool-uri Pro (nu sunt free pe Studio)
+    if (!isTone && !isAdmin && !hasProAccess) {
+      setShowPricingModal(true);
+      return;
+    }
+
     let targetSection = "";
     let budgetPercent: number | null = null;
     if (action === "optimize_budget") {
-      const promptMsg =
-        locale === "en"
-          ? "By what percentage do you want to reduce the budgeted costs? (e.g. 20)"
-          : locale === "es"
-          ? "¿Qué porcentaje deseas reducir de los costos presupuestados? (ej. 20)"
-          : "Cu ce procent dorești să reduci costurile bugetate? (ex: 20)";
-      const entered = typeof window !== "undefined" ? window.prompt(promptMsg, customInput || "20") : null;
+      let entered = customInput?.trim() || "";
+      if (!entered) {
+        const promptMsg =
+          locale === "en"
+            ? "By what percentage do you want to reduce the budgeted costs? (e.g. 20)"
+            : locale === "es"
+            ? "¿Qué porcentaje deseas reducir de los costos presupuestados? (ej. 20)"
+            : "Cu ce procent dorești să reduci costurile bugetate? (ex: 20)";
+        entered = (typeof window !== "undefined" ? window.prompt(promptMsg, "20") : null) || "";
+      }
       if (!entered) return;
       const percent = parseInt(entered.replace(/%/g, "").trim(), 10);
       if (isNaN(percent) || percent <= 0 || percent > 90) {
@@ -284,6 +297,9 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
       budgetPercent = percent;
       targetSection = String(percent);
     }
+
+    setActiveAiPrompt(null);
+    setAiPromptInput("");
 
     // Original → sibling tab; non-original / Combine (+) → append on active (or source) tab
     const { isCombine, baseSource, currentStack } = resolveEditBaseForToolRun({
@@ -715,6 +731,25 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
               </div>
             )}
 
+            <MobileProToolsPanel
+              ui={ui}
+              locale={locale}
+              t={t}
+              user={user}
+              result={result}
+              hasProAccess={hasProAccess}
+              isEditingAi={isEditingAi}
+              activeAiPrompt={activeAiPrompt}
+              setActiveAiPrompt={setActiveAiPrompt}
+              aiPromptInput={aiPromptInput}
+              setAiPromptInput={setAiPromptInput}
+              handleAiEdit={handleAiEdit}
+              onRequireAuth={() => router.push(isEn ? "/en/login" : isEs ? "/es/login" : "/login")}
+              onRequirePro={() => setShowPricingModal(true)}
+              showExpert
+              onOpenExpert={() => setShowExpertDrawer(true)}
+            />
+
             {/* Studio tips (RO/EN/ES) — same guidance as Desktop sidebar */}
             <div className="flex flex-col gap-2.5 w-full">
               <div className="flex items-start gap-2 bg-emerald-500/10 border border-emerald-500/20 p-3.5 rounded-2xl w-full">
@@ -891,19 +926,19 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
                   <h3 className="text-emerald-400 font-bold text-sm">{locale === "en" ? "Initial Investment Budget" : locale === "es" ? "Presupuesto Inicial de Inversión" : "Buget Inițial de Investiții"}</h3>
                   <button
                     onClick={() => {
-                      if (isStudioPaid || isPlanPaid) {
+                      if (hasProAccess) {
                         handleAiEdit("optimize_budget");
                       } else {
                         setShowPricingModal(true);
                       }
                     }}
                     className={`text-[10px] px-2 py-0.5 rounded font-black uppercase transition-all ${
-                      (isStudioPaid || isPlanPaid)
+                      hasProAccess
                         ? "bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 hover:bg-emerald-500/25"
                         : "bg-amber-500/15 border border-amber-500/30 text-amber-300 hover:bg-amber-500/25"
                     }`}
                   >
-                    {(isStudioPaid || isPlanPaid)
+                    {hasProAccess
                       ? (locale === "en" ? "Optimize Budget with Assistant" : locale === "es" ? "Optimizar Presupuesto con Asistente" : "Optimizează Buget Asistat")
                       : (locale === "en" ? "🔒 Optimize Budget with Assistant" : locale === "es" ? "🔒 Optimizar Presupuesto con Asistente" : "🔒 Optimizați Buget Asistat")
                     }
@@ -1405,6 +1440,21 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
             truncateText={truncateText} 
             splitTextIntoSlides={splitTextIntoSlides} 
             formatNumberedText={formatNumberedText} 
+          />
+        </div>
+      )}
+
+      {/* Hidden chart for Word export (same as Desktop) */}
+      {result && (
+        <div
+          className="fixed left-[-9999px] top-0 pointer-events-none z-[-1] w-[800px] h-[400px] bg-white flex flex-col items-center justify-center"
+          id="docx-export-chart-hidden"
+        >
+          <BudgetPieChart
+            budget={result?.plan_financiar?.buget_investitii}
+            currency={result?.selectedCurrency || (locale === "ro" ? "LEI" : "EUR")}
+            isPdf={true}
+            locale={locale}
           />
         </div>
       )}

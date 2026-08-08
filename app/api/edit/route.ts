@@ -13,8 +13,13 @@ import {
 import { fillMissingPlanExplanations } from "@/lib/fillMissingPlanExplanations";
 import { adminAuth, adminDb } from "@/lib/firebase-admin";
 import { isAdminEmail } from "@/lib/adminEmails";
-import { isProToneKey } from "@/lib/toneQuota";
-import { clientIpFromRequest, consumeRateLimit } from "@/lib/apiRateLimit";
+import {
+  FREE_TONE_EDIT_LIMIT,
+  isFreeToneKey,
+  isProToneKey,
+  normalizeToneKey,
+} from "@/lib/toneQuota";
+import { consumeRateLimit } from "@/lib/apiRateLimit";
 
 export const maxDuration = 60;
 
@@ -29,19 +34,49 @@ const PRO_EDIT_ACTIONS = new Set([
   "investor_ready",
   "optimize_budget",
   "add_sections",
+  "shorten_for_export",
 ]);
 
 const ALLOWED_EDIT_ACTIONS = new Set([
   ...PRO_EDIT_ACTIONS,
   "professional_tone",
-  "shorten_for_export",
 ]);
 
+type EditAuthOk = { uid: string; refundFreeTone: boolean };
+
+function hasStandardEntitlement(data: any, email?: string | null): boolean {
+  return !!(
+    isAdminEmail(email) ||
+    data?.isPaid ||
+    data?.promoCodeUnlocked ||
+    data?.subscriptionActive ||
+    data?.euFundsUnlocked ||
+    data?.promoCodeTier === "standard" ||
+    data?.promoCodeTier === "eu-funds" ||
+    data?.promoCodeTier === "full-access"
+  );
+}
+
+function hasProEntitlement(data: any, email?: string | null): boolean {
+  return !!(
+    isAdminEmail(email) ||
+    data?.subscriptionActive ||
+    data?.euFundsUnlocked ||
+    data?.promoCodeTier === "eu-funds" ||
+    data?.promoCodeTier === "full-access"
+  );
+}
+
+/**
+ * Bearer required — no guest Gemini edits.
+ * Free tones: formal|creative + server freeToneEditCount (Standard+ skips).
+ * Pro tones / shorten_for_export / tools → Pro.
+ */
 async function assertEditEntitlement(
   req: NextRequest,
   action: string,
   customStyle?: string
-): Promise<NextResponse | null> {
+): Promise<NextResponse | EditAuthOk> {
   if (!ALLOWED_EDIT_ACTIONS.has(action)) {
     return NextResponse.json(
       { error: "Forbidden", code: "UNKNOWN_ACTION" },
@@ -49,55 +84,83 @@ async function assertEditEntitlement(
     );
   }
 
-  const needsPro =
-    PRO_EDIT_ACTIONS.has(action) ||
-    (action === "professional_tone" && isProToneKey(customStyle));
+  if (action === "professional_tone" && !normalizeToneKey(customStyle)) {
+    return NextResponse.json(
+      { error: "Invalid tone", code: "UNKNOWN_TONE" },
+      { status: 400 }
+    );
+  }
 
   const authHeader = req.headers.get("Authorization");
   if (!authHeader?.startsWith("Bearer ")) {
-    // Guests: only free tones, heavily rate-limited
-    if (needsPro) {
-      return NextResponse.json(
-        { error: "Unauthorized", code: "AUTH_REQUIRED" },
-        { status: 401 }
-      );
-    }
-    const ip = clientIpFromRequest(req);
-    if (!consumeRateLimit(`edit:guest:${ip}`, 8, HOUR_MS)) {
-      return NextResponse.json(
-        { error: "Too many requests", code: "RATE_LIMIT" },
-        { status: 429 }
-      );
-    }
-    return null;
+    return NextResponse.json(
+      { error: "Unauthorized", code: "AUTH_REQUIRED" },
+      { status: 401 }
+    );
   }
 
   try {
     const decoded = await adminAuth.verifyIdToken(authHeader.substring(7));
+    const uid = decoded.uid;
+    const needsPro =
+      PRO_EDIT_ACTIONS.has(action) ||
+      (action === "professional_tone" && isProToneKey(customStyle));
+    const isFreeTone =
+      action === "professional_tone" && isFreeToneKey(customStyle);
+
     if (
-      !consumeRateLimit(`edit:user:${decoded.uid}`, needsPro ? 40 : 20, HOUR_MS)
+      !(await consumeRateLimit(`edit:user:${uid}`, needsPro ? 40 : 20, HOUR_MS))
     ) {
       return NextResponse.json(
         { error: "Too many requests", code: "RATE_LIMIT" },
         { status: 429 }
       );
     }
-    if (!needsPro) return null;
 
-    const userDoc = await adminDb.collection("users").doc(decoded.uid).get();
+    const userRef = adminDb.collection("users").doc(uid);
+    const userDoc = await userRef.get();
     const data = userDoc.exists ? userDoc.data() : {};
-    const hasPro =
-      !!data?.subscriptionActive ||
-      !!data?.euFundsUnlocked ||
-      data?.promoCodeTier === "eu-funds" ||
-      data?.promoCodeTier === "full-access";
 
-    if (!hasPro && !isAdminEmail(decoded.email)) {
-      return NextResponse.json(
-        { error: "Forbidden", code: "PRO_REQUIRED" },
-        { status: 403 }
-      );
+    if (needsPro) {
+      if (!hasProEntitlement(data, decoded.email)) {
+        return NextResponse.json(
+          { error: "Forbidden", code: "PRO_REQUIRED" },
+          { status: 403 }
+        );
+      }
+      return { uid, refundFreeTone: false };
     }
+
+    if (isFreeTone && !hasStandardEntitlement(data, decoded.email)) {
+      try {
+        await adminDb.runTransaction(async (tx: any) => {
+          const snap = await tx.get(userRef);
+          const d = snap.exists ? snap.data() || {} : {};
+          const count =
+            typeof d.freeToneEditCount === "number" ? d.freeToneEditCount : 0;
+          if (count >= FREE_TONE_EDIT_LIMIT) throw new Error("TONE_LIMIT");
+          tx.set(
+            userRef,
+            {
+              freeToneEditCount: count + 1,
+              email: decoded.email || d.email || null,
+            },
+            { merge: true }
+          );
+        });
+        return { uid, refundFreeTone: true };
+      } catch (e: any) {
+        if (e?.message === "TONE_LIMIT") {
+          return NextResponse.json(
+            { error: "Tone limit reached", code: "TONE_LIMIT" },
+            { status: 403 }
+          );
+        }
+        throw e;
+      }
+    }
+
+    return { uid, refundFreeTone: false };
   } catch (err) {
     console.error("[edit] auth/entitlement failed:", err);
     return NextResponse.json(
@@ -105,8 +168,20 @@ async function assertEditEntitlement(
       { status: 401 }
     );
   }
+}
 
-  return null;
+async function refundFreeToneEdit(uid: string) {
+  try {
+    const userRef = adminDb.collection("users").doc(uid);
+    await adminDb.runTransaction(async (tx: any) => {
+      const snap = await tx.get(userRef);
+      if (!snap.exists) return;
+      const count = snap.data()?.freeToneEditCount || 0;
+      tx.update(userRef, { freeToneEditCount: Math.max(0, count - 1) });
+    });
+  } catch (e) {
+    console.warn("[edit] free-tone refund failed:", e);
+  }
 }
 
 // Returns only the subset of the plan needed for a given action
@@ -143,11 +218,13 @@ function extractRelevantSection(result: any, action: string) {
 }
 
 export async function POST(req: NextRequest) {
+  let authOk: EditAuthOk | null = null;
   try {
     const { result, action, customStyle, targetSection, locale, isRetry, currency } = await req.json();
 
-    const denied = await assertEditEntitlement(req, action, customStyle);
-    if (denied) return denied;
+    const entitlement = await assertEditEntitlement(req, action, customStyle);
+    if (entitlement instanceof NextResponse) return entitlement;
+    authOk = entitlement;
 
     const isEn = locale === "en" || locale === "es";
     let instruction = getEditInstruction(action, locale, customStyle, targetSection, currency);
@@ -265,6 +342,7 @@ export async function POST(req: NextRequest) {
 
       const successCount = [parsedViz, parsedPiata, parsedOp, parsedSwot, parsedFin, parsedMeta].filter(p => Object.keys(p).length > 0).length;
       if (successCount === 0) {
+        if (authOk?.refundFreeTone) await refundFreeToneEdit(authOk.uid);
         return NextResponse.json({ error: "Sistemul a returnat un răspuns nevalid sau gol. Te rugăm să încerci din nou." }, { status: 400 });
       }
     } else {
@@ -285,10 +363,12 @@ export async function POST(req: NextRequest) {
             }
           } catch {
             console.error("JSON PARSE ERROR:", parseErr, text);
+            if (authOk?.refundFreeTone) await refundFreeToneEdit(authOk.uid);
             return NextResponse.json({ error: "Eroare AI Formatare: " + parseErr.message + "\n\nFragment primit: " + text.substring(0, 150) }, { status: 400 });
           }
         } else {
           console.error("JSON PARSE ERROR:", parseErr, text);
+          if (authOk?.refundFreeTone) await refundFreeToneEdit(authOk.uid);
           return NextResponse.json({ error: "Eroare AI Formatare: " + parseErr.message + "\n\nFragment primit: " + text.substring(0, 150) }, { status: 400 });
         }
       }
@@ -369,6 +449,7 @@ export async function POST(req: NextRequest) {
     });
   } catch (error: any) {
     console.error("Error editing content:", error);
+    if (authOk?.refundFreeTone) await refundFreeToneEdit(authOk.uid);
 
     const isServiceUnavailable = error?.status === 503 || error?.message?.includes('503') || error?.message?.includes('UNAVAILABLE');
     const isRateLimited = error?.status === 429 || error?.message?.includes('429') || error?.message?.includes('RESOURCE_EXHAUSTED');

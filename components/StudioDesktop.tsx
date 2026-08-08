@@ -416,9 +416,15 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
     setAiPromptInput("");
     setShowToneOptions(false);
     try {
-      const token = user ? await user.getIdToken() : null;
-      const editHeaders: Record<string, string> = { "Content-Type": "application/json" };
-      if (token) editHeaders.Authorization = `Bearer ${token}`;
+      if (!user) {
+        window.history.pushState({ login: true }, "", window.location.pathname + "?login=true");
+        return;
+      }
+      const token = await user.getIdToken();
+      const editHeaders: Record<string, string> = {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      };
 
       const [res] = await Promise.all([
         fetch("/api/edit", {
@@ -439,12 +445,17 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
           }
           
           let errorMsg = t("errorServerPrefix", locale) + res.status;
+          let errCode = "";
           try {
             const errJson = JSON.parse(text);
             if (errJson.error) {
               errorMsg = errJson.error;
             }
+            errCode = errJson.code || "";
           } catch(e) {}
+          if (errCode === "TONE_LIMIT" || errCode === "PRO_REQUIRED" || errCode === "AUTH_REQUIRED") {
+            setShowPricingModal(true);
+          }
           
           setAiEditError(errorMsg);
           return;
@@ -676,13 +687,9 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
         setPromoCodeUnlocked(data.promoCodeUnlocked || false);
         setIsPaid(data.isPaid || false);
       } else {
+        // Entitlements (credits/isPaid/…) are Admin-only — see firestore.rules
         setDoc(userRef, {
           email: user.email,
-          credits: 0,
-          euFundsUnlocked: false,
-          subscriptionActive: false,
-          unlockedPlans: [],
-          promoCodeUnlocked: false,
           createdAt: new Date().toISOString(),
         }, { merge: true });
       }
@@ -1154,7 +1161,7 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
         try {
           cleanJson = cleanJson.replace(/,\s*([}\]])/g, '$1');
           const finalResult = JSON.parse(cleanJson);
-          const planId = finalResult.nume.replace(/[^a-zA-Z0-9]/g, '_') + "_" + Date.now();
+          const planId = String(finalResult.nume || "Plan").replace(/[^a-zA-Z0-9]/g, '_') + "_" + Date.now();
           finalResult.id = planId;
 
           if (retryCount === 0 && typeof window !== "undefined") {

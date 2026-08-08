@@ -28,7 +28,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    if (!consumeRateLimit(`share:user:${uid}`, 30, HOUR_MS)) {
+    if (!(await consumeRateLimit(`share:user:${uid}`, 30, HOUR_MS))) {
       return NextResponse.json(
         { error: "Too many requests", code: "RATE_LIMIT" },
         { status: 429 }

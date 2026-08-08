@@ -121,12 +121,17 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
     if (!user) return;
     try {
       const searchParams = new URLSearchParams(window.location.search);
-      const planId = searchParams.get("planId");
-      if (!planId) return;
+      let planId = searchParams.get("planId") || updatedResult?.id || null;
+      const missingInUrl = !searchParams.get("planId");
+      if (!planId) {
+        const safeName = String(updatedResult?.nume || "Plan").replace(/[^a-zA-Z0-9]/g, "_");
+        planId = `${safeName}_${Date.now()}`;
+      }
       const planRef = doc(db, "users", user.uid, "plans", planId);
       const versToSave = updatedVersions || versions;
       const payload: any = {
         ...updatedResult,
+        id: planId,
         updatedAt: new Date().toISOString(),
         selectedCurrency: updatedResult?.selectedCurrency || (locale === "ro" ? "LEI" : "EUR"),
         activeVersionId: versionIdToSave || activeVersionId,
@@ -135,6 +140,14 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
         payload.versions = versToSave;
       }
       await setDoc(planRef, payload, { merge: true });
+
+      if (missingInUrl || searchParams.get("planId") !== planId) {
+        window.history.replaceState(
+          null,
+          "",
+          `${window.location.pathname}?planId=${encodeURIComponent(planId)}&view=idea`
+        );
+      }
     } catch (err) {
       console.error("Firestore save error:", err);
     }
@@ -260,13 +273,9 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
         setPromoCodeUnlocked(data.promoCodeUnlocked || false);
         setIsPaidState(data.isPaid || false);
       } else {
+        // Entitlements (credits/isPaid/…) are Admin-only — see firestore.rules
         setDoc(userRef, {
           email: user.email,
-          credits: 0,
-          euFundsUnlocked: false,
-          subscriptionActive: false,
-          unlockedPlans: [],
-          promoCodeUnlocked: false,
           createdAt: new Date().toISOString(),
         }, { merge: true });
       }
@@ -367,9 +376,15 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
     setIsEditingAi(true);
 
     try {
-      const token = user ? await user.getIdToken() : null;
-      const editHeaders: Record<string, string> = { "Content-Type": "application/json" };
-      if (token) editHeaders.Authorization = `Bearer ${token}`;
+      if (!user) {
+        window.history.pushState({ login: true }, "", window.location.pathname + "?login=true");
+        return;
+      }
+      const token = await user.getIdToken();
+      const editHeaders: Record<string, string> = {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      };
 
       const res = await fetch("/api/edit", {
         method: "POST",
@@ -384,7 +399,13 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
         })
       });
 
-      if (!res.ok) throw new Error("Eroare editare AI");
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        if (err?.code === "TONE_LIMIT" || err?.code === "PRO_REQUIRED" || err?.code === "AUTH_REQUIRED") {
+          setShowPricingModal(true);
+        }
+        throw new Error(err?.error || "Eroare editare AI");
+      }
 
       const data = await res.json();
       if (data && data.editedPlan) {

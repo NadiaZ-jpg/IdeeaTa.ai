@@ -15,7 +15,7 @@ export async function POST(req: NextRequest) {
     if (authHeader?.startsWith("Bearer ")) {
       try {
         const decoded = await adminAuth.verifyIdToken(authHeader.substring(7));
-        if (!consumeRateLimit(`complete:user:${decoded.uid}`, 24, HOUR_MS)) {
+        if (!(await consumeRateLimit(`complete:user:${decoded.uid}`, 24, HOUR_MS))) {
           return NextResponse.json(
             { error: "Too many requests", code: "RATE_LIMIT" },
             { status: 429 }
@@ -29,7 +29,7 @@ export async function POST(req: NextRequest) {
       }
     } else {
       const ip = clientIpFromRequest(req);
-      if (!consumeRateLimit(`complete:guest:${ip}`, 12, HOUR_MS)) {
+      if (!(await consumeRateLimit(`complete:guest:${ip}`, 12, HOUR_MS))) {
         return NextResponse.json(
           { error: "Too many requests", code: "RATE_LIMIT" },
           { status: 429 }

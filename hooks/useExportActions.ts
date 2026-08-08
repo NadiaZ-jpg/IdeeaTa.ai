@@ -1,6 +1,4 @@
 import { useRef } from "react";
-import { doc, setDoc, increment, arrayUnion } from "firebase/firestore";
-import { db } from "@/lib/firebase";
 import { jsPDF } from "jspdf";
 import { toPng } from "html-to-image";
 import { generatePptx } from "@/lib/generatePptx";
@@ -87,13 +85,24 @@ export function useExportActions({
         if (!confirmUnlock) return;
 
         try {
-          const userRef = doc(db, "users", user!.uid);
-          const unlockFields: Record<string, any> = {
-            credits: increment(-1),
-            unlockedPlans: arrayUnion(planName),
-          };
-          if (planId) unlockFields.unlockedPlanIds = arrayUnion(planId);
-          await setDoc(userRef, unlockFields, { merge: true });
+          const token = await user.getIdToken();
+          const res = await fetch("/api/spend-export-credit", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify({ planName, planId }),
+          });
+          const data = await res.json().catch(() => ({}));
+          if (!res.ok || !data?.success) {
+            if (data?.code === "NO_CREDITS") {
+              setPendingDownloadMode(mode as any);
+              setShowPricingModal(true);
+              return;
+            }
+            throw new Error(data?.error || "Spend failed");
+          }
           sessionUnlockedRef.current.add(unlockKey);
           onPlanUnlockedByCredit?.(planName, planId);
         } catch (e) {

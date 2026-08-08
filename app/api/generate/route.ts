@@ -28,12 +28,21 @@ export async function POST(req: NextRequest) {
 
     const authHeader = req.headers.get("Authorization");
     const isStudio = surface === "studio";
+    const HOUR_MS = 60 * 60 * 1000;
 
     if (authHeader?.startsWith("Bearer ")) {
       const token = authHeader.substring(7);
       try {
         const decoded = await adminAuth.verifyIdToken(token);
         const userId = decoded.uid;
+
+        // Per-uid abuse cap (even paid) — Gemini cost guard
+        if (!(await consumeRateLimit(`gen:user:${userId}`, 30, HOUR_MS))) {
+          return NextResponse.json(
+            { error: "Too many requests", code: "RATE_LIMIT" },
+            { status: 429 }
+          );
+        }
 
         const plansSnap = await adminDb
           .collection("users")
@@ -75,6 +84,8 @@ export async function POST(req: NextRequest) {
       }
     } else {
       // Guests: Demo only. Studio must send Bearer.
+      // Logged-in clients must send Bearer — omitting it to hit guest IP quota is abuse;
+      // guest path stays tight (IP + daily cap).
       if (isStudio) {
         return NextResponse.json(
           { error: "Unauthorized", code: "AUTH_REQUIRED" },
@@ -82,7 +93,7 @@ export async function POST(req: NextRequest) {
         );
       }
       const ip = clientIpFromRequest(req);
-      if (!consumeRateLimit(`gen:guest:${ip}`, GUEST_DEMO_PLAN_LIMIT, DAY_MS)) {
+      if (!(await consumeRateLimit(`gen:guest:${ip}`, GUEST_DEMO_PLAN_LIMIT, DAY_MS))) {
         return NextResponse.json(
           {
             error: "LIMIT_REACHED",
@@ -94,6 +105,13 @@ export async function POST(req: NextRequest) {
                 : "Ai atins limita de generări ca invitat. Creează un cont gratuit.",
           },
           { status: 403 }
+        );
+      }
+      // Extra hourly IP throttle (spoof-resistant IP via apiRateLimit)
+      if (!(await consumeRateLimit(`gen:guest-hour:${ip}`, 6, HOUR_MS))) {
+        return NextResponse.json(
+          { error: "Too many requests", code: "RATE_LIMIT" },
+          { status: 429 }
         );
       }
     }

@@ -643,9 +643,15 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
     setActiveAiPrompt(null);
 
     try {
-      const token = user ? await user.getIdToken() : null;
-      const editHeaders: Record<string, string> = { "Content-Type": "application/json" };
-      if (token) editHeaders.Authorization = `Bearer ${token}`;
+      if (!user) {
+        window.history.pushState({ login: true }, "", window.location.pathname + "?login=true");
+        return;
+      }
+      const token = await user.getIdToken();
+      const editHeaders: Record<string, string> = {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      };
 
       const res = await fetch("/api/edit", {
         method: "POST",
@@ -660,7 +666,13 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
         })
       });
 
-      if (!res.ok) throw new Error("Eroare editare");
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        if (err?.code === "TONE_LIMIT" || err?.code === "PRO_REQUIRED" || err?.code === "AUTH_REQUIRED") {
+          setShowPricingModal(true);
+        }
+        throw new Error(err?.error || "Eroare editare");
+      }
 
       const data = await res.json();
       if (data && data.editedPlan) {

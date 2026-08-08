@@ -82,8 +82,8 @@ export async function POST(req: NextRequest) {
         );
       }
 
-      // Dev bypass still requires a logged-in client (Bearer optional if Admin SDK missing —
-      // but we refuse body userId spoofing: client must already be signed in and write locally).
+      // Dev bypass without Admin: returns success for UI/session only.
+      // Entitlements cannot be client-written (firestore.rules) — configure Admin for real unlock.
       console.warn("[Promo] Dev-only bypass (no Firebase Admin credentials).");
       const adminCode = readPromoEnv("PROMO_ADMIN", "NEXT_PUBLIC_PROMO_ADMIN", "ADMIN_NADIA");
       const standardCode = readPromoEnv("PROMO_STANDARD", "NEXT_PUBLIC_PROMO_STANDARD", "STANDARD_NADIA");

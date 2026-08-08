@@ -28,26 +28,40 @@ export async function POST(req: NextRequest) {
     const eventName = payload.meta.event_name;
     const customData = payload.meta.custom_data || {};
 
-    const userId = customData.userId;
+    // Lemon may echo custom keys as userId or user_id depending on checkout form
+    const userId = String(
+      customData.userId || customData.user_id || ""
+    ).trim();
     // Tier from paid variant/product — never trust spoofable custom_data.tier alone
     const tierFromVariant = resolveTierFromLemonOrder(payload);
     const tier = tierFromVariant;
 
     if (!userId) {
-      console.error("Webhook primit dar fara userId in custom_data");
-      return NextResponse.json({ received: true });
+      console.error("Webhook primit dar fara userId in custom_data", {
+        keys: Object.keys(customData),
+        eventName,
+      });
+      // 4xx → Lemon retries (200 would mark delivered and never unlock)
+      return NextResponse.json(
+        { error: "Missing userId", code: "MISSING_USER_ID" },
+        { status: 400 }
+      );
     }
 
     if (
       (eventName === "order_created" || eventName === "subscription_created") &&
       !tier
     ) {
-      console.warn(
-        `[Webhook] Could not map variant/product to tier. userId=${userId} custom_tier=${String(
+      console.error(
+        `[Webhook] Unmapped variant — unlock refused. userId=${userId} custom_tier=${String(
           customData.tier
-        )} variant=${payload?.data?.attributes?.first_order_item?.variant_id}`
+        )} variant=${payload?.data?.attributes?.first_order_item?.variant_id}. Set LEMON_*_VARIANT_ID.`
       );
-      return NextResponse.json({ received: true });
+      // 500 → Lemon retries once VARIANT_IDs are configured
+      return NextResponse.json(
+        { error: "Unmapped variant", code: "VARIANT_UNMAPPED" },
+        { status: 500 }
+      );
     }
 
     const userRef = adminDb.collection("users").doc(userId);

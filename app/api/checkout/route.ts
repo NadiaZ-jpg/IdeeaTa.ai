@@ -1,5 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getLemonCheckoutUrl, withCheckoutParams } from "@/lib/lemonCheckout";
+import {
+  getLemonCheckoutUrl,
+  isCheckoutTier,
+  withCheckoutParams,
+} from "@/lib/lemonCheckout";
 import { adminAuth } from "@/lib/firebase-admin";
 
 export async function POST(req: NextRequest) {
@@ -27,9 +31,19 @@ export async function POST(req: NextRequest) {
 
     const { tier, email, planName, planId, locale = "ro" } = await req.json();
 
+    if (!isCheckoutTier(tier)) {
+      return NextResponse.json(
+        { error: "Invalid package", code: "INVALID_TIER" },
+        { status: 400 }
+      );
+    }
+
     const baseUrl = getLemonCheckoutUrl(tier, locale);
     if (!baseUrl) {
-      return NextResponse.json({ error: "Pachet invalid" }, { status: 400 });
+      return NextResponse.json(
+        { error: "Invalid package", code: "CHECKOUT_UNAVAILABLE" },
+        { status: 400 }
+      );
     }
 
     const checkoutUrl = withCheckoutParams(baseUrl, {
@@ -43,6 +57,9 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ url: checkoutUrl });
   } catch (error: any) {
     console.error("Error creating Lemon Squeezy checkout link:", error);
-    return NextResponse.json({ error: error.message || "Eroare la procesarea plății" }, { status: 500 });
+    return NextResponse.json(
+      { error: error.message || "Checkout failed", code: "CHECKOUT_ERROR" },
+      { status: 500 }
+    );
   }
 }

@@ -1,0 +1,83 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isOwner(uid) {
+      return request.auth != null && request.auth.uid == uid;
+    }
+
+    /**
+     * Entitlement / billing fields — Admin SDK (webhooks, spend-export-credit,
+     * validate-promo, edit tone quota) only. Clients must never write these.
+     */
+    function touchesProtectedUserFields() {
+      return request.resource.data.diff(resource.data).affectedKeys().hasAny([
+        'credits',
+        'unlockedPlans',
+        'unlockedPlanIds',
+        'isPaid',
+        'subscriptionActive',
+        'euFundsUnlocked',
+        'promoCodeUnlocked',
+        'promoCodeTier',
+        'freeToneEditCount',
+        'lemonCustomerId',
+        'lemonOrderId',
+        'subscriptionId',
+        'variantId',
+        'tier'
+      ]);
+    }
+
+    function createTouchesProtectedUserFields() {
+      return request.resource.data.keys().hasAny([
+        'credits',
+        'unlockedPlans',
+        'unlockedPlanIds',
+        'isPaid',
+        'subscriptionActive',
+        'euFundsUnlocked',
+        'promoCodeUnlocked',
+        'promoCodeTier',
+        'freeToneEditCount',
+        'lemonCustomerId',
+        'lemonOrderId',
+        'subscriptionId',
+        'variantId',
+        'tier'
+      ]);
+    }
+
+    match /users/{userId} {
+      allow read: if isOwner(userId);
+
+      // Profile bootstrap: email + timestamps only (no entitlement seeds from client)
+      allow create: if isOwner(userId)
+        && !createTouchesProtectedUserFields()
+        && request.resource.data.keys().hasOnly(['email', 'createdAt', 'updatedAt', 'displayName', 'locale']);
+
+      allow update: if isOwner(userId) && !touchesProtectedUserFields();
+
+      allow delete: if false;
+
+      match /plans/{planId} {
+        allow read, write: if isOwner(userId);
+      }
+    }
+
+    // Shared plans: public read; writes via Admin / API only
+    match /shared_plans/{shareId} {
+      allow read: if true;
+      allow write: if false;
+    }
+
+    // Rate-limit buckets: Admin only
+    match /rate_limits/{id} {
+      allow read, write: if false;
+    }
+
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

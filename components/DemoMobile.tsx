@@ -8,7 +8,6 @@ import { signInWithPopup, GoogleAuthProvider, FacebookAuthProvider, onAuthStateC
 import { doc, setDoc, getDoc, increment, arrayUnion, onSnapshot, collection, getDocs } from 'firebase/firestore';
 import { PricingModal } from '@/components/PricingModal';
 import { LanguageSwitcher } from '@/components/LanguageSwitcher';
-import { AdBanner } from '@/components/AdBanner';
 import { useExportActions } from "@/hooks/useExportActions";
 import { useCompleteMissingPlanFields } from "@/hooks/useCompleteMissingPlanFields";
 import { DemoPdfSlides } from "@/components/pdf/DemoPdfSlides";
@@ -1069,7 +1068,6 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
           </div>
         )}
 
-        <AdBanner dataAdSlot="3098389905" className="my-4" />
       </main>
 
       {/* Auth Modal Overlay */}

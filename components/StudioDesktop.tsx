@@ -8,7 +8,6 @@ import { signInWithPopup, GoogleAuthProvider, FacebookAuthProvider, onAuthStateC
 import { doc, onSnapshot, setDoc, getDoc, increment, arrayUnion, collection, getDocs } from 'firebase/firestore';
 import { PricingModal } from '@/components/PricingModal';
 import { LanguageSwitcher } from '@/components/LanguageSwitcher';
-import { AdBanner } from '@/components/AdBanner';
 import BuyMeACoffeeModal from '@/components/BuyMeACoffeeModal';
 import { useStudioFirebaseSync } from '@/hooks/useStudioFirebaseSync';
 import { t } from '@/lib/translations';
@@ -1303,13 +1302,7 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
       <div className="absolute top-[35%] right-[-15%] w-[650px] h-[650px] rounded-full bg-amber-500/5 blur-[150px] pointer-events-none animate-pulse duration-[12000ms] z-0"></div>
 
       {loading && !result && (
-        <div className="fixed inset-0 bg-[#09090b]/90 backdrop-blur-sm z-[100] flex items-center justify-between px-6">
-          {/* Left Ad */}
-          <div className="hidden lg:flex flex-col items-center justify-center w-[180px] xl:w-[220px] h-[400px] overflow-hidden shrink-0">
-            <AdBanner dataAdSlot="3098389905" dataAdFormat="vertical" dataFullWidthResponsive="false" />
-          </div>
-
-          {/* Center loading content */}
+        <div className="fixed inset-0 bg-[#09090b]/90 backdrop-blur-sm z-[100] flex items-center justify-center px-6">
           <div className="flex flex-col items-center justify-center flex-1 px-4">
             <div className="w-16 h-16 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin mb-6"></div>
             <p className="text-2xl font-bold text-white tracking-widest uppercase text-center transition-all duration-300">
@@ -1322,11 +1315,6 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
             <p className="text-emerald-400 font-medium mt-3 text-center transition-all duration-500 max-w-lg">
               {loadingMessages[messageIndex]}
             </p>
-          </div>
-
-          {/* Right Ad */}
-          <div className="hidden lg:flex flex-col items-center justify-center w-[180px] xl:w-[220px] h-[400px] overflow-hidden shrink-0">
-            <AdBanner dataAdSlot="8674150210" dataAdFormat="vertical" dataFullWidthResponsive="false" />
           </div>
         </div>
       )}
@@ -1350,13 +1338,7 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
       )}
 
       {isEditingAi && (
-        <div className="fixed inset-0 bg-[#09090b]/95 backdrop-blur-sm z-[100] flex items-center justify-between px-6">
-          {/* Left Ad */}
-          <div className="hidden lg:flex flex-col items-center justify-center w-[180px] xl:w-[220px] h-[400px] overflow-hidden shrink-0">
-            <AdBanner dataAdSlot="3098389905" dataAdFormat="vertical" dataFullWidthResponsive="false" />
-          </div>
-
-          {/* Center content */}
+        <div className="fixed inset-0 bg-[#09090b]/95 backdrop-blur-sm z-[100] flex items-center justify-center px-6">
           <div className="flex flex-col items-center justify-center flex-1 px-4">
             {aiEditError ? (
               <div className="bg-[#121214] border border-red-500/30 rounded-[2rem] p-8 max-w-lg w-full text-center shadow-[0_0_50px_rgba(239,68,68,0.1)] ring-1 ring-white/5">
@@ -1409,11 +1391,6 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
                 </p>
               </>
             )}
-          </div>
-
-          {/* Right Ad */}
-          <div className="hidden lg:flex flex-col items-center justify-center w-[180px] xl:w-[220px] h-[400px] overflow-hidden shrink-0">
-            <AdBanner dataAdSlot="8674150210" dataAdFormat="vertical" dataFullWidthResponsive="false" />
           </div>
         </div>
       )}

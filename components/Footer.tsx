@@ -29,6 +29,9 @@ export function Footer() {
           <Link href={getLink("/despre-noi", "/en/about-us", "/es/about-us")} className="hover:text-emerald-400 transition-colors">
             {t('aboutUs', locale)}
           </Link>
+          <Link href={getLink("/resurse", "/en/resources", "/es/recursos")} className="hover:text-emerald-400 transition-colors">
+            {t('resources', locale)}
+          </Link>
           <Link href={getLink("/contact", "/en/contact", "/es/contact")} className="hover:text-emerald-400 transition-colors">
             {t('contact', locale)}
           </Link>

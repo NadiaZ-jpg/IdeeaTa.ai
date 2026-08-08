@@ -607,8 +607,24 @@ Dacă oricare dintre aceste verificări este omisă în procesul de planificare,
 - Sfat nou `ui.expertLibraryTip` (ro/en/es): Fonduri UE → DNSH / Logistică verde / Egalitate (+ Digitalizare); Plan Profesional → Funnel B2B / Prețuri / Matrice riscuri (+ HR). Afișat în `StudioLeftSidebar` + `StudioMobile`.
 **ÎNGHEȚAT** — nu se reintroduce „30+” pe badge fără conținut real; nu se încarcă top-level over active tab fără aprobare.
 
+## FREEZE (8 August 2026 — Faza B AdSense: pagini Resurse)
+**Scop:** conținut public pentru review AdSense („low-value content”).
+- Hub + 4 articole RO/EN/ES: `/resurse`, `/en/resources`, `/es/recursos` (+ ghid, fonduri UE, investitori, FAQ). Fără mențiuni „AI / instrumente AI” în copy (doar brand IdeeaTa.ai).
+- Conținut: `lib/resourceContent.ts`; UI: `components/ResourcePage.tsx`.
+- Footer: link Resurse/Resources/Recursos; `app/sitemap.ts`; `public/robots.txt` → `https://ideeata.ai/sitemap.xml`.
+
+## FREEZE (8 August 2026 — AdSense Faza A+C, override freeze adsense)
+**Desktop + Mobile, RO/EN/ES:**
+- **A:** scos `AdBanner` din overlay loading/edit (Studio+Demo Desktop) și din banner permanent Mobile tool.
+- **C:** ads pe conținut — mid-articol + hub Resurse; landing **după Features, înainte de CTA final** (nu în hero). Slot `3098389905`, format responsive.
+- Script global + `ads.txt` neschimbate.
+**ÎNGHEȚAT** — nu se reintroduc ads pe loading/tool fără `override freeze adsense`.
+
 ## RĂMÂNE DE FĂCUT
-- Deploy Hetzner (tot batch-ul Studio de mai sus + handoff Dashboard)
+- Deploy Hetzner (Resurse + relocare AdSense A+C)
+- Smoke Desktop+Mobile RO/EN/ES: `/resurse` (+en/es), landing după Features are ad; Studio/Demo loading **fără** ads
+- Smoke `sitemap.xml` + `ads.txt` pe ideeata.ai
+- **AdSense Sites → Request review** (după deploy; completează și plățile din cont)
 - Smoke Mis Planes → Studio: planul se deschide imediat (fără spinner 8s / redirect)
 - Smoke Studio Standard/Full ES: Plan Profesional → 100% spaniolă + FODA cu explicații
 - Smoke optimize budget 20% → costuri × 0.8; Word TOTAL = placintă

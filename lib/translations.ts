@@ -25,6 +25,7 @@ export const translations = {
 
     // Footer & CookieBanner
     aboutUs: "Despre Noi",
+    resources: "Resurse",
     contact: "Contact",
     cookiePolicy: "Politica Cookie",
     cookieText: "Utilizăm cookie-uri pentru a vă oferi o experiență optimă pe platformă, inclusiv pentru autentificare, procesarea plăților și afișarea de conținut relevant. Continuând să navigați, sunteți de acord cu Politica de Cookie-uri.",
@@ -209,6 +210,7 @@ export const translations = {
 
     // Footer & CookieBanner
     aboutUs: "About Us",
+    resources: "Resources",
     contact: "Contact",
     cookiePolicy: "Cookie Policy",
     cookieText: "We use cookies to provide you with an optimal experience on the platform, including for authentication, processing payments and displaying relevant content. By continuing to browse, you agree to our Cookie Policy.",
@@ -393,6 +395,7 @@ export const translations = {
 
     // Footer & CookieBanner
     aboutUs: "Sobre Nosotros",
+    resources: "Recursos",
     contact: "Contacto",
     cookiePolicy: "Política de Cookies",
     cookieText: "Utilizamos cookies para ofrecerle una experiencia óptima en la plataforma, incluyendo autenticación, procesamiento de pagos y visualización de contenido relevante. Al continuar navegando, acepta nuestra Política de Cookies.",

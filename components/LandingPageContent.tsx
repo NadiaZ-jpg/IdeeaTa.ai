@@ -6,6 +6,7 @@ import { auth } from '@/lib/firebase';
 import { onAuthStateChanged } from 'firebase/auth';
 import { t } from '@/lib/translations';
 import { LanguageSwitcher } from './LanguageSwitcher';
+import { AdBanner } from '@/components/AdBanner';
 
 export default function LandingPageContent({ locale = "ro" }: { locale?: "ro" | "en" | "es" }) {
   const router = useRouter();
@@ -197,6 +198,11 @@ export default function LandingPageContent({ locale = "ro" }: { locale?: "ro" | 
           </div>
         </div>
       </section>
+
+      {/* AdSense — after Features, before final CTA (not in hero). Desktop + Mobile, all locales. */}
+      <div className="relative z-10 w-full max-w-3xl mx-auto px-4 py-8 min-h-[90px]">
+        <AdBanner dataAdSlot="3098389905" className="w-full" />
+      </div>
 
       {/* Footer CTA */}
       <footer className="relative z-10 py-24 px-6 text-center border-t border-zinc-800/50">

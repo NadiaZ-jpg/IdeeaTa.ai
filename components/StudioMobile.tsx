@@ -7,7 +7,6 @@ import { auth, db } from '@/lib/firebase';
 import { onAuthStateChanged, User, sendEmailVerification, signOut } from 'firebase/auth';
 import { doc, setDoc, getDoc, updateDoc, onSnapshot } from 'firebase/firestore';
 import { PricingModal } from '@/components/PricingModal';
-import { AdBanner } from '@/components/AdBanner';
 import { LanguageSwitcher } from '@/components/LanguageSwitcher';
 import { useStudioFirebaseSync } from '@/hooks/useStudioFirebaseSync';
 import { ToneEditor } from '@/components/ToneEditor';
@@ -1070,8 +1069,6 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
           )}
         </div>
       </div>
-
-        <AdBanner dataAdSlot="3098389905" className="my-4" />
       </main>
 
       {/* Manual Text Editor Bottom-Sheet Drawer */}

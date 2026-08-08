@@ -86,6 +86,28 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
   };
   const [combineMenuFor, setCombineMenuFor] = useState<string | null>(null);
 
+  const syncCurrentPlanToFirestore = async (updatedResult: any, updatedVersions?: Record<string, any>) => {
+    if (!user) return;
+    try {
+      const searchParams = new URLSearchParams(window.location.search);
+      const planId = searchParams.get("planId");
+      if (!planId) return;
+      const planRef = doc(db, "users", user.uid, "plans", planId);
+      const versToSave = updatedVersions || versions;
+      const payload: any = {
+        ...updatedResult,
+        updatedAt: new Date().toISOString(),
+        selectedCurrency: updatedResult?.selectedCurrency || (locale === "ro" ? "LEI" : "EUR"),
+      };
+      if (versToSave && Object.keys(versToSave).length > 0) {
+        payload.versions = versToSave;
+      }
+      await setDoc(planRef, payload, { merge: true });
+    } catch (err) {
+      console.error("Firestore save error:", err);
+    }
+  };
+
   // Stări pentru editarea AI și manuală pe mobil (Bottom-Sheets)
   const [isEditingAi, setIsEditingAi] = useState(false);
   const [showVerificationModal, setShowVerificationModal] = useState(false);
@@ -156,6 +178,9 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
     },
     setVersionsState: setVersions,
     setActiveVersionId,
+    setCurrency: (curr) => {
+      setResult((prev: any) => (prev ? { ...prev, selectedCurrency: curr } : prev));
+    },
     // Fără ecran de eroare: la eșec revenim silențios la Dashboard
     onPlanMissing: () => {
       setStudioLoadTimedOut(true);
@@ -317,13 +342,14 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
           ? buildStackedVersionKey(nextStack)
           : `edit_${Date.now()}`;
         const originalSnapshot = versions.original ?? (isCombine ? undefined : baseSource);
-        setVersions((prev: any) => {
-          const base = Object.keys(prev).length ? prev : { original: originalSnapshot || baseSource };
+        const nextVersions = (() => {
+          const base = Object.keys(versions).length ? versions : { original: originalSnapshot || baseSource };
           if (!base.original && originalSnapshot) {
             return { ...base, original: originalSnapshot, [vKey]: parsed };
           }
           return { ...base, [vKey]: parsed };
-        });
+        })();
+        setVersions(nextVersions);
         setActiveVersionId(vKey);
         setResult(parsed);
         localStorage.setItem("current_generated_plan", JSON.stringify(parsed));
@@ -331,11 +357,7 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
           consumeFreeToneEdit(false);
         }
 
-        const searchParams = new URLSearchParams(window.location.search);
-        const planId = searchParams.get("planId");
-        if (planId) {
-          await updateDoc(doc(db, "users", user.uid, "plans", planId), parsed);
-        }
+        await syncCurrentPlanToFirestore(parsed, nextVersions);
       }
     } catch (e) {
       console.error(e);
@@ -410,16 +432,12 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
     setResult(updatedPlan);
     localStorage.setItem("current_generated_plan", JSON.stringify(updatedPlan));
     
-    // Salvare în Firestore
-    const searchParams = new URLSearchParams(window.location.search);
-    const planId = searchParams.get("planId");
-    if (planId) {
-      try {
-        await updateDoc(doc(db, "users", user.uid, "plans", planId), updatedPlan);
-      } catch (err) {
-        console.error("Firestore save error:", err);
-      }
-    }
+    const nextVersions = {
+      ...(versions && Object.keys(versions).length ? versions : { original: updatedPlan }),
+      [activeVersionId]: updatedPlan,
+    };
+    setVersions(nextVersions);
+    await syncCurrentPlanToFirestore(updatedPlan, nextVersions);
     
     setEditingField(null);
   };
@@ -476,7 +494,7 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
     currency: result?.selectedCurrency || (locale === "ro" ? "LEI" : "EUR"),
     user,
     isAdmin,
-    isPlanPaid: isPaid,
+    isPlanPaid: isPlanPaid,
     subscriptionActive,
     euFundsUnlocked,
     credits,
@@ -836,13 +854,12 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
                           currentSecs.splice(idx, 1);
                           const updated = { ...result, sectiuni_aditionale: currentSecs };
                           setResult(updated);
-                          const searchParams = new URLSearchParams(window.location.search);
-                          const planId = searchParams.get("planId");
-                          if (planId && user) {
-                            try {
-                              await updateDoc(doc(db, "users", user.uid, "plans", planId), updated);
-                            } catch(e) { console.error(e); }
-                          }
+                          const nextVersions = {
+                            ...(versions && Object.keys(versions).length ? versions : { original: updated }),
+                            [activeVersionId]: updated,
+                          };
+                          setVersions(nextVersions);
+                          await syncCurrentPlanToFirestore(updated, nextVersions);
                           localStorage.setItem("current_generated_plan", JSON.stringify(updated));
                         }}
                         className="text-[11px] text-red-500 hover:text-red-450 font-semibold p-2 -m-2 inline-flex items-center justify-center min-w-[36px] min-h-[36px]"
@@ -1320,7 +1337,7 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
                           setShowPricingModal(true);
                           return;
                         }
-                        if (!isPaid && !isAdmin) {
+                        if (!isStudioPaid && !isAdmin) {
                           setShowExpertDrawer(false);
                           setShowPricingModal(true);
                           return;
@@ -1344,13 +1361,12 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
                         setResult(updated);
                         localStorage.setItem("current_generated_plan", JSON.stringify(updated));
                         
-                        const searchParams = new URLSearchParams(window.location.search);
-                        const planId = searchParams.get("planId");
-                        if (planId && user) {
-                          try {
-                            await updateDoc(doc(db, "users", user.uid, "plans", planId), updated);
-                          } catch(e) { console.error(e); }
-                        }
+                        const nextVersions = {
+                          ...(versions && Object.keys(versions).length ? versions : { original: updated }),
+                          [activeVersionId]: updated,
+                        };
+                        setVersions(nextVersions);
+                        await syncCurrentPlanToFirestore(updated, nextVersions);
                         setShowExpertDrawer(false);
                         
                         setTimeout(() => {
@@ -1382,7 +1398,7 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
         <div className="fixed top-[-9999px] left-[-9999px] w-[1280px] opacity-0 pointer-events-none z-[-50]">
           <StudioPdfSlides 
             result={result} 
-            ui={t} 
+            ui={ui} 
             locale={locale} 
             currency={result?.selectedCurrency || (locale === "ro" ? "LEI" : "EUR")}
             formatPrice={(val: any) => formatPriceLocalized(val, locale, result?.selectedCurrency || (locale === "ro" ? "LEI" : "EUR"), fxRate)} 

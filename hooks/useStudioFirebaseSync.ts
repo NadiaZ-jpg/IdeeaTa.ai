@@ -3,7 +3,7 @@ import { doc, getDoc, getDocFromServer } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { formatObjectNumbers } from '@/lib/utils';
 import { User } from 'firebase/auth';
-import { readStagedStudioPlan, clearStagedStudioPlan } from '@/lib/studioPlanHandoff';
+import { readStagedStudioPlanWithMeta, clearStagedStudioPlan } from '@/lib/studioPlanHandoff';
 import { resolveLoadedStudioPlan } from '@/lib/studioActiveVersion';
 
 interface UseStudioFirebaseSyncProps {
@@ -14,6 +14,23 @@ interface UseStudioFirebaseSyncProps {
   setActiveVersionId: (id: string) => void;
   setCurrency?: (curr: string) => void;
   onPlanMissing?: (planId: string) => void;
+}
+
+function planUpdatedAtMs(raw: Record<string, unknown> | undefined): number | null {
+  const value = raw?.updatedAt;
+  if (typeof value === "string") {
+    const ms = Date.parse(value);
+    return Number.isFinite(ms) ? ms : null;
+  }
+  if (value && typeof value === "object" && "toMillis" in value && typeof (value as { toMillis: () => number }).toMillis === "function") {
+    try {
+      return (value as { toMillis: () => number }).toMillis();
+    } catch {
+      return null;
+    }
+  }
+  if (typeof value === "number" && Number.isFinite(value)) return value;
+  return null;
 }
 
 export const useStudioFirebaseSync = ({
@@ -30,6 +47,7 @@ export const useStudioFirebaseSync = ({
   const setActiveVersionIdRef = useRef(setActiveVersionId);
   const setCurrencyRef = useRef(setCurrency);
   const handoffAppliedForIdRef = useRef<string | null>(null);
+  const handoffSavedAtRef = useRef<number | null>(null);
 
   onPlanLoadedRef.current = onPlanLoaded;
   onPlanMissingRef.current = onPlanMissing;
@@ -68,10 +86,11 @@ export const useStudioFirebaseSync = ({
     // 1) Handoff imediat din Dashboard (fără a aștepta auth/Firestore)
     let openedFromHandoff = handoffAppliedForIdRef.current === planId;
     if (!openedFromHandoff) {
-      const staged = readStagedStudioPlan(planId);
+      const staged = readStagedStudioPlanWithMeta(planId);
       if (staged) {
-        applyPlan(staged);
+        applyPlan(staged.data);
         handoffAppliedForIdRef.current = planId;
+        handoffSavedAtRef.current = staged.savedAt;
         openedFromHandoff = true;
         // Delay clear: Strict Mode remount încă poate citi handoff-ul
         window.setTimeout(() => clearStagedStudioPlan(), 1500);
@@ -105,7 +124,19 @@ export const useStudioFirebaseSync = ({
               : await getDoc(planRef);
           if (cancelled) return;
           if (snap.exists()) {
-            applyPlan(snap.data() as Record<string, unknown>);
+            const remote = snap.data() as Record<string, unknown>;
+            // Skip stale Firestore after Dashboard handoff (avoids wiping fast local edits)
+            if (
+              openedFromHandoff &&
+              handoffAppliedForIdRef.current === planId &&
+              handoffSavedAtRef.current != null
+            ) {
+              const remoteMs = planUpdatedAtMs(remote);
+              if (remoteMs == null || remoteMs <= handoffSavedAtRef.current) {
+                return;
+              }
+            }
+            applyPlan(remote);
             return;
           }
         } catch (err) {

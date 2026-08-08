@@ -1391,7 +1391,7 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
         <div className="fixed top-[-9999px] left-[-9999px] w-[1280px] opacity-0 pointer-events-none z-[-50]">
           <DemoPdfSlides 
             result={result} 
-            ui={t} 
+            ui={ui} 
             locale={locale} 
             currency={result?.selectedCurrency || (locale === "ro" ? "LEI" : "EUR")}
             formatPrice={(val: any) => formatPriceLocalized(val, locale, result?.selectedCurrency || (locale === "ro" ? "LEI" : "EUR"), fxRate)} 

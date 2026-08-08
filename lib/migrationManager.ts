@@ -77,11 +77,8 @@ export const migrateLocalPlansToFirebase = async (user: User) => {
       }
     }
 
-    // Curățăm mereu lista locală după ce am citit-o — altfel refresh Dashboard
-    // reîncărca planuri vechi / duplicate la fiecare vizită.
-    localStorage.removeItem('demo_plans_list');
-
     if (localPlans.length === 0) {
+      localStorage.removeItem('demo_plans_list');
       localStorage.setItem('migration_completed_for_uid', user.uid);
       return;
     }
@@ -100,19 +97,25 @@ export const migrateLocalPlansToFirebase = async (user: User) => {
     // if already at/over free limit we only skip when free; for simplicity always
     // respect the free cap for migration (paid can generate more via Studio).
     if (slotsLeft <= 0) {
+      // Keep leftover local list so plans are not permanently lost when over cap.
+      localStorage.setItem('demo_plans_list', JSON.stringify(localPlans));
       localStorage.setItem('migration_completed_for_uid', user.uid);
       console.log(
-        `[migrate] Skip upload — already ${existingCount} plans (limit ${FREE_ACCOUNT_PLAN_LIMIT}).`
+        `[migrate] Skip upload — already ${existingCount} plans (limit ${FREE_ACCOUNT_PLAN_LIMIT}). Kept ${localPlans.length} local plan(s).`
       );
       return;
     }
 
+    const remaining: any[] = [];
     for (const plan of localPlans) {
       if (!plan || !plan.id) continue;
       if (deletedIds.has(String(plan.id))) continue;
       const name = planNameKey(plan);
       if (name && deletedIds.has(`name:${name}`)) continue;
-      if (slotsLeft <= 0) break;
+      if (slotsLeft <= 0) {
+        remaining.push(plan);
+        continue;
+      }
 
       if (name && existingNames.has(name)) {
         console.log(`[migrate] Skip duplicate name: ${plan.nume}`);
@@ -140,7 +143,15 @@ export const migrateLocalPlansToFirebase = async (user: User) => {
         }
       } catch (e) {
         console.error(`Eroare la migrarea planului ${plan.id || 'necunoscut'}:`, e);
+        remaining.push(plan);
       }
+    }
+
+    if (remaining.length > 0) {
+      localStorage.setItem('demo_plans_list', JSON.stringify(remaining));
+      console.log(`[migrate] Kept ${remaining.length} unmigrated local plan(s).`);
+    } else {
+      localStorage.removeItem('demo_plans_list');
     }
 
     localStorage.setItem('migration_completed_for_uid', user.uid);

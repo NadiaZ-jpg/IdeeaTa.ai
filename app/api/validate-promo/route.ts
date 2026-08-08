@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { adminDb } from "@/lib/firebase-admin";
+import { adminDb, adminAuth } from "@/lib/firebase-admin";
 
 function readPromoEnv(serverKey: string, publicFallbackKey: string, defaultValue: string): string {
   // Preferă variabile server-only; fallback public doar pentru compat local temporar
@@ -10,9 +10,44 @@ function readPromoEnv(serverKey: string, publicFallbackKey: string, defaultValue
   return raw.trim().toUpperCase();
 }
 
+async function requireAuthUid(req: NextRequest): Promise<
+  { uid: string } | { error: NextResponse }
+> {
+  const authHeader = req.headers.get("Authorization");
+  if (!authHeader?.startsWith("Bearer ")) {
+    return {
+      error: NextResponse.json(
+        { success: false, error: "Unauthorized" },
+        { status: 401 }
+      ),
+    };
+  }
+  try {
+    const token = authHeader.substring(7);
+    const decoded = await adminAuth.verifyIdToken(token);
+    if (!decoded?.uid) {
+      return {
+        error: NextResponse.json(
+          { success: false, error: "Unauthorized" },
+          { status: 401 }
+        ),
+      };
+    }
+    return { uid: decoded.uid };
+  } catch (err) {
+    console.error("[Promo] verifyIdToken failed:", err);
+    return {
+      error: NextResponse.json(
+        { success: false, error: "Unauthorized" },
+        { status: 401 }
+      ),
+    };
+  }
+}
+
 export async function POST(req: NextRequest) {
   try {
-    const { code, promoCode, userId, locale = "ro" } = await req.json();
+    const { code, promoCode, locale = "ro" } = await req.json();
     const getErrorMsg = (ro: string, en: string, es: string) =>
       locale === "en" ? en : locale === "es" ? es : ro;
 
@@ -20,20 +55,6 @@ export async function POST(req: NextRequest) {
     if (!actualCode) {
       return NextResponse.json(
         { success: false, error: getErrorMsg("Codul lipsește", "Code is missing", "Falta el código") },
-        { status: 400 }
-      );
-    }
-
-    if (!userId) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: getErrorMsg(
-            "Trebuie să fii autentificat pentru a aplica un cod promoțional.",
-            "You must be logged in to apply a promo code.",
-            "Debes iniciar sesión para aplicar un código promocional."
-          ),
-        },
         { status: 400 }
       );
     }
@@ -61,7 +82,8 @@ export async function POST(req: NextRequest) {
         );
       }
 
-      // Doar development/local: bypass controlat (fără a expune obligatoriu NEXT_PUBLIC_*)
+      // Dev bypass still requires a logged-in client (Bearer optional if Admin SDK missing —
+      // but we refuse body userId spoofing: client must already be signed in and write locally).
       console.warn("[Promo] Dev-only bypass (no Firebase Admin credentials).");
       const adminCode = readPromoEnv("PROMO_ADMIN", "NEXT_PUBLIC_PROMO_ADMIN", "ADMIN_NADIA");
       const standardCode = readPromoEnv("PROMO_STANDARD", "NEXT_PUBLIC_PROMO_STANDARD", "STANDARD_NADIA");
@@ -104,6 +126,23 @@ export async function POST(req: NextRequest) {
         { status: 400 }
       );
     }
+
+    // Production / Admin ready: UID only from verified ID token
+    const auth = await requireAuthUid(req);
+    if ("error" in auth) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: getErrorMsg(
+            "Trebuie să fii autentificat pentru a aplica un cod promoțional.",
+            "You must be logged in to apply a promo code.",
+            "Debes iniciar sesión para aplicar un código promocional."
+          ),
+        },
+        { status: 401 }
+      );
+    }
+    const userId = auth.uid;
 
     // Verificăm codul promoțional în colecția promo_codes din Firestore
     const promoRef = adminDb.collection("promo_codes").doc(actualCode);

@@ -144,7 +144,7 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
   const [isSharedView, setIsSharedView] = useState(false);
   const [skipLocalRestore, setSkipLocalRestore] = useState(false);
 
-  const isPaid = (typeof window !== 'undefined' && localStorage.getItem(`isPaid_${result?.nume}`) === "true") || isPaidState;
+  const isPaid = isPaidState;
   const isAdmin = !!(user && (user.email === "adrian@ideeata.ai" || user.email === "contact@ideeata.ai" || user.email === "nadiaramonaz@gmail.com"));
   const hasStandardAccess = !!(isPaid || promoCodeUnlocked || isAdmin || subscriptionActive || euFundsUnlocked);
   const hasProAccess = !!(isAdmin || subscriptionActive || euFundsUnlocked);

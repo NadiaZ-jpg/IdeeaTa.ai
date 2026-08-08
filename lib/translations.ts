@@ -7,7 +7,7 @@ export const translations = {
     noCardRequired: "* Fără card de credit. Durează doar 60 secunde.",
     noCardLabel: "Fără card de credit",
     freePlansDemo: "3 planuri gratuite în Demo",
-    freePlansStudio: "1 plan complet gratuit în Studio",
+    freePlansStudio: "4 planuri complete gratuite în Studio",
     successGenerated: "Plan Generat cu Succes!",
     readyToDownload: "Gata pentru descărcare",
     everythingInOnePlace: "Tot ce ai nevoie, într-un singur loc.",
@@ -122,7 +122,7 @@ export const translations = {
     confirmDeleteQuestion: "Ești sigur că vrei să ștergi acest plan?",
     modifiedAtLabel: "Modificat la:",
     freePlanBadgeWarning: "Planul gratuit a fost folosit.",
-    freePlanBadgeWarningDesc: "Ai generat 1 plan complet. Upgradează contul pentru generări nelimitate și instrumente profesionale.",
+    freePlanBadgeWarningDesc: "Ai atins limita de 4 planuri gratuite. Upgradează contul pentru generări nelimitate și instrumente profesionale.",
     upgradeToProBtn: "Treci la PRO",
 
     // Login Page
@@ -192,7 +192,7 @@ export const translations = {
     noCardRequired: "* No credit card required. Takes only 60 seconds.",
     noCardLabel: "No credit card required",
     freePlansDemo: "3 free plans in Demo",
-    freePlansStudio: "1 fully free plan in Studio",
+    freePlansStudio: "4 fully free plans in Studio",
     successGenerated: "Plan Generated Successfully!",
     readyToDownload: "Ready for download",
     everythingInOnePlace: "Everything you need, in one place.",
@@ -307,7 +307,7 @@ export const translations = {
     confirmDeleteQuestion: "Are you sure you want to delete this plan?",
     modifiedAtLabel: "Modified at:",
     freePlanBadgeWarning: "Free plan limit reached.",
-    freePlanBadgeWarningDesc: "You generated 1 complete plan. Upgrade your account for unlimited generations and professional tools.",
+    freePlanBadgeWarningDesc: "You reached the free limit of 4 plans. Upgrade your account for unlimited generations and professional tools.",
     upgradeToProBtn: "Upgrade to PRO",
 
     // Login Page
@@ -377,7 +377,7 @@ export const translations = {
     noCardRequired: "* Sin tarjeta de crédito. Solo toma 60 segundos.",
     noCardLabel: "Sin tarjeta de crédito",
     freePlansDemo: "3 planes gratuitos en Demo",
-    freePlansStudio: "1 plan completamente gratis en Studio",
+    freePlansStudio: "4 planes completamente gratis en Studio",
     successGenerated: "¡Plan Generado con Éxito!",
     readyToDownload: "Listo para descargar",
     everythingInOnePlace: "Todo lo que necesitas, en un solo lugar.",
@@ -492,7 +492,7 @@ export const translations = {
     confirmDeleteQuestion: "¿Estás seguro de que quieres eliminar este plan?",
     modifiedAtLabel: "Modificado el:",
     freePlanBadgeWarning: "Límite de plan gratuito alcanzado.",
-    freePlanBadgeWarningDesc: "Has generado 1 plan completo. Actualiza tu cuenta para generaciones ilimitadas y herramientas profesionales.",
+    freePlanBadgeWarningDesc: "Has alcanzado el límite gratuito de 4 planes. Actualiza tu cuenta para generaciones ilimitadas y herramientas profesionales.",
     upgradeToProBtn: "Actualizar a PRO",
 
     // Login Page

@@ -1001,7 +1001,21 @@ export default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" | 
 
     if (retryCount === 0) {
       if (typeof window !== "undefined") {
-        if (user && !isAdmin && !isPlanPaid) {
+        const accountPaid = !!(
+          isPaid ||
+          promoCodeUnlocked ||
+          subscriptionActive ||
+          euFundsUnlocked
+        );
+        if (!user) {
+          const count = parseInt(localStorage.getItem("demoGenerateCount") || "0", 10);
+          if (count >= GUEST_DEMO_PLAN_LIMIT) {
+            setShowAuthModal(true);
+            return;
+          }
+          localStorage.setItem("demoGenerateCount", (count + 1).toString());
+          setDemoCount(count + 1);
+        } else if (!isAdmin && !accountPaid) {
           try {
             const plansRef = collection(db, "users", user.uid, "plans");
             const snap = await getDocs(plansRef);
@@ -1012,14 +1026,6 @@ export default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" | 
           } catch (err) {
             console.error("Eroare verificare limită planuri Firestore:", err);
           }
-        } else {
-          const count = parseInt(localStorage.getItem("demoGenerateCount") || "0", 10);
-          if (count >= GUEST_DEMO_PLAN_LIMIT && !isAdmin) {
-            setShowAuthModal(true);
-            return;
-          }
-          localStorage.setItem("demoGenerateCount", (count + 1).toString());
-          setDemoCount(count + 1);
         }
       }
       setLoading(true);

@@ -77,7 +77,7 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
   
   const isAdmin = !!(user && (user.email === "adrian@ideeata.ai" || user.email === "contact@ideeata.ai" || user.email === "nadiaramonaz@gmail.com"));
   const [isPaidState, setIsPaidState] = useState(false);
-  const isPaid = (typeof window !== 'undefined' && localStorage.getItem(`isPaid_${result?.nume}`) === "true") || isPaidState;
+  const isPaid = isPaidState;
 
   const isPlanPaid = promoCodeUnlocked || isAdmin || subscriptionActive || (result && unlockedPlans.includes(result.nume)) || isPaid;
   const isStudioPaid = promoCodeUnlocked || isAdmin || subscriptionActive || euFundsUnlocked || isPaid;
@@ -392,7 +392,7 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
           consumeFreeToneEdit(false);
         }
 
-        await syncCurrentPlanToFirestore(parsed, nextVersions);
+        await syncCurrentPlanToFirestore(parsed, nextVersions, vKey);
       }
     } catch (e) {
       console.error(e);

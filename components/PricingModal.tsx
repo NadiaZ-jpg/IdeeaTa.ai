@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { db } from "@/lib/firebase";
+import { auth, db } from "@/lib/firebase";
 import { doc, updateDoc } from "firebase/firestore";
 import { getLemonCheckoutUrl, withCheckoutParams } from "@/lib/lemonCheckout";
  
@@ -66,10 +66,31 @@ export function PricingModal({ isOpen, onClose, onSuccess, onRequireLogin, userI
     setError(null);
     setPromoLoading(true);
     try {
+      if (!userId) {
+        if (onRequireLogin) onRequireLogin();
+        else {
+          setError(
+            locale === "en"
+              ? "Please log in to apply a promo code."
+              : locale === "es"
+              ? "Inicia sesión para aplicar un código promocional."
+              : "Autentifică-te pentru a aplica un cod promoțional."
+          );
+        }
+        return;
+      }
+
+      const headers: Record<string, string> = { "Content-Type": "application/json" };
+      const currentUser = auth.currentUser;
+      if (currentUser) {
+        const token = await currentUser.getIdToken();
+        headers.Authorization = `Bearer ${token}`;
+      }
+
       const res = await fetch("/api/validate-promo", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ code: val, userId, locale })
+        headers,
+        body: JSON.stringify({ code: val, locale }),
       });
 
       const data = await res.json();

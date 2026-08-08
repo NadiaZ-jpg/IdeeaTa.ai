@@ -2111,8 +2111,12 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
               ...result,
               sectiuni_aditionale: [...currentSecs, newSection]
             };
+            const nextVersions = {
+              ...(versions && Object.keys(versions).length ? versions : { original: updated }),
+              [activeVersionIdRef.current]: updated,
+            };
             setResult(updated);
-            syncCurrentPlanToFirestore(updated);
+            syncCurrentPlanToFirestore(updated, nextVersions);
             if (typeof window !== "undefined") {
               localStorage.setItem("current_generated_plan", JSON.stringify(updated));
             }

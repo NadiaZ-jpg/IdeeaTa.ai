@@ -15,16 +15,13 @@ export type ResolvedStudioPlan = {
 
 function stripNestedVersionsMap(plan: Record<string, any>): Record<string, any> {
   if (!plan || typeof plan !== "object") return plan;
-  if (!plan.versions || typeof plan.versions !== "object" || Array.isArray(plan.versions)) {
-    return plan;
-  }
-  const { versions: _omit, ...rest } = plan;
+  const { versions: _omitVersions, activeVersionId: _omitActive, ...rest } = plan;
   return rest;
 }
 
 /**
  * After Firestore / handoff load: pick the active tab's plan body.
- * Avoids showing last-saved top-level fields while the "original" tab looks selected.
+ * Restores persisted `activeVersionId` when present and valid.
  */
 export function resolveLoadedStudioPlan(raw: Record<string, any> | null | undefined): ResolvedStudioPlan {
   const data = raw && typeof raw === "object" ? { ...(raw as Record<string, any>) } : {};
@@ -46,7 +43,11 @@ export function resolveLoadedStudioPlan(raw: Record<string, any> | null | undefi
         versions.original = topLevel;
       }
     }
-    activeVersionId = versions.original ? "original" : Object.keys(versions)[0];
+    const saved =
+      typeof data.activeVersionId === "string" && versions[data.activeVersionId]
+        ? data.activeVersionId
+        : null;
+    activeVersionId = saved || (versions.original ? "original" : Object.keys(versions)[0]);
   } else {
     const topLevel = stripNestedVersionsMap(data);
     versions = { original: topLevel && Object.keys(topLevel).length > 0 ? topLevel : data };

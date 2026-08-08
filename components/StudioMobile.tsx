@@ -5,7 +5,7 @@ import { toPng } from "html-to-image";
 import pptxgen from "pptxgenjs";
 import { auth, db } from '@/lib/firebase';
 import { onAuthStateChanged, User, sendEmailVerification, signOut } from 'firebase/auth';
-import { doc, setDoc, getDoc, updateDoc, onSnapshot } from 'firebase/firestore';
+import { doc, setDoc, getDoc, updateDoc, onSnapshot, collection, getDocs } from 'firebase/firestore';
 import { PricingModal } from '@/components/PricingModal';
 import { LanguageSwitcher } from '@/components/LanguageSwitcher';
 import { useStudioFirebaseSync } from '@/hooks/useStudioFirebaseSync';
@@ -16,6 +16,8 @@ import { t } from '@/lib/translations';
 import { UI_STRINGS } from '@/lib/uiStrings';
 import { createAndCopySharedPlanLink } from '@/lib/sharePlan';
 import { StudioMobileGenerateHint } from '@/components/StudioMobileGenerateHint';
+import { getExamples } from '@/lib/examples';
+import { FREE_ACCOUNT_PLAN_LIMIT } from '@/lib/planQuota';
 import dynamic from 'next/dynamic';
 import { useExportActions } from "@/hooks/useExportActions";
 import { useCompleteMissingPlanFields } from "@/hooks/useCompleteMissingPlanFields";
@@ -89,8 +91,24 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
   const [combineMenuFor, setCombineMenuFor] = useState<string | null>(null);
   const [activeAiPrompt, setActiveAiPrompt] = useState<MobileAiPrompt | null>(null);
   const [aiPromptInput, setAiPromptInput] = useState("");
+  const [skill, setSkill] = useState("");
+  const [messageIndex, setMessageIndex] = useState(0);
+  const inputRef = useRef<HTMLTextAreaElement | null>(null);
+  const usedIdeasRef = useRef<number[]>([]);
+  const examplesList = getExamples(locale);
 
-  const syncCurrentPlanToFirestore = async (updatedResult: any, updatedVersions?: Record<string, any>) => {
+  const loadingMessages =
+    locale === "en"
+      ? ["Analyzing your idea...", "Building structure...", "Estimating finances...", "Finalizing plan..."]
+      : locale === "es"
+      ? ["Analizando tu idea...", "Construyendo la estructura...", "Estimando finanzas...", "Finalizando el plan..."]
+      : ["Analizăm ideea...", "Construim structura...", "Estimăm finanțele...", "Finalizăm planul..."];
+
+  const syncCurrentPlanToFirestore = async (
+    updatedResult: any,
+    updatedVersions?: Record<string, any>,
+    versionIdToSave?: string
+  ) => {
     if (!user) return;
     try {
       const searchParams = new URLSearchParams(window.location.search);
@@ -102,6 +120,7 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
         ...updatedResult,
         updatedAt: new Date().toISOString(),
         selectedCurrency: updatedResult?.selectedCurrency || (locale === "ro" ? "LEI" : "EUR"),
+        activeVersionId: versionIdToSave || activeVersionId,
       };
       if (versToSave && Object.keys(versToSave).length > 0) {
         payload.versions = versToSave;
@@ -529,6 +548,140 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
   const [studioLoadTimedOut, setStudioLoadTimedOut] = useState(false);
 
   useEffect(() => {
+    if (!loading) return;
+    const interval = setInterval(() => {
+      setMessageIndex((prev) => (prev + 1) % loadingMessages.length);
+    }, 3500);
+    return () => clearInterval(interval);
+  }, [loading, loadingMessages.length]);
+
+  const handleGenerate = async (retryCount = 0) => {
+    if (!skill.trim() || (loading && retryCount === 0)) return;
+    if (!user) {
+      router.push(isEn ? "/en/login" : isEs ? "/es/login" : "/login");
+      return;
+    }
+
+    let shouldStopLoading = true;
+
+    if (retryCount === 0) {
+      if (!isPlanPaid && !isAdmin) {
+        try {
+          const snap = await getDocs(collection(db, "users", user.uid, "plans"));
+          if (snap.size >= FREE_ACCOUNT_PLAN_LIMIT) {
+            setShowPricingModal(true);
+            return;
+          }
+        } catch (err) {
+          console.error("Eroare verificare limită planuri Firestore:", err);
+          const studioCount = parseInt(localStorage.getItem("studioGenerateCount") || "0", 10);
+          if (studioCount >= 1) {
+            setShowPricingModal(true);
+            return;
+          }
+        }
+        const studioCount = parseInt(localStorage.getItem("studioGenerateCount") || "0", 10);
+        localStorage.setItem("studioGenerateCount", (studioCount + 1).toString());
+      }
+      setLoading(true);
+      setMessageIndex(0);
+    }
+
+    try {
+      const token = await user.getIdToken();
+      const headers: Record<string, string> = {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      };
+
+      const res = await fetch("/api/generate", {
+        method: "POST",
+        headers,
+        body: JSON.stringify({
+          skill,
+          locale,
+          currency: locale === "ro" ? "LEI" : "EUR",
+        }),
+      });
+
+      const resText = await res.text();
+      let data: any;
+      try {
+        data = JSON.parse(resText);
+      } catch {
+        throw new Error(
+          res.ok
+            ? t("errorGenerationFallback", locale)
+            : t("errorGenerationFallback", locale)
+        );
+      }
+
+      if (!res.ok) {
+        if (data?.error === "LIMIT_REACHED") {
+          setShowPricingModal(true);
+          return;
+        }
+        throw new Error(data.error || `Eroare server: ${res.status}`);
+      }
+
+      if (data.fx_rate) setFxRate(data.fx_rate);
+
+      if (data?.ideas?.length > 0) {
+        const content = data.ideas[0];
+        let cleanJson = content.replace(/```json/g, "").replace(/```/g, "").trim();
+        cleanJson = cleanJson.replace(/[„“”]/g, '"');
+        const startIndex = cleanJson.indexOf("{");
+        const endIndex = cleanJson.lastIndexOf("}");
+        if (startIndex !== -1 && endIndex !== -1) {
+          cleanJson = cleanJson.substring(startIndex, endIndex + 1);
+        }
+
+        try {
+          cleanJson = cleanJson.replace(/,\s*([}\]])/g, "$1");
+          const finalResult = formatObjectNumbers(JSON.parse(cleanJson));
+          const planId =
+            String(finalResult.nume || "Plan").replace(/[^a-zA-Z0-9]/g, "_") + "_" + Date.now();
+          finalResult.id = planId;
+
+          setVersions({ original: finalResult });
+          setActiveVersionId("original");
+          setResult(finalResult);
+          setSkill("");
+          localStorage.setItem("current_generated_plan", JSON.stringify(finalResult));
+          window.history.pushState(
+            { view: "idea" },
+            "",
+            `${window.location.pathname}?planId=${planId}&view=idea`
+          );
+          window.scrollTo({ top: 0, behavior: "smooth" });
+
+          await setDoc(doc(db, "users", user.uid, "plans", planId), {
+            ...finalResult,
+            versions: { original: finalResult },
+            activeVersionId: "original",
+            createdAt: new Date().toISOString(),
+            isPaid: isPlanPaid,
+            selectedCurrency: locale === "ro" ? "LEI" : "EUR",
+          });
+        } catch (parseError) {
+          console.error("TEXTUL GENERAT DE AI A FOST:", cleanJson, parseError);
+          if (retryCount < 2) {
+            shouldStopLoading = false;
+            void handleGenerate(retryCount + 1);
+            return;
+          }
+          alert(t("errorSystemOverloaded", locale));
+        }
+      }
+    } catch (error: any) {
+      console.error("Eroare:", error);
+      alert(error.message || t("errorGenerationFallback", locale));
+    } finally {
+      if (shouldStopLoading) setLoading(false);
+    }
+  };
+
+  useEffect(() => {
     if (result || typeof window === "undefined") return;
     const planId = new URLSearchParams(window.location.search).get("planId");
     if (!planId || !user) return;
@@ -554,9 +707,34 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
         ? new URLSearchParams(window.location.search).get("planId")
         : null;
 
-    // Fără planId → hint generare desktop. Cu planId → spinner (la eșec redirect, fără mesaj).
+    // Fără planId → formular generare Mobile. Cu planId → spinner (la eșec redirect).
     if (!planId) {
-      return <StudioMobileGenerateHint locale={locale} />;
+      return (
+        <StudioMobileGenerateHint
+          locale={locale}
+          skill={skill}
+          setSkill={setSkill}
+          loading={loading}
+          loadingMessage={loadingMessages[messageIndex]}
+          onGenerate={() => void handleGenerate()}
+          onInspire={() => {
+            if (usedIdeasRef.current.length >= examplesList.length) {
+              usedIdeasRef.current = [];
+            }
+            let nextIndex = Math.floor(Math.random() * examplesList.length);
+            while (
+              usedIdeasRef.current.includes(nextIndex) ||
+              examplesList[nextIndex].long === skill
+            ) {
+              nextIndex = Math.floor(Math.random() * examplesList.length);
+            }
+            usedIdeasRef.current.push(nextIndex);
+            setSkill(examplesList[nextIndex].long);
+            setTimeout(() => inputRef.current?.focus(), 50);
+          }}
+          inputRef={inputRef}
+        />
+      );
     }
 
     return (
@@ -660,6 +838,7 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
                                 setResult(vData);
                                 setShowVersionDropdown(false);
                                 setCombineMenuFor(null);
+                                void syncCurrentPlanToFirestore(vData, versions, vKey);
                               }}
                               className={`flex-1 text-left px-3 py-2.5 rounded-xl text-xs font-semibold flex items-center justify-between transition-all cursor-pointer min-h-[44px] ${activeVersionId === vKey ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/30" : "text-zinc-400 hover:bg-zinc-900 hover:text-white"}`}
                             >

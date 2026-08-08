@@ -180,6 +180,7 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
         ...updatedResult,
         updatedAt: new Date().toISOString(),
         selectedCurrency: currency,
+        activeVersionId: activeVersionIdRef.current,
       };
       if (versToSave && Object.keys(versToSave).length > 0) {
         payload.versions = versToSave;
@@ -1163,6 +1164,8 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
               const planRef = doc(db, "users", user.uid, "plans", planId);
               await setDoc(planRef, {
                 ...finalResult,
+                versions: { original: finalResult },
+                activeVersionId: "original",
                 createdAt: new Date().toISOString(),
                 isPaid: isPlanPaid,
               });
@@ -1963,6 +1966,7 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
               onSelectVersion={(vKey, vData) => {
                 setActiveVersionId(vKey);
                 setResultState(vData);
+                void syncCurrentPlanToFirestore(vData);
               }}
               ui={ui}
               locale={locale}

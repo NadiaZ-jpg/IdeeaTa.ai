@@ -1,45 +1,121 @@
 "use client";
 
+import { RefObject } from "react";
 import Link from "next/link";
 import { UI_STRINGS } from "@/lib/uiStrings";
+import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 
 /**
- * Empty-state pe Studio Mobile/Tablet când nu există plan încărcat.
- * Generarea Studio nouă rămâne pe Desktop (S3 Varianta B).
+ * Studio Mobile/Tablet — generate a new plan (parity with Desktop Studio / Demo Mobile).
  */
 export function StudioMobileGenerateHint({
   locale = "ro",
+  skill,
+  setSkill,
+  loading,
+  loadingMessage,
+  onGenerate,
+  onInspire,
+  inputRef,
 }: {
   locale?: "ro" | "en" | "es";
+  skill: string;
+  setSkill: (v: string) => void;
+  loading: boolean;
+  loadingMessage: string;
+  onGenerate: () => void;
+  onInspire: () => void;
+  inputRef: RefObject<HTMLTextAreaElement | null>;
 }) {
   const ui = UI_STRINGS[locale];
 
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-[#09090b] text-white flex flex-col items-center justify-center p-6 text-center gap-6">
+        <div className="w-16 h-16 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin" />
+        <div className="space-y-2 max-w-xs">
+          <h3 className="font-bold text-lg text-emerald-400">
+            {locale === "en"
+              ? "Assistant is working"
+              : locale === "es"
+              ? "El asistente está trabajando"
+              : "Asistentul lucrează"}
+          </h3>
+          <p className="text-sm text-zinc-400 animate-pulse">{loadingMessage}</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="min-h-screen bg-[#09090b] text-white flex flex-col items-center justify-center p-6 text-center gap-4">
-      <span className="text-[10px] uppercase tracking-widest font-bold text-amber-400/90 border border-amber-500/30 bg-amber-500/10 px-3 py-1 rounded-full">
-        {ui.studioMobileBadge}
-      </span>
-      <h1 className="text-xl font-black tracking-tight">{ui.studioMobileTitle}</h1>
-      <p className="text-zinc-300 text-sm max-w-sm leading-relaxed">
-        {ui.studioGenerateDesktopOnly}
-      </p>
-      <p className="text-zinc-500 text-xs max-w-sm leading-relaxed">
-        {ui.studioGenerateDesktopHint}
-      </p>
-      <div className="flex flex-col gap-3 w-full max-w-xs mt-4">
+    <div className="min-h-screen bg-[#09090b] text-white font-sans relative overflow-x-hidden flex flex-col pb-16">
+      <header className="h-16 px-4 flex items-center justify-between border-b border-zinc-800/80 sticky top-0 bg-[#09090b]/80 backdrop-blur-md z-30">
         <Link
           href={ui.routes.dashboard}
-          className="inline-flex items-center justify-center min-h-[44px] px-4 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-bold transition-colors"
+          className="text-xs font-bold text-zinc-400 hover:text-white flex items-center gap-1 min-h-[44px] min-w-[44px]"
         >
-          {ui.studioBackToDashboard}
+          <span>←</span>
+          <span>{locale === "en" ? "Dashboard" : locale === "es" ? "Panel" : "Dashboard"}</span>
         </Link>
+        <span className="text-sm font-black">{ui.studioMobileBadge}</span>
+        <LanguageSwitcher currentLocale={locale} />
+      </header>
+
+      <main className="flex-1 p-4 flex flex-col gap-6 max-w-lg mx-auto w-full">
+        <div className="text-center space-y-2 mt-4">
+          <span className="text-[10px] bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 px-3 py-1 rounded-full font-bold uppercase tracking-wider">
+            {ui.studioMobileBadge}
+          </span>
+          <h1 className="text-2xl font-black tracking-tight mt-2">{ui.studioMobileTitle}</h1>
+          <p className="text-zinc-400 text-sm leading-relaxed">{ui.studioGenerateDesktopHint}</p>
+        </div>
+
+        <div className="bg-zinc-900/40 border border-zinc-800/80 rounded-2xl p-5 backdrop-blur-md space-y-4">
+          <div className="space-y-1.5">
+            <label className="text-xs font-semibold text-zinc-400">
+              {locale === "en"
+                ? "Business idea"
+                : locale === "es"
+                ? "Idea de negocio"
+                : "Ideea de afacere"}
+            </label>
+            <textarea
+              ref={inputRef}
+              value={skill}
+              onChange={(e) => setSkill(e.target.value)}
+              placeholder={ui.inputPlaceholder || ui.animatedPlaceholder}
+              className="w-full bg-zinc-950 border border-zinc-800 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500/30 rounded-xl px-4 py-3 text-sm text-white placeholder-zinc-500 h-28 outline-none resize-none transition-all min-h-[112px]"
+            />
+          </div>
+
+          <div className="flex flex-col gap-3">
+            <button
+              type="button"
+              onClick={onInspire}
+              className="w-full min-h-[44px] inline-flex items-center justify-center gap-2 text-zinc-300 font-bold text-sm px-4 py-3 rounded-xl transition-all hover:bg-zinc-800/50 hover:text-emerald-400 border border-zinc-800"
+            >
+              {ui.inspireMeSparkles}
+            </button>
+
+            <button
+              type="button"
+              onClick={onGenerate}
+              disabled={!skill.trim()}
+              className="w-full min-h-[44px] bg-gradient-to-r from-emerald-600 to-teal-500 hover:from-emerald-500 hover:to-teal-400 disabled:opacity-50 text-white font-bold py-4 rounded-xl text-sm transition-all shadow-lg shadow-emerald-950/20 active:scale-[0.98] flex items-center justify-center gap-2"
+            >
+              <span>{ui.generatePlan}</span>
+              <span>→</span>
+            </button>
+          </div>
+        </div>
+
         <Link
           href={ui.routes.demoNew}
-          className="inline-flex items-center justify-center min-h-[44px] px-4 py-3 rounded-xl bg-zinc-900 border border-zinc-700 hover:border-zinc-500 text-zinc-200 text-sm font-bold transition-colors"
+          className="text-center text-xs text-zinc-500 hover:text-emerald-400 font-semibold min-h-[44px] inline-flex items-center justify-center"
         >
           {ui.studioTryDemoMobile}
         </Link>
-      </div>
+      </main>
     </div>
   );
 }

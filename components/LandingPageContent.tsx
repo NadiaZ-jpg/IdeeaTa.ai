@@ -33,7 +33,7 @@ export default function LandingPageContent({ locale = "ro" }: { locale?: "ro" | 
 
   return (
     <div 
-      className="min-h-screen bg-[#09090b] text-zinc-100 font-sans select-none overflow-hidden"
+      className="min-h-screen bg-[#09090b] text-zinc-100 font-sans select-none overflow-x-hidden"
       onContextMenu={(e) => e.preventDefault()}
     >
       {/* Background Effects */}

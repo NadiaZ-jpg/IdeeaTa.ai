@@ -10,6 +10,51 @@ interface AdBannerProps {
   className?: string;
 }
 
+function scheduleAfterLcp(fn: () => void): () => void {
+  let cancelled = false;
+  let idleId: number | undefined;
+  let timeoutId: ReturnType<typeof setTimeout> | undefined;
+
+  const run = () => {
+    if (cancelled) return;
+    fn();
+  };
+
+  const start = () => {
+    if (cancelled) return;
+    if (typeof window !== "undefined" && "requestIdleCallback" in window) {
+      idleId = window.requestIdleCallback(() => run(), { timeout: 2500 });
+    } else {
+      timeoutId = setTimeout(run, 1200);
+    }
+  };
+
+  if (typeof document !== "undefined" && document.readyState === "complete") {
+    timeoutId = setTimeout(start, 400);
+  } else if (typeof window !== "undefined") {
+    const onLoad = () => {
+      timeoutId = setTimeout(start, 400);
+    };
+    window.addEventListener("load", onLoad, { once: true });
+    return () => {
+      cancelled = true;
+      window.removeEventListener("load", onLoad);
+      if (idleId != null && "cancelIdleCallback" in window) {
+        window.cancelIdleCallback(idleId);
+      }
+      if (timeoutId) clearTimeout(timeoutId);
+    };
+  }
+
+  return () => {
+    cancelled = true;
+    if (typeof window !== "undefined" && idleId != null && "cancelIdleCallback" in window) {
+      window.cancelIdleCallback(idleId);
+    }
+    if (timeoutId) clearTimeout(timeoutId);
+  };
+}
+
 export function AdBanner({
   dataAdSlot,
   dataAdFormat = 'auto',
@@ -18,32 +63,43 @@ export function AdBanner({
 }: AdBannerProps) {
   const adRef = useRef<HTMLModElement>(null);
   const [allowed, setAllowed] = useState(false);
+  const [canRender, setCanRender] = useState(false);
 
   useEffect(() => {
     const sync = () => {
       const ok = hasCookieConsent();
       setAllowed(ok);
-      if (ok) loadAdSenseScript();
     };
     sync();
     window.addEventListener('ideeta-cookie-consent', sync);
     return () => window.removeEventListener('ideeta-cookie-consent', sync);
   }, []);
 
+  // Defer AdSense inject until after load / idle — protects LCP on Landing + Resources.
   useEffect(() => {
-    if (!allowed) return;
+    if (!allowed) {
+      setCanRender(false);
+      return;
+    }
+    return scheduleAfterLcp(() => {
+      loadAdSenseScript();
+      setCanRender(true);
+    });
+  }, [allowed]);
+
+  useEffect(() => {
+    if (!canRender) return;
     try {
       if (adRef.current && !adRef.current.hasAttribute('data-adsbygoogle-status')) {
-        loadAdSenseScript();
         (window.adsbygoogle = window.adsbygoogle || []).push({});
       }
     } catch (err) {
       console.warn('AdSense error:', err);
     }
-  }, [allowed, dataAdSlot]);
+  }, [canRender, dataAdSlot]);
 
-  if (!allowed) {
-    return null;
+  if (!allowed || !canRender) {
+    return <div className={`min-h-[90px] ${className}`} aria-hidden />;
   }
 
   return (

@@ -11,6 +11,9 @@ import { migrateLocalPlansToFirebase } from '@/lib/migrationManager';
 import { markPlanDeletedLocally, FREE_ACCOUNT_PLAN_LIMIT, clearLocalPlanState, hasUnlimitedGenerateAccess } from '@/lib/planQuota';
 import {
   canGenerateWithQuotas,
+  PRO_TOPUP_COMBINE_GRANT,
+  PRO_TOPUP_EDIT_GRANT,
+  PRO_TOPUP_GENERATE_GRANT,
   proPackRemainingLabel,
   readProPackRemaining,
 } from '@/lib/proPackQuota';
@@ -315,67 +318,100 @@ export default function DashboardContent({ locale = "ro" }: { locale?: "ro" | "e
             </p>
           </div>
           
-          <div className="flex flex-col items-end gap-2">
-            <div className="flex items-center gap-3 flex-wrap justify-end">
+          <div className="flex flex-col items-end gap-2 w-full md:max-w-2xl">
+            <div
+              className={`grid gap-3 w-full ${
+                hasProPack || (!isPaidUser && !hasProPack)
+                  ? "grid-cols-1 sm:grid-cols-2"
+                  : "grid-cols-1"
+              }`}
+            >
               {hasProPack && (
-                <button
-                  type="button"
-                  onClick={() => void handleProTopupCheckout()}
-                  disabled={topupLoading}
-                  className="bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-black font-black px-5 py-3.5 rounded-xl uppercase tracking-wider text-xs transition-all flex items-center gap-2 shadow-[0_0_20px_rgba(245,158,11,0.3)] hover:scale-105 cursor-pointer disabled:opacity-60"
-                >
-                  <Sparkles className="w-4 h-4 fill-black" />
-                  {topupLoading
-                    ? isEn
-                      ? "Redirecting…"
+                <div className="flex flex-col items-stretch gap-1.5">
+                  <button
+                    type="button"
+                    onClick={() => void handleProTopupCheckout()}
+                    disabled={topupLoading}
+                    className="w-full h-14 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-black font-black px-4 rounded-xl uppercase tracking-wider text-xs transition-all inline-flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(245,158,11,0.3)] hover:scale-[1.02] cursor-pointer disabled:opacity-60"
+                  >
+                    <Sparkles className="w-4 h-4 fill-black shrink-0" />
+                    <span className="text-center leading-tight">
+                      {topupLoading
+                        ? isEn
+                          ? "Redirecting…"
+                          : isEs
+                          ? "Redirigiendo…"
+                          : "Se redirecționează…"
+                        : isEn
+                        ? `Add credits — ${topupPriceLabel}`
+                        : isEs
+                        ? `Añadir créditos — ${topupPriceLabel}`
+                        : `Adaugă credite — ${topupPriceLabel}`}
+                    </span>
+                  </button>
+                  <p className="text-[11px] text-amber-300/90 font-semibold text-center leading-snug min-h-[2.75rem]">
+                    {isEn
+                      ? `Click to add credits (+${PRO_TOPUP_GENERATE_GRANT} · +${PRO_TOPUP_EDIT_GRANT} · +${PRO_TOPUP_COMBINE_GRANT})`
                       : isEs
-                      ? "Redirigiendo…"
-                      : "Se redirecționează…"
-                    : isEn
-                    ? `Add credits — ${topupPriceLabel}`
-                    : isEs
-                    ? `Añadir créditos — ${topupPriceLabel}`
-                    : `Adaugă credite — ${topupPriceLabel}`}
-                </button>
+                      ? `Clic para añadir créditos (+${PRO_TOPUP_GENERATE_GRANT} · +${PRO_TOPUP_EDIT_GRANT} · +${PRO_TOPUP_COMBINE_GRANT})`
+                      : `Click pentru credite (+${PRO_TOPUP_GENERATE_GRANT} · +${PRO_TOPUP_EDIT_GRANT} · +${PRO_TOPUP_COMBINE_GRANT})`}
+                  </p>
+                </div>
               )}
               {!isPaidUser && !hasProPack && (
+                <div className="flex flex-col items-stretch gap-1.5">
+                  <button
+                    type="button"
+                    onClick={() => setShowPricingModal(true)}
+                    className="w-full h-14 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-black font-black px-4 rounded-xl uppercase tracking-wider text-xs transition-all inline-flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(245,158,11,0.3)] hover:scale-[1.02] cursor-pointer"
+                  >
+                    <Sparkles className="w-4 h-4 fill-black shrink-0" />
+                    <span className="text-center leading-tight">
+                      {isEn ? "👑 View Packages & Upgrade" : isEs ? "👑 Ver Paquetes y Mejorar" : "👑 Vezi Pachete & Upgrade"}
+                    </span>
+                  </button>
+                </div>
+              )}
+              <div className="flex flex-col items-stretch gap-1.5">
                 <button
                   type="button"
-                  onClick={() => setShowPricingModal(true)}
-                  className="bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-black font-black px-5 py-3.5 rounded-xl uppercase tracking-wider text-xs transition-all flex items-center gap-2 shadow-[0_0_20px_rgba(245,158,11,0.3)] hover:scale-105 cursor-pointer"
+                  onClick={handleGenerateNew}
+                  className="w-full h-14 bg-emerald-600 hover:bg-emerald-500 text-white px-4 rounded-xl font-black uppercase tracking-wider text-xs transition-all inline-flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(16,185,129,0.2)] hover:shadow-[0_0_30px_rgba(16,185,129,0.4)] hover:scale-[1.02] cursor-pointer"
                 >
-                  <Sparkles className="w-4 h-4 fill-black" />
-                  {isEn ? "👑 View Packages & Upgrade" : isEs ? "👑 Ver Paquetes y Mejorar" : "👑 Vezi Pachete & Upgrade"}
+                  <Plus className="w-5 h-5 shrink-0" />
+                  <span className="text-center leading-tight">
+                    {isEn ? "Generate New Plan" : isEs ? "Generar Nuevo Plan" : "Generează Plan Nou"}
+                  </span>
                 </button>
-              )}
-              <button onClick={handleGenerateNew} className="bg-emerald-600 hover:bg-emerald-500 text-white px-6 py-3.5 rounded-xl font-bold uppercase tracking-wider transition-all flex items-center gap-2 shadow-[0_0_20px_rgba(16,185,129,0.2)] hover:shadow-[0_0_30px_rgba(16,185,129,0.4)] hover:-translate-y-1">
-                <Plus className="w-5 h-5" />
-                {isEn ? "Generate New Plan" : isEs ? "Generar Nuevo Plan" : "Generează Plan Nou"}
-              </button>
+                {showProPackRemainingCue ? (
+                  <p className="text-[11px] text-amber-300/90 font-semibold text-center leading-snug min-h-[2.75rem]">
+                    {proPackRemainingLabel(locale, proPackRemaining)}
+                  </p>
+                ) : showUpgradeCue ? (
+                  <button
+                    type="button"
+                    onClick={() => setShowPricingModal(true)}
+                    className="text-[11px] text-amber-400 font-semibold text-center leading-snug hover:underline cursor-pointer min-h-[2.75rem]"
+                  >
+                    ⚡ {isEn ? "Free plan limit reached — click here to upgrade" : isEs ? "Límite del plan gratuito alcanzado — clic para mejorar" : "Planul gratuit folosit — dă click aici pentru upgrade"}
+                  </button>
+                ) : showFreeRemainingCue ? (
+                  <button
+                    type="button"
+                    onClick={() => setShowPricingModal(true)}
+                    className="text-[11px] text-emerald-400 font-semibold text-center leading-snug hover:underline cursor-pointer min-h-[2.75rem]"
+                  >
+                    🎁 {isEn
+                      ? (freeRemaining === 1 ? "You have 1 free plan generation remaining. Click to view packages." : `You have ${freeRemaining} free plan generations remaining. Click to view packages.`)
+                      : isEs
+                      ? (freeRemaining === 1 ? "Te queda 1 generación de plan gratuito. Clic para ver paquetes." : `Te quedan ${freeRemaining} generaciones de planes gratuitos. Clic para ver paquetes.`)
+                      : (freeRemaining === 1 ? "Mai ai dreptul la 1 plan gratuit. Click pentru pachete." : `Mai ai dreptul la ${freeRemaining} planuri gratuite. Click pentru pachete.`)}
+                  </button>
+                ) : (
+                  <div className="min-h-[2.75rem]" aria-hidden />
+                )}
+              </div>
             </div>
-            {showProPackRemainingCue ? (
-              <p className="text-[11px] text-amber-300/90 font-semibold text-right max-w-sm">
-                {proPackRemainingLabel(locale, proPackRemaining)}
-              </p>
-            ) : showUpgradeCue ? (
-                <button 
-                  onClick={() => setShowPricingModal(true)}
-                  className="text-[11px] text-amber-400 font-semibold flex items-center gap-1 hover:underline cursor-pointer"
-                >
-                  ⚡ {isEn ? "Free plan limit reached — click here to upgrade" : isEs ? "Límite del plan gratuito alcanzado — clic para mejorar" : "Planul gratuit folosit — dă click aici pentru upgrade"}
-                </button>
-              ) : showFreeRemainingCue ? (
-                <button
-                  onClick={() => setShowPricingModal(true)}
-                  className="text-[11px] text-emerald-400 font-semibold flex items-center gap-1 hover:underline cursor-pointer"
-                >
-                  🎁 {isEn 
-                    ? (freeRemaining === 1 ? "You have 1 free plan generation remaining. Click to view packages." : `You have ${freeRemaining} free plan generations remaining. Click to view packages.`) 
-                    : isEs
-                    ? (freeRemaining === 1 ? "Te queda 1 generación de plan gratuito. Clic para ver paquetes." : `Te quedan ${freeRemaining} generaciones de planes gratuitos. Clic para ver paquetes.`) 
-                    : (freeRemaining === 1 ? "Mai ai dreptul la 1 plan gratuit. Click pentru pachete." : `Mai ai dreptul la ${freeRemaining} planuri gratuite. Click pentru pachete.`)}
-                </button>
-              ) : null}
             {topupError && (
               <p className="text-[11px] text-red-400 font-semibold text-right max-w-sm">{topupError}</p>
             )}

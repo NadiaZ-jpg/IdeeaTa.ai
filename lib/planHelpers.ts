@@ -7,9 +7,11 @@
 /**
  * Trunchiează un text la o lungime specificată și adaugă "...".
  */
-export const truncateText = (text: any, length: number): any => {
-  if (!text || typeof text !== 'string') return text;
-  return text.length > length ? text.substring(0, length) + '...' : text;
+export const truncateText = (text: any, length: number): string => {
+  if (text === null || text === undefined) return "";
+  const str = typeof text === "string" ? text : String(text);
+  if (!str) return "";
+  return str.length > length ? str.substring(0, length) + "..." : str;
 };
 
 /**

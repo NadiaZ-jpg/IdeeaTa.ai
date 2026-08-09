@@ -44,7 +44,7 @@ export function StudioPresentationSlides({
                       </div>
                       <div className="overflow-hidden">
                         <h3 className="text-xl font-bold text-emerald-700 mb-2">Misiune și Valori</h3>
-                        <p className="text-base leading-relaxed text-left">{truncateText(result.viziune_strategie?.misiune_valori, 500)}</p>
+                        <p className="text-base leading-relaxed text-left whitespace-pre-line">{truncateText(formatNumberedText(result.viziune_strategie?.misiune_valori || result.descriere), 500)}</p>
                       </div>
                     </div>
                   </div>

@@ -96,7 +96,7 @@ export function StudioBrochurePreview({
                       </div>
                     </div>
                     <div className="mt-6 pt-6 border-t border-zinc-800/50 text-zinc-300 print:border-gray-200 print:text-gray-800 text-left leading-relaxed">
-                        <p className="whitespace-pre-line"><strong className="text-white print:text-black">{ui.fieldMissionValues}</strong> {formatNumberedText(result.viziune_strategie?.misiune_valori)}</p>
+                        <p className="whitespace-pre-line"><strong className="text-white print:text-black">{ui.fieldMissionValues}</strong> {formatNumberedText(result.viziune_strategie?.misiune_valori || result.descriere)}</p>
                     </div>
                   </div>
       

@@ -427,6 +427,21 @@ export function normalizePlanResult<T = any>(plan: T): T {
 
   if (next.viziune_strategie && typeof next.viziune_strategie === "object") {
     next.viziune_strategie = normalizeVisionStrategy(next.viziune_strategie);
+  } else if (coercePlanText(next.descriere)) {
+    next.viziune_strategie = normalizeVisionStrategy({});
+  }
+
+  // Legacy / incomplete plans: fill empty mission from root descriere
+  if (next.viziune_strategie && typeof next.viziune_strategie === "object") {
+    if (!coercePlanText(next.viziune_strategie.misiune_valori)) {
+      const fromDescriere = coercePlanText(next.descriere);
+      if (fromDescriere) {
+        next.viziune_strategie = {
+          ...next.viziune_strategie,
+          misiune_valori: fromDescriere,
+        };
+      }
+    }
   }
 
   if (next.analiza_pietei && typeof next.analiza_pietei === "object") {

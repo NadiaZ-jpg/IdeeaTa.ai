@@ -40,7 +40,7 @@ export function DemoPdfSlides({ result, ui, locale, currency, formatPrice, trunc
           <h2 className="text-lg font-black font-sans uppercase tracking-widest text-emerald-800">{ui.slideMissionValues}</h2>
         </div>
         <div className="flex flex-col font-serif leading-normal text-gray-800 text-left">
-          <p className="text-lg text-gray-700 leading-relaxed">{truncateText(result.viziune_strategie?.misiune_valori, 1500)}</p>
+          <p className="text-lg text-gray-700 leading-relaxed whitespace-pre-line">{truncateText(formatNumberedText(result.viziune_strategie?.misiune_valori || result.descriere), 1500)}</p>
         </div>
       </div>
 

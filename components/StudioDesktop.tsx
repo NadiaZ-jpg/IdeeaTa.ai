@@ -20,9 +20,16 @@ import { EXPERT_TEMPLATES, ExpertTemplate } from '@/lib/templatesData';
 import { FREE_ACCOUNT_PLAN_LIMIT, clearLocalPlanState, hasUnlimitedGenerateAccess } from '@/lib/planQuota';
 import {
   canGenerateWithQuotas,
+  PRO_TOPUP_COMBINE_GRANT,
+  PRO_TOPUP_EDIT_GRANT,
+  PRO_TOPUP_GENERATE_GRANT,
   proPackRemainingLabel,
   readProPackRemaining,
 } from '@/lib/proPackQuota';
+import {
+  proTopupHintLabel,
+  startProTopupCheckout,
+} from '@/lib/proTopupCheckout';
 import { isAdminEmail } from '@/lib/adminEmails';
 import { isPlanExportUnlocked, hasAccountStandardAccess } from '@/lib/planUnlock';
 import { stripPaymentSuccessParams } from '@/lib/paymentReturn';
@@ -384,7 +391,7 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
     if (usesPackQuota) {
       // resolve combine after options — early check for Pro edits
       if (!isActionFree && proPackRemaining.edit <= 0) {
-        setShowPricingModal(true);
+        openUpgradeForPackOrPricing();
         return;
       }
     }
@@ -414,7 +421,7 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
     });
 
     if (usesPackQuota && isCombine && proPackRemaining.combine <= 0) {
-      setShowPricingModal(true);
+      openUpgradeForPackOrPricing();
       return;
     }
 
@@ -684,12 +691,38 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
   });
   const isStudioPaid = hasStandardAccess;
   const hasProAccess = isAdmin || subscriptionActive || euFundsUnlocked;
+  const hasProPackQuota = !!(euFundsUnlocked && !subscriptionActive && !isAdmin);
   const isContentCopyProtected = !hasStandardAccess;
   const versionStackAccess: VersionStackAccess = {
     isAdmin,
     hasStandardAccess,
     hasFullAccess: isAdmin || subscriptionActive || euFundsUnlocked,
     hasProTools: hasProAccess,
+  };
+  const [topupLoading, setTopupLoading] = useState(false);
+
+  const handleProTopupCheckout = async () => {
+    if (!user) {
+      setShowAuthModal(true);
+      return;
+    }
+    setTopupLoading(true);
+    const result = await startProTopupCheckout({
+      getIdToken: () => user.getIdToken(),
+      email: user.email,
+      locale,
+    });
+    if (!result.ok) {
+      alert(result.error);
+      setTopupLoading(false);
+      return;
+    }
+    window.location.href = result.url;
+  };
+
+  const openUpgradeForPackOrPricing = () => {
+    if (hasProPackQuota) void handleProTopupCheckout();
+    else setShowPricingModal(true);
   };
   const [isAuthLoading, setIsAuthLoading] = useState(true);
   const [authError, setAuthError] = useState<string | null>(null);
@@ -1152,7 +1185,7 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
           freeLimit: FREE_ACCOUNT_PLAN_LIMIT,
         });
         if (!canGen) {
-          setShowPricingModal(true);
+          openUpgradeForPackOrPricing();
           return;
         }
       }
@@ -1483,7 +1516,7 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
 
       <div className={`${isDownloading === 'pptx' ? 'hidden' : 'flex'} flex-col items-center w-full max-w-[1600px] px-4 md:px-12 relative z-10`}>
         {user && (
-          <div className={`w-full flex justify-between items-start sm:items-center py-2 border-b border-zinc-800/80 mb-3 print:hidden ${euFundsUnlocked && !subscriptionActive && !isAdmin ? "pb-7" : ""}`}>
+          <div className={`w-full flex justify-between items-start sm:items-center py-2 border-b border-zinc-800/80 mb-3 print:hidden ${euFundsUnlocked && !subscriptionActive && !isAdmin ? "pb-12" : ""}`}>
             <div className="flex flex-col gap-2">
               <span className="text-zinc-500 text-xs font-semibold">{ui.studioHeaderSubtitle}</span>
               <button 
@@ -1512,9 +1545,23 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
                     {ui.badgeStudioGrants}
                   </span>
                   {!subscriptionActive && !isAdmin && (
-                    <span className="absolute left-0 top-full mt-1 text-[10px] text-amber-200/80 font-medium whitespace-nowrap">
-                      {proPackRemainingLabel(locale, proPackRemaining)}
-                    </span>
+                    <div className="absolute left-0 top-full mt-1 flex flex-col gap-0.5">
+                      <span className="text-[10px] text-amber-200/90 font-semibold whitespace-nowrap">
+                        {proPackRemainingLabel(locale, proPackRemaining)}
+                      </span>
+                      <button
+                        type="button"
+                        disabled={topupLoading}
+                        onClick={() => void handleProTopupCheckout()}
+                        className="text-[10px] text-amber-300/90 font-semibold whitespace-nowrap text-left hover:underline cursor-pointer disabled:opacity-60"
+                      >
+                        {proTopupHintLabel(locale, {
+                          generate: PRO_TOPUP_GENERATE_GRANT,
+                          edit: PRO_TOPUP_EDIT_GRANT,
+                          combine: PRO_TOPUP_COMBINE_GRANT,
+                        })}
+                      </button>
+                    </div>
                   )}
                 </div>
               ) : isPlanPaid ? (

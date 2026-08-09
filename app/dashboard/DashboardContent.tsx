@@ -17,6 +17,11 @@ import {
   proPackRemainingLabel,
   readProPackRemaining,
 } from '@/lib/proPackQuota';
+import {
+  proTopupButtonLabel,
+  proTopupHintLabel,
+  startProTopupCheckout,
+} from '@/lib/proTopupCheckout';
 import { LanguageSwitcher } from '@/components/LanguageSwitcher';
 import BuyMeACoffeeModal from '@/components/BuyMeACoffeeModal';
 import { PricingModal } from '@/components/PricingModal';
@@ -64,7 +69,6 @@ export default function DashboardContent({ locale = "ro" }: { locale?: "ro" | "e
   const showUpgradeCue = !isPaidUser && !canGenerate && !hasProPack;
   const showFreeRemainingCue = !isPaidUser && !freeLimitReached && !hasProPack;
   const showProPackRemainingCue = hasProPack;
-  const topupPriceLabel = isEn || isEs ? "5 EUR" : "25 RON";
 
   const handleGenerateNew = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -92,44 +96,18 @@ export default function DashboardContent({ locale = "ro" }: { locale?: "ro" | "e
     if (!user) return;
     setTopupLoading(true);
     setTopupError(null);
-    try {
-      const token = await user.getIdToken();
-      const res = await fetch("/api/checkout", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          tier: "pro-topup",
-          email: user.email,
-          locale,
-        }),
-      });
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok || !data?.url) {
-        throw new Error(
-          data?.error ||
-            (isEn
-              ? "Could not start checkout. Check Lemon env / restart server."
-              : isEs
-              ? "No se pudo iniciar el pago. Revisa env Lemon / reinicia el servidor."
-              : "Nu s-a putut porni plata. Verifică env Lemon / restartează serverul.")
-        );
-      }
-      window.location.href = data.url;
-    } catch (err: any) {
-      console.error(err);
-      const msg =
-        err?.message ||
-        (isEn
-          ? "An error occurred. Please try again."
-          : isEs
-          ? "Ocurrió un error. Inténtalo de nuevo."
-          : "A apărut o eroare. Încearcă din nou.");
-      setTopupError(msg);
+    const result = await startProTopupCheckout({
+      getIdToken: () => user.getIdToken(),
+      email: user.email,
+      locale,
+    });
+    if (!result.ok) {
+      console.error(result.error);
+      setTopupError(result.error);
       setTopupLoading(false);
+      return;
     }
+    window.location.href = result.url;
   };
 
   const handleResendVerification = async () => {
@@ -342,19 +320,15 @@ export default function DashboardContent({ locale = "ro" }: { locale?: "ro" | "e
                           : isEs
                           ? "Redirigiendo…"
                           : "Se redirecționează…"
-                        : isEn
-                        ? `Add credits — ${topupPriceLabel}`
-                        : isEs
-                        ? `Añadir créditos — ${topupPriceLabel}`
-                        : `Adaugă credite — ${topupPriceLabel}`}
+                        : proTopupButtonLabel(locale)}
                     </span>
                   </button>
                   <p className="text-[11px] text-amber-300/90 font-semibold text-center leading-snug min-h-[2.75rem]">
-                    {isEn
-                      ? `Click to add credits (+${PRO_TOPUP_GENERATE_GRANT} · +${PRO_TOPUP_EDIT_GRANT} · +${PRO_TOPUP_COMBINE_GRANT})`
-                      : isEs
-                      ? `Clic para añadir créditos (+${PRO_TOPUP_GENERATE_GRANT} · +${PRO_TOPUP_EDIT_GRANT} · +${PRO_TOPUP_COMBINE_GRANT})`
-                      : `Click pentru credite (+${PRO_TOPUP_GENERATE_GRANT} · +${PRO_TOPUP_EDIT_GRANT} · +${PRO_TOPUP_COMBINE_GRANT})`}
+                    {proTopupHintLabel(locale, {
+                      generate: PRO_TOPUP_GENERATE_GRANT,
+                      edit: PRO_TOPUP_EDIT_GRANT,
+                      combine: PRO_TOPUP_COMBINE_GRANT,
+                    })}
                   </p>
                 </div>
               )}

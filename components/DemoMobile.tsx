@@ -27,7 +27,8 @@ import { formatObjectNumbers, formatNumberedText } from "@/lib/utils";
 import { useSharedPlanLoader } from "@/hooks/useSharedPlanLoader";
 import { createAndCopySharedPlanLink } from "@/lib/sharePlan";
 import { FREE_ACCOUNT_PLAN_LIMIT, GUEST_DEMO_PLAN_LIMIT, hasUnlimitedGenerateAccess } from "@/lib/planQuota";
-import { canGenerateWithQuotas, proPackRemainingLabel, readProPackRemaining } from "@/lib/proPackQuota";
+import { canGenerateWithQuotas, PRO_TOPUP_COMBINE_GRANT, PRO_TOPUP_EDIT_GRANT, PRO_TOPUP_GENERATE_GRANT, proPackRemainingLabel, readProPackRemaining } from "@/lib/proPackQuota";
+import { proTopupHintLabel, startProTopupCheckout } from "@/lib/proTopupCheckout";
 import { isAdminEmail } from "@/lib/adminEmails";
 import { isPlanExportUnlocked, hasAccountStandardAccess } from "@/lib/planUnlock";
 import { stripPaymentSuccessParams } from "@/lib/paymentReturn";
@@ -176,6 +177,7 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
     euFundsUnlocked,
   });
   const hasProAccess = !!(isAdmin || subscriptionActive || euFundsUnlocked);
+  const hasProPackQuota = !!(euFundsUnlocked && !subscriptionActive && !isAdmin);
   const isPlanPaid = isPlanExportUnlocked({
     result,
     unlockedPlans,
@@ -191,6 +193,31 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
     hasStandardAccess,
     hasFullAccess: !!(isAdmin || subscriptionActive || euFundsUnlocked),
     hasProTools: hasProAccess,
+  };
+  const [topupLoading, setTopupLoading] = useState(false);
+
+  const handleProTopupCheckout = async () => {
+    if (!user) {
+      setShowAuthModal(true);
+      return;
+    }
+    setTopupLoading(true);
+    const result = await startProTopupCheckout({
+      getIdToken: () => user.getIdToken(),
+      email: user.email,
+      locale,
+    });
+    if (!result.ok) {
+      alert(result.error);
+      setTopupLoading(false);
+      return;
+    }
+    window.location.href = result.url;
+  };
+
+  const openUpgradeForPackOrPricing = () => {
+    if (hasProPackQuota) void handleProTopupCheckout();
+    else setShowPricingModal(true);
   };
 
   const syncCurrentPlanToFirestore = async (
@@ -478,7 +505,7 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
         freeLimit: FREE_ACCOUNT_PLAN_LIMIT,
       })
     ) {
-      setShowPricingModal(true);
+      openUpgradeForPackOrPricing();
       return;
     }
 
@@ -636,7 +663,7 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
       ((!isTone && proPackRemaining.edit <= 0) ||
         (isTone && isProToneKey(customInput) && proPackRemaining.edit <= 0))
     ) {
-      setShowPricingModal(true);
+      openUpgradeForPackOrPricing();
       return;
     }
 
@@ -680,7 +707,7 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
     });
 
     if (usesPackQuota && isCombine && proPackRemaining.combine <= 0) {
-      setShowPricingModal(true);
+      openUpgradeForPackOrPricing();
       return;
     }
 
@@ -955,9 +982,21 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
       </header>
 
       {euFundsUnlocked && !subscriptionActive && !isAdmin && (
-        <div className="px-4 py-1.5 border-b border-amber-500/20 bg-amber-500/5 text-[10px] text-amber-200/90 font-medium text-center">
+        <div className="px-4 py-1.5 border-b border-amber-500/20 bg-amber-500/5 text-[10px] text-amber-200/90 font-semibold text-center">
           <span className="font-black uppercase tracking-wider text-amber-300 mr-2">{ui.badgeStudioGrants}</span>
           {proPackRemainingLabel(locale, proPackRemaining)}
+          <button
+            type="button"
+            disabled={topupLoading}
+            onClick={() => void handleProTopupCheckout()}
+            className="block mx-auto mt-0.5 text-amber-300/90 font-semibold hover:underline cursor-pointer disabled:opacity-60"
+          >
+            {proTopupHintLabel(locale, {
+              generate: PRO_TOPUP_GENERATE_GRANT,
+              edit: PRO_TOPUP_EDIT_GRANT,
+              combine: PRO_TOPUP_COMBINE_GRANT,
+            })}
+          </button>
         </div>
       )}
 

@@ -635,16 +635,16 @@ Dacă oricare dintre aceste verificări este omisă în procesul de planificare,
 - `hasUnlimitedGenerateAccess` = doar `isPaid` | `subscriptionActive` (promo `eu-funds` / `full-access` → același pack finit).
 - Libs: `lib/proPackQuota.ts`, `lib/proPackQuotaAdmin.ts`; enforce în `/api/generate`, `/api/edit` (+ refund); grant în webhook `eu-funds` + promo.
 - Top-up tier `pro-topup`: Lemon EUR/RON link + `*_VARIANT_ID`; checkout cere pack; webhook `+5/+4/+2` + `proPackLastTopupAt`.
-- UI: PricingModal bullets 10/8/4; Studio/Demo Desktop+Mobile gates + remaining; Dashboard **Adaugă credite** + text clickabil; tipuri `uiStrings` fără „AI” pe copy pachet.
-- `firestore.rules`: protejate `proPackGenerateRemaining`, `proPackEditRemaining`, `proPackCombineRemaining`, `proPackQuotaInitialized`, `proPackQuotaVersion`, `proPackLastTopupAt`.
+- UI: PricingModal 10/8/4; Dashboard butoane egale + hint sub top-up; Studio/Demo Desktop+Mobile remaining + hint top-up; cote epuizate → checkout `pro-topup` (nu Pricing). `lib/proTopupCheckout.ts`.
+- `firestore.rules`: protejate câmpurile proPack* — **publicat Firebase 9 Aug 2026**.
 - Script manual (local, webhook nu ajunge pe localhost): `scripts/grant-pro-topup-by-email.mjs`.
 - Env (`.env.local` / `.env.example`): `LEMON_EUR_PRO_TOPUP`, `LEMON_RON_PRO_TOPUP`, `LEMON_*_PRO_TOPUP_VARIANT_ID`.
 **ÎNGHEȚAT** — nu se trece Pro pack la unlimited / nu se scoate top-up fără `override freeze pachete`.
 
 ## RĂMÂNE DE FĂCUT
 - **Deploy Hetzner** cu env top-up + VARIANT_ID (altfel Lemon order pe live nu creditează)
-- Publică `firestore.rules` (câmpuri proPack*)
 - Smoke top-up: după plată 5 EUR → cotă 10/8/4 → **15/12/6** (webhook pe URL public, nu doar localhost)
+- Webhook Lemon pe **IdeeTa International** (EUR) → `https://ideeata.ai/api/webhook` (același secret)
 - Deploy Hetzner (Resurse + relocare AdSense A+C)
 - Smoke Desktop+Mobile RO/EN/ES: `/resurse` (+en/es), landing după Features are ad; Studio/Demo loading **fără** ads
 - Smoke `sitemap.xml` + `ads.txt` pe ideeata.ai
@@ -657,7 +657,7 @@ Dacă oricare dintre aceste verificări este omisă în procesul de planificare,
 - Smoke tip bibliotecă + badge „9 MODULE” (nu 30+) pe Desktop/Mobile RO/EN/ES
 - Smoke load plan cu istoric: tab Original arată conținutul Original (nu ultimul top-level salvat)
 - Smoke Dashboard header: Tarife/Pricing/Precios + switcher RO/EN/ES pe căi locale
-- Lemon: webhook pe **IdeeTa International** + UUID-uri Live când treci din Test
+- Lemon: UUID-uri Live când treci din Test
 - S3-A opțional (generate Studio pe Mobile)
 
 

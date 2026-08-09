@@ -18,6 +18,11 @@ import { getExamples } from '@/lib/examples';
 import { formatObjectNumbers, formatNumberedText } from "@/lib/utils";
 import { EXPERT_TEMPLATES, ExpertTemplate } from '@/lib/templatesData';
 import { FREE_ACCOUNT_PLAN_LIMIT, clearLocalPlanState, hasUnlimitedGenerateAccess } from '@/lib/planQuota';
+import {
+  canGenerateWithQuotas,
+  proPackRemainingLabel,
+  readProPackRemaining,
+} from '@/lib/proPackQuota';
 import { isAdminEmail } from '@/lib/adminEmails';
 import { isPlanExportUnlocked, hasAccountStandardAccess } from '@/lib/planUnlock';
 import { stripPaymentSuccessParams } from '@/lib/paymentReturn';
@@ -147,6 +152,12 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
   const [credits, setCredits] = useState(0);
   const [euFundsUnlocked, setEuFundsUnlocked] = useState(false);
   const [subscriptionActive, setSubscriptionActive] = useState(false);
+  const [proPackRemaining, setProPackRemaining] = useState({
+    generate: 0,
+    edit: 0,
+    combine: 0,
+  });
+  const [lifetimePlanCount, setLifetimePlanCount] = useState(0);
   const [unlockedPlans, setUnlockedPlans] = useState<string[]>([]);
   const [unlockedPlanIds, setUnlockedPlanIds] = useState<string[]>([]);
   const [aiEditError, setAiEditError] = useState<string | null>(null);
@@ -368,6 +379,16 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
       return;
     }
 
+    // One-time Pro pack remaining (client pre-check; server is source of truth)
+    const usesPackQuota = !!(euFundsUnlocked && !subscriptionActive && !isAdmin);
+    if (usesPackQuota) {
+      // resolve combine after options — early check for Pro edits
+      if (!isActionFree && proPackRemaining.edit <= 0) {
+        setShowPricingModal(true);
+        return;
+      }
+    }
+
     let targetSection = "";
     let budgetPercent: number | null = null;
     if (action === "add_sections") {
@@ -391,6 +412,12 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
       result,
       combineOptions: options,
     });
+
+    if (usesPackQuota && isCombine && proPackRemaining.combine <= 0) {
+      setShowPricingModal(true);
+      return;
+    }
+
     const nextStep = toolStepFromAction(action, customStyle, budgetPercent);
     let nextStack = currentStack;
     if (nextStep) {
@@ -433,7 +460,16 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
         fetch("/api/edit", {
           method: "POST",
           headers: editHeaders,
-          body: JSON.stringify({ result: baseSource, action, customStyle, targetSection, locale, isRetry, currency })
+          body: JSON.stringify({
+            result: baseSource,
+            action,
+            customStyle,
+            targetSection,
+            locale,
+            isRetry,
+            currency,
+            isCombine,
+          })
         }),
         new Promise(resolve => setTimeout(resolve, 2000))
       ]);
@@ -456,7 +492,13 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
             }
             errCode = errJson.code || "";
           } catch(e) {}
-          if (errCode === "TONE_LIMIT" || errCode === "PRO_REQUIRED" || errCode === "AUTH_REQUIRED") {
+          if (
+            errCode === "TONE_LIMIT" ||
+            errCode === "PRO_REQUIRED" ||
+            errCode === "AUTH_REQUIRED" ||
+            errCode === "PRO_PACK_EDIT_LIMIT" ||
+            errCode === "PRO_PACK_COMBINE_LIMIT"
+          ) {
             setShowPricingModal(true);
           }
           
@@ -682,6 +724,8 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
       setCredits(0);
       setEuFundsUnlocked(false);
       setSubscriptionActive(false);
+      setProPackRemaining({ generate: 0, edit: 0, combine: 0 });
+      setLifetimePlanCount(0);
       setUnlockedPlans([]);
       setUnlockedPlanIds([]);
       setPromoCodeUnlocked(false);
@@ -697,6 +741,10 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
         setCredits(data.credits || 0);
         setEuFundsUnlocked(data.euFundsUnlocked || false);
         setSubscriptionActive(data.subscriptionActive || false);
+        setProPackRemaining(readProPackRemaining(data));
+        setLifetimePlanCount(
+          typeof data.lifetimePlanCount === "number" ? data.lifetimePlanCount : 0
+        );
         setUnlockedPlans(data.unlockedPlans || []);
         setUnlockedPlanIds(data.unlockedPlanIds || []);
         setPromoCodeUnlocked(data.promoCodeUnlocked || false);
@@ -1094,29 +1142,18 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
         return;
       }
 
-      // LIMITATOR STUDIO — Maxim 4 planuri gratuite (account flags, not per-plan unlock)
+      // LIMITATOR STUDIO — free + Pro pack generations
       if (user && !isAdmin) {
-        const accountPaid = hasUnlimitedGenerateAccess({
+        const canGen = canGenerateWithQuotas({
           isPaid,
           subscriptionActive,
-          euFundsUnlocked,
+          lifetimePlanCount,
+          proPackGenerateRemaining: proPackRemaining.generate,
+          freeLimit: FREE_ACCOUNT_PLAN_LIMIT,
         });
-        if (!accountPaid) {
-        try {
-          const plansRef = collection(db, "users", user.uid, "plans");
-          const snap = await getDocs(plansRef);
-          if (snap.size >= FREE_ACCOUNT_PLAN_LIMIT) {
-            setShowPricingModal(true);
-            return;
-          }
-        } catch (err) {
-          console.error("Eroare verificare limită planuri Firestore:", err);
-          const studioCount = parseInt(localStorage.getItem('studioGenerateCount') || '0', 10);
-          if (studioCount >= 1) {
-            setShowPricingModal(true);
-            return;
-          }
-        }
+        if (!canGen) {
+          setShowPricingModal(true);
+          return;
         }
       }
       setLoading(true);
@@ -1183,7 +1220,6 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
             const accountPaid = hasUnlimitedGenerateAccess({
               isPaid,
               subscriptionActive,
-              euFundsUnlocked,
             });
             if (!accountPaid && !isAdmin) {
               const studioCount = parseInt(localStorage.getItem('studioGenerateCount') || '0', 10);
@@ -1447,7 +1483,7 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
 
       <div className={`${isDownloading === 'pptx' ? 'hidden' : 'flex'} flex-col items-center w-full max-w-[1600px] px-4 md:px-12 relative z-10`}>
         {user && (
-          <div className="w-full flex justify-between items-start sm:items-center py-2 border-b border-zinc-800/80 mb-3 print:hidden">
+          <div className={`w-full flex justify-between items-start sm:items-center py-2 border-b border-zinc-800/80 mb-3 print:hidden ${euFundsUnlocked && !subscriptionActive && !isAdmin ? "pb-7" : ""}`}>
             <div className="flex flex-col gap-2">
               <span className="text-zinc-500 text-xs font-semibold">{ui.studioHeaderSubtitle}</span>
               <button 
@@ -1471,9 +1507,16 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
                   PRO
                 </span>
               ) : euFundsUnlocked ? (
-                <span className="bg-amber-500/20 border border-amber-500/40 text-amber-300 px-2 py-0.5 rounded-full font-black uppercase tracking-wider">
-                  {ui.badgeStudioGrants}
-                </span>
+                <div className="relative flex items-center">
+                  <span className="bg-amber-500/20 border border-amber-500/40 text-amber-300 px-2 py-0.5 rounded-full font-black uppercase tracking-wider whitespace-nowrap">
+                    {ui.badgeStudioGrants}
+                  </span>
+                  {!subscriptionActive && !isAdmin && (
+                    <span className="absolute left-0 top-full mt-1 text-[10px] text-amber-200/80 font-medium whitespace-nowrap">
+                      {proPackRemainingLabel(locale, proPackRemaining)}
+                    </span>
+                  )}
+                </div>
               ) : isPlanPaid ? (
                 <span className="bg-blue-500/20 border border-blue-500/40 text-blue-400 px-2 py-0.5 rounded-full font-black uppercase tracking-wider">
                   {ui.badgeStandardUnlocked}

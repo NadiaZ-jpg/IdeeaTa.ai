@@ -12,6 +12,8 @@ interface PricingModalProps {
   planName?: string;
   planId?: string;
   locale?: "ro" | "en" | "es";
+  /** Show 5 € credits top-up — only when user already has Pro Tools pack */
+  showProTopup?: boolean;
 }
 
 export function PricingModal({
@@ -25,6 +27,7 @@ export function PricingModal({
   planName,
   planId,
   locale = "ro",
+  showProTopup = false,
 }: PricingModalProps) {
   const [loadingTier, setLoadingTier] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -297,28 +300,26 @@ export function PricingModal({
                 <li className="flex items-start gap-2.5">
                   <span className="text-amber-500 font-bold">✓</span>
                   <span className="text-zinc-200 font-medium">
-                    {locale === "en" ? "+ Persuasive & friendly tones (all 4)" : locale === "es" ? "+ Tonos persuasivo y amable (los 4)" : <>+ Tonuri persuasiv & prietenos (toate <strong>4</strong>)</>}
+                    {locale === "en" ? "All 4 tones + Pro tools (EU Funds, Investors, Budget, Sections)" : locale === "es" ? "Los 4 tonos + herramientas Pro (Fondos UE, Inversores, Presupuesto, Secciones)" : "Toate cele 4 tonuri + instrumente Pro (Fonduri UE, Investitori, Buget, Secțiuni)"}
                   </span>
                 </li>
                 <li className="flex items-start gap-2.5">
                   <span className="text-amber-500 font-bold">✓</span>
                   <span className="text-zinc-200 font-medium">
-                    {locale === "en" ? "Unlock Professional Plan (Investors/Banks)" : locale === "es" ? "Desbloquear Plan Profesional (Inversores/Bancos)" : <>Deblochează <strong>Plan Profesionist</strong> (Investitori/Bănci)</>}
+                    {locale === "en" ? "10 new plan generations" : locale === "es" ? "10 generaciones nuevas de plan" : "10 generări noi de plan"}
                   </span>
                 </li>
                 <li className="flex items-start gap-2.5">
                   <span className="text-amber-500 font-bold">✓</span>
                   <span className="text-zinc-200 font-medium">
-                    {locale === "en" ? "Unlock EU Grants Optimization" : locale === "es" ? "Desbloquear Optimización de Fondos de la UE" : <>Deblochează <strong>Optimizare Fonduri Europene</strong></>}
+                    {locale === "en" ? "8 Pro edits" : locale === "es" ? "8 ediciones Pro" : "8 editări Pro"}
                   </span>
                 </li>
                 <li className="flex items-start gap-2.5">
                   <span className="text-amber-500 font-bold">✓</span>
-                  <span>{locale === "en" ? "Assisted Budget Optimization (auto-recalculation)" : locale === "es" ? "Optimización de Presupuesto Asistida (recalculo automático)" : "Optimizare Buget Asistat (recalculare automată)"}</span>
-                </li>
-                <li className="flex items-start gap-2.5">
-                  <span className="text-amber-500 font-bold">✓</span>
-                  <span>{locale === "en" ? "Add New Sections (expand plan anytime)" : locale === "es" ? "Añadir nuevas secciones (ampliar plan en cualquier momento)" : "Adaugă Secțiuni Noi (extinde planul oricând)"}</span>
+                  <span className="text-zinc-200 font-medium">
+                    {locale === "en" ? "Combine: 4 uses (max 4 tools per version)" : locale === "es" ? "Combinar: 4 usos (máx. 4 herramientas por versión)" : "Combină versiuni: 4 folosiri (max. 4 instrumente pe versiune)"}
+                  </span>
                 </li>
               </ul>
             </div>
@@ -331,7 +332,7 @@ export function PricingModal({
               {loadingTier === "eu-funds" ? (
                 <div className="w-5 h-5 border-2 border-black border-t-transparent rounded-full animate-spin"></div>
               ) : (
-                locale === "en" ? "Choose Studio & Grants" : locale === "es" ? "Elegir Studio y Subvenciones" : "Alege Studio & Fonduri"
+                locale === "en" ? "Choose Pro Tools" : locale === "es" ? "Elegir Herramientas Pro" : "Alege Instrumente Pro"
               )}
             </button>
           </div>

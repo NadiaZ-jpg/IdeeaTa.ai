@@ -94,7 +94,7 @@ export const RESOURCE_ARTICLES: ResourceArticle[] = [
           heading: "3. Revizuiește cifrele și SWOT-ul",
           paragraphs: [
             "Platforma propune un punct de plecare. Tu verifici: costurile sunt realiste pentru orașul tău? Piața e corectă? SWOT-ul are explicații, nu doar titluri?",
-            "Editează direct în browser, apoi Confirmă și Salvează înainte de export — logo-ul și aranjarea din PDF se finalizează la descărcare.",
+            "Editează direct în browser, apoi Confirmă și Salvează înainte de export.",
           ],
         },
         {
@@ -106,7 +106,7 @@ export const RESOURCE_ARTICLES: ResourceArticle[] = [
           bullets: [
             "Free: tab-uri simple, fără combinații lungi",
             "Standard: până la 2 tool-uri pe același lanț",
-            "Full Access: până la 4 tool-uri pe același lanț",
+            "Instrumente Pro: până la 4 tool-uri pe același lanț",
           ],
         },
         {
@@ -135,7 +135,7 @@ export const RESOURCE_ARTICLES: ResourceArticle[] = [
           heading: "3. Review numbers and SWOT",
           paragraphs: [
             "The platform proposes a starting point. You verify: are costs realistic for your city? Is the market accurate? Does every SWOT item include an explanation, not just a title?",
-            "Edit in the browser, then Confirm & Save before export — logo and PDF layout are finalized at download.",
+            "Edit in the browser, then Confirm & Save before export.",
           ],
         },
         {
@@ -147,7 +147,7 @@ export const RESOURCE_ARTICLES: ResourceArticle[] = [
           bullets: [
             "Free: simple tabs, no deep combine chains",
             "Standard: up to 2 tools on the same stack",
-            "Full Access: up to 4 tools on the same stack",
+            "Pro Tools: up to 4 tools on the same stack",
           ],
         },
         {
@@ -176,7 +176,7 @@ export const RESOURCE_ARTICLES: ResourceArticle[] = [
           heading: "3. Revisa cifras y FODA",
           paragraphs: [
             "La plataforma propone un punto de partida. Tú verificas: ¿son realistas los costes en tu ciudad? ¿es correcto el mercado? ¿cada ítem FODA tiene explicación, no solo título?",
-            "Edita en el navegador y luego Confirma y Guarda antes de exportar: el logo y el diseño del PDF se finalizan al descargar.",
+            "Edita en el navegador y luego Confirma y Guarda antes de exportar.",
           ],
         },
         {
@@ -188,7 +188,7 @@ export const RESOURCE_ARTICLES: ResourceArticle[] = [
           bullets: [
             "Gratis: pestañas simples, sin cadenas largas",
             "Standard: hasta 2 herramientas en la misma cadena",
-            "Full Access: hasta 4 herramientas en la misma cadena",
+            "Herramientas Pro: hasta 4 herramientas en la misma cadena",
           ],
         },
         {
@@ -526,7 +526,7 @@ export const RESOURCE_ARTICLES: ResourceArticle[] = [
         {
           heading: "Câte planuri pot genera gratuit?",
           paragraphs: [
-            "Există o cotă de planuri gratuite (și tonuri de bază) pe cont. Când o epuizezi, apar pachetele Standard sau Full Access. Detaliile actuale sunt în modalul de tarife din aplicație.",
+            "Există o cotă de planuri gratuite (și tonuri de bază) pe cont. Când o epuizezi, apar pachetele Standard sau Instrumente Pro. Detaliile actuale sunt în modalul de tarife din aplicație.",
           ],
         },
         {
@@ -544,7 +544,7 @@ export const RESOURCE_ARTICLES: ResourceArticle[] = [
         {
           heading: "Pot edita planul după generare?",
           paragraphs: [
-            "Da — editare directă în browser, plus instrumentele din Studio (ton, buget, fonduri UE, plan investitori, librărie de secțiuni). Pentru imagini/logo în layout-ul final, Confirmă și Salvează, apoi descarcă.",
+            "Da — editare directă în browser, plus instrumentele din Studio (ton, buget, fonduri UE, plan investitori, librărie de secțiuni). Când e gata, Confirmă și Salvează, apoi descarcă.",
           ],
         },
       ],
@@ -558,7 +558,7 @@ export const RESOURCE_ARTICLES: ResourceArticle[] = [
         {
           heading: "How many plans can I generate for free?",
           paragraphs: [
-            "There is a free plan quota (and basic tones) per account. When you use it up, Standard or Full Access packages appear. Current details are in the in-app pricing modal.",
+            "There is a free plan quota (and basic tones) per account. When you use it up, Standard or Pro Tools packages appear. Current details are in the in-app pricing modal.",
           ],
         },
         {
@@ -576,7 +576,7 @@ export const RESOURCE_ARTICLES: ResourceArticle[] = [
         {
           heading: "Can I edit the plan after generation?",
           paragraphs: [
-            "Yes — direct browser editing, plus Studio tools (tone, budget, EU funds, investor plan, expert section library). For images/logo in the final layout, Confirm & Save, then download.",
+            "Yes — direct browser editing, plus Studio tools (tone, budget, EU funds, investor plan, expert section library). When ready, Confirm & Save, then download.",
           ],
         },
       ],
@@ -590,7 +590,7 @@ export const RESOURCE_ARTICLES: ResourceArticle[] = [
         {
           heading: "¿Cuántos planes puedo generar gratis?",
           paragraphs: [
-            "Hay una cuota de planes gratis (y tonos básicos) por cuenta. Cuando se agota, aparecen los paquetes Standard o Full Access. Los detalles actuales están en el modal de precios de la app.",
+            "Hay una cuota de planes gratis (y tonos básicos) por cuenta. Cuando se agota, aparecen los paquetes Standard o Herramientas Pro. Los detalles actuales están en el modal de precios de la app.",
           ],
         },
         {
@@ -608,7 +608,7 @@ export const RESOURCE_ARTICLES: ResourceArticle[] = [
         {
           heading: "¿Puedo editar el plan después de generarlo?",
           paragraphs: [
-            "Sí: edición directa en el navegador, más las herramientas de Studio (tono, presupuesto, fondos UE, plan inversores, biblioteca experta). Para imágenes/logo en el diseño final, Confirma y Guarda y luego descarga.",
+            "Sí: edición directa en el navegador, más las herramientas de Studio (tono, presupuesto, fondos UE, plan inversores, biblioteca experta). Cuando esté listo, Confirma y Guarda y luego descarga.",
           ],
         },
       ],

@@ -4,7 +4,7 @@ import {
   isCheckoutTier,
   withCheckoutParams,
 } from "@/lib/lemonCheckout";
-import { adminAuth } from "@/lib/firebase-admin";
+import { adminAuth, adminDb } from "@/lib/firebase-admin";
 
 export async function POST(req: NextRequest) {
   try {
@@ -36,6 +36,25 @@ export async function POST(req: NextRequest) {
         { error: "Invalid package", code: "INVALID_TIER" },
         { status: 400 }
       );
+    }
+
+    if (tier === "pro-topup") {
+      const userSnap = await adminDb.collection("users").doc(uid).get();
+      const data = userSnap.exists ? userSnap.data() : {};
+      if (!data?.euFundsUnlocked) {
+        return NextResponse.json(
+          {
+            error:
+              locale === "en"
+                ? "Top-up requires the Pro Tools package."
+                : locale === "es"
+                ? "La recarga requiere el paquete Herramientas Pro."
+                : "Top-up-ul necesită pachetul Instrumente Pro.",
+            code: "TOPUP_REQUIRES_PACK",
+          },
+          { status: 403 }
+        );
+      }
     }
 
     const baseUrl = getLemonCheckoutUrl(tier, locale);

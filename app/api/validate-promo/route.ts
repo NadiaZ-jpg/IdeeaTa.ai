@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { adminDb, adminAuth } from "@/lib/firebase-admin";
+import { FieldValue } from "firebase-admin/firestore";
+import { proPackGrantFields } from "@/lib/proPackQuota";
 
 function readPromoEnv(serverKey: string, publicFallbackKey: string, defaultValue: string): string {
   // Preferă variabile server-only; fallback public doar pentru compat local temporar
@@ -197,11 +199,9 @@ export async function POST(req: NextRequest) {
           promoCodeUnlocked: true,
           promoCodeTier: promoTier,
         };
-        if (promoTier === "full-access") {
-          userUpdate.euFundsUnlocked = true;
-          userUpdate.subscriptionActive = true;
-        } else if (promoTier === "eu-funds") {
-          userUpdate.euFundsUnlocked = true;
+        if (promoTier === "full-access" || promoTier === "eu-funds") {
+          // Same finite Pro Tools pack as paid one-time (no unlimited generate)
+          Object.assign(userUpdate, proPackGrantFields((n) => FieldValue.increment(n)));
         } else if (promoTier === "standard") {
           userUpdate.standardPackageActive = true;
         }

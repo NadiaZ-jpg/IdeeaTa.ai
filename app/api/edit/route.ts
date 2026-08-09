@@ -20,6 +20,14 @@ import {
   normalizeToneKey,
 } from "@/lib/toneQuota";
 import { consumeRateLimit } from "@/lib/apiRateLimit";
+import { hasUnlimitedProEdits, proPackLimitMessage } from "@/lib/proPackQuota";
+import {
+  consumeProPackEditQuotas,
+  ensureLegacyProPackQuotas,
+  proPackConsumeForEdit,
+  refundProPackEditQuotas,
+  type ProPackConsumeKind,
+} from "@/lib/proPackQuotaAdmin";
 
 export const maxDuration = 60;
 
@@ -42,7 +50,11 @@ const ALLOWED_EDIT_ACTIONS = new Set([
   "professional_tone",
 ]);
 
-type EditAuthOk = { uid: string; refundFreeTone: boolean };
+type EditAuthOk = {
+  uid: string;
+  refundFreeTone: boolean;
+  packConsume: ProPackConsumeKind;
+};
 
 function hasStandardEntitlement(data: any, email?: string | null): boolean {
   return !!(
@@ -68,15 +80,19 @@ function hasProEntitlement(data: any, email?: string | null): boolean {
   );
 }
 
+type Locale = "ro" | "en" | "es";
+
 /**
- * Bearer required — no guest Gemini edits.
+ * Bearer required — no guest edits.
  * Free tones: formal|creative + server freeToneEditCount (Standard+ skips).
- * Pro tones / shorten_for_export / tools → Pro.
+ * Pro tones / tools → Pro pack quotas (unless subscription unlimited).
  */
 async function assertEditEntitlement(
   req: NextRequest,
   action: string,
-  customStyle?: string
+  customStyle: string | undefined,
+  isCombine: boolean,
+  locale: Locale
 ): Promise<NextResponse | EditAuthOk> {
   if (!ALLOWED_EDIT_ACTIONS.has(action)) {
     return NextResponse.json(
@@ -120,7 +136,30 @@ async function assertEditEntitlement(
 
     const userRef = adminDb.collection("users").doc(uid);
     const userDoc = await userRef.get();
-    const data = userDoc.exists ? userDoc.data() : {};
+    let data = userDoc.exists ? userDoc.data() : {};
+    data = await ensureLegacyProPackQuotas(uid, data || {});
+
+    const unlimitedEdits = hasUnlimitedProEdits({
+      isAdmin: isAdminEmail(decoded.email),
+      subscriptionActive: !!data?.subscriptionActive,
+    });
+
+    // Combine on one-time Pro pack always counts toward Combine quota
+    const packConsume = proPackConsumeForEdit({
+      needsProEdit: needsPro,
+      isCombine: isCombine && !!data?.euFundsUnlocked && !unlimitedEdits,
+      unlimited: unlimitedEdits,
+    });
+
+    // Standard Combine (no Pro pack): allow free-tone combine without pack counters
+    if (isCombine && !data?.euFundsUnlocked && !unlimitedEdits && !needsPro) {
+      // formal/creative combine under Standard — no pack consume
+    } else if (isCombine && !hasProEntitlement(data, decoded.email) && needsPro) {
+      return NextResponse.json(
+        { error: "Forbidden", code: "PRO_REQUIRED" },
+        { status: 403 }
+      );
+    }
 
     if (needsPro) {
       if (!hasProEntitlement(data, decoded.email)) {
@@ -129,7 +168,55 @@ async function assertEditEntitlement(
           { status: 403 }
         );
       }
-      return { uid, refundFreeTone: false };
+      try {
+        await consumeProPackEditQuotas(uid, packConsume);
+      } catch (e: any) {
+        const code = e?.message;
+        if (code === "PRO_PACK_EDIT_LIMIT" || code === "PRO_PACK_COMBINE_LIMIT") {
+          return NextResponse.json(
+            {
+              error:
+                code === "PRO_PACK_COMBINE_LIMIT"
+                  ? proPackLimitMessage(locale, "combine")
+                  : proPackLimitMessage(locale, "edit"),
+              code,
+            },
+            { status: 403 }
+          );
+        }
+        throw e;
+      }
+      return { uid, refundFreeTone: false, packConsume };
+    }
+
+    // Free/Standard tone — optional Combine consume for Pro pack users
+    if (isCombine && packConsume.consumeCombine) {
+      try {
+        await consumeProPackEditQuotas(uid, {
+          consumeEdit: false,
+          consumeCombine: true,
+        });
+      } catch (e: any) {
+        if (e?.message === "PRO_PACK_COMBINE_LIMIT") {
+          return NextResponse.json(
+            {
+              error: proPackLimitMessage(locale, "combine"),
+              code: "PRO_PACK_COMBINE_LIMIT",
+            },
+            { status: 403 }
+          );
+        }
+        throw e;
+      }
+      if (isFreeTone && !hasStandardEntitlement(data, decoded.email)) {
+        // still need free tone quota for free users who somehow combine — rare
+      } else {
+        return {
+          uid,
+          refundFreeTone: false,
+          packConsume: { consumeEdit: false, consumeCombine: true },
+        };
+      }
     }
 
     if (isFreeTone && !hasStandardEntitlement(data, decoded.email)) {
@@ -149,7 +236,11 @@ async function assertEditEntitlement(
             { merge: true }
           );
         });
-        return { uid, refundFreeTone: true };
+        return {
+          uid,
+          refundFreeTone: true,
+          packConsume: { consumeEdit: false, consumeCombine: false },
+        };
       } catch (e: any) {
         if (e?.message === "TONE_LIMIT") {
           return NextResponse.json(
@@ -161,7 +252,11 @@ async function assertEditEntitlement(
       }
     }
 
-    return { uid, refundFreeTone: false };
+    return {
+      uid,
+      refundFreeTone: false,
+      packConsume: { consumeEdit: false, consumeCombine: false },
+    };
   } catch (err) {
     console.error("[edit] auth/entitlement failed:", err);
     return NextResponse.json(
@@ -221,15 +316,34 @@ function extractRelevantSection(result: any, action: string) {
 export async function POST(req: NextRequest) {
   let authOk: EditAuthOk | null = null;
   try {
-    const { result, action, customStyle, targetSection, locale, isRetry, currency } = await req.json();
+    const {
+      result,
+      action,
+      customStyle,
+      targetSection,
+      locale: rawLocale,
+      isRetry,
+      currency,
+      isCombine,
+    } = await req.json();
 
-    const entitlement = await assertEditEntitlement(req, action, customStyle);
+    const locale: Locale =
+      rawLocale === "en" || rawLocale === "es" ? rawLocale : "ro";
+
+    const entitlement = await assertEditEntitlement(
+      req,
+      action,
+      customStyle,
+      !!isCombine,
+      locale
+    );
     if (entitlement instanceof NextResponse) return entitlement;
     authOk = entitlement;
 
     const isEn = locale === "en" || locale === "es";
     let instruction = getEditInstruction(action, locale, customStyle, targetSection, currency);
     instruction += "\n\n" + getEditLanguageLock(locale || "ro");
+
 
     if (isRetry) {
       if (locale === "en") {
@@ -344,6 +458,7 @@ export async function POST(req: NextRequest) {
       const successCount = [parsedViz, parsedPiata, parsedOp, parsedSwot, parsedFin, parsedMeta].filter(p => Object.keys(p).length > 0).length;
       if (successCount === 0) {
         if (authOk?.refundFreeTone) await refundFreeToneEdit(authOk.uid);
+        if (authOk?.packConsume) await refundProPackEditQuotas(authOk.uid, authOk.packConsume);
         return NextResponse.json({ error: "Sistemul a returnat un răspuns nevalid sau gol. Te rugăm să încerci din nou." }, { status: 400 });
       }
     } else {
@@ -365,12 +480,14 @@ export async function POST(req: NextRequest) {
           } catch {
             console.error("JSON PARSE ERROR:", parseErr, text);
             if (authOk?.refundFreeTone) await refundFreeToneEdit(authOk.uid);
-            return NextResponse.json({ error: "Eroare AI Formatare: " + parseErr.message + "\n\nFragment primit: " + text.substring(0, 150) }, { status: 400 });
+            if (authOk?.packConsume) await refundProPackEditQuotas(authOk.uid, authOk.packConsume);
+            return NextResponse.json({ error: "Eroare formatare: " + parseErr.message + "\n\nFragment primit: " + text.substring(0, 150) }, { status: 400 });
           }
         } else {
           console.error("JSON PARSE ERROR:", parseErr, text);
           if (authOk?.refundFreeTone) await refundFreeToneEdit(authOk.uid);
-          return NextResponse.json({ error: "Eroare AI Formatare: " + parseErr.message + "\n\nFragment primit: " + text.substring(0, 150) }, { status: 400 });
+          if (authOk?.packConsume) await refundProPackEditQuotas(authOk.uid, authOk.packConsume);
+          return NextResponse.json({ error: "Eroare formatare: " + parseErr.message + "\n\nFragment primit: " + text.substring(0, 150) }, { status: 400 });
         }
       }
       
@@ -451,6 +568,7 @@ export async function POST(req: NextRequest) {
   } catch (error: any) {
     console.error("Error editing content:", error);
     if (authOk?.refundFreeTone) await refundFreeToneEdit(authOk.uid);
+    if (authOk?.packConsume) await refundProPackEditQuotas(authOk.uid, authOk.packConsume);
 
     const isServiceUnavailable = error?.status === 503 || error?.message?.includes('503') || error?.message?.includes('UNAVAILABLE');
     const isRateLimited = error?.status === 429 || error?.message?.includes('429') || error?.message?.includes('RESOURCE_EXHAUSTED');

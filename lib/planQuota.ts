@@ -13,20 +13,17 @@ export const FREE_ACCOUNT_PLAN_LIMIT = 4;
 export const GUEST_DEMO_PLAN_LIMIT = 3;
 
 /**
- * Unlimited Gemini generate (account-level).
- * Standard purchase / standard promo → NOT included (same as Standard package).
- * Pro / EU Funds / legacy isPaid / matching promo flags → yes.
+ * Unlimited generate (account-level).
+ * Standard / one-time Pro Tools (euFundsUnlocked) → NOT unlimited (use pro pack quotas).
+ * Subscription / legacy isPaid → yes.
  */
 export function hasUnlimitedGenerateAccess(opts: {
   isPaid?: boolean;
   subscriptionActive?: boolean;
+  /** @deprecated Ignored — one-time Pro pack uses proPackGenerateRemaining */
   euFundsUnlocked?: boolean;
 }): boolean {
-  return !!(
-    opts.isPaid ||
-    opts.subscriptionActive ||
-    opts.euFundsUnlocked
-  );
+  return !!(opts.isPaid || opts.subscriptionActive);
 }
 
 export function deletedPlansStorageKey(uid: string): string {

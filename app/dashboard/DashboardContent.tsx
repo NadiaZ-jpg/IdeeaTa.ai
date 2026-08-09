@@ -9,6 +9,14 @@ import { collection, query, orderBy, getDocs, doc, deleteDoc, getDoc } from 'fir
 import { Plus, FileText, Calendar, ArrowRight, Loader2, Sparkles, Mail, AlertTriangle, Trash2 } from 'lucide-react';
 import { migrateLocalPlansToFirebase } from '@/lib/migrationManager';
 import { markPlanDeletedLocally, FREE_ACCOUNT_PLAN_LIMIT, clearLocalPlanState, hasUnlimitedGenerateAccess } from '@/lib/planQuota';
+import {
+  canGenerateWithQuotas,
+  PRO_TOPUP_COMBINE_GRANT,
+  PRO_TOPUP_EDIT_GRANT,
+  PRO_TOPUP_GENERATE_GRANT,
+  proPackRemainingLabel,
+  readProPackRemaining,
+} from '@/lib/proPackQuota';
 import { LanguageSwitcher } from '@/components/LanguageSwitcher';
 import BuyMeACoffeeModal from '@/components/BuyMeACoffeeModal';
 import { PricingModal } from '@/components/PricingModal';
@@ -20,7 +28,16 @@ export default function DashboardContent({ locale = "ro" }: { locale?: "ro" | "e
   const [user, setUser] = useState<User | null>(null);
   const [plans, setPlans] = useState<any[]>([]);
   const [isPaidUser, setIsPaidUser] = useState(false);
+  const [lifetimePlanCount, setLifetimePlanCount] = useState(0);
+  const [proPackRemaining, setProPackRemaining] = useState({
+    generate: 0,
+    edit: 0,
+    combine: 0,
+  });
+  const [euFundsUnlocked, setEuFundsUnlocked] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [topupLoading, setTopupLoading] = useState(false);
+  const [topupError, setTopupError] = useState<string | null>(null);
   const [showVerificationModal, setShowVerificationModal] = useState(false);
   const [verificationSent, setVerificationSent] = useState(false);
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
@@ -31,17 +48,35 @@ export default function DashboardContent({ locale = "ro" }: { locale?: "ro" | "e
   const isEs = locale === "es";
   const ui = UI_STRINGS[locale] || UI_STRINGS.ro;
 
-  // Cont gratuit: max 4 planuri în Firestore (inclusiv cele migrate din Demo)
-  const studioLimitUsed = plans.length >= FREE_ACCOUNT_PLAN_LIMIT;
+  const canGenerate = canGenerateWithQuotas({
+    isPaid: isPaidUser,
+    subscriptionActive: isPaidUser,
+    lifetimePlanCount,
+    proPackGenerateRemaining: proPackRemaining.generate,
+    freeLimit: FREE_ACCOUNT_PLAN_LIMIT,
+  });
+
+  const freeRemaining = Math.max(0, FREE_ACCOUNT_PLAN_LIMIT - lifetimePlanCount);
+  const freeLimitReached = freeRemaining <= 0;
+  /** One-time Pro Tools pack owner (not subscription unlimited) */
+  const hasProPack = euFundsUnlocked && !isPaidUser;
+
+  const showUpgradeCue = !isPaidUser && !canGenerate && !hasProPack;
+  const showFreeRemainingCue = !isPaidUser && !freeLimitReached && !hasProPack;
+  const showProPackRemainingCue = hasProPack;
+  const topupPriceLabel = isEn || isEs ? "5 EUR" : "25 RON";
 
   const handleGenerateNew = (e: React.MouseEvent) => {
     e.preventDefault();
     if (user && !user?.emailVerified && user.providerData[0]?.providerId === 'password') {
       setShowVerificationModal(true);
-    } else if (studioLimitUsed && !isPaidUser) {
-      setShowPricingModal(true);
+    } else if (!canGenerate) {
+      if (hasProPack) {
+        void handleProTopupCheckout();
+      } else {
+        setShowPricingModal(true);
+      }
     } else {
-      // Curatam memoria locala ca sa fim siguri ca form-ul de Studio e curat
       if (typeof window !== "undefined") {
         localStorage.removeItem("current_generated_plan");
         localStorage.removeItem("current_versions");
@@ -50,6 +85,50 @@ export default function DashboardContent({ locale = "ro" }: { locale?: "ro" | "e
         localStorage.removeItem("studioActiveTab");
       }
       router.push(isEn ? '/en/studio' : isEs ? '/es/studio' : '/studio');
+    }
+  };
+
+  const handleProTopupCheckout = async () => {
+    if (!user) return;
+    setTopupLoading(true);
+    setTopupError(null);
+    try {
+      const token = await user.getIdToken();
+      const res = await fetch("/api/checkout", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          tier: "pro-topup",
+          email: user.email,
+          locale,
+        }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || !data?.url) {
+        throw new Error(
+          data?.error ||
+            (isEn
+              ? "Could not start checkout. Check Lemon env / restart server."
+              : isEs
+              ? "No se pudo iniciar el pago. Revisa env Lemon / reinicia el servidor."
+              : "Nu s-a putut porni plata. Verifică env Lemon / restartează serverul.")
+        );
+      }
+      window.location.href = data.url;
+    } catch (err: any) {
+      console.error(err);
+      const msg =
+        err?.message ||
+        (isEn
+          ? "An error occurred. Please try again."
+          : isEs
+          ? "Ocurrió un error. Inténtalo de nuevo."
+          : "A apărut o eroare. Încearcă din nou.");
+      setTopupError(msg);
+      setTopupLoading(false);
     }
   };
 
@@ -114,17 +193,22 @@ export default function DashboardContent({ locale = "ro" }: { locale?: "ro" | "e
         // Asigurăm migrarea planurilor locale înainte de a le prelua din Firestore (elimină race condition-ul)
         await migrateLocalPlansToFirebase(currentUser);
 
-        // Preluăm starea de plată din documentul de utilizator
         const userDocRef = doc(db, "users", currentUser.uid);
         const userDocSnap = await getDoc(userDocRef);
+        let uData: any = {};
         if (userDocSnap.exists()) {
-          const uData = userDocSnap.data();
+          uData = userDocSnap.data() || {};
           const isPaid = hasUnlimitedGenerateAccess({
             isPaid: !!uData.isPaid,
             subscriptionActive: !!uData.subscriptionActive,
-            euFundsUnlocked: !!uData.euFundsUnlocked,
           });
           setIsPaidUser(isPaid);
+          setEuFundsUnlocked(!!uData.euFundsUnlocked);
+          setProPackRemaining(readProPackRemaining(uData));
+        } else {
+          setIsPaidUser(false);
+          setEuFundsUnlocked(false);
+          setProPackRemaining({ generate: 0, edit: 0, combine: 0 });
         }
 
         const plansRef = collection(db, "users", currentUser.uid, "plans");
@@ -149,6 +233,11 @@ export default function DashboardContent({ locale = "ro" }: { locale?: "ro" | "e
           }
         });
         
+        setLifetimePlanCount(
+          typeof uData.lifetimePlanCount === "number"
+            ? uData.lifetimePlanCount
+            : fetchedPlans.length
+        );
         setPlans(fetchedPlans);
       } catch (err) {
         console.error("Eroare la încărcarea planurilor:", err);
@@ -230,8 +319,29 @@ export default function DashboardContent({ locale = "ro" }: { locale?: "ro" | "e
           </div>
           
           <div className="flex flex-col items-end gap-2">
-            <div className="flex items-center gap-3">
-              {!isPaidUser && (
+            <div className="flex items-center gap-3 flex-wrap justify-end">
+              {hasProPack && (
+                <button
+                  type="button"
+                  onClick={() => void handleProTopupCheckout()}
+                  disabled={topupLoading}
+                  className="bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-black font-black px-5 py-3.5 rounded-xl uppercase tracking-wider text-xs transition-all flex items-center gap-2 shadow-[0_0_20px_rgba(245,158,11,0.3)] hover:scale-105 cursor-pointer disabled:opacity-60"
+                >
+                  <Sparkles className="w-4 h-4 fill-black" />
+                  {topupLoading
+                    ? isEn
+                      ? "Redirecting…"
+                      : isEs
+                      ? "Redirigiendo…"
+                      : "Se redirecționează…"
+                    : isEn
+                    ? `Add credits — ${topupPriceLabel}`
+                    : isEs
+                    ? `Añadir créditos — ${topupPriceLabel}`
+                    : `Adaugă credite — ${topupPriceLabel}`}
+                </button>
+              )}
+              {!isPaidUser && !hasProPack && (
                 <button
                   type="button"
                   onClick={() => setShowPricingModal(true)}
@@ -246,26 +356,43 @@ export default function DashboardContent({ locale = "ro" }: { locale?: "ro" | "e
                 {isEn ? "Generate New Plan" : isEs ? "Generar Nuevo Plan" : "Generează Plan Nou"}
               </button>
             </div>
-            {!isPaidUser && (
-              studioLimitUsed ? (
+            {showProPackRemainingCue ? (
+              <button
+                type="button"
+                onClick={() => void handleProTopupCheckout()}
+                disabled={topupLoading}
+                className="text-[11px] text-amber-300/90 font-semibold text-right max-w-sm hover:underline cursor-pointer disabled:opacity-60"
+              >
+                {proPackRemainingLabel(locale, proPackRemaining)}
+                <span className="block text-zinc-400 font-medium mt-0.5">
+                  {isEn
+                    ? `Click to add credits (+${PRO_TOPUP_GENERATE_GRANT} · +${PRO_TOPUP_EDIT_GRANT} · +${PRO_TOPUP_COMBINE_GRANT}) — ${topupPriceLabel}`
+                    : isEs
+                    ? `Clic para añadir créditos (+${PRO_TOPUP_GENERATE_GRANT} · +${PRO_TOPUP_EDIT_GRANT} · +${PRO_TOPUP_COMBINE_GRANT}) — ${topupPriceLabel}`
+                    : `Click pentru credite (+${PRO_TOPUP_GENERATE_GRANT} · +${PRO_TOPUP_EDIT_GRANT} · +${PRO_TOPUP_COMBINE_GRANT}) — ${topupPriceLabel}`}
+                </span>
+              </button>
+            ) : showUpgradeCue ? (
                 <button 
                   onClick={() => setShowPricingModal(true)}
                   className="text-[11px] text-amber-400 font-semibold flex items-center gap-1 hover:underline cursor-pointer"
                 >
                   ⚡ {isEn ? "Free plan limit reached — click here to upgrade" : isEs ? "Límite del plan gratuito alcanzado — clic para mejorar" : "Planul gratuit folosit — dă click aici pentru upgrade"}
                 </button>
-              ) : (
+              ) : showFreeRemainingCue ? (
                 <button
                   onClick={() => setShowPricingModal(true)}
                   className="text-[11px] text-emerald-400 font-semibold flex items-center gap-1 hover:underline cursor-pointer"
                 >
                   🎁 {isEn 
-                    ? (FREE_ACCOUNT_PLAN_LIMIT - plans.length === 1 ? "You have 1 free plan generation remaining. Click to view packages." : `You have ${FREE_ACCOUNT_PLAN_LIMIT - plans.length} free plan generations remaining. Click to view packages.`) 
+                    ? (freeRemaining === 1 ? "You have 1 free plan generation remaining. Click to view packages." : `You have ${freeRemaining} free plan generations remaining. Click to view packages.`) 
                     : isEs
-                    ? (FREE_ACCOUNT_PLAN_LIMIT - plans.length === 1 ? "Te queda 1 generación de plan gratuito. Clic para ver paquetes." : `Te quedan ${FREE_ACCOUNT_PLAN_LIMIT - plans.length} generaciones de planes gratuitos. Clic para ver paquetes.`) 
-                    : (FREE_ACCOUNT_PLAN_LIMIT - plans.length === 1 ? "Mai ai dreptul la 1 plan gratuit. Click pentru pachete." : `Mai ai dreptul la ${FREE_ACCOUNT_PLAN_LIMIT - plans.length} planuri gratuite. Click pentru pachete.`)}
+                    ? (freeRemaining === 1 ? "Te queda 1 generación de plan gratuito. Clic para ver paquetes." : `Te quedan ${freeRemaining} generaciones de planes gratuitos. Clic para ver paquetes.`) 
+                    : (freeRemaining === 1 ? "Mai ai dreptul la 1 plan gratuit. Click pentru pachete." : `Mai ai dreptul la ${freeRemaining} planuri gratuite. Click pentru pachete.`)}
                 </button>
-              )
+              ) : null}
+            {topupError && (
+              <p className="text-[11px] text-red-400 font-semibold text-right max-w-sm">{topupError}</p>
             )}
           </div>
         </header>

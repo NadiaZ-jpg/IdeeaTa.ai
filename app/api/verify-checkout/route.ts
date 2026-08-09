@@ -48,6 +48,12 @@ export async function GET(req: NextRequest) {
       );
     } else if (tier === "eu-funds") {
       isUnlocked = data.euFundsUnlocked === true;
+    } else if (tier === "pro-topup") {
+      // Credits applied on webhook; pack must already exist
+      isUnlocked =
+        data.euFundsUnlocked === true &&
+        typeof data.proPackLastTopupAt === "string" &&
+        data.proPackLastTopupAt.length > 0;
     } else if (tier === "pro") {
       isUnlocked = data.subscriptionActive === true;
     } else {

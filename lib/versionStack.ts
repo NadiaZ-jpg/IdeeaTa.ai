@@ -409,12 +409,12 @@ export function isStandardOnlyCombineAccess(access: VersionStackAccess): boolean
 
 export function combineFullAccessHint(locale: VersionLocale): string {
   if (locale === "en") {
-    return "Full Access unlocks: Optimize budget, EU Funds, and Investors plan in this menu.";
+    return "Pro Tools unlocks: Optimize budget, EU Funds, and Investors plan in this menu.";
   }
   if (locale === "es") {
-    return "Full Access desbloquea: Optimizar presupuesto, Fondos UE y Plan inversores en este menú.";
+    return "Herramientas Pro desbloquea: Optimizar presupuesto, Fondos UE y Plan inversores en este menú.";
   }
-  return "Full Access deblochează: Optimizează bugetul, Fonduri UE și Plan investitori în acest meniu.";
+  return "Instrumente Pro deblochează: Optimizează bugetul, Fonduri UE și Plan investitori în acest meniu.";
 }
 
 export function stackLimitReachedMessage(
@@ -424,21 +424,21 @@ export function stackLimitReachedMessage(
 ): string {
   if (locale === "en") {
     return isStandardOnly
-      ? `Standard allows up to ${limit} tools per version. Upgrade to Full Access for up to ${FULL_STACK_LIMIT}.`
+      ? `Standard allows up to ${limit} tools per version. Upgrade to Pro Tools for up to ${FULL_STACK_LIMIT}.`
       : `You reached the limit of ${limit} tools on this version stack.`;
   }
   if (locale === "es") {
     return isStandardOnly
-      ? `Standard permite hasta ${limit} herramientas por versión. Mejora a Full Access para hasta ${FULL_STACK_LIMIT}.`
+      ? `Standard permite hasta ${limit} herramientas por versión. Mejora a Herramientas Pro para hasta ${FULL_STACK_LIMIT}.`
       : `Alcanzaste el límite de ${limit} herramientas en esta combinación.`;
   }
   return isStandardOnly
-    ? `Standard permite maxim ${limit} instrumente pe versiune. Upgrade la Full Access pentru până la ${FULL_STACK_LIMIT}.`
+    ? `Standard permite maxim ${limit} instrumente pe versiune. Upgrade la Instrumente Pro pentru până la ${FULL_STACK_LIMIT}.`
     : `Ai atins limita de ${limit} instrumente pe această combinație.`;
 }
 
 export function noCombineAccessMessage(locale: VersionLocale): string {
-  if (locale === "en") return "Version combinations require a Standard or Full Access plan.";
-  if (locale === "es") return "Las combinaciones de versiones requieren el plan Standard o Full Access.";
-  return "Combinațiile de versiuni necesită pachetul Standard sau Full Access.";
+  if (locale === "en") return "Version combinations require a Standard or Pro Tools package.";
+  if (locale === "es") return "Las combinaciones de versiones requieren el paquete Standard o Herramientas Pro.";
+  return "Combinațiile de versiuni necesită pachetul Standard sau Instrumente Pro.";
 }

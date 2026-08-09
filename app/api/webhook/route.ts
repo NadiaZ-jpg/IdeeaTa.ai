@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { adminDb } from "@/lib/firebase-admin";
+import { FieldValue } from "firebase-admin/firestore";
 import crypto from "crypto";
 import { resolveTierFromLemonOrder } from "@/lib/lemonCheckout";
+import { proPackGrantFields, proTopupGrantFields } from "@/lib/proPackQuota";
 
 const webhookSecret = process.env.LEMON_SQUEEZY_WEBHOOK_SECRET || "";
 
@@ -91,15 +93,35 @@ export async function POST(req: NextRequest) {
           `Deblocat Standard (plan "${planName}" / id=${planId}, standardPackageActive) pentru user: ${userId}`
         );
       } else if (tier === "eu-funds") {
+        // One-time Pro Tools pack: tools unlock + finite quotas (NOT account-wide isPaid)
         await userRef.set(
           {
-            euFundsUnlocked: true,
-            isPaid: true,
+            ...proPackGrantFields((n) => FieldValue.increment(n)),
             lemonSqueezyCustomerId: payload.data.attributes.customer_id,
           },
           { merge: true }
         );
-        console.log(`Deblocat modul Fonduri Europene pentru user: ${userId}`);
+        console.log(
+          `Deblocat Pachet Editare + Instrumente Profesionale (+quotas) pentru user: ${userId}`
+        );
+      } else if (tier === "pro-topup") {
+        if (!userData?.euFundsUnlocked) {
+          console.error(
+            `[Webhook] pro-topup without Pro Tools pack — refused. userId=${userId}`
+          );
+          return NextResponse.json(
+            { error: "Pro Tools pack required", code: "TOPUP_REQUIRES_PACK" },
+            { status: 400 }
+          );
+        }
+        await userRef.set(
+          {
+            ...proTopupGrantFields((n) => FieldValue.increment(n)),
+            lemonSqueezyCustomerId: payload.data.attributes.customer_id,
+          },
+          { merge: true }
+        );
+        console.log(`Top-up Pro Tools (+5/+4/+2) pentru user: ${userId}`);
       } else if (tier === "pro") {
         await userRef.set(
           {
@@ -113,19 +135,29 @@ export async function POST(req: NextRequest) {
         console.log(`Activat abonament PRO pentru user: ${userId} via order_created`);
       }
     } else if (eventName === "subscription_created") {
-      if (tier === "pro" || tier === "eu-funds") {
+      if (tier === "pro") {
         await userRef.set(
           {
-            subscriptionActive: tier === "pro" ? true : userData?.subscriptionActive || false,
-            euFundsUnlocked: tier === "eu-funds" ? true : userData?.euFundsUnlocked || false,
+            subscriptionActive: true,
             isPaid: true,
             subscriptionId: payload.data.id,
             lemonSqueezyCustomerId: payload.data.attributes.customer_id,
           },
           { merge: true }
         );
+        console.log(`Activat abonament PRO pentru user: ${userId} via subscription_created`);
+      } else if (tier === "eu-funds") {
+        // One-time pack mis-tagged as subscription_created — still grant pack quotas
+        await userRef.set(
+          {
+            ...proPackGrantFields((n) => FieldValue.increment(n)),
+            subscriptionId: payload.data.id,
+            lemonSqueezyCustomerId: payload.data.attributes.customer_id,
+          },
+          { merge: true }
+        );
         console.log(
-          `Activat ${tier} pentru user: ${userId} via subscription_created`
+          `Deblocat pachet Pro Tools (subscription_created) pentru user: ${userId}`
         );
       }
     } else if (eventName === "subscription_cancelled" || eventName === "subscription_expired") {

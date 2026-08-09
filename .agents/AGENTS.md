@@ -14,7 +14,7 @@ REGULA #13: (Anti-Câmpii) Pentru ORICE eroare, trebuie OBLIGATORIU un Plan de I
 REGULA #14: (Modularizare) Orice funcționalitate nouă se creează ca fișier/componentă separată în /components, nu direct în page.tsx.
 REGULA #15: (Anti-Crash AI) Este INTERZISĂ randarea directă a valorilor de la AI. Toate textele dinamice trec prin funcții de siguranță (formatNumberedText sau safeText).
 REGULA #16: (Sertarul Intangibil) Logica de fetch Firebase (StudioDataLoader.tsx) rămâne definitiv izolată. Este INTERZISĂ reintegrarea ei în page.tsx.
-REGULA #17: (FREEZE PACHETE) Există fix 2 pachete: Standard (39 RON) și Instrumente Profesionale (99 RON). Logica în lib/accessControl.ts este ÎNGHEȚATĂ. Modificare doar cu "override freeze pachete".
+REGULA #17: (FREEZE PACHETE) Pachete: Standard (~8 EUR / 39 RON), Editare+Instrumente Profesionale (~20 EUR / 99 RON, cote 10/8/4), Top-up Pro (5 EUR / 25 RON, +5/+4/+2). Cotă + Lemon în lib/proPackQuota*, lemonCheckout, webhook. Modificare doar cu "override freeze pachete".
 REGULA #18: (FREEZE ADSENSE) Integrarea Google AdSense este ÎNGHEȚATĂ. Modificare doar cu "override freeze adsense".
 REGULA #19: (ANTI-DISTRUGERE) Niciodată nu folosi comenzi distructive fără plan aprobat de utilizator.
 

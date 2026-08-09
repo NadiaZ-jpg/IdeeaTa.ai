@@ -1,11 +1,13 @@
 import { GoogleGenAI } from "@google/genai";
 import { NextRequest, NextResponse } from "next/server";
 import { getExchangeRateRonToEur } from "@/lib/exchangeRate";
-import { adminDb, adminAuth } from "@/lib/firebase-admin";
+import { adminAuth } from "@/lib/firebase-admin";
 import { getGeneratePrompt } from "@/lib/promptConfig";
 import { normalizePlanResult } from "@/lib/normalizePlanResult";
-import { FREE_ACCOUNT_PLAN_LIMIT, GUEST_DEMO_PLAN_LIMIT, hasUnlimitedGenerateAccess } from "@/lib/planQuota";
+import { GUEST_DEMO_PLAN_LIMIT } from "@/lib/planQuota";
+import { assertAndConsumeGenerateQuota } from "@/lib/proPackQuotaAdmin";
 import { clientIpFromRequest, consumeRateLimit } from "@/lib/apiRateLimit";
+import { isAdminEmail } from "@/lib/adminEmails";
 
 export const maxDuration = 60;
 
@@ -13,12 +15,18 @@ const apiKey = process.env.GEMINI_API_KEY?.trim() || "";
 const ai = new GoogleGenAI({ apiKey });
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
-
 const DAY_MS = 24 * 60 * 60 * 1000;
+
+type Locale = "ro" | "en" | "es";
+
+function normalizeLocale(locale: unknown): Locale {
+  return locale === "en" || locale === "es" ? locale : "ro";
+}
 
 export async function POST(req: NextRequest) {
   try {
-    const { skill, locale, currency: rawCurrency, surface } = await req.json();
+    const { skill, locale: rawLocale, currency: rawCurrency, surface } = await req.json();
+    const locale = normalizeLocale(rawLocale);
     const currency =
       locale === "en" || locale === "es"
         ? "EUR"
@@ -36,7 +44,6 @@ export async function POST(req: NextRequest) {
         const decoded = await adminAuth.verifyIdToken(token);
         const userId = decoded.uid;
 
-        // Per-uid abuse cap (even paid) — Gemini cost guard
         if (!(await consumeRateLimit(`gen:user:${userId}`, 30, HOUR_MS))) {
           return NextResponse.json(
             { error: "Too many requests", code: "RATE_LIMIT" },
@@ -44,48 +51,20 @@ export async function POST(req: NextRequest) {
           );
         }
 
-        const plansSnap = await adminDb
-          .collection("users")
-          .doc(userId)
-          .collection("plans")
-          .get();
-
-        const userDoc = await adminDb.collection("users").doc(userId).get();
-        const userData = userDoc.exists ? userDoc.data() : {};
-
-        // Unlimited generate: Pro / EU / legacy isPaid — NOT Standard / standard promo
-        const isAccountPaid = hasUnlimitedGenerateAccess({
-          isPaid: !!userData?.isPaid,
-          subscriptionActive: !!userData?.subscriptionActive,
-          euFundsUnlocked: !!userData?.euFundsUnlocked,
+        const quota = await assertAndConsumeGenerateQuota({
+          userId,
+          isAdmin: isAdminEmail(decoded.email),
+          locale,
         });
-
-        const lifetime =
-          typeof userData?.lifetimePlanCount === "number"
-            ? userData.lifetimePlanCount
-            : plansSnap.size;
-
-        if (!isAccountPaid && lifetime >= FREE_ACCOUNT_PLAN_LIMIT) {
+        if (!quota.ok) {
           return NextResponse.json(
             {
               error: "LIMIT_REACHED",
-              message:
-                locale === "en"
-                  ? "You reached the free plan limit. Please upgrade."
-                  : locale === "es"
-                  ? "Alcanzaste el límite de planes gratuitos. Mejora tu plan."
-                  : "Ai atins limita de 4 planuri gratuite. Te rugăm să faci upgrade.",
+              code: quota.code,
+              message: quota.message,
             },
             { status: 403 }
           );
-        }
-
-        // Increment lifetime before Gemini — delete+regenerate cannot reset quota
-        if (!isAccountPaid) {
-          await adminDb
-            .collection("users")
-            .doc(userId)
-            .set({ lifetimePlanCount: lifetime + 1 }, { merge: true });
         }
       } catch (e: any) {
         console.error("[Generate API Auth Guard Error]:", e.message);
@@ -95,9 +74,6 @@ export async function POST(req: NextRequest) {
         );
       }
     } else {
-      // Guests: Demo only. Studio must send Bearer.
-      // Logged-in clients must send Bearer — omitting it to hit guest IP quota is abuse;
-      // guest path stays tight (IP + daily cap).
       if (isStudio) {
         return NextResponse.json(
           { error: "Unauthorized", code: "AUTH_REQUIRED" },
@@ -119,7 +95,6 @@ export async function POST(req: NextRequest) {
           { status: 403 }
         );
       }
-      // Extra hourly IP throttle (spoof-resistant IP via apiRateLimit)
       if (!(await consumeRateLimit(`gen:guest-hour:${ip}`, 6, HOUR_MS))) {
         return NextResponse.json(
           { error: "Too many requests", code: "RATE_LIMIT" },
@@ -137,13 +112,11 @@ export async function POST(req: NextRequest) {
         response = await ai.models.generateContent({
           model: "gemini-2.5-flash",
           contents: prompt,
-          config: {
-            responseMimeType: "application/json",
-          },
+          config: { responseMimeType: "application/json" },
         });
         break;
       } catch (e: any) {
-        console.error(`Eroare generare Gemini. Incercari ramase: ${retries - 1}`, e.message);
+        console.error(`Eroare generare. Incercari ramase: ${retries - 1}`, e.message);
         retries--;
         if (retries === 0) throw e;
         await sleep(1500);

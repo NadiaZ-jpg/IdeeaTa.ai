@@ -27,6 +27,7 @@ import { formatObjectNumbers, formatNumberedText } from "@/lib/utils";
 import { useSharedPlanLoader } from "@/hooks/useSharedPlanLoader";
 import { createAndCopySharedPlanLink } from "@/lib/sharePlan";
 import { FREE_ACCOUNT_PLAN_LIMIT, GUEST_DEMO_PLAN_LIMIT, hasUnlimitedGenerateAccess } from "@/lib/planQuota";
+import { canGenerateWithQuotas, proPackRemainingLabel, readProPackRemaining } from "@/lib/proPackQuota";
 import { isAdminEmail } from "@/lib/adminEmails";
 import { isPlanExportUnlocked, hasAccountStandardAccess } from "@/lib/planUnlock";
 import { stripPaymentSuccessParams } from "@/lib/paymentReturn";
@@ -150,6 +151,12 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
   const [credits, setCredits] = useState(0);
   const [euFundsUnlocked, setEuFundsUnlocked] = useState(false);
   const [subscriptionActive, setSubscriptionActive] = useState(false);
+  const [proPackRemaining, setProPackRemaining] = useState({
+    generate: 0,
+    edit: 0,
+    combine: 0,
+  });
+  const [lifetimePlanCount, setLifetimePlanCount] = useState(0);
   const [unlockedPlans, setUnlockedPlans] = useState<string[]>([]);
   const [unlockedPlanIds, setUnlockedPlanIds] = useState<string[]>([]);
   const [promoCodeUnlocked, setPromoCodeUnlocked] = useState(false);
@@ -215,6 +222,8 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
       setCredits(0);
       setEuFundsUnlocked(false);
       setSubscriptionActive(false);
+      setProPackRemaining({ generate: 0, edit: 0, combine: 0 });
+      setLifetimePlanCount(0);
       setUnlockedPlans([]);
       setUnlockedPlanIds([]);
       setPromoCodeUnlocked(false);
@@ -230,6 +239,10 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
         setCredits(data.credits || 0);
         setEuFundsUnlocked(data.euFundsUnlocked || false);
         setSubscriptionActive(data.subscriptionActive || false);
+        setProPackRemaining(readProPackRemaining(data));
+        setLifetimePlanCount(
+          typeof data.lifetimePlanCount === "number" ? data.lifetimePlanCount : 0
+        );
         setUnlockedPlans(data.unlockedPlans || []);
         setUnlockedPlanIds(data.unlockedPlanIds || []);
         setPromoCodeUnlocked(data.promoCodeUnlocked || false);
@@ -457,17 +470,16 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
       }
     } else if (
       !isAdmin &&
-      !hasUnlimitedGenerateAccess({ isPaid, subscriptionActive, euFundsUnlocked })
+      !canGenerateWithQuotas({
+        isPaid,
+        subscriptionActive,
+        lifetimePlanCount,
+        proPackGenerateRemaining: proPackRemaining.generate,
+        freeLimit: FREE_ACCOUNT_PLAN_LIMIT,
+      })
     ) {
-      try {
-        const snap = await getDocs(collection(db, "users", user.uid, "plans"));
-        if (snap.size >= FREE_ACCOUNT_PLAN_LIMIT) {
-          setShowPricingModal(true);
-          return;
-        }
-      } catch (err) {
-        console.error("Eroare verificare limită planuri:", err);
-      }
+      setShowPricingModal(true);
+      return;
     }
 
     setLoading(true);
@@ -618,6 +630,16 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
       return;
     }
 
+    const usesPackQuota = !!(euFundsUnlocked && !subscriptionActive && !isAdmin);
+    if (
+      usesPackQuota &&
+      ((!isTone && proPackRemaining.edit <= 0) ||
+        (isTone && isProToneKey(customInput) && proPackRemaining.edit <= 0))
+    ) {
+      setShowPricingModal(true);
+      return;
+    }
+
     let targetSection = "";
     let budgetPercent: number | null = null;
     if (action === "optimize_budget") {
@@ -656,6 +678,12 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
       result,
       combineOptions: options,
     });
+
+    if (usesPackQuota && isCombine && proPackRemaining.combine <= 0) {
+      setShowPricingModal(true);
+      return;
+    }
+
     const nextStep = toolStepFromAction(action, isTone ? customInput : undefined, budgetPercent);
     let nextStack = currentStack;
     if (nextStep) {
@@ -704,13 +732,20 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
           customStyle: isTone ? (customInput || aiPromptInput) : "",
           targetSection: targetSection || (action === "add_sections" ? customInput || aiPromptInput || "" : ""),
           locale,
-          currency: baseSource?.selectedCurrency || (locale === "ro" ? "LEI" : "EUR")
+          currency: baseSource?.selectedCurrency || (locale === "ro" ? "LEI" : "EUR"),
+          isCombine,
         })
       });
 
       if (!res.ok) {
         const err = await res.json().catch(() => ({}));
-        if (err?.code === "TONE_LIMIT" || err?.code === "PRO_REQUIRED" || err?.code === "AUTH_REQUIRED") {
+        if (
+          err?.code === "TONE_LIMIT" ||
+          err?.code === "PRO_REQUIRED" ||
+          err?.code === "AUTH_REQUIRED" ||
+          err?.code === "PRO_PACK_EDIT_LIMIT" ||
+          err?.code === "PRO_PACK_COMBINE_LIMIT"
+        ) {
           setShowPricingModal(true);
         }
         throw new Error(err?.error || "Eroare editare");
@@ -918,6 +953,13 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
         </Link>
         {!result && <LanguageSwitcher currentLocale={locale} />}
       </header>
+
+      {euFundsUnlocked && !subscriptionActive && !isAdmin && (
+        <div className="px-4 py-1.5 border-b border-amber-500/20 bg-amber-500/5 text-[10px] text-amber-200/90 font-medium text-center">
+          <span className="font-black uppercase tracking-wider text-amber-300 mr-2">{ui.badgeStudioGrants}</span>
+          {proPackRemainingLabel(locale, proPackRemaining)}
+        </div>
+      )}
 
       {/* Main Content */}
       <main className="flex-1 p-4 flex flex-col gap-6">

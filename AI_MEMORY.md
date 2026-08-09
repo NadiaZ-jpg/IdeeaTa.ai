@@ -1,5 +1,5 @@
 # AI_MEMORY — IdeeaTa.ai
-> Ultima actualizare: 8 August 2026
+> Ultima actualizare: 9 August 2026
 
 ---
 
@@ -39,9 +39,10 @@ Dacă oricare dintre aceste verificări este omisă în procesul de planificare,
 ---
 
 ## PACHETE DE TARIFE (FREEZE ABSOLUT)
-- **Standard** — 39 RON: descărcări, editare liberă, 2 tonuri
-- **Instrumente Profesionale** — 99 RON: 4 tonuri, buton Investitori, buton Fonduri Europene
-- Toată logica e în `lib/accessControl.ts` — ÎNGHEȚAT, nu se modifică fără aprobare explicită.
+- **Standard** — ~8 EUR / 39 RON: descărcări, editare liberă, tonuri formal/creativ; unlock per-plan (`standardPackageActive`), NU `isPaid` account-wide
+- **Editare + Instrumente Profesionale** — ~20 EUR / 99 RON: tot Standard + instrumente Pro + **cote finite** 10 generări / 8 editări Pro / 4 combinații (NU nelimitat)
+- **Top-up Pro** — 5 EUR / 25 RON: doar dacă ai deja pachetul Pro; adaugă **+5 / +4 / +2**; doar pe Dashboard (nu în PricingModal)
+- Toată logica pachete/cote: `lib/proPackQuota.ts`, `lib/proPackQuotaAdmin.ts`, `lib/lemonCheckout.ts`, `lib/planQuota.ts`, webhook/checkout — ÎNGHEȚAT, nu se modifică fără `override freeze pachete`.
 
 ---
 
@@ -628,7 +629,22 @@ Dacă oricare dintre aceste verificări este omisă în procesul de planificare,
 - AdSense: script **doar după** `cookie_consent` (`lib/adsenseConsent.ts`, `AdSenseLoader`, `CookieBanner`, `AdBanner` nu randează fără consent). Meta `google-adsense-account` rămâne în layout.
 **ÎNGHEȚAT** — nu se reîncarcă adsbygoogle înainte de consent fără override.
 
+## FREEZE (9 August 2026 — Pro pack cote finite + top-up 5 EUR)
+**override freeze pachete** (produs aprobat):
+- Pachet Pro = **10 gen / 8 editări Pro / 4 combinații** (nu unlimited). `euFundsUnlocked` + cote; **NU** setează `isPaid` / `subscriptionActive`.
+- `hasUnlimitedGenerateAccess` = doar `isPaid` | `subscriptionActive` (promo `eu-funds` / `full-access` → același pack finit).
+- Libs: `lib/proPackQuota.ts`, `lib/proPackQuotaAdmin.ts`; enforce în `/api/generate`, `/api/edit` (+ refund); grant în webhook `eu-funds` + promo.
+- Top-up tier `pro-topup`: Lemon EUR/RON link + `*_VARIANT_ID`; checkout cere pack; webhook `+5/+4/+2` + `proPackLastTopupAt`.
+- UI: PricingModal bullets 10/8/4; Studio/Demo Desktop+Mobile gates + remaining; Dashboard **Adaugă credite** + text clickabil; tipuri `uiStrings` fără „AI” pe copy pachet.
+- `firestore.rules`: protejate `proPackGenerateRemaining`, `proPackEditRemaining`, `proPackCombineRemaining`, `proPackQuotaInitialized`, `proPackQuotaVersion`, `proPackLastTopupAt`.
+- Script manual (local, webhook nu ajunge pe localhost): `scripts/grant-pro-topup-by-email.mjs`.
+- Env (`.env.local` / `.env.example`): `LEMON_EUR_PRO_TOPUP`, `LEMON_RON_PRO_TOPUP`, `LEMON_*_PRO_TOPUP_VARIANT_ID`.
+**ÎNGHEȚAT** — nu se trece Pro pack la unlimited / nu se scoate top-up fără `override freeze pachete`.
+
 ## RĂMÂNE DE FĂCUT
+- **Deploy Hetzner** cu env top-up + VARIANT_ID (altfel Lemon order pe live nu creditează)
+- Publică `firestore.rules` (câmpuri proPack*)
+- Smoke top-up: după plată 5 EUR → cotă 10/8/4 → **15/12/6** (webhook pe URL public, nu doar localhost)
 - Deploy Hetzner (Resurse + relocare AdSense A+C)
 - Smoke Desktop+Mobile RO/EN/ES: `/resurse` (+en/es), landing după Features are ad; Studio/Demo loading **fără** ads
 - Smoke `sitemap.xml` + `ads.txt` pe ideeata.ai
@@ -637,7 +653,7 @@ Dacă oricare dintre aceste verificări este omisă în procesul de planificare,
 - Smoke Studio Standard/Full ES: Plan Profesional → 100% spaniolă + FODA cu explicații
 - Smoke optimize budget 20% → costuri × 0.8; Word TOTAL = placintă
 - Smoke free account EN/ES: 4 planuri / 3 tonuri → Pricing
-- Smoke Studio EN/ES Desktop+Mobile: pe Original → 2 instrumente = 2 tab-uri; pe tab non-Original → append (ex. Investitori + Buget); **+** Combine Standard 2 / Full 4; tab `stack_*` = nume instrumente
+- Smoke Studio EN/ES Desktop+Mobile: pe Original → 2 instrumente = 2 tab-uri; pe tab non-Original → append (ex. Investitori + Buget); **+** Combine Standard 2 / Pro max 4; tab `stack_*` = nume instrumente
 - Smoke tip bibliotecă + badge „9 MODULE” (nu 30+) pe Desktop/Mobile RO/EN/ES
 - Smoke load plan cu istoric: tab Original arată conținutul Original (nu ultimul top-level salvat)
 - Smoke Dashboard header: Tarife/Pricing/Precios + switcher RO/EN/ES pe căi locale

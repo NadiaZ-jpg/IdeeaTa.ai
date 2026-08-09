@@ -7,19 +7,20 @@
  */
 
 export type CheckoutLocale = "ro" | "en" | "es";
-export type CheckoutTier = "standard" | "eu-funds" | "pro";
+export type CheckoutTier = "standard" | "eu-funds" | "pro" | "pro-topup";
 
 export const CHECKOUT_TIERS: readonly CheckoutTier[] = [
   "standard",
   "eu-funds",
   "pro",
+  "pro-topup",
 ] as const;
 
 const RON_STORE = "https://ideeta.lemonsqueezy.com/checkout/buy";
 const EUR_STORE = "https://ideeta-international.lemonsqueezy.com/checkout/buy";
 
 /** Test-mode checkout UUIDs (dev only — never in production) */
-const RON_TEST: Record<CheckoutTier, string> = {
+const RON_TEST: Partial<Record<CheckoutTier, string>> = {
   standard: "dbd62a14-ca39-47ea-8d4f-cd1ef1f3270e",
   "eu-funds": "561d5420-b48c-446e-830e-c5a25ed30b13",
   pro: "a3059ce5-f0e8-45d2-8dc2-ce9f9ff02100",
@@ -40,11 +41,13 @@ function checkoutLinkEnv(tier: CheckoutTier, useEur: boolean): string | undefine
     if (tier === "standard") return process.env.LEMON_EUR_STANDARD;
     if (tier === "eu-funds") return process.env.LEMON_EUR_EU_FUNDS;
     if (tier === "pro") return process.env.LEMON_EUR_PRO;
+    if (tier === "pro-topup") return process.env.LEMON_EUR_PRO_TOPUP;
     return undefined;
   }
   if (tier === "standard") return process.env.LEMON_RON_STANDARD;
   if (tier === "eu-funds") return process.env.LEMON_RON_EU_FUNDS;
   if (tier === "pro") return process.env.LEMON_RON_PRO;
+  if (tier === "pro-topup") return process.env.LEMON_RON_PRO_TOPUP;
   return undefined;
 }
 
@@ -69,6 +72,12 @@ function webhookIdEnv(tier: CheckoutTier, useEur: boolean): string[] {
         process.env.LEMON_EUR_PRO_PRODUCT_ID,
       ].filter(Boolean) as string[];
     }
+    if (tier === "pro-topup") {
+      return [
+        process.env.LEMON_EUR_PRO_TOPUP_VARIANT_ID,
+        process.env.LEMON_EUR_PRO_TOPUP_PRODUCT_ID,
+      ].filter(Boolean) as string[];
+    }
     return [];
   }
   if (tier === "standard") {
@@ -87,6 +96,12 @@ function webhookIdEnv(tier: CheckoutTier, useEur: boolean): string[] {
     return [
       process.env.LEMON_RON_PRO_VARIANT_ID,
       process.env.LEMON_RON_PRO_PRODUCT_ID,
+    ].filter(Boolean) as string[];
+  }
+  if (tier === "pro-topup") {
+    return [
+      process.env.LEMON_RON_PRO_TOPUP_VARIANT_ID,
+      process.env.LEMON_RON_PRO_TOPUP_PRODUCT_ID,
     ].filter(Boolean) as string[];
   }
   return [];

@@ -3,9 +3,52 @@ import { adminDb } from "@/lib/firebase-admin";
 import { FieldValue } from "firebase-admin/firestore";
 import crypto from "crypto";
 import { resolveTierFromLemonOrder } from "@/lib/lemonCheckout";
-import { proPackGrantFields, proTopupGrantFields } from "@/lib/proPackQuota";
+import { proPackGrantFields } from "@/lib/proPackQuota";
+import {
+  applyOrderGrantToUser,
+  claimLemonOrderOrSkip,
+  deleteLemonOrderClaim,
+  lemonOrderIdFromPayload,
+  refundLemonOrder,
+} from "@/lib/lemonOrderLedger";
 
 const webhookSecret = process.env.LEMON_SQUEEZY_WEBHOOK_SECRET || "";
+
+async function deactivateSubscription(opts: {
+  subscriptionId: string;
+  customerId?: string | number | null;
+}) {
+  const snapshot = await adminDb
+    .collection("users")
+    .where("subscriptionId", "==", opts.subscriptionId)
+    .get();
+
+  const clearFields = {
+    subscriptionActive: false,
+    isPaid: false,
+    subscriptionId: null,
+  };
+
+  if (!snapshot.empty) {
+    await snapshot.docs[0].ref.set(clearFields, { merge: true });
+    console.log(`Dezactivat abonament pentru user: ${snapshot.docs[0].id}`);
+    return;
+  }
+
+  if (opts.customerId) {
+    const byCustomer = await adminDb
+      .collection("users")
+      .where("lemonSqueezyCustomerId", "==", opts.customerId)
+      .limit(1)
+      .get();
+    if (!byCustomer.empty) {
+      await byCustomer.docs[0].ref.set(clearFields, { merge: true });
+      console.log(
+        `Dezactivat abonament (customer fallback) pentru user: ${byCustomer.docs[0].id}`
+      );
+    }
+  }
+}
 
 export async function POST(req: NextRequest) {
   try {
@@ -30,20 +73,20 @@ export async function POST(req: NextRequest) {
     const eventName = payload.meta.event_name;
     const customData = payload.meta.custom_data || {};
 
-    // Lemon may echo custom keys as userId or user_id depending on checkout form
     const userId = String(
       customData.userId || customData.user_id || ""
     ).trim();
-    // Tier from paid variant/product — never trust spoofable custom_data.tier alone
     const tierFromVariant = resolveTierFromLemonOrder(payload);
     const tier = tierFromVariant;
 
-    if (!userId) {
+    if (
+      (eventName === "order_created" || eventName === "subscription_created") &&
+      !userId
+    ) {
       console.error("Webhook primit dar fara userId in custom_data", {
         keys: Object.keys(customData),
         eventName,
       });
-      // 4xx → Lemon retries (200 would mark delivered and never unlock)
       return NextResponse.json(
         { error: "Missing userId", code: "MISSING_USER_ID" },
         { status: 400 }
@@ -59,7 +102,6 @@ export async function POST(req: NextRequest) {
           customData.tier
         )} variant=${payload?.data?.attributes?.first_order_item?.variant_id}. Set LEMON_*_VARIANT_ID.`
       );
-      // 500 → Lemon retries once VARIANT_IDs are configured
       return NextResponse.json(
         { error: "Unmapped variant", code: "VARIANT_UNMAPPED" },
         { status: 500 }
@@ -67,136 +109,141 @@ export async function POST(req: NextRequest) {
     }
 
     const userRef = adminDb.collection("users").doc(userId);
-    const userDoc = await userRef.get();
-    const userData = userDoc.exists ? userDoc.data() : {};
+    const userDoc = userId ? await userRef.get() : null;
+    const userData = userDoc?.exists ? userDoc.data() : {};
+    const customerId = payload.data?.attributes?.customer_id ?? null;
 
     if (eventName === "order_created") {
-      if (tier === "standard") {
-        const planName = customData.planName || "Plan";
-        const planId = customData.planId ? String(customData.planId) : null;
-        const unlocked = userData?.unlockedPlans || [];
-        const unlockedIds = userData?.unlockedPlanIds || [];
-        const updatedPlans = !unlocked.includes(planName) ? [...unlocked, planName] : unlocked;
-        const updatedIds =
-          planId && !unlockedIds.includes(planId) ? [...unlockedIds, planId] : unlockedIds;
-        // Per-plan unlock + package flag for tones/Combine — NOT account-wide isPaid
-        await userRef.set(
-          {
-            standardPackageActive: true,
-            unlockedPlans: updatedPlans,
-            unlockedPlanIds: updatedIds,
-            lemonSqueezyCustomerId: payload.data.attributes.customer_id,
-          },
-          { merge: true }
-        );
-        console.log(
-          `Deblocat Standard (plan "${planName}" / id=${planId}, standardPackageActive) pentru user: ${userId}`
-        );
-      } else if (tier === "eu-funds") {
-        // One-time Pro Tools pack: tools unlock + finite quotas (NOT account-wide isPaid)
-        await userRef.set(
-          {
-            ...proPackGrantFields((n) => FieldValue.increment(n)),
-            lemonSqueezyCustomerId: payload.data.attributes.customer_id,
-          },
-          { merge: true }
-        );
-        console.log(
-          `Deblocat Pachet Editare + Instrumente Profesionale (+quotas) pentru user: ${userId}`
-        );
-      } else if (tier === "pro-topup") {
-        if (!userData?.euFundsUnlocked) {
-          console.error(
-            `[Webhook] pro-topup without Pro Tools pack — refused. userId=${userId}`
-          );
-          return NextResponse.json(
-            { error: "Pro Tools pack required", code: "TOPUP_REQUIRES_PACK" },
-            { status: 400 }
-          );
-        }
-        await userRef.set(
-          {
-            ...proTopupGrantFields((n) => FieldValue.increment(n)),
-            lemonSqueezyCustomerId: payload.data.attributes.customer_id,
-          },
-          { merge: true }
-        );
-        console.log(`Top-up Pro Tools (+5/+4/+2) pentru user: ${userId}`);
-      } else if (tier === "pro") {
-        await userRef.set(
-          {
-            subscriptionActive: true,
-            isPaid: true,
-            subscriptionId: payload.data.id || null,
-            lemonSqueezyCustomerId: payload.data.attributes.customer_id,
-          },
-          { merge: true }
-        );
-        console.log(`Activat abonament PRO pentru user: ${userId} via order_created`);
-      }
-    } else if (eventName === "subscription_created") {
-      if (tier === "pro") {
-        await userRef.set(
-          {
-            subscriptionActive: true,
-            isPaid: true,
-            subscriptionId: payload.data.id,
-            lemonSqueezyCustomerId: payload.data.attributes.customer_id,
-          },
-          { merge: true }
-        );
-        console.log(`Activat abonament PRO pentru user: ${userId} via subscription_created`);
-      } else if (tier === "eu-funds") {
-        // One-time pack mis-tagged as subscription_created — still grant pack quotas
-        await userRef.set(
-          {
-            ...proPackGrantFields((n) => FieldValue.increment(n)),
-            subscriptionId: payload.data.id,
-            lemonSqueezyCustomerId: payload.data.attributes.customer_id,
-          },
-          { merge: true }
-        );
-        console.log(
-          `Deblocat pachet Pro Tools (subscription_created) pentru user: ${userId}`
+      const orderId = lemonOrderIdFromPayload(payload);
+      if (!orderId) {
+        return NextResponse.json(
+          { error: "Missing order id", code: "MISSING_ORDER_ID" },
+          { status: 400 }
         );
       }
-    } else if (eventName === "subscription_cancelled" || eventName === "subscription_expired") {
-      const subscriptionId = payload.data.id;
-      const snapshot = await adminDb
-        .collection("users")
-        .where("subscriptionId", "==", subscriptionId)
-        .get();
 
-      if (!snapshot.empty) {
-        const docRef = snapshot.docs[0].ref;
-        await docRef.set(
-          {
-            subscriptionActive: false,
-            subscriptionId: null,
-          },
-          { merge: true }
+      if (tier === "pro-topup" && !userData?.euFundsUnlocked) {
+        console.error(
+          `[Webhook] pro-topup without Pro Tools pack — refused. userId=${userId}`
         );
-        console.log(`Dezactivat abonament pentru user: ${docRef.id}`);
-      } else {
-        // Fallback: cancel by customer id if subscriptionId was never stored
-        const customerId = payload.data.attributes?.customer_id;
-        if (customerId) {
-          const byCustomer = await adminDb
-            .collection("users")
-            .where("lemonSqueezyCustomerId", "==", customerId)
-            .limit(1)
-            .get();
-          if (!byCustomer.empty) {
-            await byCustomer.docs[0].ref.set(
-              { subscriptionActive: false, subscriptionId: null },
-              { merge: true }
-            );
-            console.log(
-              `Dezactivat abonament (customer fallback) pentru user: ${byCustomer.docs[0].id}`
-            );
-          }
-        }
+        return NextResponse.json(
+          { error: "Pro Tools pack required", code: "TOPUP_REQUIRES_PACK" },
+          { status: 400 }
+        );
       }
+
+      const claim = await claimLemonOrderOrSkip({
+        orderId,
+        userId,
+        tier: tier!,
+        eventName,
+        customerId,
+        planName: customData.planName || null,
+        planId: customData.planId ? String(customData.planId) : null,
+      });
+
+      if (claim === "skip") {
+        console.log(`[Webhook] Duplicate order_created skipped orderId=${orderId}`);
+        return NextResponse.json({ received: true, duplicate: true });
+      }
+
+      try {
+        await applyOrderGrantToUser({
+          userId,
+          tier: tier!,
+          customerId,
+          planName: customData.planName || null,
+          planId: customData.planId ? String(customData.planId) : null,
+          existingUnlockedPlans: userData?.unlockedPlans || [],
+          existingUnlockedPlanIds: userData?.unlockedPlanIds || [],
+        });
+
+        if (tier === "pro") {
+          await userRef.set(
+            { subscriptionId: payload.data.id || null },
+            { merge: true }
+          );
+        }
+      } catch (grantErr) {
+        await deleteLemonOrderClaim(orderId);
+        throw grantErr;
+      }
+
+      console.log(
+        `[Webhook] Granted tier=${tier} orderId=${orderId} userId=${userId}`
+      );
+    } else if (eventName === "subscription_created") {
+      const subId = lemonOrderIdFromPayload(payload);
+      if (!subId) {
+        return NextResponse.json(
+          { error: "Missing subscription id", code: "MISSING_SUB_ID" },
+          { status: 400 }
+        );
+      }
+      // Separate ledger key so order_created + subscription_created for same product don't clash
+      const ledgerId = `sub_${subId}`;
+      const claim = await claimLemonOrderOrSkip({
+        orderId: ledgerId,
+        userId,
+        tier: tier!,
+        eventName,
+        customerId,
+      });
+      if (claim === "skip") {
+        console.log(`[Webhook] Duplicate subscription_created skipped id=${ledgerId}`);
+        return NextResponse.json({ received: true, duplicate: true });
+      }
+
+      try {
+        if (tier === "pro") {
+          await userRef.set(
+            {
+              subscriptionActive: true,
+              isPaid: true,
+              subscriptionId: subId,
+              lemonSqueezyCustomerId: customerId,
+            },
+            { merge: true }
+          );
+          console.log(`Activat abonament PRO pentru user: ${userId}`);
+        } else if (tier === "eu-funds") {
+          await userRef.set(
+            {
+              ...proPackGrantFields((n) => FieldValue.increment(n)),
+              subscriptionId: subId,
+              lemonSqueezyCustomerId: customerId,
+            },
+            { merge: true }
+          );
+          console.log(
+            `Deblocat pachet Pro Tools (subscription_created) pentru user: ${userId}`
+          );
+        }
+      } catch (grantErr) {
+        await deleteLemonOrderClaim(ledgerId);
+        throw grantErr;
+      }
+    } else if (eventName === "order_refunded") {
+      const orderId = lemonOrderIdFromPayload(payload);
+      if (!orderId) {
+        return NextResponse.json(
+          { error: "Missing order id", code: "MISSING_ORDER_ID" },
+          { status: 400 }
+        );
+      }
+      const result = await refundLemonOrder(orderId);
+      console.log(
+        `[Webhook] order_refunded orderId=${orderId} result=${result.reason || "ok"}`
+      );
+    } else if (
+      eventName === "subscription_cancelled" ||
+      eventName === "subscription_expired"
+    ) {
+      const subscriptionId = String(payload.data.id);
+      await deactivateSubscription({
+        subscriptionId,
+        customerId: payload.data.attributes?.customer_id,
+      });
     } else {
       console.log(`Webhook neprocesat de tip: ${eventName}`);
     }

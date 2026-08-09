@@ -5,7 +5,7 @@ import { adminAuth } from "@/lib/firebase-admin";
 import { getGeneratePrompt } from "@/lib/promptConfig";
 import { normalizePlanResult } from "@/lib/normalizePlanResult";
 import { GUEST_DEMO_PLAN_LIMIT } from "@/lib/planQuota";
-import { assertAndConsumeGenerateQuota } from "@/lib/proPackQuotaAdmin";
+import { assertAndConsumeGenerateQuota, refundGenerateQuota, type GenerateQuotaConsume } from "@/lib/proPackQuotaAdmin";
 import { clientIpFromRequest, consumeRateLimit } from "@/lib/apiRateLimit";
 import { isAdminEmail } from "@/lib/adminEmails";
 
@@ -24,6 +24,8 @@ function normalizeLocale(locale: unknown): Locale {
 }
 
 export async function POST(req: NextRequest) {
+  let generateRefund: { userId: string; consumed: GenerateQuotaConsume } | null =
+    null;
   try {
     const { skill, locale: rawLocale, currency: rawCurrency, surface } = await req.json();
     const locale = normalizeLocale(rawLocale);
@@ -66,6 +68,7 @@ export async function POST(req: NextRequest) {
             { status: 403 }
           );
         }
+        generateRefund = { userId, consumed: quota.consumed };
       } catch (e: any) {
         console.error("[Generate API Auth Guard Error]:", e.message);
         return NextResponse.json(
@@ -139,6 +142,9 @@ export async function POST(req: NextRequest) {
     const fx_rate = await getExchangeRateRonToEur();
     return NextResponse.json({ ideas: [text], fx_rate });
   } catch (error: any) {
+    if (generateRefund) {
+      await refundGenerateQuota(generateRefund.userId, generateRefund.consumed);
+    }
     console.error("Generate error:", error);
     return NextResponse.json(
       { error: error?.message || "Generation failed" },

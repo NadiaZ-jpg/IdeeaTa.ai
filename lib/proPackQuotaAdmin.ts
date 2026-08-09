@@ -44,8 +44,10 @@ export async function ensureLegacyProPackQuotas(
   return fresh.exists ? fresh.data() : userData;
 }
 
+export type GenerateQuotaConsume = "none" | "lifetime" | "pack";
+
 export type GenerateQuotaResult =
-  | { ok: true }
+  | { ok: true; consumed: GenerateQuotaConsume }
   | { ok: false; code: string; message: string };
 
 /**
@@ -72,7 +74,7 @@ export async function assertAndConsumeGenerateQuota(opts: {
       subscriptionActive: !!userData?.subscriptionActive,
     })
   ) {
-    return { ok: true };
+    return { ok: true, consumed: "none" };
   }
 
   const lifetime =
@@ -95,7 +97,7 @@ export async function assertAndConsumeGenerateQuota(opts: {
 
   if (lifetime < FREE_ACCOUNT_PLAN_LIMIT) {
     await userRef.set({ lifetimePlanCount: lifetime + 1 }, { merge: true });
-    return { ok: true };
+    return { ok: true, consumed: "lifetime" };
   }
 
   try {
@@ -109,7 +111,7 @@ export async function assertAndConsumeGenerateQuota(opts: {
       if (left <= 0) throw new Error("PRO_PACK_GENERATE_LIMIT");
       tx.set(userRef, { proPackGenerateRemaining: left - 1 }, { merge: true });
     });
-    return { ok: true };
+    return { ok: true, consumed: "pack" };
   } catch (e: any) {
     if (e?.message === "PRO_PACK_GENERATE_LIMIT") {
       return {
@@ -119,6 +121,46 @@ export async function assertAndConsumeGenerateQuota(opts: {
       };
     }
     throw e;
+  }
+}
+
+/** Undo a prior assertAndConsumeGenerateQuota consumption after AI failure. */
+export async function refundGenerateQuota(
+  userId: string,
+  consumed: GenerateQuotaConsume
+): Promise<void> {
+  if (consumed === "none") return;
+  try {
+    const userRef = adminDb.collection("users").doc(userId);
+    if (consumed === "lifetime") {
+      await adminDb.runTransaction(async (tx: any) => {
+        const snap = await tx.get(userRef);
+        if (!snap.exists) return;
+        const d = snap.data() || {};
+        const lifetime =
+          typeof d.lifetimePlanCount === "number" ? d.lifetimePlanCount : 0;
+        tx.set(
+          userRef,
+          { lifetimePlanCount: Math.max(0, lifetime - 1) },
+          { merge: true }
+        );
+      });
+      return;
+    }
+    if (consumed === "pack") {
+      await adminDb.runTransaction(async (tx: any) => {
+        const snap = await tx.get(userRef);
+        if (!snap.exists) return;
+        const d = snap.data() || {};
+        const left =
+          typeof d.proPackGenerateRemaining === "number"
+            ? d.proPackGenerateRemaining
+            : 0;
+        tx.set(userRef, { proPackGenerateRemaining: left + 1 }, { merge: true });
+      });
+    }
+  } catch (e) {
+    console.warn("[proPack] generate refund failed:", e);
   }
 }
 

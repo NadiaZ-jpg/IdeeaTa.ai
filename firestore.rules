@@ -94,6 +94,11 @@ service cloud.firestore {
       allow read, write: if false;
     }
 
+    // Lemon order grant ledger: Admin webhook only
+    match /lemon_orders/{orderId} {
+      allow read, write: if false;
+    }
+
     match /{document=**} {
       allow read, write: if false;
     }

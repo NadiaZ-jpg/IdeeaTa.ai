@@ -11,9 +11,6 @@ import { migrateLocalPlansToFirebase } from '@/lib/migrationManager';
 import { markPlanDeletedLocally, FREE_ACCOUNT_PLAN_LIMIT, clearLocalPlanState, hasUnlimitedGenerateAccess } from '@/lib/planQuota';
 import {
   canGenerateWithQuotas,
-  PRO_TOPUP_COMBINE_GRANT,
-  PRO_TOPUP_EDIT_GRANT,
-  PRO_TOPUP_GENERATE_GRANT,
   proPackRemainingLabel,
   readProPackRemaining,
 } from '@/lib/proPackQuota';
@@ -357,21 +354,9 @@ export default function DashboardContent({ locale = "ro" }: { locale?: "ro" | "e
               </button>
             </div>
             {showProPackRemainingCue ? (
-              <button
-                type="button"
-                onClick={() => void handleProTopupCheckout()}
-                disabled={topupLoading}
-                className="text-[11px] text-amber-300/90 font-semibold text-right max-w-sm hover:underline cursor-pointer disabled:opacity-60"
-              >
+              <p className="text-[11px] text-amber-300/90 font-semibold text-right max-w-sm">
                 {proPackRemainingLabel(locale, proPackRemaining)}
-                <span className="block text-zinc-400 font-medium mt-0.5">
-                  {isEn
-                    ? `Click to add credits (+${PRO_TOPUP_GENERATE_GRANT} · +${PRO_TOPUP_EDIT_GRANT} · +${PRO_TOPUP_COMBINE_GRANT}) — ${topupPriceLabel}`
-                    : isEs
-                    ? `Clic para añadir créditos (+${PRO_TOPUP_GENERATE_GRANT} · +${PRO_TOPUP_EDIT_GRANT} · +${PRO_TOPUP_COMBINE_GRANT}) — ${topupPriceLabel}`
-                    : `Click pentru credite (+${PRO_TOPUP_GENERATE_GRANT} · +${PRO_TOPUP_EDIT_GRANT} · +${PRO_TOPUP_COMBINE_GRANT}) — ${topupPriceLabel}`}
-                </span>
-              </button>
+              </p>
             ) : showUpgradeCue ? (
                 <button 
                   onClick={() => setShowPricingModal(true)}

@@ -608,6 +608,13 @@ Dacă oricare dintre aceste verificări este omisă în procesul de planificare,
 - Sfat nou `ui.expertLibraryTip` (ro/en/es): Fonduri UE → DNSH / Logistică verde / Egalitate (+ Digitalizare); Plan Profesional → Funnel B2B / Prețuri / Matrice riscuri (+ HR). Afișat în `StudioLeftSidebar` + `StudioMobile`.
 **ÎNGHEȚAT** — nu se reintroduce „30+” pe badge fără conținut real; nu se încarcă top-level over active tab fără aprobare.
 
+## FREEZE (9 August 2026 — Resurse: conținut extins AdSense)
+**override freeze adsense (conținut editorial):**
+- Extinse: ghid, fonduri UE, investitori (+ FAQ link buget/SWOT).
+- Noi: buget investiții + SWOT cu explicații (RO/EN/ES), rute + hub + sitemap + LanguageSwitcher via `RESOURCE_ARTICLES`.
+- UI: `ResourcePage` responsive Desktop+Mobile; ads pe articole/hub neschimbat ca politică.
+**ÎNGHEȚAT** — nu se șterg articolele noi fără override.
+
 ## FREEZE (9 August 2026 — AdSense: script doar pe Landing + Resurse)
 **override freeze adsense:**
 - `isAdSenseContentPath` — doar `/`, `/en`, `/es` + `/resurse|en/resources|es/recursos` (+ articole).

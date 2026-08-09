@@ -12,6 +12,23 @@ const DELETED_KEY_PREFIX = "deleted_plan_ids_";
 export const FREE_ACCOUNT_PLAN_LIMIT = 4;
 export const GUEST_DEMO_PLAN_LIMIT = 3;
 
+/**
+ * Unlimited Gemini generate (account-level).
+ * Standard purchase / standard promo → NOT included (same as Standard package).
+ * Pro / EU Funds / legacy isPaid / matching promo flags → yes.
+ */
+export function hasUnlimitedGenerateAccess(opts: {
+  isPaid?: boolean;
+  subscriptionActive?: boolean;
+  euFundsUnlocked?: boolean;
+}): boolean {
+  return !!(
+    opts.isPaid ||
+    opts.subscriptionActive ||
+    opts.euFundsUnlocked
+  );
+}
+
 export function deletedPlansStorageKey(uid: string): string {
   return `${DELETED_KEY_PREFIX}${uid}`;
 }

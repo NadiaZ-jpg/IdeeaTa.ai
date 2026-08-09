@@ -4,7 +4,7 @@ import { getExchangeRateRonToEur } from "@/lib/exchangeRate";
 import { adminDb, adminAuth } from "@/lib/firebase-admin";
 import { getGeneratePrompt } from "@/lib/promptConfig";
 import { normalizePlanResult } from "@/lib/normalizePlanResult";
-import { FREE_ACCOUNT_PLAN_LIMIT, GUEST_DEMO_PLAN_LIMIT } from "@/lib/planQuota";
+import { FREE_ACCOUNT_PLAN_LIMIT, GUEST_DEMO_PLAN_LIMIT, hasUnlimitedGenerateAccess } from "@/lib/planQuota";
 import { clientIpFromRequest, consumeRateLimit } from "@/lib/apiRateLimit";
 
 export const maxDuration = 60;
@@ -53,13 +53,12 @@ export async function POST(req: NextRequest) {
         const userDoc = await adminDb.collection("users").doc(userId).get();
         const userData = userDoc.exists ? userDoc.data() : {};
 
-        // Account-level paid (legacy isPaid / Pro / EU / promo) — not standardPackage alone
-        const isAccountPaid = !!(
-          userData?.isPaid ||
-          userData?.subscriptionActive ||
-          userData?.euFundsUnlocked ||
-          userData?.promoCodeUnlocked
-        );
+        // Unlimited generate: Pro / EU / legacy isPaid — NOT Standard / standard promo
+        const isAccountPaid = hasUnlimitedGenerateAccess({
+          isPaid: !!userData?.isPaid,
+          subscriptionActive: !!userData?.subscriptionActive,
+          euFundsUnlocked: !!userData?.euFundsUnlocked,
+        });
 
         const lifetime =
           typeof userData?.lifetimePlanCount === "number"

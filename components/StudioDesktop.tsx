@@ -17,7 +17,7 @@ import { getExamples } from '@/lib/examples';
 
 import { formatObjectNumbers, formatNumberedText } from "@/lib/utils";
 import { EXPERT_TEMPLATES, ExpertTemplate } from '@/lib/templatesData';
-import { FREE_ACCOUNT_PLAN_LIMIT, clearLocalPlanState } from '@/lib/planQuota';
+import { FREE_ACCOUNT_PLAN_LIMIT, clearLocalPlanState, hasUnlimitedGenerateAccess } from '@/lib/planQuota';
 import { isAdminEmail } from '@/lib/adminEmails';
 import { isPlanExportUnlocked, hasAccountStandardAccess } from '@/lib/planUnlock';
 import { stripPaymentSuccessParams } from '@/lib/paymentReturn';
@@ -1096,12 +1096,11 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
 
       // LIMITATOR STUDIO — Maxim 4 planuri gratuite (account flags, not per-plan unlock)
       if (user && !isAdmin) {
-        const accountPaid = !!(
-          isPaid ||
-          promoCodeUnlocked ||
-          subscriptionActive ||
-          euFundsUnlocked
-        );
+        const accountPaid = hasUnlimitedGenerateAccess({
+          isPaid,
+          subscriptionActive,
+          euFundsUnlocked,
+        });
         if (!accountPaid) {
         try {
           const plansRef = collection(db, "users", user.uid, "plans");
@@ -1181,12 +1180,11 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
           finalResult.id = planId;
 
           if (retryCount === 0 && typeof window !== "undefined") {
-            const accountPaid = !!(
-              isPaid ||
-              promoCodeUnlocked ||
-              subscriptionActive ||
-              euFundsUnlocked
-            );
+            const accountPaid = hasUnlimitedGenerateAccess({
+              isPaid,
+              subscriptionActive,
+              euFundsUnlocked,
+            });
             if (!accountPaid && !isAdmin) {
               const studioCount = parseInt(localStorage.getItem('studioGenerateCount') || '0', 10);
               localStorage.setItem('studioGenerateCount', (studioCount + 1).toString());

@@ -29,7 +29,7 @@ import { truncateText, splitTextIntoSlides, getDynamicTextSize } from '@/lib/pla
 import { useExportActions } from '@/hooks/useExportActions';
 import { fetchSharedPlanPayload, resetDemoShareCounters, clearSharedIdFromUrl, redirectIfSharedLocaleMismatch } from '@/hooks/useSharedPlanLoader';
 import { resolveSharedViewCurrency, shouldShowCurrencyToggle } from '@/lib/pdfCtaBehavior';
-import { FREE_ACCOUNT_PLAN_LIMIT, GUEST_DEMO_PLAN_LIMIT, clearLocalPlanState } from '@/lib/planQuota';
+import { FREE_ACCOUNT_PLAN_LIMIT, GUEST_DEMO_PLAN_LIMIT, clearLocalPlanState, hasUnlimitedGenerateAccess } from '@/lib/planQuota';
 import { isAdminEmail } from '@/lib/adminEmails';
 import { isPlanExportUnlocked, hasAccountStandardAccess } from '@/lib/planUnlock';
 import { stripPaymentSuccessParams } from '@/lib/paymentReturn';
@@ -1070,12 +1070,11 @@ export default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" | 
 
     if (retryCount === 0) {
       if (typeof window !== "undefined") {
-        const accountPaid = !!(
-          isPaid ||
-          promoCodeUnlocked ||
-          subscriptionActive ||
-          euFundsUnlocked
-        );
+        const accountPaid = hasUnlimitedGenerateAccess({
+          isPaid,
+          subscriptionActive,
+          euFundsUnlocked,
+        });
         if (!user) {
           const count = parseInt(localStorage.getItem("demoGenerateCount") || "0", 10);
           if (count >= GUEST_DEMO_PLAN_LIMIT) {

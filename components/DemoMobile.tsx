@@ -26,7 +26,7 @@ import dynamic from 'next/dynamic';
 import { formatObjectNumbers, formatNumberedText } from "@/lib/utils";
 import { useSharedPlanLoader } from "@/hooks/useSharedPlanLoader";
 import { createAndCopySharedPlanLink } from "@/lib/sharePlan";
-import { FREE_ACCOUNT_PLAN_LIMIT, GUEST_DEMO_PLAN_LIMIT } from "@/lib/planQuota";
+import { FREE_ACCOUNT_PLAN_LIMIT, GUEST_DEMO_PLAN_LIMIT, hasUnlimitedGenerateAccess } from "@/lib/planQuota";
 import { isAdminEmail } from "@/lib/adminEmails";
 import { isPlanExportUnlocked, hasAccountStandardAccess } from "@/lib/planUnlock";
 import { stripPaymentSuccessParams } from "@/lib/paymentReturn";
@@ -457,7 +457,7 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
       }
     } else if (
       !isAdmin &&
-      !(isPaid || promoCodeUnlocked || subscriptionActive || euFundsUnlocked)
+      !hasUnlimitedGenerateAccess({ isPaid, subscriptionActive, euFundsUnlocked })
     ) {
       try {
         const snap = await getDocs(collection(db, "users", user.uid, "plans"));

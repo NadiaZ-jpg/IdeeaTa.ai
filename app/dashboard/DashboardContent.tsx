@@ -8,7 +8,7 @@ import { onAuthStateChanged, User, sendEmailVerification, signOut } from 'fireba
 import { collection, query, orderBy, getDocs, doc, deleteDoc, getDoc } from 'firebase/firestore';
 import { Plus, FileText, Calendar, ArrowRight, Loader2, Sparkles, Mail, AlertTriangle, Trash2 } from 'lucide-react';
 import { migrateLocalPlansToFirebase } from '@/lib/migrationManager';
-import { markPlanDeletedLocally, FREE_ACCOUNT_PLAN_LIMIT, clearLocalPlanState } from '@/lib/planQuota';
+import { markPlanDeletedLocally, FREE_ACCOUNT_PLAN_LIMIT, clearLocalPlanState, hasUnlimitedGenerateAccess } from '@/lib/planQuota';
 import { LanguageSwitcher } from '@/components/LanguageSwitcher';
 import BuyMeACoffeeModal from '@/components/BuyMeACoffeeModal';
 import { PricingModal } from '@/components/PricingModal';
@@ -119,7 +119,11 @@ export default function DashboardContent({ locale = "ro" }: { locale?: "ro" | "e
         const userDocSnap = await getDoc(userDocRef);
         if (userDocSnap.exists()) {
           const uData = userDocSnap.data();
-          const isPaid = uData.isPaid || uData.subscriptionActive || uData.promoCodeTier === "standard" || uData.promoCodeTier === "eu-funds" || uData.promoCodeTier === "full-access" || false;
+          const isPaid = hasUnlimitedGenerateAccess({
+            isPaid: !!uData.isPaid,
+            subscriptionActive: !!uData.subscriptionActive,
+            euFundsUnlocked: !!uData.euFundsUnlocked,
+          });
           setIsPaidUser(isPaid);
         }
 

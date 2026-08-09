@@ -17,7 +17,7 @@ import { UI_STRINGS } from '@/lib/uiStrings';
 import { createAndCopySharedPlanLink } from '@/lib/sharePlan';
 import { StudioMobileGenerateHint } from '@/components/StudioMobileGenerateHint';
 import { getExamples } from '@/lib/examples';
-import { FREE_ACCOUNT_PLAN_LIMIT } from '@/lib/planQuota';
+import { FREE_ACCOUNT_PLAN_LIMIT, hasUnlimitedGenerateAccess } from '@/lib/planQuota';
 import { isAdminEmail } from '@/lib/adminEmails';
 import { isPlanExportUnlocked, hasAccountStandardAccess } from '@/lib/planUnlock';
 import { stripPaymentSuccessParams } from '@/lib/paymentReturn';
@@ -659,12 +659,11 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
     let shouldStopLoading = true;
 
     if (retryCount === 0) {
-      const accountPaid = !!(
-        isPaid ||
-        promoCodeUnlocked ||
-        subscriptionActive ||
-        euFundsUnlocked
-      );
+      const accountPaid = hasUnlimitedGenerateAccess({
+        isPaid,
+        subscriptionActive,
+        euFundsUnlocked,
+      });
       if (!accountPaid && !isAdmin) {
         try {
           const snap = await getDocs(collection(db, "users", user.uid, "plans"));
@@ -743,12 +742,11 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
           finalResult.id = planId;
 
           if (retryCount === 0 && !isAdmin) {
-            const accountPaid = !!(
-              isPaid ||
-              promoCodeUnlocked ||
-              subscriptionActive ||
-              euFundsUnlocked
-            );
+            const accountPaid = hasUnlimitedGenerateAccess({
+              isPaid,
+              subscriptionActive,
+              euFundsUnlocked,
+            });
             if (!accountPaid) {
               const studioCount = parseInt(localStorage.getItem("studioGenerateCount") || "0", 10);
               localStorage.setItem("studioGenerateCount", (studioCount + 1).toString());

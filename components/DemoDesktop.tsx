@@ -57,6 +57,7 @@ import {
   stackLimitReachedMessage,
   toolStepFromAction,
   withVersionStack,
+  toneOnlyFromOriginalMessage,
   type CombineAction,
   type VersionStackAccess,
 } from '@/lib/versionStack';
@@ -363,11 +364,13 @@ export default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" | 
     }
 
     // Original → sibling tab; non-original / Combine (+) → append on active (or source) tab
+    // Tone → always from Original (never tone-on-tone)
     const { isCombine, baseSource, currentStack } = resolveEditBaseForToolRun({
       activeVersionId,
       versions,
       result,
       combineOptions: options,
+      forceSiblingFromOriginal: isActionFree,
     });
 
     if (usesPackQuota && isCombine && proPackRemaining.combine <= 0) {
@@ -389,6 +392,10 @@ export default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" | 
           const isStandardOnly = !!(versionStackAccess.hasStandardAccess && !versionStackAccess.hasFullAccess && !versionStackAccess.isAdmin);
           alert(stackLimitReachedMessage(locale, gate.limit, isStandardOnly));
           if (isStandardOnly) setShowPricingModal(true);
+          return;
+        }
+        if (gate.reason === "invalid" && nextStep.type === "tone") {
+          alert(toneOnlyFromOriginalMessage(locale));
           return;
         }
         return;
@@ -573,10 +580,7 @@ export default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" | 
       return;
     }
     if (combine.action === "professional_tone") {
-      void handleAiEdit(combine.action, combine.customStyle, undefined, false, {
-        basePlan: sourcePlan,
-        sourceVersionId,
-      });
+      alert(toneOnlyFromOriginalMessage(locale));
       return;
     }
     void handleAiEdit(combine.action, undefined, undefined, false, {

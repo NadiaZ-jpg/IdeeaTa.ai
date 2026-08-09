@@ -178,18 +178,30 @@ export function resolveVersionStack(vKey: string, plan: any): VersionToolStep[] 
  * - Explicit Combine (+) → source tab
  * - Toolbar while a non-original tab is active → that tab (append stack)
  * - Toolbar on Original → sibling from Original (empty stack)
+ * - Tone rewrite → ALWAYS sibling from Original (never tone-on-tone)
  */
 export function resolveEditBaseForToolRun(params: {
   activeVersionId: string;
   versions: Record<string, any>;
   result: any;
   combineOptions?: { basePlan?: any; sourceVersionId?: string } | null;
+  /** professional_tone: always branch from Original */
+  forceSiblingFromOriginal?: boolean;
 }): {
   isCombine: boolean;
   sourceId: string;
   baseSource: any;
   currentStack: VersionToolStep[];
 } {
+  if (params.forceSiblingFromOriginal) {
+    return {
+      isCombine: false,
+      sourceId: "original",
+      baseSource: params.versions?.original ?? params.result,
+      currentStack: [],
+    };
+  }
+
   const explicitCombine = !!(
     params.combineOptions?.sourceVersionId || params.combineOptions?.basePlan
   );
@@ -208,6 +220,16 @@ export function resolveEditBaseForToolRun(params: {
   return { isCombine, sourceId, baseSource, currentStack };
 }
 
+export function toneOnlyFromOriginalMessage(locale: VersionLocale): string {
+  if (locale === "en") {
+    return "Tone rewrite applies only to the Original version. Open Original, then choose a tone.";
+  }
+  if (locale === "es") {
+    return "La reescritura de tono se aplica solo a la Versión Original. Abre Original y elige un tono.";
+  }
+  return "Rescrierea tonului se aplică doar pe Varianta Originală. Deschide Original, apoi alege un ton.";
+}
+
 export type StackGateResult =
   | { ok: true; nextStack: VersionToolStep[] }
   | { ok: false; reason: "no_access" | "limit" | "invalid"; limit: number; current: number };
@@ -224,6 +246,10 @@ export function gateVersionStackAppend(
   }
   if (currentStack.length >= limit) {
     return { ok: false, reason: "limit", limit, current: currentStack.length };
+  }
+  // Never stack a second tone on an existing tone tab
+  if (nextStep.type === "tone" && currentStack.some((s) => s.type === "tone")) {
+    return { ok: false, reason: "invalid", limit, current: currentStack.length };
   }
   return { ok: true, nextStack: [...currentStack, nextStep] };
 }

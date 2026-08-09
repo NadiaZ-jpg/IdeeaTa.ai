@@ -33,21 +33,14 @@ import { formatObjectNumbers, formatNumberedText } from "@/lib/utils";
 import { canUseFreeToneEdit, consumeFreeToneEdit, isFreeToneKey, isProToneKey, toneVersionKey } from "@/lib/toneQuota";
 import {
   buildStackedVersionKey,
-  canUseVersionCombine,
-  combineFullAccessHint,
-  combineWithLabel,
   formatVersionTabTitle,
   gateVersionStackAppend,
-  getCombineMenuItems,
-  getVersionStackLimit,
-  isStandardOnlyCombineAccess,
   noCombineAccessMessage,
   resolveEditBaseForToolRun,
-  resolveVersionStack,
   stackLimitReachedMessage,
   toolStepFromAction,
   withVersionStack,
-  type CombineAction,
+  toneOnlyFromOriginalMessage,
   type VersionStackAccess,
 } from "@/lib/versionStack";
 
@@ -145,7 +138,6 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
     if (hasProPackQuota) void handleProTopupCheckout();
     else setShowPricingModal(true);
   };
-  const [combineMenuFor, setCombineMenuFor] = useState<string | null>(null);
   const [activeAiPrompt, setActiveAiPrompt] = useState<MobileAiPrompt | null>(null);
   const [aiPromptInput, setAiPromptInput] = useState("");
   const [skill, setSkill] = useState("");
@@ -426,12 +418,13 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
     setActiveAiPrompt(null);
     setAiPromptInput("");
 
-    // Original → sibling tab; non-original / Combine (+) → append on active (or source) tab
+    // Tone → always from Original (never tone-on-tone)
     const { isCombine, baseSource, currentStack } = resolveEditBaseForToolRun({
       activeVersionId,
       versions,
       result,
       combineOptions: options,
+      forceSiblingFromOriginal: isTone,
     });
 
     if (usesPackQuota && isCombine && proPackRemaining.combine <= 0) {
@@ -457,6 +450,10 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
           );
           alert(stackLimitReachedMessage(locale, gate.limit, isStandardOnly));
           if (isStandardOnly) setShowPricingModal(true);
+          return;
+        }
+        if (gate.reason === "invalid" && nextStep.type === "tone") {
+          alert(toneOnlyFromOriginalMessage(locale));
           return;
         }
         return;
@@ -535,34 +532,6 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
     } finally {
       setIsEditingAi(false);
     }
-  };
-
-  const handleCombineWith = (sourceVersionId: string, combine: CombineAction) => {
-    const sourcePlan = versions[sourceVersionId];
-    if (!sourcePlan) return;
-    setActiveVersionId(sourceVersionId);
-    setResult(sourcePlan);
-    setCombineMenuFor(null);
-    setShowVersionDropdown(false);
-
-    if (combine.action === "optimize_budget") {
-      void handleAiEdit("optimize_budget", undefined, {
-        basePlan: sourcePlan,
-        sourceVersionId,
-      });
-      return;
-    }
-    if (combine.action === "professional_tone") {
-      void handleAiEdit(combine.action, combine.customStyle, {
-        basePlan: sourcePlan,
-        sourceVersionId,
-      });
-      return;
-    }
-    void handleAiEdit(combine.action, undefined, {
-      basePlan: sourcePlan,
-      sourceVersionId,
-    });
   };
 
   const handleManualSave = async () => {
@@ -998,84 +967,26 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
                   <div className="absolute top-full left-0 right-0 mt-1 bg-zinc-950 border border-zinc-800 rounded-2xl p-2 shadow-2xl z-30 animate-in fade-in slide-in-from-top-1 duration-150">
                     <div className="text-[9px] uppercase font-black tracking-widest text-zinc-500 px-3 py-2 border-b border-zinc-900 flex justify-between items-center">
                       <span>{locale === "en" ? "Saved Versions" : locale === "es" ? "Versiones Guardadas" : "Versiuni Salvate"}</span>
-                      <button type="button" onClick={() => { setShowVersionDropdown(false); setCombineMenuFor(null); }} className="text-zinc-500 hover:text-white text-xs min-w-[44px] min-h-[44px]">✕</button>
+                      <button type="button" onClick={() => setShowVersionDropdown(false)} className="text-zinc-500 hover:text-white text-xs min-w-[44px] min-h-[44px]">✕</button>
                     </div>
                     <div className="max-h-64 overflow-y-auto flex flex-col gap-1 mt-1">
                       {Object.entries(versions).map(([vKey, vData]) => (
-                        <div key={vKey} className="flex flex-col gap-1">
-                          <div className="flex items-stretch gap-1">
-                            <button
-                              type="button"
-                              onClick={() => {
-                                setActiveVersionId(vKey);
-                                setResult(vData);
-                                setShowVersionDropdown(false);
-                                setCombineMenuFor(null);
-                                void syncCurrentPlanToFirestore(vData, versions, vKey);
-                              }}
-                              className={`flex-1 text-left px-3 py-2.5 rounded-xl text-xs font-semibold flex items-center justify-between transition-all cursor-pointer min-h-[44px] ${activeVersionId === vKey ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/30" : "text-zinc-400 hover:bg-zinc-900 hover:text-white"}`}
-                            >
-                              <span className="truncate pr-2">
-                                {formatVersionTabTitle(vKey, vData, locale, ui)}
-                              </span>
-                              {activeVersionId === vKey && <span className="text-emerald-400 text-xs shrink-0">✓</span>}
-                            </button>
-                            {canUseVersionCombine(versionStackAccess) && (
-                              <button
-                                type="button"
-                                title={combineWithLabel(locale)}
-                                onClick={() => {
-                                  const stack = resolveVersionStack(vKey, vData);
-                                  const limit = getVersionStackLimit(versionStackAccess);
-                                  if (stack.length >= limit) {
-                                    const isStandardOnly = !!(
-                                      versionStackAccess.hasStandardAccess &&
-                                      !versionStackAccess.hasFullAccess &&
-                                      !versionStackAccess.isAdmin
-                                    );
-                                    alert(stackLimitReachedMessage(locale, limit, isStandardOnly));
-                                    if (isStandardOnly) setShowPricingModal(true);
-                                    return;
-                                  }
-                                  setCombineMenuFor(combineMenuFor === vKey ? null : vKey);
-                                }}
-                                className="shrink-0 px-3 rounded-xl text-emerald-400 border border-emerald-500/25 bg-emerald-500/5 text-xs font-black min-w-[44px] min-h-[44px]"
-                              >
-                                +
-                              </button>
-                            )}
-                          </div>
-                          {combineMenuFor === vKey && (
-                            <div className="mx-1 mb-1 p-1.5 rounded-xl bg-zinc-900/80 border border-zinc-800">
-                              <p className="text-[9px] uppercase font-black tracking-widest text-zinc-500 px-2 py-1">
-                                {combineWithLabel(locale)}
-                              </p>
-                              {getCombineMenuItems(locale, versionStackAccess, ui).map((item) => (
-                                <button
-                                  key={item.id}
-                                  type="button"
-                                  className="w-full text-left text-xs px-3 py-2.5 rounded-lg text-zinc-300 hover:bg-zinc-800 hover:text-white font-semibold min-h-[44px]"
-                                  onClick={() => handleCombineWith(vKey, item.combine)}
-                                >
-                                  {item.label}
-                                </button>
-                              ))}
-                              {isStandardOnlyCombineAccess(versionStackAccess) && (
-                                <button
-                                  type="button"
-                                  className="w-full text-left text-[10px] leading-snug px-3 py-2.5 mt-1 rounded-lg text-amber-300/90 bg-amber-500/5 border border-amber-500/20 hover:bg-amber-500/10 font-semibold min-h-[44px]"
-                                  onClick={() => {
-                                    setCombineMenuFor(null);
-                                    setShowVersionDropdown(false);
-                                    setShowPricingModal(true);
-                                  }}
-                                >
-                                  {combineFullAccessHint(locale)}
-                                </button>
-                              )}
-                            </div>
-                          )}
-                        </div>
+                        <button
+                          key={vKey}
+                          type="button"
+                          onClick={() => {
+                            setActiveVersionId(vKey);
+                            setResult(vData);
+                            setShowVersionDropdown(false);
+                            void syncCurrentPlanToFirestore(vData, versions, vKey);
+                          }}
+                          className={`w-full text-left px-3 py-2.5 rounded-xl text-xs font-semibold flex items-center justify-between transition-all cursor-pointer min-h-[44px] ${activeVersionId === vKey ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/30" : "text-zinc-400 hover:bg-zinc-900 hover:text-white"}`}
+                        >
+                          <span className="truncate pr-2">
+                            {formatVersionTabTitle(vKey, vData, locale, ui)}
+                          </span>
+                          {activeVersionId === vKey && <span className="text-emerald-400 text-xs shrink-0">✓</span>}
+                        </button>
                       ))}
                     </div>
                   </div>

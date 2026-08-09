@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { hasCookieConsent, loadAdSenseScript, setCookieConsentAccepted } from '@/lib/adsenseConsent';
+import { hasCookieConsent, setCookieConsentAccepted } from '@/lib/adsenseConsent';
 
 const COOKIE_DECLINED_KEY = "cookie_consent_declined";
 
@@ -13,10 +13,8 @@ export function CookieBanner() {
   const isEs = pathname?.startsWith('/es');
 
   useEffect(() => {
-    if (hasCookieConsent()) {
-      loadAdSenseScript();
-      return;
-    }
+    // Consent only — AdSense script loads via AdSenseLoader / AdBanner on content pages.
+    if (hasCookieConsent()) return;
     try {
       if (localStorage.getItem(COOKIE_DECLINED_KEY) === "true") return;
     } catch {
@@ -32,7 +30,6 @@ export function CookieBanner() {
       /* ignore */
     }
     setCookieConsentAccepted();
-    loadAdSenseScript();
     setIsVisible(false);
   };
 

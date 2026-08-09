@@ -149,6 +149,10 @@ export function ResourcesHubPage({ locale }: { locale: ResourceLocale }) {
             </Link>
           ))}
         </div>
+
+        <div className="w-full min-h-[90px] mt-12">
+          <AdBanner dataAdSlot={CONTENT_AD_SLOT_A} className="w-full max-w-3xl mx-auto" />
+        </div>
       </div>
     </div>
   );

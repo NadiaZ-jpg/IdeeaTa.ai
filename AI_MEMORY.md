@@ -608,6 +608,14 @@ Dacă oricare dintre aceste verificări este omisă în procesul de planificare,
 - Sfat nou `ui.expertLibraryTip` (ro/en/es): Fonduri UE → DNSH / Logistică verde / Egalitate (+ Digitalizare); Plan Profesional → Funnel B2B / Prețuri / Matrice riscuri (+ HR). Afișat în `StudioLeftSidebar` + `StudioMobile`.
 **ÎNGHEȚAT** — nu se reintroduce „30+” pe badge fără conținut real; nu se încarcă top-level over active tab fără aprobare.
 
+## FREEZE (9 August 2026 — AdSense: script doar pe Landing + Resurse)
+**override freeze adsense:**
+- `isAdSenseContentPath` — doar `/`, `/en`, `/es` + `/resurse|en/resources|es/recursos` (+ articole).
+- `loadAdSenseScript` no-op pe Demo/Studio/login/dashboard/legal.
+- `AdSenseLoader` gated pe pathname; `CookieBanner` salvează doar consent (nu injectează script).
+- Hub Resurse: `AdBanner` la final (slot A).
+**ÎNGHEȚAT** — nu se reîncarcă adsbygoogle pe tool pages fără override.
+
 ## FREEZE (8 August 2026 — Faza B AdSense: pagini Resurse)
 **Scop:** conținut public pentru review AdSense („low-value content”).
 - Hub + 4 articole RO/EN/ES: `/resurse`, `/en/resources`, `/es/recursos` (+ ghid, fonduri UE, investitori, FAQ). Fără mențiuni „AI / instrumente AI” în copy (doar brand IdeeaTa.ai).

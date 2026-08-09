@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { ADSENSE_CLIENT, hasCookieConsent, loadAdSenseScript } from '@/lib/adsenseConsent';
+import { ADSENSE_CLIENT, hasCookieConsent, isAdSenseContentPath, loadAdSenseScript } from '@/lib/adsenseConsent';
 
 interface AdBannerProps {
   dataAdSlot: string;
@@ -67,7 +67,11 @@ export function AdBanner({
 
   useEffect(() => {
     const sync = () => {
-      const ok = hasCookieConsent();
+      const ok =
+        hasCookieConsent() &&
+        isAdSenseContentPath(
+          typeof window !== "undefined" ? window.location.pathname : undefined
+        );
       setAllowed(ok);
     };
     sync();
@@ -82,7 +86,9 @@ export function AdBanner({
       return;
     }
     return scheduleAfterLcp(() => {
-      loadAdSenseScript();
+      loadAdSenseScript(
+        typeof window !== "undefined" ? window.location.pathname : undefined
+      );
       setCanRender(true);
     });
   }, [allowed]);

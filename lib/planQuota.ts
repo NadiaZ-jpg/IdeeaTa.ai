@@ -10,7 +10,16 @@
 const DELETED_KEY_PREFIX = "deleted_plan_ids_";
 
 export const FREE_ACCOUNT_PLAN_LIMIT = 4;
+/** Max successful guest Demo plans per browser (localStorage). */
 export const GUEST_DEMO_PLAN_LIMIT = 3;
+/**
+ * Server anti-abuse ceiling per IP / day for guest /api/generate.
+ * Higher than GUEST_DEMO_PLAN_LIMIT so JSON retries / failed AI calls
+ * do not burn the user's 3 visible free plans.
+ */
+export const GUEST_IP_DAILY_ABUSE_LIMIT = 20;
+/** Soft per-hour IP cap (retries + double-clicks). */
+export const GUEST_IP_HOURLY_ABUSE_LIMIT = 30;
 
 /**
  * Unlimited generate (account-level).

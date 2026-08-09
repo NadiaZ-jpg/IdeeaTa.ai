@@ -4,7 +4,7 @@ import { getExchangeRateRonToEur } from "@/lib/exchangeRate";
 import { adminAuth } from "@/lib/firebase-admin";
 import { getGeneratePrompt } from "@/lib/promptConfig";
 import { normalizePlanResult } from "@/lib/normalizePlanResult";
-import { GUEST_DEMO_PLAN_LIMIT } from "@/lib/planQuota";
+import { GUEST_IP_DAILY_ABUSE_LIMIT, GUEST_IP_HOURLY_ABUSE_LIMIT } from "@/lib/planQuota";
 import { assertAndConsumeGenerateQuota, refundGenerateQuota, type GenerateQuotaConsume } from "@/lib/proPackQuotaAdmin";
 import { clientIpFromRequest, consumeRateLimit } from "@/lib/apiRateLimit";
 import { isAdminEmail } from "@/lib/adminEmails";
@@ -84,7 +84,9 @@ export async function POST(req: NextRequest) {
         );
       }
       const ip = clientIpFromRequest(req);
-      if (!(await consumeRateLimit(`gen:guest:${ip}`, GUEST_DEMO_PLAN_LIMIT, DAY_MS))) {
+      // Product limit (3 successful) is enforced client-side via demoGenerateCount.
+      // IP buckets are abuse ceilings only — must stay above client retries.
+      if (!(await consumeRateLimit(`gen:guest:${ip}`, GUEST_IP_DAILY_ABUSE_LIMIT, DAY_MS))) {
         return NextResponse.json(
           {
             error: "LIMIT_REACHED",
@@ -98,7 +100,7 @@ export async function POST(req: NextRequest) {
           { status: 403 }
         );
       }
-      if (!(await consumeRateLimit(`gen:guest-hour:${ip}`, 6, HOUR_MS))) {
+      if (!(await consumeRateLimit(`gen:guest-hour:${ip}`, GUEST_IP_HOURLY_ABUSE_LIMIT, HOUR_MS))) {
         return NextResponse.json(
           { error: "Too many requests", code: "RATE_LIMIT" },
           { status: 429 }

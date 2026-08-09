@@ -1204,7 +1204,9 @@ export default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" | 
 
         if (!res.ok) {
           if (data?.error === "LIMIT_REACHED") {
-            setShowPricingModal(true);
+            // Guest: create account (+1), not packages. Logged-in: packages / top-up.
+            if (!user) setShowAuthModal(true);
+            else openUpgradeForPackOrPricing();
             return;
           }
           throw new Error(data.error || `${t("errorServerPrefix", locale)}${res.status}`);
@@ -1781,8 +1783,8 @@ export default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" | 
                   </button>
                 </div>
                 {!user && (
-                  <div className="text-center sm:text-right mt-3">
-                    <span className="text-xs font-bold text-emerald-400">
+                  <div className="text-left mt-3 w-full">
+                    <span className="text-xs font-bold text-emerald-400 leading-snug block">
                       {demoCount >= GUEST_DEMO_PLAN_LIMIT ? (
                         `🔒 ${ui.limitReached}`
                       ) : (

@@ -524,7 +524,8 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
       if (!res.ok) {
         const errBody = await res.json().catch(() => ({}));
         if (errBody?.error === "LIMIT_REACHED") {
-          setShowPricingModal(true);
+          if (!user) setShowAuthModal(true);
+          else openUpgradeForPackOrPricing();
           return;
         }
         throw new Error(errBody?.message || "Eroare la generare");
@@ -1068,8 +1069,8 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
                 </button>
               </div>
               {!user && (
-                <div className="text-center mt-2">
-                  <span className="text-[11px] font-bold text-emerald-400">
+                <div className="text-left mt-2 w-full">
+                  <span className="text-[11px] font-bold text-emerald-400 leading-snug block">
                     {demoCount >= GUEST_DEMO_PLAN_LIMIT ? (
                       `🔒 ${ui.limitReached}`
                     ) : (

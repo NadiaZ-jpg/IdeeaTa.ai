@@ -62,10 +62,11 @@ import { ActionBar } from '@/components/ActionBar';
 import { MockupPreview } from '@/components/MockupPreview';
 import { VersionSelector } from '@/components/VersionSelector';
 import {
-  fetchSharedPlanPayload,
+  fetchSharedPlanResult,
   resetDemoShareCounters,
   clearSharedIdFromUrl,
   redirectIfSharedLocaleMismatch,
+  readSharedIdFromLocation,
 } from '@/hooks/useSharedPlanLoader';
 import { resolveSharedViewCurrency, shouldShowCurrencyToggle } from '@/lib/pdfCtaBehavior';
 const BudgetPieChart = dynamic(() => import('@/components/BudgetChart').then(mod => mod.BudgetPieChart), { ssr: false });
@@ -890,12 +891,13 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
   useEffect(() => {
     if (typeof window !== "undefined") {
       const urlParams = new URLSearchParams(window.location.search);
-      const sharedId = urlParams.get("sharedId");
+      const sharedId = readSharedIdFromLocation();
       
       if (sharedId) {
-        fetchSharedPlanPayload(sharedId)
-          .then(payload => {
-            if (!payload) return;
+        fetchSharedPlanResult(sharedId)
+          .then(result => {
+            if (!result.ok) return;
+            const payload = result.payload;
             if (redirectIfSharedLocaleMismatch(payload.locale, locale, sharedId)) return;
             setResult(formatObjectNumbers(payload.data));
             setCurrency(resolveSharedViewCurrency(payload.data, payload.locale));

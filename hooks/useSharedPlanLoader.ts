@@ -11,16 +11,21 @@ import {
 
 export type { AppLocale };
 
-/** Citește ?sharedId= din URL (client-only). */
+/** Citește ?sharedId= din URL (client-only). Acceptă și legacy ?shareId=. */
 export function readSharedIdFromLocation(): string | null {
   if (typeof window === "undefined") return null;
-  return new URLSearchParams(window.location.search).get("sharedId");
+  const q = new URLSearchParams(window.location.search);
+  return q.get("sharedId") || q.get("shareId");
 }
 
 export type SharedPlanPayload = {
   data: any;
   locale: AppLocale;
 };
+
+export type SharedPlanFetchResult =
+  | { ok: true; payload: SharedPlanPayload }
+  | { ok: false; error: "not_found" | "network" };
 
 /** Path demo pentru un locale (fără origin) — alias pdfCtaBehavior. */
 export function demoPathForLocale(locale: AppLocale, sharedId?: string): string {
@@ -42,14 +47,33 @@ export function redirectIfSharedLocaleMismatch(
 }
 
 /** Încarcă planul partajat + locale de pe /api/share/{id}. */
-export async function fetchSharedPlanPayload(sharedId: string): Promise<SharedPlanPayload | null> {
-  const res = await fetch(`/api/share/${sharedId}`);
-  const data = await res.json();
-  if (!data?.data) return null;
-  return {
-    data: formatObjectNumbers(data.data),
-    locale: normalizeAppLocale(data.locale),
-  };
+export async function fetchSharedPlanResult(
+  sharedId: string
+): Promise<SharedPlanFetchResult> {
+  try {
+    const res = await fetch(`/api/share/${encodeURIComponent(sharedId)}`);
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok || !data?.data) {
+      return { ok: false, error: res.status === 404 ? "not_found" : "network" };
+    }
+    return {
+      ok: true,
+      payload: {
+        data: formatObjectNumbers(data.data),
+        locale: normalizeAppLocale(data.locale),
+      },
+    };
+  } catch {
+    return { ok: false, error: "network" };
+  }
+}
+
+/** @deprecated — preferă fetchSharedPlanResult */
+export async function fetchSharedPlanPayload(
+  sharedId: string
+): Promise<SharedPlanPayload | null> {
+  const result = await fetchSharedPlanResult(sharedId);
+  return result.ok ? result.payload : null;
 }
 
 /** @deprecated — preferă fetchSharedPlanPayload */
@@ -79,6 +103,7 @@ type UseSharedPlanLoaderOptions = {
   pageLocale: AppLocale;
   onLoaded: (plan: any, shareLocale: AppLocale) => void;
   onSharedView?: () => void;
+  onError?: (error: "not_found" | "network") => void;
   resetDemoCounters?: boolean;
   setDemoCount?: (n: number) => void;
 };
@@ -89,6 +114,9 @@ type UseSharedPlanLoaderOptions = {
  */
 export function useSharedPlanLoader(options: UseSharedPlanLoaderOptions) {
   const [isCheckingShared, setIsCheckingShared] = useState(true);
+  const [shareError, setShareError] = useState<"not_found" | "network" | null>(
+    null
+  );
   const optsRef = useRef(options);
   optsRef.current = options;
 
@@ -103,8 +131,14 @@ export function useSharedPlanLoader(options: UseSharedPlanLoaderOptions) {
 
     (async () => {
       try {
-        const payload = await fetchSharedPlanPayload(sharedId);
-        if (cancelled || !payload) return;
+        const result = await fetchSharedPlanResult(sharedId);
+        if (cancelled) return;
+        if (!result.ok) {
+          setShareError(result.error);
+          optsRef.current.onError?.(result.error);
+          return;
+        }
+        const payload = result.payload;
         const o = optsRef.current;
         if (redirectIfSharedLocaleMismatch(payload.locale, o.pageLocale, sharedId)) {
           return;
@@ -117,6 +151,10 @@ export function useSharedPlanLoader(options: UseSharedPlanLoaderOptions) {
         clearSharedIdFromUrl();
       } catch (err) {
         console.error("Eroare incarcare shareId:", err);
+        if (!cancelled) {
+          setShareError("network");
+          optsRef.current.onError?.("network");
+        }
       } finally {
         if (!cancelled) setIsCheckingShared(false);
       }
@@ -127,5 +165,5 @@ export function useSharedPlanLoader(options: UseSharedPlanLoaderOptions) {
     };
   }, []);
 
-  return { isCheckingShared };
+  return { isCheckingShared, shareError };
 }

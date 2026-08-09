@@ -4,7 +4,11 @@ import { toPng } from "html-to-image";
 import { generatePptx } from "@/lib/generatePptx";
 import { generateDocxBlob } from "@/lib/generateDocx";
 import { createSharedPlan, buildSharedPlanUrl } from "@/lib/sharePlan";
-import { attachPdfCtaLinks, normalizeAppLocale } from "@/lib/pdfCtaBehavior";
+import {
+  attachPdfCtaLinks,
+  buildPdfCtaFallbackUrl,
+  normalizeAppLocale,
+} from "@/lib/pdfCtaBehavior";
 import { UI_STRINGS } from "@/lib/uiStrings";
 import { buildExportVersionFileSuffix } from "@/lib/studioActiveVersion";
 import { planUnlockPayload } from "@/lib/planUnlock";
@@ -172,10 +176,15 @@ export function useExportActions({
         });
 
         const exportLocale = normalizeAppLocale(locale);
-        const currentShareId = generatedShareId || result?.id;
-        const pdfUrl = currentShareId
-          ? buildSharedPlanUrl(currentShareId, exportLocale)
-          : `https://ideeata.ai${exportLocale === "en" ? "/en" : exportLocale === "es" ? "/es" : ""}/`;
+        // Do NOT fall back to result.id — that is not a shared_plans doc id.
+        const pdfUrl = generatedShareId
+          ? buildSharedPlanUrl(generatedShareId, exportLocale)
+          : buildPdfCtaFallbackUrl(exportLocale);
+        if (!generatedShareId) {
+          console.warn(
+            "[PDF] Share create failed — CTA uses Demo start (no fake sharedId)"
+          );
+        }
 
         const pdfFooters: Record<string, string> = {
           ro: "Plan generat inteligent de IdeeaTa.ai",

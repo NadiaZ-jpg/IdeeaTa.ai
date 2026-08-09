@@ -30,7 +30,8 @@ export function currentSearch(): string {
 
 export function hasSharedPlanQuery(): boolean {
   if (typeof window === "undefined") return false;
-  return new URLSearchParams(window.location.search).has("sharedId");
+  const q = new URLSearchParams(window.location.search);
+  return q.has("sharedId") || q.has("shareId");
 }
 
 /**

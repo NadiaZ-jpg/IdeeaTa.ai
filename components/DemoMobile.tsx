@@ -422,7 +422,7 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
   }, []);
 
   // Încărcare plan partajat (?sharedId=) — același helper ca pe Desktop
-  const { isCheckingShared } = useSharedPlanLoader({
+  const { isCheckingShared, shareError } = useSharedPlanLoader({
     pageLocale: locale,
     onLoaded: (plan) => {
       setSkipLocalRestore(true);
@@ -437,7 +437,7 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
   useEffect(() => {
     if (typeof window === "undefined" || isCheckingShared || skipLocalRestore) return;
     const urlParams = new URLSearchParams(window.location.search);
-    if (urlParams.get("sharedId")) return;
+    if (urlParams.get("sharedId") || urlParams.get("shareId")) return;
 
     const isStartNou = ["nou", "new", "nuevo"].includes(
       (urlParams.get("start") || "").toLowerCase()
@@ -1008,6 +1008,12 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
 
         {!loading && !result && (
           <div className="flex flex-col gap-6 animate-in fade-in slide-in-from-bottom-4 duration-300">
+            {shareError && (
+              <div className="rounded-2xl border border-amber-500/40 bg-amber-500/10 px-4 py-3">
+                <p className="text-amber-200 font-bold text-sm">{ui.sharedPlanNotFound}</p>
+                <p className="text-zinc-400 text-xs mt-1">{ui.sharedPlanNotFoundHint}</p>
+              </div>
+            )}
             <div className="text-center space-y-2 mt-4">
               <span className="text-[10px] bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 px-3 py-1 rounded-full font-bold uppercase tracking-wider">
                 {locale === "en" ? "Free Demo" : locale === "es" ? "Demo Gratis" : "Demo Gratuit"}

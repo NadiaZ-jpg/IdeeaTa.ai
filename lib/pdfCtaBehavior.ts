@@ -42,6 +42,13 @@ export function buildPdfCtaUrl(shareId: string, locale: AppLocale): string {
   return `${PRODUCTION_ORIGIN}${sharedPlanOpenPath(normalizeAppLocale(locale), shareId)}`;
 }
 
+/** Fallback CTA când share-ul nu s-a creat — Demo localizat, fără sharedId fals. */
+export function buildPdfCtaFallbackUrl(locale: AppLocale): string {
+  const loc = normalizeAppLocale(locale);
+  const start = loc === "en" ? "new" : loc === "es" ? "nuevo" : "nou";
+  return `${PRODUCTION_ORIGIN}${localePathPrefix(loc)}/demo?start=${start}`;
+}
+
 /**
  * URL scurt pentru clipboard / share social (`/shared/{id}?l=`).
  * `l=` e fallback dacă redirect-ul server nu citește locale din DB.

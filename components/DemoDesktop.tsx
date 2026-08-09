@@ -27,7 +27,7 @@ import { DemoBrochurePreview } from "@/components/pdf/DemoBrochurePreview";
 import { DemoPresentationSlides } from "@/components/pdf/DemoPresentationSlides";
 import { truncateText, splitTextIntoSlides, getDynamicTextSize } from '@/lib/planHelpers';
 import { useExportActions } from '@/hooks/useExportActions';
-import { fetchSharedPlanPayload, resetDemoShareCounters, clearSharedIdFromUrl, redirectIfSharedLocaleMismatch } from '@/hooks/useSharedPlanLoader';
+import { fetchSharedPlanResult, resetDemoShareCounters, clearSharedIdFromUrl, redirectIfSharedLocaleMismatch, readSharedIdFromLocation } from '@/hooks/useSharedPlanLoader';
 import { resolveSharedViewCurrency, shouldShowCurrencyToggle } from '@/lib/pdfCtaBehavior';
 import { FREE_ACCOUNT_PLAN_LIMIT, GUEST_DEMO_PLAN_LIMIT, clearLocalPlanState, hasUnlimitedGenerateAccess } from '@/lib/planQuota';
 import {
@@ -172,6 +172,7 @@ export default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" | 
   const [lastEditParams, setLastEditParams] = useState<{action: string, customStyle?: string, customInput?: string} | null>(null);
   const [isSharedView, setIsSharedView] = useState(false);
   const [isCheckingShared, setIsCheckingShared] = useState(true);
+  const [shareError, setShareError] = useState<"not_found" | "network" | null>(null);
 
   // UI State (modale, dropdown-uri) — gestionate centralizat în useUIState
   const {
@@ -802,12 +803,16 @@ export default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" | 
         localStorage.removeItem("resultState");
         window.history.replaceState({}, document.title, window.location.pathname);
       }
-      const sharedId = urlParams.get("sharedId");
+      const sharedId = readSharedIdFromLocation();
       
       if (sharedId) {
-        fetchSharedPlanPayload(sharedId)
-          .then(payload => {
-            if (!payload) return;
+        fetchSharedPlanResult(sharedId)
+          .then(result => {
+            if (!result.ok) {
+              setShareError(result.error);
+              return;
+            }
+            const payload = result.payload;
             if (redirectIfSharedLocaleMismatch(payload.locale, locale, sharedId)) return;
             setResult(payload.data);
             setCurrency(resolveSharedViewCurrency(payload.data, payload.locale));
@@ -815,7 +820,10 @@ export default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" | 
             resetDemoShareCounters(setDemoCount);
             clearSharedIdFromUrl();
           })
-          .catch(err => console.error("Eroare incarcare shareId:", err))
+          .catch(err => {
+            console.error("Eroare incarcare shareId:", err);
+            setShareError("network");
+          })
           .finally(() => setIsCheckingShared(false));
       } else {
         setIsCheckingShared(false);
@@ -859,7 +867,7 @@ export default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" | 
     const handlePopState = () => {
       const searchParams = new URLSearchParams(window.location.search);
       const isEdit = searchParams.get('edit') === 'true';
-      const isIdea = searchParams.get('view') === 'idea' || searchParams.has('sharedId');
+      const isIdea = searchParams.get('view') === 'idea' || searchParams.has('sharedId') || searchParams.has('shareId');
       const isLogin = searchParams.get('login') === 'true';
 
       // Gestioneaza Studio Editare
@@ -1569,6 +1577,12 @@ export default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" | 
         
         {!result && (
           <>
+          {shareError && (
+            <div className="w-full max-w-2xl mb-8 self-center rounded-2xl border border-amber-500/40 bg-amber-500/10 px-5 py-4 text-left print:hidden">
+              <p className="text-amber-200 font-bold text-sm md:text-base">{ui.sharedPlanNotFound}</p>
+              <p className="text-zinc-400 text-sm mt-1">{ui.sharedPlanNotFoundHint}</p>
+            </div>
+          )}
           <div className="w-full flex flex-col items-center justify-center mb-12 lg:mb-16 relative">
             <div className="inline-flex items-center gap-2.5 px-5 py-2.5 rounded-full bg-zinc-900/90 border border-emerald-500/30 text-emerald-400 text-sm font-black uppercase tracking-wider shadow-[0_0_30px_rgba(16,185,129,0.1)] hover:border-emerald-400/50 transition-all duration-300 animate-pulse relative z-10">
               <span className="text-base">✨</span> {ui.badgePreviewOnly === "PREVIEW ONLY" ? "Don't start a business before checking IdeeaTa.ai" : ui.badgePreviewOnly === "SOLO VISTA PREVIA" ? "No empieces un negocio antes de consultar IdeeaTa.ai" : "Nu începe o afacere înainte să verifici IdeeaTa.ai"}

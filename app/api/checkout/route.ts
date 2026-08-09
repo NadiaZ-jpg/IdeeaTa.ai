@@ -3,6 +3,7 @@ import {
   getLemonCheckoutUrl,
   isCheckoutTier,
   withCheckoutParams,
+  buildPaymentReturnUrl,
 } from "@/lib/lemonCheckout";
 import { adminAuth, adminDb } from "@/lib/firebase-admin";
 
@@ -29,7 +30,14 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const { tier, email, planName, planId, locale = "ro" } = await req.json();
+    const {
+      tier,
+      email,
+      planName,
+      planId,
+      locale = "ro",
+      returnPath,
+    } = await req.json();
 
     if (!isCheckoutTier(tier)) {
       return NextResponse.json(
@@ -65,12 +73,24 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    const redirectUrl = buildPaymentReturnUrl({
+      locale,
+      tier,
+      returnPath:
+        typeof returnPath === "string" && returnPath.length > 0
+          ? returnPath
+          : tier === "pro-topup"
+            ? "/dashboard"
+            : "/dashboard",
+    });
+
     const checkoutUrl = withCheckoutParams(baseUrl, {
       userId: uid,
       tier,
       email: email || emailFromToken,
       planName,
       planId,
+      redirectUrl,
     });
 
     return NextResponse.json({ url: checkoutUrl });

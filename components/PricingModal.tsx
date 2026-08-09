@@ -82,6 +82,12 @@ export function PricingModal({
           planName,
           planId,
           locale,
+          returnPath:
+            typeof window !== "undefined" && window.location.pathname.includes("/studio")
+              ? "/studio"
+              : typeof window !== "undefined" && window.location.pathname.includes("/demo")
+                ? "/demo"
+                : "/dashboard",
         }),
       });
       const data = await res.json().catch(() => ({}));

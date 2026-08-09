@@ -32,7 +32,7 @@ import {
 } from '@/lib/proTopupCheckout';
 import { isAdminEmail } from '@/lib/adminEmails';
 import { isPlanExportUnlocked, hasAccountStandardAccess } from '@/lib/planUnlock';
-import { stripPaymentSuccessParams } from '@/lib/paymentReturn';
+import { stripPaymentSuccessParams, pollVerifyCheckout, paymentSuccessMessage } from '@/lib/paymentReturn';
 import { passwordResetActionCodeSettings } from '@/lib/authActionUrls';
 import { canUseFreeToneEdit, consumeFreeToneEdit, isProToneKey, toneVersionKey } from '@/lib/toneQuota';
 import {
@@ -711,6 +711,7 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
       getIdToken: () => user.getIdToken(),
       email: user.email,
       locale,
+      returnPath: "/studio",
     });
     if (!result.ok) {
       alert(result.error);
@@ -863,20 +864,18 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
     if (paymentSuccess && user) {
       const verifyPayment = async () => {
         try {
-          const token = await user.getIdToken();
-          const res = await fetch(
-            `/api/verify-checkout?tier=${encodeURIComponent(tier || "")}`,
-            { headers: { Authorization: `Bearer ${token}` } }
-          );
-          const data = await res.json();
-          if (data.success) {
-            if (tier === "standard") {
-              alert(ui.paymentConfirmedEU.replace("{plan}", result?.nume || "Plan"));
-            } else if (tier === "eu-funds") {
-              alert(t("paymentConfirmedEU", locale));
-            } else if (tier === "pro") {
-              alert(ui.alertUnlimitedPro);
-            }
+          const ok = await pollVerifyCheckout({
+            getIdToken: () => user.getIdToken(),
+            tier,
+          });
+          if (ok) {
+            alert(
+              paymentSuccessMessage(
+                tier,
+                locale,
+                result?.nume || undefined
+              )
+            );
             stripPaymentSuccessParams();
           }
         } catch (error) {

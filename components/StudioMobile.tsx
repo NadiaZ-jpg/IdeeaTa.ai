@@ -22,7 +22,7 @@ import { canGenerateWithQuotas, PRO_TOPUP_COMBINE_GRANT, PRO_TOPUP_EDIT_GRANT, P
 import { proTopupHintLabel, startProTopupCheckout } from '@/lib/proTopupCheckout';
 import { isAdminEmail } from '@/lib/adminEmails';
 import { isPlanExportUnlocked, hasAccountStandardAccess } from '@/lib/planUnlock';
-import { stripPaymentSuccessParams } from '@/lib/paymentReturn';
+import { stripPaymentSuccessParams, pollVerifyCheckout, paymentSuccessMessage } from '@/lib/paymentReturn';
 import dynamic from 'next/dynamic';
 import { useExportActions } from "@/hooks/useExportActions";
 import { useCompleteMissingPlanFields } from "@/hooks/useCompleteMissingPlanFields";
@@ -131,6 +131,7 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
       getIdToken: () => user.getIdToken(),
       email: user.email,
       locale,
+      returnPath: "/studio",
     });
     if (!result.ok) {
       alert(result.error);
@@ -347,20 +348,12 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
     if (!paymentSuccess) return;
     (async () => {
       try {
-        const token = await user.getIdToken();
-        const res = await fetch(
-          `/api/verify-checkout?tier=${encodeURIComponent(tier || "")}`,
-          { headers: { Authorization: `Bearer ${token}` } }
-        );
-        const data = await res.json();
-        if (data.success) {
-          if (tier === "standard") {
-            alert(ui.paymentConfirmedEU.replace("{plan}", result?.nume || "Plan"));
-          } else if (tier === "eu-funds") {
-            alert(t("paymentConfirmedEU", locale));
-          } else if (tier === "pro") {
-            alert(ui.alertUnlimitedPro);
-          }
+        const ok = await pollVerifyCheckout({
+          getIdToken: () => user.getIdToken(),
+          tier,
+        });
+        if (ok) {
+          alert(paymentSuccessMessage(tier, locale, result?.nume || undefined));
           stripPaymentSuccessParams();
         }
       } catch (error) {

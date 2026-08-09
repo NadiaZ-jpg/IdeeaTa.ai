@@ -37,6 +37,8 @@ export async function startProTopupCheckout(opts: {
   getIdToken: () => Promise<string>;
   email?: string | null;
   locale: ProTopupLocale | string;
+  /** App path without locale, e.g. /studio — where Lemon redirects after pay */
+  returnPath?: string;
 }): Promise<{ ok: true; url: string } | { ok: false; error: string }> {
   const locale = opts.locale || "ro";
   try {
@@ -51,6 +53,7 @@ export async function startProTopupCheckout(opts: {
         tier: "pro-topup",
         email: opts.email,
         locale,
+        returnPath: opts.returnPath || "/dashboard",
       }),
     });
     const data = await res.json().catch(() => ({}));

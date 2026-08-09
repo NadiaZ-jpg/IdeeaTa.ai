@@ -27,6 +27,11 @@ import BuyMeACoffeeModal from '@/components/BuyMeACoffeeModal';
 import { PricingModal } from '@/components/PricingModal';
 import { UI_STRINGS } from '@/lib/uiStrings';
 import { stagePlanForStudioOpen } from '@/lib/studioPlanHandoff';
+import {
+  stripPaymentSuccessParams,
+  pollVerifyCheckout,
+  paymentSuccessMessage,
+} from '@/lib/paymentReturn';
 
 export default function DashboardContent({ locale = "ro" }: { locale?: "ro" | "en" | "es" }) {
   const router = useRouter();
@@ -100,6 +105,7 @@ export default function DashboardContent({ locale = "ro" }: { locale?: "ro" | "e
       getIdToken: () => user.getIdToken(),
       email: user.email,
       locale,
+      returnPath: "/dashboard",
     });
     if (!result.ok) {
       console.error(result.error);
@@ -226,6 +232,34 @@ export default function DashboardContent({ locale = "ro" }: { locale?: "ro" | "e
 
     return () => unsubscribe();
   }, [router, isEn, isEs]);
+
+  useEffect(() => {
+    if (typeof window === "undefined" || !user) return;
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get("payment_success") !== "true") return;
+    const tier = urlParams.get("tier");
+    (async () => {
+      try {
+        const ok = await pollVerifyCheckout({
+          getIdToken: () => user.getIdToken(),
+          tier,
+        });
+        if (ok) {
+          alert(paymentSuccessMessage(tier, locale));
+          // Refresh quotas from Firestore
+          const userDocSnap = await getDoc(doc(db, "users", user.uid));
+          if (userDocSnap.exists()) {
+            const uData = userDocSnap.data() || {};
+            setEuFundsUnlocked(!!uData.euFundsUnlocked);
+            setProPackRemaining(readProPackRemaining(uData));
+          }
+          stripPaymentSuccessParams();
+        }
+      } catch (e) {
+        console.error("Dashboard payment verify:", e);
+      }
+    })();
+  }, [user, locale]);
 
   if (loading) {
     return (

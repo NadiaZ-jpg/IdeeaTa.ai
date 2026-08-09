@@ -49,11 +49,11 @@ export async function GET(req: NextRequest) {
     } else if (tier === "eu-funds") {
       isUnlocked = data.euFundsUnlocked === true;
     } else if (tier === "pro-topup") {
-      // Credits applied on webhook; pack must already exist
-      isUnlocked =
-        data.euFundsUnlocked === true &&
-        typeof data.proPackLastTopupAt === "string" &&
-        data.proPackLastTopupAt.length > 0;
+      // Recent top-up only (avoid treating an old top-up as this checkout)
+      const last = data.proPackLastTopupAt;
+      const ts = typeof last === "string" ? Date.parse(last) : NaN;
+      const fresh = Number.isFinite(ts) && Date.now() - ts < 30 * 60 * 1000;
+      isUnlocked = data.euFundsUnlocked === true && fresh;
     } else if (tier === "pro") {
       isUnlocked = data.subscriptionActive === true;
     } else {

@@ -187,7 +187,8 @@ export function getLemonCheckoutUrl(
 }
 
 /** Append userId, email, planName/planId for webhook / prefill (server-only).
- *  custom tier is informational only — webhook unlock uses variant_id. */
+ *  custom tier is informational only — webhook unlock uses variant_id.
+ *  redirectUrl: post-checkout return (Lemon product_options.redirect_url). */
 export function withCheckoutParams(
   baseUrl: string,
   opts: {
@@ -196,6 +197,7 @@ export function withCheckoutParams(
     email?: string | null;
     planName?: string;
     planId?: string;
+    redirectUrl?: string | null;
   }
 ): string {
   const userId = String(opts.userId || "").trim();
@@ -217,5 +219,33 @@ export function withCheckoutParams(
       url.searchParams.set("checkout[custom][planName]", opts.planName);
     }
   }
+  if (opts.redirectUrl) {
+    // Supported on many Lemon checkout link builds; Confirmation URL in product is fallback
+    url.searchParams.set(
+      "checkout[product_options][redirect_url]",
+      opts.redirectUrl
+    );
+  }
+  return url.toString();
+}
+
+/** Locale-aware return URL after Lemon checkout. */
+export function buildPaymentReturnUrl(opts: {
+  locale?: string;
+  tier: string;
+  /** App path without locale prefix, e.g. /dashboard or /studio */
+  returnPath?: string;
+}): string {
+  const origin = (process.env.APP_URL || "https://ideeata.ai").replace(/\/$/, "");
+  const locale = opts.locale === "en" || opts.locale === "es" ? opts.locale : "ro";
+  let path = opts.returnPath || "/dashboard";
+  if (!path.startsWith("/")) path = `/${path}`;
+  // Strip accidental locale prefix from returnPath
+  path = path.replace(/^\/(en|es)(?=\/|$)/, "") || "/dashboard";
+  const localized =
+    locale === "en" ? `/en${path === "/" ? "" : path}` : locale === "es" ? `/es${path === "/" ? "" : path}` : path;
+  const url = new URL(localized, origin);
+  url.searchParams.set("payment_success", "true");
+  url.searchParams.set("tier", opts.tier);
   return url.toString();
 }

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { adminDb, adminAuth } from "@/lib/firebase-admin";
 import { FieldValue } from "firebase-admin/firestore";
 import { proPackGrantFields } from "@/lib/proPackQuota";
+import { clientIpFromRequest, consumeRateLimit } from "@/lib/apiRateLimit";
 
 function readPromoEnv(serverKey: string, publicFallbackKey: string, defaultValue: string): string {
   // Preferă variabile server-only; fallback public doar pentru compat local temporar
@@ -145,6 +146,26 @@ export async function POST(req: NextRequest) {
       );
     }
     const userId = auth.uid;
+
+    const HOUR_MS = 60 * 60 * 1000;
+    const ip = clientIpFromRequest(req);
+    if (
+      !(await consumeRateLimit(`promo:user:${userId}`, 10, HOUR_MS)) ||
+      !(await consumeRateLimit(`promo:ip:${ip}`, 30, HOUR_MS))
+    ) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: getErrorMsg(
+            "Prea multe încercări. Reîncearcă mai târziu.",
+            "Too many attempts. Please try again later.",
+            "Demasiados intentos. Inténtalo más tarde."
+          ),
+          code: "RATE_LIMIT",
+        },
+        { status: 429 }
+      );
+    }
 
     // Verificăm codul promoțional în colecția promo_codes din Firestore
     const promoRef = adminDb.collection("promo_codes").doc(actualCode);

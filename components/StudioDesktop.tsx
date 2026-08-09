@@ -20,14 +20,10 @@ import { EXPERT_TEMPLATES, ExpertTemplate } from '@/lib/templatesData';
 import { FREE_ACCOUNT_PLAN_LIMIT, clearLocalPlanState, hasUnlimitedGenerateAccess } from '@/lib/planQuota';
 import {
   canGenerateWithQuotas,
-  PRO_TOPUP_COMBINE_GRANT,
-  PRO_TOPUP_EDIT_GRANT,
-  PRO_TOPUP_GENERATE_GRANT,
-  proPackRemainingLabel,
   readProPackRemaining,
+  proPackTopupConfirmDialog,
 } from '@/lib/proPackQuota';
 import {
-  proTopupHintLabel,
   startProTopupCheckout,
 } from '@/lib/proTopupCheckout';
 import { isAdminEmail } from '@/lib/adminEmails';
@@ -45,6 +41,7 @@ import {
   toolStepFromAction,
   withVersionStack,
   toneOnlyFromOriginalMessage,
+  applyExpertLibrarySection,
   type CombineAction,
   type VersionStackAccess,
 } from '@/lib/versionStack';
@@ -62,6 +59,7 @@ import { useUIState } from '@/hooks/useUIState';
 import { ActionBar } from '@/components/ActionBar';
 import { MockupPreview } from '@/components/MockupPreview';
 import { VersionSelector } from '@/components/VersionSelector';
+import { ProPackQuotaBar } from '@/components/ProPackQuotaBar';
 import {
   fetchSharedPlanResult,
   resetDemoShareCounters,
@@ -393,7 +391,7 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
     if (usesPackQuota) {
       // resolve combine after options — early check for Pro edits
       if (!isActionFree && proPackRemaining.edit <= 0) {
-        openUpgradeForPackOrPricing();
+        openUpgradeForPackOrPricing("edit");
         return;
       }
     }
@@ -425,7 +423,7 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
     });
 
     if (usesPackQuota && isCombine && proPackRemaining.combine <= 0) {
-      openUpgradeForPackOrPricing();
+      openUpgradeForPackOrPricing("combine");
       return;
     }
 
@@ -510,11 +508,13 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
           if (
             errCode === "TONE_LIMIT" ||
             errCode === "PRO_REQUIRED" ||
-            errCode === "AUTH_REQUIRED" ||
-            errCode === "PRO_PACK_EDIT_LIMIT" ||
-            errCode === "PRO_PACK_COMBINE_LIMIT"
+            errCode === "AUTH_REQUIRED"
           ) {
             setShowPricingModal(true);
+          } else if (errCode === "PRO_PACK_EDIT_LIMIT") {
+            openUpgradeForPackOrPricing("edit");
+          } else if (errCode === "PRO_PACK_COMBINE_LIMIT") {
+            openUpgradeForPackOrPricing("combine");
           }
           
           setAiEditError(errorMsg);
@@ -726,9 +726,13 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
     window.location.href = result.url;
   };
 
-  const openUpgradeForPackOrPricing = () => {
-    if (hasProPackQuota) void handleProTopupCheckout();
-    else setShowPricingModal(true);
+  const openUpgradeForPackOrPricing = (kind: "generate" | "edit" | "combine" = "generate") => {
+    if (hasProPackQuota) {
+      if (!proPackTopupConfirmDialog(locale, kind)) return;
+      void handleProTopupCheckout();
+      return;
+    }
+    setShowPricingModal(true);
   };
   const [isAuthLoading, setIsAuthLoading] = useState(true);
   const [authError, setAuthError] = useState<string | null>(null);
@@ -744,6 +748,9 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
       setIsAuthLoading(false);
       if (currentUser) {
         window.scrollTo({ top: 0 });
+        if (typeof window !== "undefined" && !readSharedIdFromLocation()) {
+          setIsSharedView(false);
+        }
         if (!currentUser.emailVerified && currentUser.providerData[0]?.providerId === 'password') {
           setShowVerificationModal(true);
         }
@@ -990,17 +997,10 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
         });
       }
 
-      // Gestioneaza Login / Share View logic
-      if (!user) {
-        if (!isLogin) {
-          const savedVersionsStr = localStorage.getItem("current_versions");
-          const saved = localStorage.getItem("current_generated_plan");
-          if (savedVersionsStr || (saved && saved !== "null" && saved !== "undefined")) {
-            setIsSharedView(true);
-          }
-        } else {
-          setIsSharedView(false);
-        }
+      // Shared preview = doar din link sharedId (nu confunda planul propriu din localStorage)
+      if (user) {
+        // Cont logat: nu bloca Altă idee / Otra idea pe popstate
+        if (!searchParams.has("sharedId")) setIsSharedView(false);
       }
     };
     window.addEventListener('popstate', handlePopState);
@@ -1190,7 +1190,7 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
           freeLimit: FREE_ACCOUNT_PLAN_LIMIT,
         });
         if (!canGen) {
-          openUpgradeForPackOrPricing();
+          openUpgradeForPackOrPricing("generate");
           return;
         }
       }
@@ -1381,6 +1381,7 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
       handleAiEdit={handleAiEdit}
       aiPromptInput={aiPromptInput}
       setAiPromptInput={setAiPromptInput}
+      showProPackQuotaTip={hasProPackQuota}
     />
   );
 
@@ -1521,7 +1522,8 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
 
       <div className={`${isDownloading === 'pptx' ? 'hidden' : 'flex'} flex-col items-center w-full max-w-[1600px] px-4 md:px-12 relative z-10`}>
         {user && (
-          <div className={`w-full flex justify-between items-start sm:items-center py-2 border-b border-zinc-800/80 mb-3 print:hidden ${euFundsUnlocked && !subscriptionActive && !isAdmin ? "pb-12" : ""}`}>
+          <div className="w-full flex flex-col gap-3 py-2 border-b border-zinc-800/80 mb-3 print:hidden">
+            <div className="w-full flex justify-between items-start sm:items-center gap-3">
             <div className="flex flex-col gap-2">
               <span className="text-zinc-500 text-xs font-semibold">{ui.studioHeaderSubtitle}</span>
               <button 
@@ -1545,30 +1547,9 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
                   PRO
                 </span>
               ) : euFundsUnlocked ? (
-                <div className="relative flex items-center">
-                  <span className="bg-amber-500/20 border border-amber-500/40 text-amber-300 px-2 py-0.5 rounded-full font-black uppercase tracking-wider whitespace-nowrap">
-                    {ui.badgeStudioGrants}
-                  </span>
-                  {!subscriptionActive && !isAdmin && (
-                    <div className="absolute left-0 top-full mt-1 flex flex-col gap-0.5">
-                      <span className="text-[10px] text-amber-200/90 font-semibold whitespace-nowrap">
-                        {proPackRemainingLabel(locale, proPackRemaining)}
-                      </span>
-                      <button
-                        type="button"
-                        disabled={topupLoading}
-                        onClick={() => void handleProTopupCheckout()}
-                        className="text-[10px] text-amber-300/90 font-semibold whitespace-nowrap text-left hover:underline cursor-pointer disabled:opacity-60"
-                      >
-                        {proTopupHintLabel(locale, {
-                          generate: PRO_TOPUP_GENERATE_GRANT,
-                          edit: PRO_TOPUP_EDIT_GRANT,
-                          combine: PRO_TOPUP_COMBINE_GRANT,
-                        })}
-                      </button>
-                    </div>
-                  )}
-                </div>
+                <span className="bg-emerald-500/15 border border-emerald-500/35 text-emerald-400 px-2 py-0.5 rounded-full font-black uppercase tracking-wider whitespace-nowrap">
+                  {ui.badgeStudioGrants}
+                </span>
               ) : isPlanPaid ? (
                 <span className="bg-blue-500/20 border border-blue-500/40 text-blue-400 px-2 py-0.5 rounded-full font-black uppercase tracking-wider">
                   {ui.badgeStandardUnlocked}
@@ -1603,6 +1584,16 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
                 {ui.logOut}
               </button>
             </div>
+            </div>
+            {hasProPackQuota && (
+              <ProPackQuotaBar
+                locale={locale}
+                remaining={proPackRemaining}
+                topupLoading={topupLoading}
+                onTopup={() => void handleProTopupCheckout()}
+                layout="inline"
+              />
+            )}
           </div>
         )}
 
@@ -2098,7 +2089,8 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
             isPlanPaid={hasStandardAccess}
             isEditing={isEditing}
             isSharedView={isSharedView}
-            showCurrencyToggle={shouldShowCurrencyToggle(locale, isSharedView)}
+            showCurrencyToggle={shouldShowCurrencyToggle(locale, isSharedView && !user)}
+            user={user}
           />
 
           {!isEditing && (
@@ -2255,25 +2247,43 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
           onRequireAuth={() => setShowAuthModal(true)}
           onRequirePro={() => setShowPricingModal(true)}
           onAddSection={(newSection) => {
-            const currentSecs = result?.sectiuni_aditionale || [];
-            const newIndex = currentSecs.length;
-            const updated = {
-              ...result,
-              sectiuni_aditionale: [...currentSecs, newSection]
-            };
-            const nextVersions = {
-              ...(versions && Object.keys(versions).length ? versions : { original: updated }),
-              [activeVersionIdRef.current]: updated,
-            };
-            setResult(updated);
-            syncCurrentPlanToFirestore(updated, nextVersions);
+            const applied = applyExpertLibrarySection({
+              activeVersionId: activeVersionIdRef.current,
+              versions,
+              result,
+              newSection,
+              access: versionStackAccess,
+            });
+            if (!applied.ok) {
+              if (applied.reason === "no_access") {
+                alert(noCombineAccessMessage(locale));
+                setShowPricingModal(true);
+                return;
+              }
+              if (applied.reason === "limit") {
+                const isStandardOnly = !!(
+                  versionStackAccess.hasStandardAccess &&
+                  !versionStackAccess.hasFullAccess &&
+                  !versionStackAccess.isAdmin
+                );
+                alert(stackLimitReachedMessage(locale, applied.limit, isStandardOnly));
+                if (isStandardOnly) setShowPricingModal(true);
+              }
+              return;
+            }
+            setVersions(applied.versions);
+            setActiveVersionId(applied.activeVersionId);
+            setResult(applied.plan);
+            syncCurrentPlanToFirestore(applied.plan, applied.versions);
             if (typeof window !== "undefined") {
-              localStorage.setItem("current_generated_plan", JSON.stringify(updated));
+              localStorage.setItem("current_generated_plan", JSON.stringify(applied.plan));
             }
             setTimeout(() => {
-              const el = document.getElementById(`custom-section-${newIndex}`) || document.getElementById("section-custom");
+              const el =
+                document.getElementById(`custom-section-${applied.sectionIndex}`) ||
+                document.getElementById("section-custom");
               if (el) {
-                el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                el.scrollIntoView({ behavior: "smooth", block: "center" });
               }
             }, 400);
           }}

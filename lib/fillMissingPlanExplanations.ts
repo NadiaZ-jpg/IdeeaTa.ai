@@ -23,10 +23,11 @@ function extractJsonObject(text: string): any | null {
 }
 
 /**
- * If SWOT/budget/operational/vision fields are missing, ask the model once to fill them.
+ * If SWOT/budget/operational/vision fields are missing or truncated mid-sentence,
+ * ask the model once to fill/repair them.
  * Safe no-op when complete or when the API key / model call fails.
  * Optional timeoutMs: return normalized plan early so /api/generate stays fast;
- * client hook useCompleteMissingPlanFields finishes the rest.
+ * client hook useCompleteMissingPlanFields finishes the rest (Demo+Studio D/M RO/EN/ES).
  */
 export async function fillMissingPlanExplanations(
   plan: any,

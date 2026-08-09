@@ -2,7 +2,8 @@
 /**
  * ActionBar — Reset / Edit / Currency / Download.
  * - Labels from UI_STRINGS[locale] (nu fallback RO pe EN/ES).
- * - Shared view (din PDF): doar download localizat — fără Altă idee / Studio / LEI.
+ * - Shared view guest (din PDF, nelogat): doar download localizat — fără Altă idee / Studio / LEI.
+ * - Cont logat: mereu Altă idee + Studio, chiar dacă a deschis un link shared.
  */
 
 import React from "react";
@@ -25,8 +26,10 @@ interface ActionBarProps {
   isPlanPaid: boolean;
   isEditing?: boolean;
   showCurrencyToggle?: boolean;
-  /** Plan deschis din PDF /shared — ascunde edit/reset/LEI */
+  /** Plan deschis din PDF /shared — ascunde edit/reset/LEI doar pentru vizitatori nelogați */
   isSharedView?: boolean;
+  /** Dacă e setat, shared preview nu mai blochează Altă idee / Studio */
+  user?: { uid?: string } | null;
 }
 
 function normalizeLocale(locale: string): Locale {
@@ -55,6 +58,7 @@ export function ActionBar({
   isEditing = false,
   showCurrencyToggle = true,
   isSharedView = false,
+  user = null,
 }: ActionBarProps) {
   const loc = normalizeLocale(String(locale));
   // Sursă unică pe locale — nu depinde de ui greșit din parent
@@ -62,7 +66,9 @@ export function ActionBar({
 
   const editLabel = `🪄 ${stripLeadingEmoji(ui.editingStudio)}`;
   const resetLabel = `💡 ${stripLeadingEmoji(ui.anotherIdea)}`;
-  const allowCurrency = showCurrencyToggle && !isSharedView && loc === "ro";
+  // Guest shared preview only — logged-in users always keep Otra idea / Another idea / Altă idee
+  const guestSharedPreview = !!(isSharedView && !user);
+  const allowCurrency = showCurrencyToggle && !guestSharedPreview && loc === "ro";
 
   const downloadBlock = (
     <div className="relative group w-full md:w-auto flex-none">
@@ -126,8 +132,8 @@ export function ActionBar({
     </div>
   );
 
-  // Din PDF / share: doar download + CTA cont (fără butoane RO/edit/LEI)
-  if (isSharedView) {
+  // Din PDF / share (guest): doar download + CTA cont (fără butoane RO/edit/LEI)
+  if (guestSharedPreview) {
     return (
       <div className="flex flex-col sm:flex-row items-center justify-center gap-3 w-full">
         {downloadBlock}

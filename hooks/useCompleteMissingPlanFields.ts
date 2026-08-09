@@ -1,7 +1,11 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { planNeedsExplanationFill } from "@/lib/normalizePlanResult";
+import {
+  budgetItemNeedsExplanationFill,
+  planNeedsExplanationFill,
+  swotItemNeedsExplanationFill,
+} from "@/lib/normalizePlanResult";
 import { formatObjectNumbers } from "@/lib/utils";
 import { auth } from "@/lib/firebase";
 
@@ -17,33 +21,31 @@ function swotItemCount(plan: any): number {
   return n;
 }
 
-function emptySwotExplCount(plan: any): number {
-  const swot = plan?.analiza_swot;
-  if (!swot) return 0;
+function incompleteExplCount(plan: any): number {
   let n = 0;
-  for (const key of ["puncte_tari", "puncte_slabe", "oportunitati", "amenintari"]) {
-    const arr = swot[key];
-    if (!Array.isArray(arr)) continue;
-    for (const item of arr) {
-      const titlu = typeof item === "string" ? item : item?.titlu;
-      const expl =
-        typeof item === "string"
-          ? ""
-          : String(
-              item?.explicatie_tehnica ||
-                item?.explicacion_tecnica ||
-                item?.explicacion ||
-                ""
-            ).trim();
-      if (titlu && String(titlu).trim() && !expl) n += 1;
+  const swot = plan?.analiza_swot;
+  if (swot) {
+    for (const key of ["puncte_tari", "puncte_slabe", "oportunitati", "amenintari"]) {
+      const arr = swot[key];
+      if (!Array.isArray(arr)) continue;
+      for (const item of arr) {
+        if (swotItemNeedsExplanationFill(item)) n += 1;
+      }
+    }
+  }
+  const budget = plan?.plan_financiar?.buget_investitii;
+  if (Array.isArray(budget)) {
+    for (const b of budget) {
+      if (budgetItemNeedsExplanationFill(b)) n += 1;
     }
   }
   return n;
 }
 
 /**
- * Completes empty SWOT/budget/ops fields after generate or when opening Studio Edit.
+ * Completes empty/truncated SWOT/budget/ops fields after generate or when opening Studio Edit.
  * Retries once. Does not cancel mid-flight when setResult updates the same plan.
+ * Shared by Demo + Studio, Desktop + Mobile, RO/EN/ES.
  */
 export function useCompleteMissingPlanFields(
   result: any,
@@ -63,8 +65,9 @@ export function useCompleteMissingPlanFields(
     if (!enabled || !result || !needsFill || !planId) return;
 
     const beforeCount = swotItemCount(result);
-    const beforeEmpty = emptySwotExplCount(result);
-    const planKey = `${planId}:fields-v5:e${beforeEmpty}:s${beforeCount}`;
+    const beforeIncomplete = incompleteExplCount(result);
+    // v6: also repairs mid-sentence truncated budget/SWOT explanations
+    const planKey = `${planId}:fields-v6:i${beforeIncomplete}:s${beforeCount}`;
     if (attemptedKeys.current.has(planKey)) return;
     if (inFlightKey.current === planKey) return;
 
@@ -109,8 +112,8 @@ export function useCompleteMissingPlanFields(
           best = completed;
           current = completed;
 
-          const afterEmpty = emptySwotExplCount(completed);
-          if (afterEmpty === 0 || afterEmpty < beforeEmpty) break;
+          const afterIncomplete = incompleteExplCount(completed);
+          if (afterIncomplete === 0 || afterIncomplete < beforeIncomplete) break;
         }
 
         if (!cancelled && best) {

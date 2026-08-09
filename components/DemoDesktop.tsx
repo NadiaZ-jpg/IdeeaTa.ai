@@ -32,13 +32,10 @@ import { resolveSharedViewCurrency, shouldShowCurrencyToggle } from '@/lib/pdfCt
 import { FREE_ACCOUNT_PLAN_LIMIT, GUEST_DEMO_PLAN_LIMIT, clearLocalPlanState, hasUnlimitedGenerateAccess } from '@/lib/planQuota';
 import {
   canGenerateWithQuotas,
-  PRO_TOPUP_COMBINE_GRANT,
-  PRO_TOPUP_EDIT_GRANT,
-  PRO_TOPUP_GENERATE_GRANT,
-  proPackRemainingLabel,
   readProPackRemaining,
+  proPackTopupConfirmDialog,
 } from '@/lib/proPackQuota';
-import { proTopupHintLabel, startProTopupCheckout } from '@/lib/proTopupCheckout';
+import { startProTopupCheckout } from '@/lib/proTopupCheckout';
 import { isAdminEmail } from '@/lib/adminEmails';
 import { isPlanExportUnlocked, hasAccountStandardAccess } from '@/lib/planUnlock';
 import { stripPaymentSuccessParams, pollVerifyCheckout, paymentSuccessMessage } from '@/lib/paymentReturn';
@@ -49,6 +46,7 @@ import { useUIState } from '@/hooks/useUIState';
 import { ActionBar } from '@/components/ActionBar';
 import { MockupPreview } from '@/components/MockupPreview';
 import { VersionSelector } from '@/components/VersionSelector';
+import { ProPackQuotaBar } from '@/components/ProPackQuotaBar';
 import {
   buildStackedVersionKey,
   gateVersionStackAppend,
@@ -58,6 +56,7 @@ import {
   toolStepFromAction,
   withVersionStack,
   toneOnlyFromOriginalMessage,
+  applyExpertLibrarySection,
   type CombineAction,
   type VersionStackAccess,
 } from '@/lib/versionStack';
@@ -331,7 +330,7 @@ export default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" | 
     const usesPackQuota = !!(euFundsUnlocked && !subscriptionActive && !isAdmin);
     const consumesProEdit = !isActionFree || isProTone;
     if (usesPackQuota && consumesProEdit && proPackRemaining.edit <= 0) {
-      openUpgradeForPackOrPricing();
+      openUpgradeForPackOrPricing("edit");
       return;
     }
 
@@ -374,7 +373,7 @@ export default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" | 
     });
 
     if (usesPackQuota && isCombine && proPackRemaining.combine <= 0) {
-      openUpgradeForPackOrPricing();
+      openUpgradeForPackOrPricing("combine");
       return;
     }
 
@@ -459,11 +458,13 @@ export default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" | 
           if (
             errCode === "TONE_LIMIT" ||
             errCode === "PRO_REQUIRED" ||
-            errCode === "AUTH_REQUIRED" ||
-            errCode === "PRO_PACK_EDIT_LIMIT" ||
-            errCode === "PRO_PACK_COMBINE_LIMIT"
+            errCode === "AUTH_REQUIRED"
           ) {
             setShowPricingModal(true);
+          } else if (errCode === "PRO_PACK_EDIT_LIMIT") {
+            openUpgradeForPackOrPricing("edit");
+          } else if (errCode === "PRO_PACK_COMBINE_LIMIT") {
+            openUpgradeForPackOrPricing("combine");
           }
           
           setAiEditError(errorMsg);
@@ -675,9 +676,13 @@ export default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" | 
     window.location.href = result.url;
   };
 
-  const openUpgradeForPackOrPricing = () => {
-    if (hasProPackQuota) void handleProTopupCheckout();
-    else setShowPricingModal(true);
+  const openUpgradeForPackOrPricing = (kind: "generate" | "edit" | "combine" = "generate") => {
+    if (hasProPackQuota) {
+      if (!proPackTopupConfirmDialog(locale, kind)) return;
+      void handleProTopupCheckout();
+      return;
+    }
+    setShowPricingModal(true);
   };
 
   const syncCurrentPlanToFirestore = async (
@@ -718,6 +723,9 @@ export default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" | 
       setIsAuthLoading(false);
       if (currentUser) {
         window.scrollTo({ top: 0 });
+        if (typeof window !== "undefined" && !readSharedIdFromLocation()) {
+          setIsSharedView(false);
+        }
         await migrateLocalPlansToFirebase(currentUser);
       } else {
         // Regula de Aur: Nu ștergem planul pentru utilizatorii de pe demo
@@ -911,17 +919,9 @@ export default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" | 
         });
       }
 
-      // Gestioneaza Login / Share View logic
-      if (!user) {
-        if (!isLogin) {
-          const savedVersionsStr = localStorage.getItem("current_versions");
-          const saved = localStorage.getItem("current_generated_plan");
-          if (savedVersionsStr || (saved && saved !== "null" && saved !== "undefined")) {
-            setIsSharedView(true);
-          }
-        } else {
-          setIsSharedView(false);
-        }
+      // Shared preview = doar din link sharedId (nu confunda planul propriu din localStorage)
+      if (user) {
+        if (!searchParams.has("sharedId")) setIsSharedView(false);
       }
     };
     window.addEventListener('popstate', handlePopState);
@@ -1168,7 +1168,7 @@ export default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" | 
             freeLimit: FREE_ACCOUNT_PLAN_LIMIT,
           })
         ) {
-          openUpgradeForPackOrPricing();
+          openUpgradeForPackOrPricing("generate");
           return;
         }
       }
@@ -1210,7 +1210,7 @@ export default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" | 
           if (data?.error === "LIMIT_REACHED") {
             // Guest: create account (+1), not packages. Logged-in: packages / top-up.
             if (!user) setShowAuthModal(true);
-            else openUpgradeForPackOrPricing();
+            else openUpgradeForPackOrPricing("generate");
             return;
           }
           throw new Error(data.error || `${t("errorServerPrefix", locale)}${res.status}`);
@@ -1356,6 +1356,7 @@ export default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" | 
       handleAiEdit={handleAiEdit}
       aiPromptInput={aiPromptInput}
       setAiPromptInput={setAiPromptInput}
+      showProPackQuotaTip={hasProPackQuota}
     />
   );
 
@@ -1475,7 +1476,8 @@ export default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" | 
           onAuthClick={() => setShowAuthModal(true)}
           locale={locale}
         />
-        <div className={`w-full flex justify-between items-start sm:items-center py-2 border-b border-zinc-800/80 mb-3 print:hidden ${euFundsUnlocked && !subscriptionActive && !isAdmin ? "pb-12" : ""}`}>
+        <div className="w-full flex flex-col gap-3 py-2 border-b border-zinc-800/80 mb-3 print:hidden">
+        <div className="w-full flex justify-between items-start sm:items-center gap-3">
           <div className="flex flex-col gap-2">
             <span className="text-zinc-500 text-xs font-semibold">{t('intelligentBusinessProject', locale)}</span>
             <button 
@@ -1501,30 +1503,9 @@ export default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" | 
                      PRO
                   </span>
                 ) : euFundsUnlocked ? (
-                <div className="relative flex items-center">
-                  <span className="bg-amber-500/20 border border-amber-500/40 text-amber-300 px-2 py-0.5 rounded-full font-black uppercase tracking-wider whitespace-nowrap">
+                  <span className="bg-emerald-500/15 border border-emerald-500/35 text-emerald-400 px-2 py-0.5 rounded-full font-black uppercase tracking-wider whitespace-nowrap">
                     {ui.badgeStudioGrants}
                   </span>
-                  {!subscriptionActive && !isAdmin && (
-                    <div className="absolute left-0 top-full mt-1 flex flex-col gap-0.5">
-                      <span className="text-[10px] text-amber-200/90 font-semibold whitespace-nowrap">
-                        {proPackRemainingLabel(locale, proPackRemaining)}
-                      </span>
-                      <button
-                        type="button"
-                        disabled={topupLoading}
-                        onClick={() => void handleProTopupCheckout()}
-                        className="text-[10px] text-amber-300/90 font-semibold whitespace-nowrap text-left hover:underline cursor-pointer disabled:opacity-60"
-                      >
-                        {proTopupHintLabel(locale, {
-                          generate: PRO_TOPUP_GENERATE_GRANT,
-                          edit: PRO_TOPUP_EDIT_GRANT,
-                          combine: PRO_TOPUP_COMBINE_GRANT,
-                        })}
-                      </button>
-                    </div>
-                  )}
-                </div>
               ) : isPlanPaid ? (
                 <span className="bg-blue-500/20 border border-blue-500/40 text-blue-400 px-2 py-0.5 rounded-full font-black uppercase tracking-wider">
                   {ui.badgeStandardUnlocked}
@@ -1575,6 +1556,16 @@ export default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" | 
               </>
             )}
           </div>
+        </div>
+        {hasProPackQuota && (
+          <ProPackQuotaBar
+            locale={locale}
+            remaining={proPackRemaining}
+            topupLoading={topupLoading}
+            onTopup={() => void handleProTopupCheckout()}
+            layout="inline"
+          />
+        )}
         </div>
 
         <h1 className="text-4xl md:text-6xl lg:text-[5rem] font-black mt-4 lg:mt-12 mb-6 lg:mb-8 not-italic tracking-tighter cursor-pointer bg-gradient-to-r from-zinc-400 via-emerald-400 to-zinc-400 bg-clip-text text-transparent animate-shimmer print:hidden self-start lg:self-center" onClick={resetApp}>
@@ -2073,7 +2064,8 @@ export default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" | 
             isPlanPaid={hasStandardAccess}
             isEditing={isEditing}
             isSharedView={isSharedView}
-            showCurrencyToggle={shouldShowCurrencyToggle(locale, isSharedView)}
+            showCurrencyToggle={shouldShowCurrencyToggle(locale, isSharedView && !user)}
+            user={user}
           />
 
           {!isEditing && (
@@ -2210,26 +2202,47 @@ export default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" | 
           onRequireAuth={() => setShowAuthModal(true)}
           onRequirePro={() => setShowPricingModal(true)}
           onAddSection={(newSection) => {
-            const currentSecs = result?.sectiuni_aditionale || [];
-            const newIndex = currentSecs.length;
-            const updated = {
-              ...result,
-              sectiuni_aditionale: [...currentSecs, newSection]
-            };
-            const nextVersions = {
-              ...(versions && Object.keys(versions).length ? versions : { original: updated }),
-              [activeVersionId]: updated,
-            };
-            setVersions(nextVersions);
-            setResultState(updated);
-            if (typeof window !== "undefined") {
-              localStorage.setItem("current_generated_plan", JSON.stringify(updated));
+            const applied = applyExpertLibrarySection({
+              activeVersionId,
+              versions,
+              result,
+              newSection,
+              access: versionStackAccess,
+            });
+            if (!applied.ok) {
+              if (applied.reason === "no_access") {
+                alert(noCombineAccessMessage(locale));
+                setShowPricingModal(true);
+                return;
+              }
+              if (applied.reason === "limit") {
+                const isStandardOnly = !!(
+                  versionStackAccess.hasStandardAccess &&
+                  !versionStackAccess.hasFullAccess &&
+                  !versionStackAccess.isAdmin
+                );
+                alert(stackLimitReachedMessage(locale, applied.limit, isStandardOnly));
+                if (isStandardOnly) setShowPricingModal(true);
+              }
+              return;
             }
-            void syncCurrentPlanToFirestore(updated, nextVersions, activeVersionId);
+            setVersions(applied.versions);
+            setActiveVersionId(applied.activeVersionId);
+            setResultState(applied.plan);
+            if (typeof window !== "undefined") {
+              localStorage.setItem("current_generated_plan", JSON.stringify(applied.plan));
+            }
+            void syncCurrentPlanToFirestore(
+              applied.plan,
+              applied.versions,
+              applied.activeVersionId
+            );
             setTimeout(() => {
-              const el = document.getElementById(`custom-section-${newIndex}`) || document.getElementById("section-custom");
+              const el =
+                document.getElementById(`custom-section-${applied.sectionIndex}`) ||
+                document.getElementById("section-custom");
               if (el) {
-                el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                el.scrollIntoView({ behavior: "smooth", block: "center" });
               }
             }, 400);
           }}

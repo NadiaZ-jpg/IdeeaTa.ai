@@ -230,6 +230,101 @@ export function toneOnlyFromOriginalMessage(locale: VersionLocale): string {
   return "Rescrierea tonului se aplică doar pe Varianta Originală. Deschide Original, apoi alege un ton.";
 }
 
+export type ExpertLibrarySection = { titlu: string; continut: string };
+
+export type ApplyExpertLibraryResult =
+  | {
+      ok: true;
+      plan: any;
+      versions: Record<string, any>;
+      activeVersionId: string;
+      sectionIndex: number;
+      createdNewTab: boolean;
+    }
+  | { ok: false; reason: "no_access" | "limit" | "invalid"; limit: number };
+
+/**
+ * Expert library "Add to plan" — same version-tab rules as sidebar tools:
+ * - On Original → new Expert tab
+ * - On another tab (e.g. EU Funds) → NEW combined tab (e.g. EU + Expert)
+ * - If active tab already includes Expert → add section in place (no duplicate Expert label)
+ */
+export function applyExpertLibrarySection(params: {
+  activeVersionId: string;
+  versions: Record<string, any>;
+  result: any;
+  newSection: ExpertLibrarySection;
+  access: VersionStackAccess;
+}): ApplyExpertLibraryResult {
+  const { activeVersionId, versions, result, newSection, access } = params;
+  const { isCombine, baseSource, currentStack } = resolveEditBaseForToolRun({
+    activeVersionId,
+    versions,
+    result,
+  });
+
+  const alreadyHasExpert = currentStack.some((s) => s.type === "expert");
+  if (alreadyHasExpert) {
+    const current = versions?.[activeVersionId] || result || baseSource;
+    const secs = Array.isArray(current?.sectiuni_aditionale)
+      ? current.sectiuni_aditionale
+      : [];
+    const updated = withVersionStack(
+      { ...current, sectiuni_aditionale: [...secs, newSection] },
+      currentStack
+    );
+    const nextVersions = {
+      ...(versions && Object.keys(versions).length
+        ? versions
+        : { original: versions?.original ?? result }),
+      [activeVersionId]: updated,
+    };
+    return {
+      ok: true,
+      plan: updated,
+      versions: nextVersions,
+      activeVersionId,
+      sectionIndex: secs.length,
+      createdNewTab: false,
+    };
+  }
+
+  const gate = gateVersionStackAppend(currentStack, { type: "expert" }, access);
+  if (!gate.ok) {
+    return { ok: false, reason: gate.reason, limit: gate.limit };
+  }
+
+  const sourcePlan = baseSource || result;
+  const secs = Array.isArray(sourcePlan?.sectiuni_aditionale)
+    ? sourcePlan.sectiuni_aditionale
+    : [];
+  const updated = withVersionStack(
+    { ...sourcePlan, sectiuni_aditionale: [...secs, newSection] },
+    gate.nextStack
+  );
+  const vKey = buildStackedVersionKey(gate.nextStack);
+  const originalSnapshot =
+    versions?.original ?? (isCombine ? undefined : sourcePlan);
+  const base =
+    versions && Object.keys(versions).length > 0
+      ? versions
+      : { original: originalSnapshot || sourcePlan };
+  const nextVersions = {
+    ...base,
+    ...(!base.original && originalSnapshot ? { original: originalSnapshot } : {}),
+    [vKey]: updated,
+  };
+
+  return {
+    ok: true,
+    plan: updated,
+    versions: nextVersions,
+    activeVersionId: vKey,
+    sectionIndex: secs.length,
+    createdNewTab: true,
+  };
+}
+
 export type StackGateResult =
   | { ok: true; nextStack: VersionToolStep[] }
   | { ok: false; reason: "no_access" | "limit" | "invalid"; limit: number; current: number };

@@ -11,17 +11,10 @@ import { migrateLocalPlansToFirebase } from '@/lib/migrationManager';
 import { markPlanDeletedLocally, FREE_ACCOUNT_PLAN_LIMIT, clearLocalPlanState, hasUnlimitedGenerateAccess } from '@/lib/planQuota';
 import {
   canGenerateWithQuotas,
-  PRO_TOPUP_COMBINE_GRANT,
-  PRO_TOPUP_EDIT_GRANT,
-  PRO_TOPUP_GENERATE_GRANT,
-  proPackRemainingLabel,
   readProPackRemaining,
 } from '@/lib/proPackQuota';
-import {
-  proTopupButtonLabel,
-  proTopupHintLabel,
-  startProTopupCheckout,
-} from '@/lib/proTopupCheckout';
+import { startProTopupCheckout } from '@/lib/proTopupCheckout';
+import { ProPackQuotaBar } from '@/components/ProPackQuotaBar';
 import { LanguageSwitcher } from '@/components/LanguageSwitcher';
 import BuyMeACoffeeModal from '@/components/BuyMeACoffeeModal';
 import { PricingModal } from '@/components/PricingModal';
@@ -73,7 +66,6 @@ export default function DashboardContent({ locale = "ro" }: { locale?: "ro" | "e
 
   const showUpgradeCue = !isPaidUser && !canGenerate && !hasProPack;
   const showFreeRemainingCue = !isPaidUser && !freeLimitReached && !hasProPack;
-  const showProPackRemainingCue = hasProPack;
 
   const handleGenerateNew = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -330,42 +322,23 @@ export default function DashboardContent({ locale = "ro" }: { locale?: "ro" | "e
             </p>
           </div>
           
-          <div className="flex flex-col items-end gap-2 w-full md:max-w-2xl">
+          <div className="flex flex-col items-end gap-3 w-full md:max-w-2xl">
+            {hasProPack && (
+              <div className="w-full">
+                <ProPackQuotaBar
+                  locale={locale}
+                  remaining={proPackRemaining}
+                  topupLoading={topupLoading}
+                  onTopup={() => void handleProTopupCheckout()}
+                  layout="inline"
+                />
+              </div>
+            )}
             <div
               className={`grid gap-3 w-full ${
-                hasProPack || (!isPaidUser && !hasProPack)
-                  ? "grid-cols-1 sm:grid-cols-2"
-                  : "grid-cols-1"
+                !isPaidUser && !hasProPack ? "grid-cols-1 sm:grid-cols-2" : "grid-cols-1"
               }`}
             >
-              {hasProPack && (
-                <div className="flex flex-col items-stretch gap-1.5">
-                  <button
-                    type="button"
-                    onClick={() => void handleProTopupCheckout()}
-                    disabled={topupLoading}
-                    className="w-full h-14 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-black font-black px-4 rounded-xl uppercase tracking-wider text-xs transition-all inline-flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(245,158,11,0.3)] hover:scale-[1.02] cursor-pointer disabled:opacity-60"
-                  >
-                    <Sparkles className="w-4 h-4 fill-black shrink-0" />
-                    <span className="text-center leading-tight">
-                      {topupLoading
-                        ? isEn
-                          ? "Redirecting…"
-                          : isEs
-                          ? "Redirigiendo…"
-                          : "Se redirecționează…"
-                        : proTopupButtonLabel(locale)}
-                    </span>
-                  </button>
-                  <p className="text-[11px] text-amber-300/90 font-semibold text-center leading-snug min-h-[2.75rem]">
-                    {proTopupHintLabel(locale, {
-                      generate: PRO_TOPUP_GENERATE_GRANT,
-                      edit: PRO_TOPUP_EDIT_GRANT,
-                      combine: PRO_TOPUP_COMBINE_GRANT,
-                    })}
-                  </p>
-                </div>
-              )}
               {!isPaidUser && !hasProPack && (
                 <div className="flex flex-col items-stretch gap-1.5">
                   <button
@@ -391,11 +364,7 @@ export default function DashboardContent({ locale = "ro" }: { locale?: "ro" | "e
                     {isEn ? "Generate New Plan" : isEs ? "Generar Nuevo Plan" : "Generează Plan Nou"}
                   </span>
                 </button>
-                {showProPackRemainingCue ? (
-                  <p className="text-[11px] text-amber-300/90 font-semibold text-center leading-snug min-h-[2.75rem]">
-                    {proPackRemainingLabel(locale, proPackRemaining)}
-                  </p>
-                ) : showUpgradeCue ? (
+                {showUpgradeCue ? (
                   <button
                     type="button"
                     onClick={() => setShowPricingModal(true)}

@@ -56,6 +56,60 @@ export function getBudgetItemExplanation(item: any): string {
   );
 }
 
+/**
+ * Empty OR mid-sentence truncated (model cut-off). RO/EN/ES.
+ * Example: "...detección de defectos en" → incomplete.
+ */
+export function isIncompleteExplanationText(text: unknown): boolean {
+  const t = String(text ?? "").trim();
+  if (!t) return true;
+
+  // Ends with sentence terminator (optional closing quotes/brackets)
+  if (/[.!?…]["'»”’)\]\}]*$/u.test(t)) return false;
+
+  // Trailing punctuation that implies continuation
+  if (/[,;:\-–—(/]$/u.test(t)) return true;
+
+  // Dangling articles / prepositions / conjunctions (RO, EN, ES)
+  if (
+    /\b(a|an|the|of|and|or|to|for|with|in|on|at|by|from|into|sobre|para|por|con|sin|que|y|o|u|e|de|del|al|la|el|los|las|un|una|unos|unas|en|hacia|entre|și|sau|cu|din|dintre|pentru|despre|că|ca|la|pe|în|un|o|niște)\s*$/iu.test(
+      t
+    )
+  ) {
+    return true;
+  }
+
+  // Longer prose without any terminal punctuation → likely truncated
+  if (t.length >= 48) return true;
+
+  return false;
+}
+
+/** Prefer a finished explanation over an empty / cut-off one. */
+export function pickBetterExplanation(current: unknown, incoming: unknown): string {
+  const cur = String(current ?? "").trim();
+  const inc = String(incoming ?? "").trim();
+  if (!cur) return inc;
+  if (!isIncompleteExplanationText(cur)) return cur;
+  if (inc && !isIncompleteExplanationText(inc)) return inc;
+  if (inc.length > cur.length) return inc;
+  return cur;
+}
+
+export function budgetItemNeedsExplanationFill(item: any): boolean {
+  if (!item || typeof item !== "object") return false;
+  const name = firstNonEmptyString(item.item, item.nume, item.nombre, item.name, item.titlu, item.titulo);
+  if (!name) return false;
+  return isIncompleteExplanationText(getBudgetItemExplanation(item));
+}
+
+export function swotItemNeedsExplanationFill(item: any): boolean {
+  const titlu = typeof item === "string" ? item : firstNonEmptyString(item?.titlu, item?.titulo, item?.title);
+  if (!titlu) return false;
+  const expl = typeof item === "string" ? "" : getSwotItemExplanation(item);
+  return isIncompleteExplanationText(expl);
+}
+
 function normalizeSwotItem(item: any): { titlu: string; explicatie_tehnica: string } {
   if (item === null || item === undefined) {
     return { titlu: "", explicatie_tehnica: "" };
@@ -138,7 +192,7 @@ export function mergeSwotPreservingExplanations(originalSwot: any, incomingSwot:
       const prevExpl = String(prev?.explicatie_tehnica || "").trim();
       return {
         titlu: String(item?.titlu || prev?.titlu || "").trim(),
-        explicatie_tehnica: expl || prevExpl || "",
+        explicatie_tehnica: pickBetterExplanation(expl, prevExpl),
       };
     });
   }
@@ -451,7 +505,7 @@ export function normalizePlanResult<T = any>(plan: T): T {
   return next as T;
 }
 
-/** True when SWOT/budget explanations OR operational text fields are missing. */
+/** True when SWOT/budget explanations are missing/truncated OR operational text fields are missing. */
 export function planNeedsExplanationFill(plan: any): boolean {
   if (!plan || typeof plan !== "object") return false;
   const swot = plan.analiza_swot;
@@ -460,17 +514,14 @@ export function planNeedsExplanationFill(plan: any): boolean {
       const arr = swot[key];
       if (!Array.isArray(arr)) continue;
       for (const item of arr) {
-        const titlu = typeof item === "string" ? item : item?.titlu;
-        const expl = typeof item === "string" ? "" : getSwotItemExplanation(item);
-        if (titlu && String(titlu).trim() && !expl) return true;
+        if (swotItemNeedsExplanationFill(item)) return true;
       }
     }
   }
   const budget = plan.plan_financiar?.buget_investitii;
   if (Array.isArray(budget)) {
     for (const b of budget) {
-      const name = b?.item || b?.nume || "";
-      if (name && String(name).trim() && !getBudgetItemExplanation(b)) return true;
+      if (budgetItemNeedsExplanationFill(b)) return true;
     }
   }
   // Empty operational sections (common in ES when model renames keys or skips locatie_dotari)
@@ -542,16 +593,17 @@ export function buildFillMissingExplanationsPrompt(plan: any, locale: "ro" | "en
   return `You repair an incomplete business plan JSON.
 Language for ALL new text: ${lang}.
 
-PRIORITY — fill EVERY empty "explicatie_tehnica" in SWOT and every empty "explicatie" in budget.
+PRIORITY — fill EVERY empty OR truncated "explicatie_tehnica" in SWOT and every empty OR truncated "explicatie" in budget.
+Truncated = text cut mid-sentence (no final punctuation, or ends with words like "en"/"de"/"and"/"și"/"the"). Rewrite those into COMPLETE sentences.
 Also fill any other empty string fields listed below.
 
 STRICT RULES:
 - Keep Romanian JSON KEY names exactly (puncte_tari, puncte_slabe, oportunitati, amenintari, titlu, explicatie_tehnica, item, cost, explicatie). NEVER use fortalezas/debilidades/oportunidades/amenazas as keys.
-- For EACH SWOT category return the SAME number of items, SAME order, SAME titlu values. Only fill empty explicatie_tehnica.
+- For EACH SWOT category return the SAME number of items, SAME order, SAME titlu values. Only fill/repair empty or truncated explicatie_tehnica.
 - NEVER leave explicatie_tehnica empty on items 2–4 if item 1 already has text.
 - oportunitati = positive external opportunities ONLY (never cyber risk / threats).
 - amenintari = external threats/risks.
-- Budget: same rows/order; fill empty explicatie only.
+- Budget: same rows/order; fill empty explicatie AND finish any truncated explicatie. Each explicatie must be 1–3 complete sentences ending with . ! or ?
 - Values in ${lang}. Return ONLY valid JSON:
 {
   "analiza_swot": { "puncte_tari": [...], "puncte_slabe": [...], "oportunitati": [...], "amenintari": [...] },
@@ -604,7 +656,10 @@ export function mergeFilledExplanations(plan: any, filled: any): any {
         const fill = fromTitle || fromIndex;
         return {
           titlu: base.titlu || fill?.titlu || "",
-          explicatie_tehnica: base.explicatie_tehnica || fill?.explicatie_tehnica || "",
+          explicatie_tehnica: pickBetterExplanation(
+            base.explicatie_tehnica,
+            fill?.explicatie_tehnica
+          ),
         };
       });
     }
@@ -639,7 +694,10 @@ export function mergeFilledExplanations(plan: any, filled: any): any {
         ...row,
         item: row.item || fill?.item || "",
         cost: row.cost || fill?.cost || "",
-        explicatie: getBudgetItemExplanation(row) || getBudgetItemExplanation(fill) || "",
+        explicatie: pickBetterExplanation(
+          getBudgetItemExplanation(row),
+          getBudgetItemExplanation(fill)
+        ),
       };
     });
   }

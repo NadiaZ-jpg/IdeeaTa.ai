@@ -27,8 +27,9 @@ import { formatObjectNumbers, formatNumberedText } from "@/lib/utils";
 import { useSharedPlanLoader } from "@/hooks/useSharedPlanLoader";
 import { createAndCopySharedPlanLink } from "@/lib/sharePlan";
 import { FREE_ACCOUNT_PLAN_LIMIT, GUEST_DEMO_PLAN_LIMIT, hasUnlimitedGenerateAccess } from "@/lib/planQuota";
-import { canGenerateWithQuotas, PRO_TOPUP_COMBINE_GRANT, PRO_TOPUP_EDIT_GRANT, PRO_TOPUP_GENERATE_GRANT, proPackRemainingLabel, readProPackRemaining } from "@/lib/proPackQuota";
-import { proTopupHintLabel, startProTopupCheckout } from "@/lib/proTopupCheckout";
+import { canGenerateWithQuotas, readProPackRemaining, proPackTopupConfirmDialog } from "@/lib/proPackQuota";
+import { startProTopupCheckout } from "@/lib/proTopupCheckout";
+import { ProPackQuotaBar } from "@/components/ProPackQuotaBar";
 import { isAdminEmail } from "@/lib/adminEmails";
 import { isPlanExportUnlocked, hasAccountStandardAccess } from "@/lib/planUnlock";
 import { stripPaymentSuccessParams, pollVerifyCheckout, paymentSuccessMessage } from "@/lib/paymentReturn";
@@ -43,6 +44,7 @@ import {
   toolStepFromAction,
   withVersionStack,
   toneOnlyFromOriginalMessage,
+  applyExpertLibrarySection,
   type VersionStackAccess,
 } from "@/lib/versionStack";
 
@@ -208,9 +210,13 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
     window.location.href = result.url;
   };
 
-  const openUpgradeForPackOrPricing = () => {
-    if (hasProPackQuota) void handleProTopupCheckout();
-    else setShowPricingModal(true);
+  const openUpgradeForPackOrPricing = (kind: "generate" | "edit" | "combine" = "generate") => {
+    if (hasProPackQuota) {
+      if (!proPackTopupConfirmDialog(locale, kind)) return;
+      void handleProTopupCheckout();
+      return;
+    }
+    setShowPricingModal(true);
   };
 
   const syncCurrentPlanToFirestore = async (
@@ -407,6 +413,10 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
       setUser(currentUser);
       setIsAuthLoading(false);
       if (currentUser) {
+        if (typeof window !== "undefined") {
+          const sp = new URLSearchParams(window.location.search);
+          if (!sp.get("sharedId") && !sp.get("shareId")) setIsSharedView(false);
+        }
         await migrateLocalPlansToFirebase(currentUser);
       }
     });
@@ -490,7 +500,7 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
         freeLimit: FREE_ACCOUNT_PLAN_LIMIT,
       })
     ) {
-      openUpgradeForPackOrPricing();
+      openUpgradeForPackOrPricing("generate");
       return;
     }
 
@@ -517,7 +527,7 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
         const errBody = await res.json().catch(() => ({}));
         if (errBody?.error === "LIMIT_REACHED") {
           if (!user) setShowAuthModal(true);
-          else openUpgradeForPackOrPricing();
+          else openUpgradeForPackOrPricing("generate");
           return;
         }
         throw new Error(errBody?.message || "Eroare la generare");
@@ -649,7 +659,7 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
       ((!isTone && proPackRemaining.edit <= 0) ||
         (isTone && isProToneKey(customInput) && proPackRemaining.edit <= 0))
     ) {
-      openUpgradeForPackOrPricing();
+      openUpgradeForPackOrPricing("edit");
       return;
     }
 
@@ -694,7 +704,7 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
     });
 
     if (usesPackQuota && isCombine && proPackRemaining.combine <= 0) {
-      openUpgradeForPackOrPricing();
+      openUpgradeForPackOrPricing("combine");
       return;
     }
 
@@ -760,11 +770,13 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
         if (
           err?.code === "TONE_LIMIT" ||
           err?.code === "PRO_REQUIRED" ||
-          err?.code === "AUTH_REQUIRED" ||
-          err?.code === "PRO_PACK_EDIT_LIMIT" ||
-          err?.code === "PRO_PACK_COMBINE_LIMIT"
+          err?.code === "AUTH_REQUIRED"
         ) {
           setShowPricingModal(true);
+        } else if (err?.code === "PRO_PACK_EDIT_LIMIT") {
+          openUpgradeForPackOrPricing("edit");
+        } else if (err?.code === "PRO_PACK_COMBINE_LIMIT") {
+          openUpgradeForPackOrPricing("combine");
         }
         throw new Error(err?.error || "Eroare editare");
       }
@@ -944,23 +956,14 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
         {!result && <LanguageSwitcher currentLocale={locale} />}
       </header>
 
-      {euFundsUnlocked && !subscriptionActive && !isAdmin && (
-        <div className="px-4 py-1.5 border-b border-amber-500/20 bg-amber-500/5 text-[10px] text-amber-200/90 font-semibold text-center">
-          <span className="font-black uppercase tracking-wider text-amber-300 mr-2">{ui.badgeStudioGrants}</span>
-          {proPackRemainingLabel(locale, proPackRemaining)}
-          <button
-            type="button"
-            disabled={topupLoading}
-            onClick={() => void handleProTopupCheckout()}
-            className="block mx-auto mt-0.5 text-amber-300/90 font-semibold hover:underline cursor-pointer disabled:opacity-60"
-          >
-            {proTopupHintLabel(locale, {
-              generate: PRO_TOPUP_GENERATE_GRANT,
-              edit: PRO_TOPUP_EDIT_GRANT,
-              combine: PRO_TOPUP_COMBINE_GRANT,
-            })}
-          </button>
-        </div>
+      {hasProPackQuota && (
+        <ProPackQuotaBar
+          locale={locale}
+          remaining={proPackRemaining}
+          topupLoading={topupLoading}
+          onTopup={() => void handleProTopupCheckout()}
+          layout="bar"
+        />
       )}
 
       {/* Main Content */}
@@ -1129,6 +1132,26 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
                 <h2 className="text-sm font-black text-white truncate">{result.nume || (locale === "en" ? "Business Plan" : locale === "es" ? "Plan de Negocios" : "Plan de Afaceri")}</h2>
               </div>
               <div className="flex gap-2 shrink-0">
+                {!isSharedView || user ? (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setResult(null);
+                      setVersions({});
+                      setActiveVersionId("original");
+                      setIsSharedView(false);
+                      if (typeof window !== "undefined") {
+                        localStorage.removeItem("current_generated_plan");
+                        localStorage.removeItem("current_versions");
+                      }
+                      window.scrollTo({ top: 0, behavior: "instant" });
+                    }}
+                    className="bg-zinc-800 hover:bg-zinc-700 text-white font-bold px-2.5 py-2 rounded-lg text-[10px] transition-all active:scale-95 inline-flex items-center justify-center min-h-[44px] whitespace-nowrap"
+                    title={ui.anotherIdea}
+                  >
+                    {ui.anotherIdea}
+                  </button>
+                ) : null}
                 <button
                   onClick={handleShare}
                   className="bg-zinc-800 hover:bg-zinc-700 text-white font-bold p-2 -m-1 rounded-lg text-xs transition-all active:scale-95 inline-flex items-center justify-center min-w-[44px] min-h-[44px]"
@@ -1234,11 +1257,21 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
                 )}
 
                 {!isSharedView && (
+                <div className="flex flex-col gap-2.5 w-full">
                 <div className="flex items-start gap-2 bg-emerald-500/10 border border-emerald-500/20 p-3.5 rounded-2xl w-full">
                   <span className="text-emerald-400 mt-0.5 text-base shrink-0">🏛️</span>
                   <p className="text-[12px] text-emerald-100/70 leading-relaxed">
                     <span dangerouslySetInnerHTML={{ __html: ui.expertLibraryTip }} />
                   </p>
+                </div>
+                {hasProPackQuota && (
+                  <div className="flex items-start gap-2 bg-amber-500/10 border border-amber-500/25 p-3.5 rounded-2xl w-full">
+                    <span className="text-amber-400 mt-0.5 text-base shrink-0">⏱️</span>
+                    <p className="text-[12px] text-amber-100/80 leading-relaxed">
+                      <span dangerouslySetInnerHTML={{ __html: ui.proPackQuotaTip }} />
+                    </p>
+                  </div>
+                )}
                 </div>
                 )}
 
@@ -1426,11 +1459,15 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
             <button
               onClick={() => {
                 setResult(null);
+                setVersions({});
+                setActiveVersionId("original");
+                setIsSharedView(false);
                 localStorage.removeItem("current_generated_plan");
+                localStorage.removeItem("current_versions");
               }}
               className="w-full bg-zinc-950 hover:bg-zinc-900 border border-zinc-800/80 text-zinc-400 font-bold py-3.5 rounded-xl text-xs transition-all active:scale-98 text-center"
             >
-              {locale === "en" ? "Delete plan and start a new idea" : locale === "es" ? "Eliminar plan y comenzar una nueva idea" : "Șterge planul și începe o idee nouă"}
+              {ui.anotherIdea}
             </button>
           </div>
         )}
@@ -1700,21 +1737,38 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
           onRequireAuth={() => setShowAuthModal(true)}
           onRequirePro={() => setShowPricingModal(true)}
           onAddSection={(newSection) => {
-            const currentSecs = result?.sectiuni_aditionale || [];
-            const updated = {
-              ...result,
-              sectiuni_aditionale: [...currentSecs, newSection],
-            };
-            const nextVersions = {
-              ...(versions && Object.keys(versions).length ? versions : { original: updated }),
-              [activeVersionId]: updated,
-            };
-            setVersions(nextVersions);
-            setResultState(updated);
-            if (typeof window !== "undefined") {
-              localStorage.setItem("current_generated_plan", JSON.stringify(updated));
+            const applied = applyExpertLibrarySection({
+              activeVersionId,
+              versions,
+              result,
+              newSection,
+              access: versionStackAccess,
+            });
+            if (!applied.ok) {
+              if (applied.reason === "no_access") {
+                alert(noCombineAccessMessage(locale));
+                setShowPricingModal(true);
+                return;
+              }
+              if (applied.reason === "limit") {
+                const isStandardOnly = !!(
+                  versionStackAccess.hasStandardAccess &&
+                  !versionStackAccess.hasFullAccess &&
+                  !versionStackAccess.isAdmin
+                );
+                alert(stackLimitReachedMessage(locale, applied.limit, isStandardOnly));
+                if (isStandardOnly) setShowPricingModal(true);
+                return;
+              }
+              return;
             }
-            void syncCurrentPlanToFirestore(updated, nextVersions, activeVersionId);
+            setVersions(applied.versions);
+            setActiveVersionId(applied.activeVersionId);
+            setResultState(applied.plan);
+            if (typeof window !== "undefined") {
+              localStorage.setItem("current_generated_plan", JSON.stringify(applied.plan));
+            }
+            void syncCurrentPlanToFirestore(applied.plan, applied.versions, applied.activeVersionId);
             setShowExpertDrawer(false);
           }}
           onClose={() => setShowExpertDrawer(false)}

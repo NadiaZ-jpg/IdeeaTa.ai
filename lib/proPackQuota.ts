@@ -166,3 +166,18 @@ export function proPackLimitMessage(
   }
   return `Ai folosit cele ${PRO_PACK_COMBINE_GRANT} combinații din pachet. Cumpără din nou pentru a continua.`;
 }
+
+/** confirm() — OK → top-up; Cancel → stay on page. Desktop+Mobile RO/EN/ES. */
+export function proPackTopupConfirmDialog(
+  locale: ProPackLocale,
+  kind: "generate" | "edit" | "combine"
+): boolean {
+  if (typeof window === "undefined") return false;
+  const suffix =
+    locale === "en"
+      ? "OK opens top-up checkout. Cancel keeps you on this page."
+      : locale === "es"
+      ? "Aceptar abre el pago de recarga. Cancelar te deja en esta página."
+      : "OK deschide plata pentru reîncărcare. Anulează = rămâi pe pagină.";
+  return window.confirm(`${proPackLimitMessage(locale, kind)}\n\n${suffix}`);
+}

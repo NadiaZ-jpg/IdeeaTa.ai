@@ -22,7 +22,8 @@ export function DemoLeftSidebar({
   setShowExpertDrawer, 
   handleAiEdit, 
   aiPromptInput, 
-  setAiPromptInput 
+  setAiPromptInput,
+  showProPackQuotaTip = false,
 }: any) {
   return (
       <div className="w-full lg:w-2/5 xl:w-1/3 flex flex-col gap-6 sticky top-8 print:hidden">
@@ -299,12 +300,22 @@ export function DemoLeftSidebar({
                 </div>
             
             {/* User Tip */}
-              <div className="mt-6 flex items-start gap-2 bg-emerald-500/10 border border-emerald-500/20 p-4 rounded-2xl w-full">
+              <div className="mt-6 flex flex-col gap-3 w-full">
+              <div className="flex items-start gap-2 bg-emerald-500/10 border border-emerald-500/20 p-4 rounded-2xl w-full">
               <span className="text-emerald-400 mt-0.5 text-lg">💡</span>
               <p className="text-[13px] text-emerald-100/70 leading-relaxed">
                 <span dangerouslySetInnerHTML={{ __html: ui.editorTip }}></span>
               </p>
             </div>
+              {showProPackQuotaTip && (
+                <div className="flex items-start gap-2 bg-amber-500/10 border border-amber-500/25 p-4 rounded-2xl w-full">
+                  <span className="text-amber-400 mt-0.5 text-lg shrink-0">⏱️</span>
+                  <p className="text-[13px] text-amber-100/80 leading-relaxed">
+                    <span dangerouslySetInnerHTML={{ __html: ui.proPackQuotaTip }} />
+                  </p>
+                </div>
+              )}
+              </div>
     </div>
   );
 }

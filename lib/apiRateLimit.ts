@@ -11,6 +11,24 @@ type Bucket = { count: number; resetAt: number };
 
 const memoryBuckets = new Map<string, Bucket>();
 
+/** Sweep: șterge intrările expirate pentru a preveni creșterea nelimitată a Map-ului. */
+function sweepExpiredBuckets(): void {
+  const now = Date.now();
+  for (const [key, bucket] of memoryBuckets) {
+    if (bucket.resetAt <= now) {
+      memoryBuckets.delete(key);
+    }
+  }
+}
+
+// Rulează sweep automat la fiecare 10 minute (doar pe server, nu pe client).
+if (typeof window === "undefined") {
+  setInterval(sweepExpiredBuckets, 10 * 60 * 1000);
+}
+
+/** Cap de siguranță: dacă Map-ul depășește această limită, trigger sweep imediat. */
+const MEMORY_BUCKET_CAP = 10_000;
+
 function isIpLike(value: string): boolean {
   // Basic IPv4 / IPv6 (incl. ::ffff:x.x.x.x) — reject empty / garbage spoof attempts
   if (!value || value.length > 45) return false;
@@ -50,6 +68,10 @@ function consumeMemoryRateLimit(
   limit: number,
   windowMs: number
 ): boolean {
+  // Auto-sweep dacă Map-ul depășește cap-ul de siguranță
+  if (memoryBuckets.size > MEMORY_BUCKET_CAP) {
+    sweepExpiredBuckets();
+  }
   const now = Date.now();
   const existing = memoryBuckets.get(key);
   if (!existing || existing.resetAt <= now) {

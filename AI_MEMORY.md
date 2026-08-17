@@ -1,5 +1,5 @@
 # AI_MEMORY — IdeeaTa.ai
-> Ultima actualizare: 9 August 2026
+> Ultima actualizare: 17 August 2026
 
 ---
 
@@ -675,8 +675,30 @@ Dacă oricare dintre aceste verificări este omisă în procesul de planificare,
 - Lemon: UUID-uri Live când treci din Test
 - S3-A opțional (generate Studio pe Mobile)
 
+---
 
+## FREEZE — Sesiunea Audit Securitate (17 August 2026)
 
+### Fișiere modificate și ÎNGHEȚATE:
+| Fișier | Modificare |
+|---|---|
+| `package.json` | `firebase-admin` mutat din `devDependencies` în `dependencies` — critică pentru build-uri container/producție cu `--omit=dev` |
+| `app/api/auth/send-verification/route.ts` | Adăugat rate limiting dual: **5 req/oră per IP** + **3 req/oră per email** via `consumeRateLimit` — previne email flooding și blacklist domeniu |
 
+### Build verificat:
+- ✅ `✓ Compiled successfully in 41s`
+- ✅ `✓ Generating static pages (71/71)`
+- ✅ Zero erori TypeScript sau warning-uri de compilare
 
+### Git Checkpoint:
+- Commit: `e08a120`
+- Mesaj: `security: firebase-admin mut in dependencies + rate limiting pe /api/auth/send-verification (Checkpoint-17-Aug-2026-Audit-Security-Fixes)`
+- Branch: `cursor/pdf-cta-locale-and-plan-fill`
+- Push: ✅ `To https://github.com/NadiaZ-jpg/IdeeaTa.ai.git`
 
+### Probleme medii identificate în audit (NU remediate încă, necesită plan separat):
+1. Monolitism extrem — 4 componente cu ~8.100 linii totale (logică auth duplicată Desktop/Mobile)
+2. Două sisteme de traduceri paralele (`uiStrings.ts` + `translations.ts`)
+3. Două hook-uri de detecție dispozitiv cu breakpoint-uri diferite (768px vs 1024px)
+4. Tipuri `any` excesive deși `strict: true` este activat
+5. Memory leak potențial în `memoryBuckets` din `apiRateLimit.ts` (fără cleanup la expirare)

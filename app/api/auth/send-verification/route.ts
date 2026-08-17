@@ -1,5 +1,8 @@
 import { NextResponse } from 'next/server';
 import { adminAuth } from '@/lib/firebase-admin';
+import { consumeRateLimit, clientIpFromRequest } from '@/lib/apiRateLimit';
+
+const HOUR_MS = 60 * 60 * 1000;
 
 type Locale = 'ro' | 'en' | 'es';
 
@@ -52,6 +55,24 @@ export async function POST(request: Request) {
     if (!email) {
       return NextResponse.json({ error: 'Email is required' }, { status: 400 });
     }
+
+    // ── Rate Limiting: max 5 req/h per IP, max 3 req/h per email ──────────────
+    const ip = clientIpFromRequest(request);
+    const emailKey = `send-verif:email:${email.toLowerCase().trim()}`;
+    const ipKey = `send-verif:ip:${ip}`;
+
+    const [ipOk, emailOk] = await Promise.all([
+      consumeRateLimit(ipKey, 5, HOUR_MS),
+      consumeRateLimit(emailKey, 3, HOUR_MS),
+    ]);
+
+    if (!ipOk || !emailOk) {
+      return NextResponse.json(
+        { error: 'Too many requests. Please try again later.' },
+        { status: 429 }
+      );
+    }
+    // ─────────────────────────────────────────────────────────────────────────
 
     const origin = request.headers.get('origin') || request.headers.get('referer') || '';
     const baseUrl = origin.includes('localhost') ? 'http://localhost:3000' : 'https://ideeata.ai';

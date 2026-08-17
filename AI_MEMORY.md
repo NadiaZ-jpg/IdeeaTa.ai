@@ -1,5 +1,5 @@
 # AI_MEMORY — IdeeaTa.ai
-> Ultima actualizare: 17 August 2026
+> Ultima actualizare: 17 August 2026 (Sesiunea 1 Refactorizare)
 
 ---
 
@@ -696,9 +696,36 @@ Dacă oricare dintre aceste verificări este omisă în procesul de planificare,
 - Branch: `cursor/pdf-cta-locale-and-plan-fill`
 - Push: ✅ `To https://github.com/NadiaZ-jpg/IdeeaTa.ai.git`
 
-### Probleme medii identificate în audit (NU remediate încă, necesită plan separat):
-1. Monolitism extrem — 4 componente cu ~8.100 linii totale (logică auth duplicată Desktop/Mobile)
-2. Două sisteme de traduceri paralele (`uiStrings.ts` + `translations.ts`)
-3. Două hook-uri de detecție dispozitiv cu breakpoint-uri diferite (768px vs 1024px)
-4. Tipuri `any` excesive deși `strict: true` este activat
-5. Memory leak potențial în `memoryBuckets` din `apiRateLimit.ts` (fără cleanup la expirare)
+### Probleme medii identificate în audit (status curent):
+1. Monolitism extrem — 4 componente cu ~8.100 linii totale (logică auth duplicată Desktop/Mobile) — **În plan: Sesiunile 2+3**
+2. Două sisteme de traduceri paralele (`uiStrings.ts` + `translations.ts`) — **În plan: Sesiunea 4**
+3. ~~Două hook-uri de detecție dispozitiv cu breakpoint-uri diferite (768px vs 1024px)~~ — ✅ **REZOLVAT în Sesiunea 1** (`use-mobile.ts` șters)
+4. Tipuri `any` excesive deși `strict: true` este activat — **În plan: Sesiunea 5**
+5. ~~Memory leak potențial în `memoryBuckets` din `apiRateLimit.ts` (fără cleanup la expirare)~~ — ✅ **REZOLVAT în Sesiunea 1** (sweep 10min + cap 10k)
+
+---
+
+## FREEZE — Sesiunea 1 Refactorizare (17 August 2026)
+
+### Fișiere modificate și ÎNGHEȚATE:
+| Fișier | Modificare |
+|---|---|
+| `hooks/use-mobile.ts` | **Şters definitiv** — hook orfan (0 importuri, vestigiu Shadcn UI, breakpoint 768px în conflict cu `useDeviceDetect` la 1024px). NU se recrează. |
+| `lib/apiRateLimit.ts` | Adăugat `sweepExpiredBuckets()` (sweep periodic la 10 min via `setInterval`) + `MEMORY_BUCKET_CAP = 10.000` cu trigger auto-sweep la depășire. ÎNGHEȚAT. |
+
+### Build verificat:
+- ✅ `npx tsc --noEmit` — zero erori TypeScript
+- ✅ `✓ Compiled successfully in 21.4s`
+- ✅ `✓ Generating static pages (71/71)`
+
+### Git Checkpoint:
+- Commit: `3d384cd`
+- Mesaj: `refactor(S1): sterge hook orfan use-mobile.ts + sweep periodic memory leak apiRateLimit (Checkpoint-17-Aug-2026-Sesiunea1-QuickWins)`
+- Branch: `cursor/pdf-cta-locale-and-plan-fill`
+- Push: ✅ `To https://github.com/NadiaZ-jpg/IdeeaTa.ai.git`
+
+### Sesiuni rămase din planul de refactorizare:
+- **Sesiunea 2:** Extragere `hooks/useAuthUser.ts` — aplicat în DemoDesktop + DemoMobile (~280 linii eliminate)
+- **Sesiunea 3:** Extindere `useAuthUser` — aplicat în StudioDesktop + StudioMobile (~280 linii eliminate)
+- **Sesiunea 4:** Consolidare i18n — eliminare import dual `translations.ts` din componentele mari
+- **Sesiunea 5:** Interfata TypeScript `BusinessPlan` — elimina tipurile `any` din normalizare și export

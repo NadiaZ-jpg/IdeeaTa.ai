@@ -725,7 +725,34 @@ Dacă oricare dintre aceste verificări este omisă în procesul de planificare,
 - Push: ✅ `To https://github.com/NadiaZ-jpg/IdeeaTa.ai.git`
 
 ### Sesiuni rămase din planul de refactorizare:
-- **Sesiunea 2:** Extragere `hooks/useAuthUser.ts` — aplicat în DemoDesktop + DemoMobile (~280 linii eliminate)
+- **Sesiunea 2:** Extragere `hooks/useAuthUser.ts` — aplicat în DemoDesktop + DemoMobile (~160 linii eliminate)
 - **Sesiunea 3:** Extindere `useAuthUser` — aplicat în StudioDesktop + StudioMobile (~280 linii eliminate)
 - **Sesiunea 4:** Consolidare i18n — eliminare import dual `translations.ts` din componentele mari
 - **Sesiunea 5:** Interfata TypeScript `BusinessPlan` — elimina tipurile `any` din normalizare și export
+
+---
+
+## FREEZE — Sesiunea 2 Refactorizare (18 August 2026)
+
+### Fișiere ÎNGHEȚATE suplimentar:
+| Fișier | Modificare |
+|---|---|
+| `hooks/useAuthUser.ts` | **NOU — ÎNGHEȚAT.** Hook centralizat pentru Auth + Firestore entitlements sync. Returnează: `user`, `isAuthLoading`, 10 stări entitlements, 5 derivate (`isAdmin`, `hasStandardAccess`, `hasProAccess`, `hasProPackQuota`, `versionStackAccess`). Suportă callback `onUserChanged` și flag `createUserDocIfMissing`. |
+| `components/DemoDesktop.tsx` | Eliminat: 2 `useState` redundante (user, promoCode), 10 useState entitlements, 2 `useEffect` (onAuthStateChanged + onSnapshot), 2 blocuri de variabile derivate, `isAuthLoading` useState, optimistic updates din `onPlanUnlockedByCredit` și `PricingModal.onSuccess`. Adăugat: apel `useAuthUser`. FREEZE restabilit. |
+| `components/DemoMobile.tsx` | Identic cu DemoDesktop: eliminat toate useState + effecte auth duplicate, adăugat `useAuthUser`. FREEZE restabilit. |
+
+### Notă arhitecturală importantă:
+- `onPlanUnlockedByCredit` și `PricingModal.onSuccess` nu mai setează direct entitlements local.
+- Firestore `onSnapshot` din `useAuthUser` este singura sursă de adevăr — actualizează automat după webhook.
+- Comportament identic funcțional, fără race conditions între optimistic updates și Firestore.
+
+### Build verificat:
+- ✅ `npx tsc --noEmit` — zero erori TypeScript
+- ✅ `✓ Compiled successfully in 10.1s`
+- ✅ `✓ Generating static pages (71/71)`
+
+### Git Checkpoint:
+- Commit: `5d817b1`
+- Mesaj: `refactor(S2): extrage useAuthUser hook, aplicat Demo (-~160 linii duplicate eliminate)`
+- Branch: `cursor/pdf-cta-locale-and-plan-fill`
+- Push: ✅ `To https://github.com/NadiaZ-jpg/IdeeaTa.ai.git`

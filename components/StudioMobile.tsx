@@ -26,6 +26,7 @@ import { isPlanExportUnlocked, hasAccountStandardAccess } from '@/lib/planUnlock
 import { stripPaymentSuccessParams, pollVerifyCheckout, paymentSuccessMessage } from '@/lib/paymentReturn';
 import dynamic from 'next/dynamic';
 import { useExportActions } from "@/hooks/useExportActions";
+import { useAuthUser } from '@/hooks/useAuthUser';
 import { useCompleteMissingPlanFields } from "@/hooks/useCompleteMissingPlanFields";
 import { StudioPdfSlides } from "@/components/pdf/StudioPdfSlides";
 import { truncateText, splitTextIntoSlides } from "@/lib/planHelpers";
@@ -56,7 +57,7 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
   const isEn = locale === "en";
   const isEs = locale === "es";
   const router = useRouter();
-  const [user, setUser] = useState<User | null>(null);
+  const [isSharedView, setIsSharedView] = useState(false);
   const [result, setResult] = useState<any>(null);
   useCompleteMissingPlanFields(result, setResult, locale);
   const [versions, setVersions] = useState<any>({});
@@ -68,52 +69,6 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
   const [showPricingModal, setShowPricingModal] = useState(false);
   const [isDownloading, setIsDownloading] = useState<'pdf' | 'word' | 'pptx' | 'pdf-summary' | null>(null);
   
-  // Stări permisiuni utilizator (la fel ca pe desktop)
-  const [credits, setCredits] = useState(0);
-  const [euFundsUnlocked, setEuFundsUnlocked] = useState(false);
-  const [subscriptionActive, setSubscriptionActive] = useState(false);
-  const [proPackRemaining, setProPackRemaining] = useState({
-    generate: 0,
-    edit: 0,
-    combine: 0,
-  });
-  const [lifetimePlanCount, setLifetimePlanCount] = useState(0);
-  const [unlockedPlans, setUnlockedPlans] = useState<string[]>([]);
-  const [unlockedPlanIds, setUnlockedPlanIds] = useState<string[]>([]);
-  const [promoCodeUnlocked, setPromoCodeUnlocked] = useState(false);
-  const [isSharedView, setIsSharedView] = useState(false);
-  
-  const isAdmin = isAdminEmail(user?.email);
-  const [isPaidState, setIsPaidState] = useState(false);
-  const [standardPackageActive, setStandardPackageActive] = useState(false);
-  const isPaid = isPaidState;
-
-  const isPlanPaid = isPlanExportUnlocked({
-    result,
-    unlockedPlans,
-    unlockedPlanIds,
-    isPaid,
-    promoCodeUnlocked,
-    isAdmin,
-    subscriptionActive,
-    euFundsUnlocked,
-  });
-  const isStudioPaid = hasAccountStandardAccess({
-    isPaid,
-    standardPackageActive,
-    promoCodeUnlocked,
-    isAdmin,
-    subscriptionActive,
-    euFundsUnlocked,
-  });
-  const hasProAccess = !!(isAdmin || subscriptionActive || euFundsUnlocked);
-  const hasProPackQuota = !!(euFundsUnlocked && !subscriptionActive && !isAdmin);
-  const versionStackAccess: VersionStackAccess = {
-    isAdmin,
-    hasStandardAccess: isStudioPaid,
-    hasFullAccess: hasProAccess,
-    hasProTools: hasProAccess,
-  };
   const [topupLoading, setTopupLoading] = useState(false);
 
   const handleProTopupCheckout = async () => {
@@ -203,6 +158,42 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
   const [isEditingAi, setIsEditingAi] = useState(false);
   const [showVerificationModal, setShowVerificationModal] = useState(false);
   const [verificationSent, setVerificationSent] = useState(false);
+
+  // === Auth & Entitlements — gestionate centralizat de useAuthUser ===
+  const {
+    user, isAuthLoading,
+    credits, euFundsUnlocked, subscriptionActive, proPackRemaining,
+    lifetimePlanCount, unlockedPlans, unlockedPlanIds, promoCodeUnlocked,
+    isPaid, standardPackageActive,
+    isAdmin, hasStandardAccess, hasProAccess, hasProPackQuota, versionStackAccess,
+  } = useAuthUser(locale, {
+    onUserChanged: (currentUser) => {
+      if (!currentUser) {
+        router.push(isEn ? "/en/login" : isEs ? "/es/login" : "/login");
+        return;
+      }
+      if (typeof window !== "undefined") {
+        const sp = new URLSearchParams(window.location.search);
+        if (!sp.get("sharedId") && !sp.get("shareId")) setIsSharedView(false);
+      }
+      if (!currentUser.emailVerified && currentUser.providerData[0]?.providerId === 'password') {
+        setShowVerificationModal(true);
+      }
+    },
+    createUserDocIfMissing: true,
+  });
+  // Derivate locale (depind de result, rămân în componentă)
+  const isPlanPaid = isPlanExportUnlocked({
+    result,
+    unlockedPlans,
+    unlockedPlanIds,
+    isPaid,
+    promoCodeUnlocked,
+    isAdmin,
+    subscriptionActive,
+    euFundsUnlocked,
+  });
+  const isStudioPaid = hasStandardAccess;
   const [showShareSuccess, setShowShareSuccess] = useState(false);
   const [showVersionDropdown, setShowVersionDropdown] = useState(false);
   const [showExpertDrawer, setShowExpertDrawer] = useState(false);
@@ -279,68 +270,9 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
     },
   });
 
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-      if (!currentUser) {
-        router.push(isEn ? "/en/login" : isEs ? "/es/login" : "/login");
-        return;
-      }
-      setUser(currentUser);
-      if (typeof window !== "undefined") {
-        const sp = new URLSearchParams(window.location.search);
-        if (!sp.get("sharedId") && !sp.get("shareId")) setIsSharedView(false);
-      }
 
-      // Verificare confirmare email (provider password)
-      if (!currentUser.emailVerified && currentUser.providerData[0]?.providerId === 'password') {
-        setShowVerificationModal(true);
-      }
-    });
-    return () => unsubscribe();
-  }, [router, isEn, isEs]);
 
-  useEffect(() => {
-    if (!user) {
-      setCredits(0);
-      setEuFundsUnlocked(false);
-      setSubscriptionActive(false);
-      setProPackRemaining({ generate: 0, edit: 0, combine: 0 });
-      setLifetimePlanCount(0);
-      setUnlockedPlans([]);
-      setUnlockedPlanIds([]);
-      setPromoCodeUnlocked(false);
-      setIsPaidState(false);
-      setStandardPackageActive(false);
-      return;
-    }
 
-    const userRef = doc(db, "users", user.uid);
-    const unsubscribe = onSnapshot(userRef, (snapshot) => {
-      if (snapshot.exists()) {
-        const data = snapshot.data();
-        setCredits(data.credits || 0);
-        setEuFundsUnlocked(data.euFundsUnlocked || false);
-        setSubscriptionActive(data.subscriptionActive || false);
-        setProPackRemaining(readProPackRemaining(data));
-        setLifetimePlanCount(
-          typeof data.lifetimePlanCount === "number" ? data.lifetimePlanCount : 0
-        );
-        setUnlockedPlans(data.unlockedPlans || []);
-        setUnlockedPlanIds(data.unlockedPlanIds || []);
-        setPromoCodeUnlocked(data.promoCodeUnlocked || false);
-        setIsPaidState(data.isPaid || false);
-        setStandardPackageActive(!!data.standardPackageActive);
-      } else {
-        // Entitlements (credits/isPaid/…) are Admin-only — see firestore.rules
-        setDoc(userRef, {
-          email: user.email,
-          createdAt: new Date().toISOString(),
-        }, { merge: true });
-      }
-    });
-
-    return () => unsubscribe();
-  }, [user]);
 
   useEffect(() => {
     if (typeof window === "undefined" || !user) return;
@@ -661,11 +593,8 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
     setIsSharedView,
     t,
     activeVersionId,
-    onPlanUnlockedByCredit: (planName, planId) => {
-      setUnlockedPlans((prev) => (prev.includes(planName) ? prev : [...prev, planName]));
-      if (planId) {
-        setUnlockedPlanIds((prev) => (prev.includes(planId) ? prev : [...prev, planId]));
-      }
+    onPlanUnlockedByCredit: () => {
+      // Firestore onSnapshot în useAuthUser actualizează automat unlockedPlans/unlockedPlanIds
     },
   });
 
@@ -1516,18 +1445,9 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
       <PricingModal
         isOpen={showPricingModal}
         onClose={() => setShowPricingModal(false)}
-        onSuccess={(tier) => {
+        onSuccess={() => {
           setShowPricingModal(false);
-          setPromoCodeUnlocked(true);
-          if (tier === "full-access") {
-            setSubscriptionActive(true);
-            setEuFundsUnlocked(true);
-          } else if (tier === "eu-funds") {
-            setEuFundsUnlocked(true);
-          } else if (tier === "standard") {
-            setStandardPackageActive(true);
-          }
-          alert(locale === "en" ? "Payment simulated successfully! Premium access is now unlocked." : locale === "es" ? "¡Pago simulado con éxito! El acceso premium ya está desbloqueado." : "Plată simulată cu succes! Accesul premium este acum deblocat.");
+          // Firestore onSnapshot în useAuthUser actualizează automat entitlements după confirmarea plății
         }}
         onRequireLogin={() => {
           setShowPricingModal(false);

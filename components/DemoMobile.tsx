@@ -25,6 +25,7 @@ import { UI_STRINGS } from '@/lib/uiStrings';
 import dynamic from 'next/dynamic';
 import { formatObjectNumbers, formatNumberedText } from "@/lib/utils";
 import { useSharedPlanLoader } from "@/hooks/useSharedPlanLoader";
+import { useAuthUser } from '@/hooks/useAuthUser';
 import { createAndCopySharedPlanLink } from "@/lib/sharePlan";
 import { FREE_ACCOUNT_PLAN_LIMIT, GUEST_DEMO_PLAN_LIMIT, hasUnlimitedGenerateAccess } from "@/lib/planQuota";
 import { canGenerateWithQuotas, readProPackRemaining, proPackTopupConfirmDialog } from "@/lib/proPackQuota";
@@ -131,47 +132,37 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
   const [loading, setLoading] = useState(false);
   const [fxRate, setFxRate] = useState(0.201);
   const [isDownloading, setIsDownloading] = useState<'pdf' | 'word' | 'pptx' | 'pdf-summary' | null>(null);
-  const [user, setUser] = useState<User | null>(null);
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [showPricingModal, setShowPricingModal] = useState(false);
-  const [isAuthLoading, setIsAuthLoading] = useState(true);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoginMode, setIsLoginMode] = useState(true);
   const [isEmailLoading, setIsEmailLoading] = useState(false);
   const [authError, setAuthError] = useState<string | null>(null);
   const [verificationEmailSent, setVerificationEmailSent] = useState(false);
-
-  // Stări permisiuni utilizator
-  const [credits, setCredits] = useState(0);
-  const [euFundsUnlocked, setEuFundsUnlocked] = useState(false);
-  const [subscriptionActive, setSubscriptionActive] = useState(false);
-  const [proPackRemaining, setProPackRemaining] = useState({
-    generate: 0,
-    edit: 0,
-    combine: 0,
-  });
-  const [lifetimePlanCount, setLifetimePlanCount] = useState(0);
-  const [unlockedPlans, setUnlockedPlans] = useState<string[]>([]);
-  const [unlockedPlanIds, setUnlockedPlanIds] = useState<string[]>([]);
-  const [promoCodeUnlocked, setPromoCodeUnlocked] = useState(false);
-  const [isPaidState, setIsPaidState] = useState(false);
-  const [standardPackageActive, setStandardPackageActive] = useState(false);
   const [isSharedView, setIsSharedView] = useState(false);
   const [skipLocalRestore, setSkipLocalRestore] = useState(false);
 
-  const isPaid = isPaidState;
-  const isAdmin = isAdminEmail(user?.email);
-  const hasStandardAccess = hasAccountStandardAccess({
-    isPaid,
-    standardPackageActive,
-    promoCodeUnlocked,
-    isAdmin,
-    subscriptionActive,
-    euFundsUnlocked,
+  // === Auth & Entitlements — gestionate centralizat de useAuthUser ===
+  const {
+    user, isAuthLoading,
+    credits, euFundsUnlocked, subscriptionActive, proPackRemaining,
+    lifetimePlanCount, unlockedPlans, unlockedPlanIds, promoCodeUnlocked,
+    isPaid, standardPackageActive,
+    isAdmin, hasStandardAccess, hasProAccess, hasProPackQuota, versionStackAccess,
+  } = useAuthUser(locale, {
+    onUserChanged: async (currentUser) => {
+      if (currentUser) {
+        if (typeof window !== "undefined") {
+          const sp = new URLSearchParams(window.location.search);
+          if (!sp.get("sharedId") && !sp.get("shareId")) setIsSharedView(false);
+        }
+        await migrateLocalPlansToFirebase(currentUser);
+      }
+    },
+    createUserDocIfMissing: true,
   });
-  const hasProAccess = !!(isAdmin || subscriptionActive || euFundsUnlocked);
-  const hasProPackQuota = !!(euFundsUnlocked && !subscriptionActive && !isAdmin);
+  // Derivate locale (depind de result, rămân în componentă)
   const isPlanPaid = isPlanExportUnlocked({
     result,
     unlockedPlans,
@@ -182,12 +173,6 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
     subscriptionActive,
     euFundsUnlocked,
   });
-  const versionStackAccess: VersionStackAccess = {
-    isAdmin,
-    hasStandardAccess,
-    hasFullAccess: !!(isAdmin || subscriptionActive || euFundsUnlocked),
-    hasProTools: hasProAccess,
-  };
   const [topupLoading, setTopupLoading] = useState(false);
 
   const handleProTopupCheckout = async () => {
@@ -243,42 +228,7 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
     }
   };
 
-  useEffect(() => {
-    if (!user) {
-      setCredits(0);
-      setEuFundsUnlocked(false);
-      setSubscriptionActive(false);
-      setProPackRemaining({ generate: 0, edit: 0, combine: 0 });
-      setLifetimePlanCount(0);
-      setUnlockedPlans([]);
-      setUnlockedPlanIds([]);
-      setPromoCodeUnlocked(false);
-      setIsPaidState(false);
-      setStandardPackageActive(false);
-      return;
-    }
 
-    const userRef = doc(db, "users", user.uid);
-    const unsubscribe = onSnapshot(userRef, (snapshot) => {
-      if (snapshot.exists()) {
-        const data = snapshot.data();
-        setCredits(data.credits || 0);
-        setEuFundsUnlocked(data.euFundsUnlocked || false);
-        setSubscriptionActive(data.subscriptionActive || false);
-        setProPackRemaining(readProPackRemaining(data));
-        setLifetimePlanCount(
-          typeof data.lifetimePlanCount === "number" ? data.lifetimePlanCount : 0
-        );
-        setUnlockedPlans(data.unlockedPlans || []);
-        setUnlockedPlanIds(data.unlockedPlanIds || []);
-        setPromoCodeUnlocked(data.promoCodeUnlocked || false);
-        setIsPaidState(!!data.isPaid);
-        setStandardPackageActive(!!data.standardPackageActive);
-      }
-    });
-
-    return () => unsubscribe();
-  }, [user, result?.nume]);
 
   useEffect(() => {
     if (typeof window === "undefined" || !user) return;
@@ -322,11 +272,8 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
     setIsSharedView,
     t,
     activeVersionId,
-    onPlanUnlockedByCredit: (planName, planId) => {
-      setUnlockedPlans((prev) => (prev.includes(planName) ? prev : [...prev, planName]));
-      if (planId) {
-        setUnlockedPlanIds((prev) => (prev.includes(planId) ? prev : [...prev, planId]));
-      }
+    onPlanUnlockedByCredit: () => {
+      // Firestore onSnapshot în useAuthUser actualizează automat unlockedPlans/unlockedPlanIds
     },
   });
   
@@ -408,20 +355,7 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
     return () => clearInterval(interval);
   }, [loading]);
 
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
-      setUser(currentUser);
-      setIsAuthLoading(false);
-      if (currentUser) {
-        if (typeof window !== "undefined") {
-          const sp = new URLSearchParams(window.location.search);
-          if (!sp.get("sharedId") && !sp.get("shareId")) setIsSharedView(false);
-        }
-        await migrateLocalPlansToFirebase(currentUser);
-      }
-    });
-    return () => unsubscribe();
-  }, []);
+
 
   // Încărcare plan partajat (?sharedId=) — același helper ca pe Desktop
   const { isCheckingShared, shareError } = useSharedPlanLoader({
@@ -1603,18 +1537,9 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
       <PricingModal
         isOpen={showPricingModal}
         onClose={() => setShowPricingModal(false)}
-        onSuccess={(tier) => {
+        onSuccess={() => {
           setShowPricingModal(false);
-          setPromoCodeUnlocked(true);
-          if (tier === "full-access") {
-            setSubscriptionActive(true);
-            setEuFundsUnlocked(true);
-          } else if (tier === "eu-funds") {
-            setEuFundsUnlocked(true);
-          } else if (tier === "standard") {
-            setStandardPackageActive(true);
-          }
-          alert(locale === "en" ? "Payment simulated successfully! Premium access is now unlocked." : locale === "es" ? "¡Pago simulado con éxito! El acceso premium ya está desbloqueado." : "Plată simulată cu succes! Accesul premium este acum deblocat.");
+          // Firestore onSnapshot în useAuthUser actualizează automat entitlements după confirmarea plății
         }}
         onRequireLogin={() => {
           setShowPricingModal(false);

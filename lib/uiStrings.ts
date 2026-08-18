@@ -110,6 +110,8 @@ type UIStringsShape = {
   mockupLiveCosts: string; mockupLiveCosts1: string; mockupLiveCosts2: string;
   mockupLiveStatus: string; mockupLiveStat1: string; mockupLiveStat2: string; mockupLiveStat3: string; mockupLiveComplete: string;
   mockupBeforeTitle: string; mockupBeforeDesc: string;
+  // Erori comune (migrate din translations.ts)
+  errorServerPrefix: string; errorNetworkError: string; errorInvalidFormat: string; errorGenerationFallback: string;
 };
 
 export const UI_STRINGS: Record<Locale, UIStringsShape> = {
@@ -263,7 +265,8 @@ export const UI_STRINGS: Record<Locale, UIStringsShape> = {
     mockupLiveTitle: "# Plan de Afaceri - Cafenea de Specialitate \"Urban Beans\"", mockupLiveGen: "> Generând proiecții financiare (în LEI)...", mockupLiveRev: "## Venituri Estimate", mockupLiveRev1: "- Trimestrul 1: 150.000 lei (creștere organică)", mockupLiveRev2: "- Trimestrul 2: 275.000 lei (sezon cald)", mockupLiveRev3: "- Trimestrul 3: 400.000 lei (B2B stabilizat)",
     mockupLiveCosts: "## Costuri Operaționale", mockupLiveCosts1: "- Salarii: 35.000 lei / lună", mockupLiveCosts2: "- Chirie: 15.000 lei / lună",
     mockupLiveStatus: "## Stadiu Generare", mockupLiveStat1: "Analiză Competiție", mockupLiveStat2: "Strategie Prețuri", mockupLiveStat3: "Calcul ROI", mockupLiveComplete: "Complet",
-    mockupBeforeTitle: "Înainte", mockupBeforeDesc: "\"Vreau să deschid o cafenea. Am experiență de 5 ani în domeniu. Nu știu de unde să încep cu planul de afaceri.\""
+    mockupBeforeTitle: "Înainte", mockupBeforeDesc: "\"Vreau să deschid o cafenea. Am experiență de 5 ani în domeniu. Nu știu de unde să încep cu planul de afaceri.\"",
+    errorServerPrefix: "Eroare de server: ", errorNetworkError: "Eroare de rețea. Te rugăm să mai încerci o dată.", errorInvalidFormat: "Sistemul a returnat un format invalid. Mai încearcă o dată.", errorGenerationFallback: "A apărut o eroare la generarea planului. Te rugăm să încerci din nou mai târziu.",
   },
   en: {
     pricing: "Pricing", logOut: "Log Out", logIn: "Log In", tryFree: "Try Free",
@@ -415,7 +418,8 @@ export const UI_STRINGS: Record<Locale, UIStringsShape> = {
     mockupLiveTitle: "# Business Plan - Specialty Coffee Shop \"Urban Beans\"", mockupLiveGen: "> Generating financial projections...", mockupLiveRev: "## Estimated Revenues", mockupLiveRev1: "- Quarter 1: 150,000 (organic growth)", mockupLiveRev2: "- Quarter 2: 275,000 (warm season)", mockupLiveRev3: "- Quarter 3: 400,000 (stable B2B)",
     mockupLiveCosts: "## Operational Costs", mockupLiveCosts1: "- Salaries: 35,000 / month", mockupLiveCosts2: "- Rent: 15,000 / month",
     mockupLiveStatus: "## Generation Status", mockupLiveStat1: "Competition Analysis", mockupLiveStat2: "Pricing Strategy", mockupLiveStat3: "ROI Calculation", mockupLiveComplete: "Complete",
-    mockupBeforeTitle: "Before", mockupBeforeDesc: "\"I want to open a coffee shop. I have 5 years of experience in the field. I don't know where to start with the business plan.\""
+    mockupBeforeTitle: "Before", mockupBeforeDesc: "\"I want to open a coffee shop. I have 5 years of experience in the field. I don't know where to start with the business plan.\"",
+    errorServerPrefix: "Server error: ", errorNetworkError: "Network error. Please try again.", errorInvalidFormat: "The system returned an invalid format. Please try again.", errorGenerationFallback: "An error occurred during plan generation. Please try again later.",
   },
   es: {
     pricing: "Precios", logOut: "Cerrar sesión", logIn: "Iniciar sesión", tryFree: "Probar Gratis",
@@ -567,6 +571,7 @@ export const UI_STRINGS: Record<Locale, UIStringsShape> = {
     mockupLiveTitle: "# Plan de Negocio - Cafetería de Especialidad \"Urban Beans\"", mockupLiveGen: "> Generando proyecciones financieras...", mockupLiveRev: "## Ingresos Estimados", mockupLiveRev1: "- Trimestre 1: 150.000 (crecimiento orgánico)", mockupLiveRev2: "- Trimestre 2: 275.000 (temporada cálida)", mockupLiveRev3: "- Trimestre 3: 400.000 (B2B estable)",
     mockupLiveCosts: "## Costos Operativos", mockupLiveCosts1: "- Salarios: 35.000 / mes", mockupLiveCosts2: "- Alquiler: 15.000 / mes",
     mockupLiveStatus: "## Estado de Generación", mockupLiveStat1: "Análisis de la Competencia", mockupLiveStat2: "Estrategia de Precios", mockupLiveStat3: "Cálculo del ROI", mockupLiveComplete: "Completo",
-    mockupBeforeTitle: "Antes", mockupBeforeDesc: "\"Quiero abrir una cafetería. Tengo 5 años de experiencia. No sé por dónde empezar con el plan de negocio.\""
+    mockupBeforeTitle: "Antes", mockupBeforeDesc: "\"Quiero abrir una cafetería. Tengo 5 años de experiencia. No sé por dónde empezar con el plan de negocio.\"",
+    errorServerPrefix: "Error del servidor: ", errorNetworkError: "Error de red. Por favor, inténtelo de nuevo.", errorInvalidFormat: "El sistema devolvió un formato no válido. Por favor, inténtelo de nuevo.", errorGenerationFallback: "Ocurrió un error al generar el plan. Por favor, inténtelo de nuevo más tarde.",
   }
 };

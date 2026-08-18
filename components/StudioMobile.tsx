@@ -662,11 +662,7 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
       try {
         data = JSON.parse(resText);
       } catch {
-        throw new Error(
-          res.ok
-            ? t("errorGenerationFallback", locale)
-            : t("errorGenerationFallback", locale)
-        );
+        throw new Error(ui.errorGenerationFallback);
       }
 
       if (!res.ok) {
@@ -739,7 +735,7 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
       }
     } catch (error: any) {
       console.error("Eroare:", error);
-      alert(error.message || t("errorGenerationFallback", locale));
+      alert(error.message || ui.errorGenerationFallback);
     } finally {
       if (shouldStopLoading) setLoading(false);
     }

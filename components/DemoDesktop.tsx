@@ -434,7 +434,7 @@ export default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" | 
             return;
           }
           
-          let errorMsg = t("errorServerPrefix", locale) + res.status;
+          let errorMsg = ui.errorServerPrefix + res.status;
           let errCode = "";
           try {
             const errJson = JSON.parse(text);
@@ -1133,7 +1133,7 @@ export default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" | 
         try {
           data = JSON.parse(resText);
         } catch (e) {
-          throw new Error(res.ok ? t("errorInvalidFormat", locale) : t("errorNetworkError", locale));
+          throw new Error(res.ok ? ui.errorInvalidFormat : ui.errorNetworkError);
         }
 
         if (!res.ok) {
@@ -1143,10 +1143,10 @@ export default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" | 
             else openUpgradeForPackOrPricing("generate");
             return;
           }
-          throw new Error(data.error || `${t("errorServerPrefix", locale)}${res.status}`);
+          throw new Error(data.error || `${ui.errorServerPrefix}${res.status}`);
         }
       } catch (err: any) {
-        throw new Error(err.message || t("errorNetworkError", locale));
+          throw new Error(err.message || ui.errorNetworkError);
       }
       if (data.fx_rate) setFxRate(data.fx_rate);
 
@@ -1215,7 +1215,7 @@ export default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" | 
       }
     } catch (error: any) {
       console.error("Eroare:", error);
-      alert(error.message || t("errorGenerationFallback", locale));
+      alert(error.message || ui.errorGenerationFallback);
     } finally {
       if (shouldStopLoading) setLoading(false);
     }

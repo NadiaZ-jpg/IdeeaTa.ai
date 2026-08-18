@@ -756,3 +756,38 @@ Dacă oricare dintre aceste verificări este omisă în procesul de planificare,
 - Mesaj: `refactor(S2): extrage useAuthUser hook, aplicat Demo (-~160 linii duplicate eliminate)`
 - Branch: `cursor/pdf-cta-locale-and-plan-fill`
 - Push: ✅ `To https://github.com/NadiaZ-jpg/IdeeaTa.ai.git`
+
+---
+
+## FREEZE — Sesiunea 3 Refactorizare (18 August 2026)
+
+### Fișiere ÎNGHEȚATE suplimentar:
+| Fișier | Modificare |
+|---|---|
+| `components/StudioDesktop.tsx` | Eliminat: 10 useState entitlements, `user`+`promoCodeUnlocked` useState, `isAuthLoading` useState, 2 `useEffect` (onAuthStateChanged + onSnapshot), bloc variabile derivate. Adăugat: apel `useAuthUser` cu callback specific Studio (verificare emailVerified, redirect+clear la logout). FREEZE restabilit. |
+| `components/StudioMobile.tsx` | Identic cu StudioDesktop: eliminat toate useState + effecte auth duplicate. Hook call plasat DUPĂ `showVerificationModal` declaration (la L158, necesită setShowVerificationModal în scope). Diferență: la logout → `router.push(...)`. FREEZE restabilit. |
+
+### Notă arhitecturală S3:
+- **Studio Desktop onUserChanged logout:** `setResult(null)` + `localStorage.removeItem` + `window.location.href` redirect.
+- **Studio Mobile onUserChanged logout:** `router.push(login route)` — fără clear localStorage.
+- Ambele verifică `emailVerified` → `setShowVerificationModal(true)`.
+- `onPlanUnlockedByCredit` și `PricingModal.onSuccess` — optimistic updates eliminate, Firestore actualizează automat.
+- StudioDesktop `onSuccess` păstrează resetarea contorilor localStorage (`studioGenerateCount`, `studioToneCount`) — logică locală validă.
+
+### Build verificat:
+- ✅ `npx tsc --noEmit` — zero erori TypeScript
+- ✅ `✓ Compiled successfully in 6.5s`
+- ✅ `✓ Generating static pages (71/71)`
+
+### Git Checkpoint:
+- Commit: `eb427f8`
+- Mesaj: `refactor(S3): useAuthUser aplicat Studio Desktop+Mobile (~280 linii duplicate eliminate)`
+- Branch: `cursor/pdf-cta-locale-and-plan-fill`
+- Push: ✅ `To https://github.com/NadiaZ-jpg/IdeeaTa.ai.git`
+
+### Status Plan Refactorizare:
+- ✅ S1: Hook orfan + Memory leak
+- ✅ S2: useAuthUser creat + aplicat Demo (Desktop + Mobile)
+- ✅ S3: useAuthUser aplicat Studio (Desktop + Mobile)
+- ⏳ S4: Consolidare i18n — eliminare import dual `translations.ts`
+- ⏳ S5: Interfață TypeScript `BusinessPlan` — elimina tipuri `any`

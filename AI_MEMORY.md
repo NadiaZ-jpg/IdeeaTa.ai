@@ -1057,6 +1057,20 @@ Fișiere: `lib/versionStack.ts`, `lib/planQuota.ts`, `lib/proPackQuotaAdmin.ts`,
 
 ---
 
+## FREEZE — Sesiunea C2 (20 August 2026): Demo Mobile guest Pro → auth
+
+**Bug:** `handleAiEdit` pe Demo Mobile făcea doar `history.pushState(?login=true)` fără `setShowAuthModal` — `pushState` nu emite `popstate`, deci modalul nu apărea; uneori flash pe „procesare”.
+
+**Fix:**
+- Demo Mobile: înainte de edit AI, `setShowAuthModal(true)` (+ pushState pentru back); land pe `?login=true` deschide auth; `AUTH_REQUIRED` → auth (nu pricing).
+- Studio Mobile (sanity): guest → `router.push` login locale; fără pushState gol.
+
+**Acceptanță:** Guest telefon RO/EN/ES — unealtă Pro / ton → sheet auth, fără spinner blocat. Tabletă Mobile-UI = același Must.
+
+**Nu în C2:** C3 (tabs + sharedId Studio Mobile).
+
+---
+
 ## FREEZE — Ops simplu (20 August 2026): doar `main` + 3 comenzi
 
 **Regulă agenți:** branch de lucru = **`main`**. Fără feature branches noi decât pe cerere explicită.

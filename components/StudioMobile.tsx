@@ -556,13 +556,14 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
       nextStack = gate.nextStack;
     }
 
+    if (!user) {
+      router.push(isEn ? "/en/login" : isEs ? "/es/login" : "/login");
+      return;
+    }
+
     setIsEditingAi(true);
 
     try {
-      if (!user) {
-        window.history.pushState({ login: true }, "", window.location.pathname + "?login=true");
-        return;
-      }
       const token = await user.getIdToken();
       const editHeaders: Record<string, string> = {
         "Content-Type": "application/json",
@@ -585,10 +586,11 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
 
       if (!res.ok) {
         const err = await res.json().catch(() => ({}));
-        if (
+        if (err?.code === "AUTH_REQUIRED") {
+          router.push(isEn ? "/en/login" : isEs ? "/es/login" : "/login");
+        } else if (
           err?.code === "TONE_LIMIT" ||
-          err?.code === "PRO_REQUIRED" ||
-          err?.code === "AUTH_REQUIRED"
+          err?.code === "PRO_REQUIRED"
         ) {
           setShowPricingModal(true);
         } else if (err?.code === "PRO_PACK_EDIT_LIMIT") {

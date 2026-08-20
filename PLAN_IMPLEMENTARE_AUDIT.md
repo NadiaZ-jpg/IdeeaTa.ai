@@ -25,6 +25,7 @@
 | **B1** Tab-uri QuotaExceeded | ✅ | Must ✅ | Must ✅ | Sanity | ✅ | ✅ | ✅ |
 | **B2** Edit vs combine + export | ✅ | Must ✅ | Must ✅ | Sanity | ✅ | ✅ | ✅ |
 | **C1** Auth Desktop EN/ES | ✅ | Must ✅ | Sanity | Sanity | ✅ | ✅ | ✅ |
+| **C2** Demo Mobile Pro→auth | ✅ | Sanity | Must ✅ | Must* | ✅ | ✅ | ✅ |
 | Ops `./update.sh` | ✅ | — | — | — | — | — | — |
 
 \*A2: migrare/Dashboard pe toate device-urile după login; bug-ul delete-on-name era cross-device.
@@ -264,6 +265,6 @@ F4–F5   proiecte mari (amânate)
 
 ## Următorul pas
 
-**C1** ✅ implementat (auth Desktop EN/ES). Urmează **C2** — Demo Mobile Pro→auth.
+**C1** ✅ · **C2** ✅. Urmează **C3** — Studio Mobile tabs + sharedId.
 
-Spune `executa C2` ca să continuăm pe `main`.
+Spune `executa C3` ca să continuăm pe `main`.

@@ -420,6 +420,15 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
 
   // Ascultă evenimentul de back/forward (popstate) pentru sincronizare gesturi pe mobil
   useEffect(() => {
+    const openLoginFromUrl = () => {
+      const searchParams = new URLSearchParams(window.location.search);
+      if (searchParams.get("login") === "true") {
+        setShowAuthModal(true);
+      }
+    };
+    // pushState nu emite popstate — deschide auth și la land pe ?login=true
+    openLoginFromUrl();
+
     const handlePopState = () => {
       const searchParams = new URLSearchParams(window.location.search);
       const isIdea = searchParams.get('view') === 'idea' || searchParams.has('sharedId') || searchParams.has('shareId');
@@ -727,14 +736,20 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
       nextStack = gate.nextStack;
     }
 
+    if (!user) {
+      setShowAuthModal(true);
+      try {
+        window.history.pushState({ login: true }, "", window.location.pathname + "?login=true");
+      } catch {
+        /* ignore */
+      }
+      return;
+    }
+
     setIsEditingAi(true);
     setActiveAiPrompt(null);
 
     try {
-      if (!user) {
-        window.history.pushState({ login: true }, "", window.location.pathname + "?login=true");
-        return;
-      }
       const token = await user.getIdToken();
       const editHeaders: Record<string, string> = {
         "Content-Type": "application/json",
@@ -757,10 +772,11 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
 
       if (!res.ok) {
         const err = await res.json().catch(() => ({}));
-        if (
+        if (err?.code === "AUTH_REQUIRED") {
+          setShowAuthModal(true);
+        } else if (
           err?.code === "TONE_LIMIT" ||
-          err?.code === "PRO_REQUIRED" ||
-          err?.code === "AUTH_REQUIRED"
+          err?.code === "PRO_REQUIRED"
         ) {
           setShowPricingModal(true);
         } else if (err?.code === "PRO_PACK_EDIT_LIMIT") {

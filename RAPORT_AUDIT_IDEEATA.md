@@ -64,7 +64,7 @@
 - Pe Landing, linkurile Login / Studio din meniu sunt ascunse pe ecran mic (rămâne CTA-ul principal).
 
 ### Rău
-1. **Oaspete + unealtă Pro pe Demo:** în loc să deschidă fereastra de autentificare, poate rămâne „în procesare” și login-ul nu apare.
+1. ~~**Oaspete + unealtă Pro pe Demo:**~~ — **reparat C2** (auth modal + stop procesare).
 2. **Pe Demo nu există editare manuală** (pe Desktop da) — pe telefon schimbi planul doar prin AI / unelte.
 3. **Pe Studio (telefon):** după ce sistemul completează automat câmpuri lipsă, **tab-urile de variante** pot rămâne în urmă față de ce vezi pe ecran.
 4. **Pe Studio (telefon):** un link de tip „plan partajat” (`sharedId`) **nu încarcă** planul (pe Demo da).

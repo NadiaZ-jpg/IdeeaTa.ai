@@ -739,7 +739,7 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
   const handleShare = async () => {
     if (!result) return;
     if (!user) {
-      router.push(locale === "en" ? "/en/login" : locale === "es" ? "/es/login" : "/login");
+      router.push(ui.routes.login);
       return;
     }
     try {
@@ -1505,7 +1505,7 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
                   hasProAccess={hasProAccess}
                   isAdmin={isAdmin}
                   isEditingAi={isEditingAi}
-                  setShowAuthModal={() => router.push(locale === "en" ? "/en/login" : locale === "es" ? "/es/login" : "/login")}
+                  setShowAuthModal={() => router.push(ui.routes.login)}
                   setShowPricingModal={setShowPricingModal}
                   handleAiEdit={handleAiEdit}
                 />
@@ -1610,7 +1610,7 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
             <textarea
               value={editingField.value}
               onChange={(e) => setEditingField({ ...editingField, value: e.target.value })}
-              placeholder={locale === "en" ? "Enter the section content here..." : locale === "es" ? "Introduce el contenido de la sección aquí..." : "Introdu conținutul secțiunii aici..."}
+              placeholder={ui.sectionContentPlaceholder}
               className="w-full bg-zinc-950 border border-zinc-800 focus:border-emerald-500 rounded-xl p-4 text-xs text-white placeholder-zinc-500 h-44 outline-none resize-none transition-all flex-1"
             />
             
@@ -1619,13 +1619,13 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
                 onClick={() => setEditingField(null)}
                 className="w-full bg-zinc-950 border border-zinc-800 text-zinc-400 font-bold py-3.5 rounded-xl text-xs transition-all active:scale-95 text-center"
               >
-                {locale === "en" ? "Cancel" : locale === "es" ? "Cancelar" : "Renunță"}
+                {ui.dismissBtn}
               </button>
               <button
                 onClick={handleManualSave}
                 className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3.5 rounded-xl text-xs transition-all active:scale-95 text-center"
               >
-                {locale === "en" ? "Save Changes" : locale === "es" ? "Guardar Cambios" : "Salvează Modificările"}
+                {ui.saveChanges}
               </button>
             </div>
           </div>
@@ -1640,8 +1640,8 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
             <div className="flex justify-between items-center border-b border-zinc-800/60 pb-3">
               <h4 className="text-sm font-black text-white">
                 {editingBudgetItem.index === 'new'
-                  ? (locale === "en" ? "Add Budget Item" : locale === "es" ? "Añadir Elemento al Presupuesto" : "Adaugă Cheltuială Nouă")
-                  : (locale === "en" ? "Edit Budget Item" : locale === "es" ? "Editar Elemento del Presupuesto" : "Editează Cheltuiala")}
+                  ? ui.addBudgetItemTitle
+                  : ui.editBudgetItemTitle}
               </h4>
               <button onClick={() => setEditingBudgetItem(null)} className="text-xs text-zinc-500 font-bold p-1">
                 {ui.closeBtn}
@@ -1651,24 +1651,20 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
             <div className="space-y-3">
               <div>
                 <label className="text-[11px] font-bold text-zinc-400 block mb-1">
-                  {locale === "en" ? "Item / Category Name" : locale === "es" ? "Nombre del Elemento / Categoría" : "Nume Cheltuială / Categorie"}
+                  {ui.budgetItemNameLabel}
                 </label>
                 <input
                   type="text"
                   value={editingBudgetItem.item}
                   onChange={(e) => setEditingBudgetItem({ ...editingBudgetItem, item: e.target.value })}
-                  placeholder={locale === "en" ? "e.g. Equipment & Hardware" : locale === "es" ? "ej. Equipamiento y Hardware" : "ex: Echipamente și Mobilier"}
+                  placeholder={ui.budgetItemNamePlaceholder}
                   className="w-full bg-zinc-950 border border-zinc-800 focus:border-emerald-500 rounded-xl p-3.5 text-base md:text-xs text-white placeholder-zinc-500 outline-none transition-all"
                 />
               </div>
 
               <div>
                 <label className="text-[11px] font-bold text-zinc-400 block mb-1">
-                  {locale === "en" 
-                    ? `Cost (${result?.selectedCurrency || "EUR"})` 
-                    : locale === "es" 
-                    ? `Coste (${result?.selectedCurrency || "EUR"})` 
-                    : `Cost (${result?.selectedCurrency || "RON"})`}
+                  {`${ui.costLabel} (${result?.selectedCurrency || (locale === "ro" ? "RON" : "EUR")})`}
                 </label>
                 <input
                   type="number"
@@ -1685,14 +1681,14 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
                 onClick={() => setEditingBudgetItem(null)}
                 className="w-full bg-zinc-950 border border-zinc-800 text-zinc-400 font-bold py-3.5 rounded-xl text-xs transition-all active:scale-95 text-center"
               >
-                {locale === "en" ? "Cancel" : locale === "es" ? "Cancelar" : "Renunță"}
+                {ui.dismissBtn}
               </button>
               <button
                 onClick={handleSaveBudgetItem}
                 disabled={!editingBudgetItem.item.trim()}
                 className="w-full bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white font-bold py-3.5 rounded-xl text-xs transition-all active:scale-95 text-center"
               >
-                {locale === "en" ? "Save" : locale === "es" ? "Guardar" : "Salvează"}
+                {ui.saveBtn}
               </button>
             </div>
           </div>
@@ -1716,7 +1712,7 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
               ✉️
             </div>
             <div className="space-y-2">
-              <h3 className="text-lg font-black">{locale === "en" ? "Verify your email address" : locale === "es" ? "Verifica tu dirección de correo electrónico" : "Confirmă adresa de email"}</h3>
+              <h3 className="text-lg font-black">{ui.emailVerifyTitle}</h3>
               <p className="text-xs text-zinc-400 leading-relaxed">
                 {locale === "en" 
                   ? "We have sent a verification link to your email. Please activate your account to use the Studio." 
@@ -1728,7 +1724,7 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
 
             {verificationSent && (
               <div className="bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs py-2 px-3 rounded-lg font-semibold">
-                {locale === "en" ? "The activation link has been resent successfully!" : locale === "es" ? "¡El enlace de activación ha sido reenviado con éxito!" : "Link-ul de activare a fost retrimis cu succes!"}
+                {ui.emailVerifyResentOk}
               </div>
             )}
 
@@ -1737,7 +1733,7 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
                 onClick={handleResendVerification}
                 className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 rounded-xl text-xs transition-all active:scale-95"
               >
-                {locale === "en" ? "Resend Activation Email" : locale === "es" ? "Reenviar Correo de Activación" : "Retrimite Email de Activare"}
+                {ui.emailVerifyResend}
               </button>
               <button
                 onClick={() => {
@@ -1746,7 +1742,7 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
                 }}
                 className="w-full bg-zinc-950 border border-zinc-800 text-zinc-400 font-bold py-3 rounded-xl text-xs transition-all active:scale-95"
               >
-                {locale === "en" ? "Go to Dashboard" : locale === "es" ? "Ir al Panel" : "Mergi la Dashboard"}
+                {ui.goToDashboard}
               </button>
             </div>
           </div>
@@ -1782,7 +1778,7 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
           {/* Drawer Sheet */}
           <div className="bg-zinc-900 border-t border-zinc-800 rounded-t-3xl p-6 max-h-[85vh] overflow-y-auto space-y-5 animate-in slide-in-from-bottom duration-300 flex flex-col w-full md:max-w-lg md:mx-auto md:left-1/2 md:-translate-x-1/2 md:right-auto">
             <div className="flex justify-between items-center border-b border-zinc-800/60 pb-3">
-              <h4 className="text-sm font-black text-white">{locale === "en" ? "Export Options" : locale === "es" ? "Opciones de Exportación" : "Opțiuni de Exportare"}</h4>
+              <h4 className="text-sm font-black text-white">{ui.exportOptionsTitle}</h4>
               <button onClick={() => setShowExportModal(false)} className="text-xs text-zinc-500 font-bold p-1">{ui.closeBtn}</button>
             </div>
             <p className="text-[11px] text-zinc-400 leading-relaxed -mt-2">
@@ -1802,8 +1798,8 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
                 disabled={isDownloading !== null}
                 className="w-full bg-zinc-950 border border-zinc-800 text-zinc-300 hover:text-white font-bold py-3.5 rounded-xl text-xs transition-all active:scale-95 text-left px-4 flex justify-between items-center"
               >
-                <span>📄 {locale === "en" ? "Free PDF Summary" : locale === "es" ? "Resumen PDF Gratis" : "Sumar PDF Gratuit"}</span>
-                <span className="text-[10px] bg-emerald-500/10 text-emerald-400 px-2 py-0.5 rounded font-black uppercase">{locale === "en" ? "Free" : locale === "es" ? "Gratis" : "Gratuit"}</span>
+                <span>📄 {ui.freePdfSummary}</span>
+                <span className="text-[10px] bg-emerald-500/10 text-emerald-400 px-2 py-0.5 rounded font-black uppercase">{ui.freeBadge}</span>
               </button>
 
               {/* Word (DOCX) Premium */}
@@ -1815,7 +1811,7 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
                 disabled={isDownloading !== null}
                 className="w-full bg-zinc-950 border border-zinc-800 text-zinc-300 hover:text-white font-bold py-3.5 rounded-xl text-xs transition-all active:scale-95 text-left px-4 flex justify-between items-center"
               >
-                <span>📝 {locale === "en" ? "Word Document (.docx)" : locale === "es" ? "Documento Word (.docx)" : "Document Word (.docx)"}</span>
+                <span>📝 {ui.wordDocxLabel}</span>
                 {!isStudioPaid && !isPlanPaid && <span className="text-[10px] bg-amber-500/10 text-amber-400 px-2 py-0.5 rounded font-black uppercase">🔒 PRO</span>}
               </button>
 
@@ -1828,7 +1824,7 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
                 disabled={isDownloading !== null}
                 className="w-full bg-zinc-950 border border-zinc-800 text-zinc-300 hover:text-white font-bold py-3.5 rounded-xl text-xs transition-all active:scale-95 text-left px-4 flex justify-between items-center"
               >
-                <span>📊 {locale === "en" ? "PowerPoint Presentation (.pptx)" : locale === "es" ? "Presentación PowerPoint (.pptx)" : "Prezentare PowerPoint (.pptx)"}</span>
+                <span>📊 {ui.pptxLabel}</span>
                 {!isStudioPaid && !isPlanPaid && <span className="text-[10px] bg-amber-500/10 text-amber-400 px-2 py-0.5 rounded font-black uppercase">🔒 PRO</span>}
               </button>
 
@@ -1841,7 +1837,7 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
                 disabled={isDownloading !== null}
                 className="w-full bg-zinc-950 border border-zinc-800 text-zinc-300 hover:text-white font-bold py-3.5 rounded-xl text-xs transition-all active:scale-95 text-left px-4 flex justify-between items-center"
               >
-                <span>📕 {locale === "en" ? "Full PDF Document" : locale === "es" ? "Documento PDF Completo" : "Document PDF Complet"}</span>
+                <span>📕 {ui.fullPdfLabel}</span>
                 {!isStudioPaid && !isPlanPaid && <span className="text-[10px] bg-amber-500/10 text-amber-400 px-2 py-0.5 rounded font-black uppercase">🔒 PRO</span>}
               </button>
             </div>
@@ -1856,7 +1852,7 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
           user={user}
           hasProAccess={hasProAccess}
           isAdmin={isAdmin}
-          businessName={result?.nume || (locale === "en" ? "Your Business" : locale === "es" ? "Tu Empresa" : "Compania Ta")}
+          businessName={result?.nume || (ui.yourBusiness)}
           onRequireAuth={() => {
             setShowExpertDrawer(false);
             router.push(isEn ? "/en/login" : isEs ? "/es/login" : "/login");

@@ -276,6 +276,6 @@ F4–F5   proiecte mari (amânate)
 
 ## Următorul pas
 
-**Audit hotfixes + F4/F5 Faza 1 + F4b + F4c** ✅. Urmează F5b (opțional) sau mentenanță.
+**Audit hotfixes + F4/F5 Faza 1 + F4b + F4c + F4d** ✅. Urmează F5b (opțional) sau mentenanță.
 
 Spune ce vrei următor.

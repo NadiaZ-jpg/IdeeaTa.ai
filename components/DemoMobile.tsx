@@ -1037,7 +1037,7 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
           <div className="flex-1 flex flex-col items-center justify-center py-20 text-center gap-6">
             <div className="w-16 h-16 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin"></div>
             <div className="space-y-2 max-w-xs">
-              <h3 className="font-bold text-lg text-emerald-400">{locale === "en" ? "Assistant is working" : locale === "es" ? "El asistente está trabajando" : "Asistentul lucrează"}</h3>
+              <h3 className="font-bold text-lg text-emerald-400">{ui.assistantWorking}</h3>
               <p className="text-sm text-zinc-400 animate-pulse">{loadingMessages[loadingMessageIndex]}</p>
             </div>
           </div>
@@ -1053,10 +1053,10 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
             )}
             <div className="text-center space-y-2 mt-4">
               <span className="text-[10px] bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 px-3 py-1 rounded-full font-bold uppercase tracking-wider">
-                {locale === "en" ? "Free Demo" : locale === "es" ? "Demo Gratis" : "Demo Gratuit"}
+                {ui.freeDemoTitle}
               </span>
               <h1 className="text-3xl font-black tracking-tight leading-none mt-2">{t("generatePlanNow", locale)}</h1>
-              <p className="text-zinc-400 text-sm">{locale === "en" ? "Turn any idea into a complete plan in 60 seconds." : locale === "es" ? "Convierte cualquier idea en un plan completo en 60 segundos." : "Transformă orice idee într-un plan complet în 60 de secunde."}</p>
+              <p className="text-zinc-400 text-sm">{ui.freeDemoDesc}</p>
             </div>
 
             {/* Form Card */}
@@ -1225,7 +1225,7 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
             <div className="bg-zinc-900/60 border border-zinc-800 rounded-xl p-4 flex items-center justify-between gap-4 backdrop-blur-md">
               <div className="min-w-0">
                 <span className="text-[9px] bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 px-2 py-0.5 rounded-full font-bold uppercase tracking-wider block w-max mb-1">
-                  {locale === "en" ? "Plan Generated" : locale === "es" ? "Plan Generado" : "Plan Generat"}
+                  {ui.planGeneratedTitle}
                 </span>
                 <h2 className="text-sm font-black text-white truncate">{result.nume || (ui.businessPlan)}</h2>
               </div>
@@ -1601,12 +1601,10 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
             </button>
             <div className="text-center space-y-1">
               <h3 className="text-lg font-black">
-                {isLoginMode 
-                  ? (locale === "en" ? "Log in to your account" : locale === "es" ? "Inicia sesión en tu cuenta" : "Intră în contul tău") 
-                  : (locale === "en" ? "Create free account" : locale === "es" ? "Crear cuenta gratis" : "Creează cont gratuit")}
+                {isLoginMode ? ui.authModalLoginTitle : ui.authModalRegisterTitle}
               </h3>
               <p className="text-xs text-zinc-400">
-                {locale === "en" ? "To save and download generated plans." : locale === "es" ? "Para guardar y descargar los planes generados." : "Pentru a salva și descărca planurile generate."}
+                {ui.authModalSubtitle}
               </p>
             </div>
 
@@ -1619,18 +1617,10 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
             {verificationEmailSent ? (
               <div className="bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs py-3 px-3 rounded-xl text-center font-semibold space-y-3">
                 <p>
-                  {locale === "en"
-                    ? "Account created! Check your inbox and confirm your email."
-                    : locale === "es"
-                    ? "¡Cuenta creada! Revisa tu bandeja de entrada y confirma tu correo."
-                    : "Cont creat! Verifică inbox-ul și confirmă adresa de email."}
+                  {ui.authVerifyInbox}
                 </p>
                 <p className="text-[10px] text-emerald-400/80 font-medium">
-                  {locale === "en"
-                    ? "The confirmation page opens in English."
-                    : locale === "es"
-                    ? "La página de confirmación se abre en español."
-                    : "Pagina de confirmare se deschide în română."}
+                  {ui.authVerifyLocaleNote}
                 </p>
                 <button
                   type="button"
@@ -1640,7 +1630,7 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
                   }}
                   className="w-full min-h-[44px] bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 rounded-xl text-xs"
                 >
-                  {locale === "en" ? "Got it" : locale === "es" ? "Entendido" : "Am înțeles"}
+                  {ui.gotIt}
                 </button>
               </div>
             ) : (
@@ -1703,9 +1693,7 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
                 }}
                 className="text-[11px] text-emerald-400 hover:text-emerald-300 font-semibold p-2 -m-2 inline-flex items-center justify-center min-h-[44px]"
               >
-                {isLoginMode 
-                  ? (locale === "en" ? "Don't have an account? Register" : locale === "es" ? "¿No tienes una cuenta? Regístrate" : "Nu ai cont? Înregistrează-te") 
-                  : (locale === "en" ? "Already have an account? Log in" : locale === "es" ? "¿Ya tienes una cuenta? Inicia sesión" : "Ai deja cont? Conectează-te")}
+                {isLoginMode ? ui.switchToRegister : ui.switchToLogin}
               </button>
             </div>
             </>
@@ -1742,7 +1730,7 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
           {/* Drawer Sheet */}
           <div className="bg-zinc-900 border-t border-zinc-800 rounded-t-3xl p-6 max-h-[85vh] overflow-y-auto space-y-5 animate-in slide-in-from-bottom duration-300 flex flex-col w-full md:max-w-lg md:mx-auto md:left-1/2 md:-translate-x-1/2 md:right-auto">
             <div className="flex justify-between items-center border-b border-zinc-800/60 pb-3">
-              <h4 className="text-sm font-black text-white">{locale === "en" ? "Export Options" : locale === "es" ? "Opciones de Exportación" : "Opțiuni de Exportare"}</h4>
+              <h4 className="text-sm font-black text-white">{ui.exportOptionsTitle}</h4>
               <button onClick={() => setShowExportModal(false)} className="text-xs text-zinc-500 font-bold p-2 -m-2 inline-flex items-center justify-center min-w-[44px] min-h-[44px]">{ui.closeBtn}</button>
             </div>
             <p className="text-[11px] text-zinc-400 leading-relaxed -mt-2">
@@ -1762,8 +1750,8 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
                 disabled={isDownloading !== null}
                 className="w-full bg-zinc-950 border border-zinc-800 text-zinc-300 hover:text-white font-bold py-3.5 rounded-xl text-xs transition-all active:scale-95 text-left px-4 flex justify-between items-center"
               >
-                <span>📄 {locale === "en" ? "Free PDF Summary" : locale === "es" ? "Resumen PDF Gratis" : "Sumar PDF Gratuit"}</span>
-                <span className="text-[10px] bg-emerald-500/10 text-emerald-400 px-2 py-0.5 rounded font-black uppercase">{locale === "en" ? "Free" : locale === "es" ? "Gratis" : "Gratuit"}</span>
+                <span>📄 {ui.freePdfSummary}</span>
+                <span className="text-[10px] bg-emerald-500/10 text-emerald-400 px-2 py-0.5 rounded font-black uppercase">{ui.freeBadge}</span>
               </button>
 
               {/* Word (DOCX) Premium */}
@@ -1775,7 +1763,7 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
                 disabled={isDownloading !== null}
                 className="w-full bg-zinc-950 border border-zinc-800 text-zinc-300 hover:text-white font-bold py-3.5 rounded-xl text-xs transition-all active:scale-95 text-left px-4 flex justify-between items-center"
               >
-                <span>📝 {locale === "en" ? "Word Document (.docx)" : locale === "es" ? "Documento Word (.docx)" : "Document Word (.docx)"}</span>
+                <span>📝 {ui.wordDocxLabel}</span>
                 {!isPlanPaid && <span className="text-[10px] bg-amber-500/10 text-amber-400 px-2 py-0.5 rounded font-black uppercase">🔒 PRO</span>}
               </button>
 
@@ -1788,7 +1776,7 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
                 disabled={isDownloading !== null}
                 className="w-full bg-zinc-950 border border-zinc-800 text-zinc-300 hover:text-white font-bold py-3.5 rounded-xl text-xs transition-all active:scale-95 text-left px-4 flex justify-between items-center"
               >
-                <span>📊 {locale === "en" ? "PowerPoint Presentation (.pptx)" : locale === "es" ? "Presentación PowerPoint (.pptx)" : "Prezentare PowerPoint (.pptx)"}</span>
+                <span>📊 {ui.pptxLabel}</span>
                 {!isPlanPaid && <span className="text-[10px] bg-amber-500/10 text-amber-400 px-2 py-0.5 rounded font-black uppercase">🔒 PRO</span>}
               </button>
 
@@ -1801,7 +1789,7 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
                 disabled={isDownloading !== null}
                 className="w-full bg-zinc-950 border border-zinc-800 text-zinc-300 hover:text-white font-bold py-3.5 rounded-xl text-xs transition-all active:scale-95 text-left px-4 flex justify-between items-center"
               >
-                <span>📕 {locale === "en" ? "Full PDF Document" : locale === "es" ? "Documento PDF Completo" : "Document PDF Complet"}</span>
+                <span>📕 {ui.fullPdfLabel}</span>
                 {!isPlanPaid && <span className="text-[10px] bg-amber-500/10 text-amber-400 px-2 py-0.5 rounded font-black uppercase">🔒 PRO</span>}
               </button>
             </div>

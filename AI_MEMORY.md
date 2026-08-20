@@ -1212,6 +1212,20 @@ Fișiere: `lib/versionStack.ts`, `lib/planQuota.ts`, `lib/proPackQuotaAdmin.ts`,
 
 ---
 
+## FREEZE — Sesiunea F4d (20 August 2026): Mobile auth modal + export leftovers
+
+**Mutat în `UI_STRINGS`:**
+- DemoMobile auth modal (login/register titles, verify inbox, switch links, got it)
+- Demo/Studio Mobile export sheet (options title, PDF/Word/PPTX labels, Free badge)
+- StudioMobile edit/budget sheets + email verify CTA + `StudioExportModal`
+- Demo hero chrome: assistant working / free demo / plan generated
+
+**Rămâne (opțional):** F5b merge Desktop+Mobile; `loadingMessages` array încă local în DemoMobile.
+
+**Acceptanță:** auth modal + export sheet Mobile fără ternare `locale === "en" ? …`.
+
+---
+
 ## FREEZE — Fix ES explicații goale (20 August 2026)
 
 **Bug:** pe `/es` (Desktop+Mobile+Tablet) SWOT/buget ies cu titluri dar `explicatie_tehnica` / `explicatie` goale. Cauze: (1) fill pe generate tăiat la 14s; (2) client fill cerea auth → oaspeții Demo rămâneau goi.

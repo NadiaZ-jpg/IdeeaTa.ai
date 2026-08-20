@@ -91,6 +91,36 @@ export function removePlanFromLocalMirrors(planId: string): void {
   }
 }
 
+/**
+ * Guest Demo: append a generated plan to demo_plans_list immediately (sync).
+ * Dedupe by id only — same business name must NOT drop a distinct plan (Sesiunea A1).
+ * Returns true if the plan was newly appended.
+ */
+export function appendGuestPlanToLocalList(plan: any): boolean {
+  if (typeof window === "undefined" || !plan || typeof plan !== "object") return false;
+  try {
+    const planToSave = { ...plan };
+    if (!planToSave.id) {
+      const safeName =
+        String(planToSave.nume || "Plan").replace(/[^a-zA-Z0-9]/g, "_") || "Plan";
+      planToSave.id = `${safeName}_${Date.now()}`;
+    }
+    const listStr = localStorage.getItem("demo_plans_list");
+    let list: any[] = listStr ? JSON.parse(listStr) : [];
+    if (!Array.isArray(list)) list = [];
+    const id = String(planToSave.id);
+    if (list.some((p: any) => String(p?.id || "") === id)) {
+      return false;
+    }
+    list.push(planToSave);
+    localStorage.setItem("demo_plans_list", JSON.stringify(list));
+    return true;
+  } catch (e) {
+    console.error("[appendGuestPlanToLocalList]", e);
+    return false;
+  }
+}
+
 /** La login pe cont nou (UID nou): resetează contorul guest Demo. */
 export function resetGuestDemoCounterOnLogin(): void {
   if (typeof window === "undefined") return;

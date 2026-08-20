@@ -978,4 +978,18 @@ Fișiere: `lib/versionStack.ts`, `lib/planQuota.ts`, `lib/proPackQuotaAdmin.ts`,
 - Generate ES: `fillMissingPlanExplanations(..., 14000)` dacă `planNeedsExplanationFill`.
 - Prompt ES: prioritate explicații față de titluri scurte.
 
+---
+
+## FREEZE — Sesiunea A1 (20 August 2026): Demo guest list sync (Desktop)
+
+**Bug:** Guest pe Desktop → 3 generări (inclusiv idee tastată unică) → signup → un plan lipsea din Dashboard. Cauză: `demo_plans_list` se scria doar în `useEffect` când `!user`; la overlap login/generare lista sărea planul.
+
+**Fix:**
+- `lib/planQuota.ts` → `appendGuestPlanToLocalList` (dedupe pe **id**, nu pe nume).
+- `DemoDesktop.generate`: la succes, `auth.currentUser` + append sync în listă; Firestore doar dacă live user.
+- `useEffect`: fallback append doar dacă încă guest; nu mai dedupe pe nume.
+- `DemoMobile`: același helper + `auth.currentUser` (aliniere DRY).
+
+**Acceptanță:** 3 planuri guest pe Desktop (ultima tastată) → înainte de login `demo_plans_list.length === 3` → după signup toate în Dashboard.
+
 

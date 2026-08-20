@@ -29,7 +29,7 @@ import { formatObjectNumbers, formatNumberedText } from "@/lib/utils";
 import { useSharedPlanLoader } from "@/hooks/useSharedPlanLoader";
 import { useAuthUser } from '@/hooks/useAuthUser';
 import { createAndCopySharedPlanLink } from "@/lib/sharePlan";
-import { FREE_ACCOUNT_PLAN_LIMIT, GUEST_DEMO_PLAN_LIMIT, hasUnlimitedGenerateAccess, clearLocalPlanState } from "@/lib/planQuota";
+import { FREE_ACCOUNT_PLAN_LIMIT, GUEST_DEMO_PLAN_LIMIT, hasUnlimitedGenerateAccess, clearLocalPlanState, appendGuestPlanToLocalList } from "@/lib/planQuota";
 import { canGenerateWithQuotas, readProPackRemaining, proPackTopupConfirmDialog } from "@/lib/proPackQuota";
 import { startProTopupCheckout } from "@/lib/proTopupCheckout";
 import { ProPackQuotaBar } from "@/components/ProPackQuotaBar";
@@ -559,30 +559,16 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
             window.history.pushState({ view: "idea" }, "", window.location.pathname + "?view=idea");
           }
 
-          if (!user) {
+          // Guest counter + list: use live auth (A1 — avoid stale user when signup overlaps).
+          const liveUser = auth.currentUser;
+          if (!liveUser) {
             const count = parseInt(localStorage.getItem("demoGenerateCount") || "0", 10);
             localStorage.setItem("demoGenerateCount", (count + 1).toString());
             setDemoCount(count + 1);
-          }
-
-          // Guest only: listă locală pentru migrare la login.
-          // Logat → doar Firestore (altfel migrate creează duplicate cu alt id).
-          if (!user) {
-            try {
-              const listStr = localStorage.getItem("demo_plans_list");
-              let list = listStr ? JSON.parse(listStr) : [];
-              if (!Array.isArray(list)) list = [];
-              const exists = list.some((p: any) => p.nume === finalResult.nume || p.id === planId);
-              if (!exists) {
-                list.push(finalResult);
-                localStorage.setItem("demo_plans_list", JSON.stringify(list));
-              }
-            } catch (err) {
-              console.error(err);
-            }
+            appendGuestPlanToLocalList(finalResult);
           } else {
             try {
-              await setDoc(doc(db, "users", user.uid, "plans", planId), {
+              await setDoc(doc(db, "users", liveUser.uid, "plans", planId), {
                 ...finalResult,
                 versions: initialVersions,
                 activeVersionId: "original",

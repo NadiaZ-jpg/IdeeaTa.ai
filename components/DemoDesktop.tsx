@@ -29,7 +29,7 @@ import { truncateText, splitTextIntoSlides, getDynamicTextSize } from '@/lib/pla
 import { useExportActions } from '@/hooks/useExportActions';
 import { fetchSharedPlanResult, resetDemoShareCounters, clearSharedIdFromUrl, redirectIfSharedLocaleMismatch, readSharedIdFromLocation } from '@/hooks/useSharedPlanLoader';
 import { resolveSharedViewCurrency, shouldShowCurrencyToggle } from '@/lib/pdfCtaBehavior';
-import { FREE_ACCOUNT_PLAN_LIMIT, GUEST_DEMO_PLAN_LIMIT, clearLocalPlanState, hasUnlimitedGenerateAccess } from '@/lib/planQuota';
+import { FREE_ACCOUNT_PLAN_LIMIT, GUEST_DEMO_PLAN_LIMIT, clearLocalPlanState, hasUnlimitedGenerateAccess, appendGuestPlanToLocalList } from '@/lib/planQuota';
 import {
   canGenerateWithQuotas,
   readProPackRemaining,
@@ -858,40 +858,22 @@ export default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" | 
     return () => window.removeEventListener('popstate', handlePopState);
   }, [user]);
 
-  // Salveaza planul in localStorage cand se schimba rezultatul
+  // Persist current plan for refresh; guest list is written sync in generate() (A1).
+  // Fallback: if a plan appears while still guest and is missing from the list, append once.
   const isInitialMount = useRef(true);
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      if (isInitialMount.current) {
-        isInitialMount.current = false;
-        return;
+    if (typeof window === "undefined") return;
+    if (isInitialMount.current) {
+      isInitialMount.current = false;
+      return;
+    }
+    if (result) {
+      localStorage.setItem("current_generated_plan", JSON.stringify(result));
+      if (!user && !auth.currentUser) {
+        appendGuestPlanToLocalList(result);
       }
-      if (result) {
-        localStorage.setItem("current_generated_plan", JSON.stringify(result));
-        // Guest only — dacă ești logat, planul e deja în Firestore; lista locală
-        // ar duce la duplicate la migrate pe Dashboard.
-        if (!user) {
-          try {
-            const listStr = localStorage.getItem("demo_plans_list");
-            let list = listStr ? JSON.parse(listStr) : [];
-            if (!Array.isArray(list)) list = [];
-            const planToSave = { ...result };
-            if (!planToSave.id) {
-              const safeName = planToSave.nume?.replace(/[^a-zA-Z0-9]/g, '_') || 'Plan';
-              planToSave.id = `${safeName}_${Date.now()}`;
-            }
-            const exists = list.some((p: any) => p.nume === planToSave.nume || p.id === planToSave.id);
-            if (!exists) {
-              list.push(planToSave);
-              localStorage.setItem("demo_plans_list", JSON.stringify(list));
-            }
-          } catch (e) {
-            console.error("Eroare la adăugarea planului în demo_plans_list:", e);
-          }
-        }
-      } else {
-        localStorage.removeItem("current_generated_plan");
-      }
+    } else {
+      localStorage.removeItem("current_generated_plan");
     }
   }, [result, user]);
 
@@ -1168,16 +1150,20 @@ export default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" | 
           setActiveVersionId("original");
           setVersions(initialVersions);
           setResultState(finalResult);
+          // Re-read auth at success time — stale `user` from generate() start causes
+          // missed demo_plans_list writes when signup overlaps the last (typed) generate (A1).
+          const liveUser = auth.currentUser;
           if (typeof window !== "undefined") {
             localStorage.setItem("current_generated_plan", JSON.stringify(finalResult));
             localStorage.setItem(
               "current_versions",
               JSON.stringify({ versions: initialVersions, activeVersionId: "original" })
             );
-            if (!user && retryCount === 0) {
+            if (!liveUser && retryCount === 0) {
               const count = parseInt(localStorage.getItem("demoGenerateCount") || "0", 10);
               localStorage.setItem("demoGenerateCount", (count + 1).toString());
               setDemoCount(count + 1);
+              appendGuestPlanToLocalList(finalResult);
             }
           }
           window.history.pushState({ view: 'idea' }, '', window.location.pathname + '?view=idea');
@@ -1188,9 +1174,9 @@ export default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" | 
             window.scrollTo({ top: 0, behavior: "smooth" });
           }, 100);
           
-          if (user) {
+          if (liveUser) {
             try {
-              const planRef = doc(db, "users", user.uid, "plans", planId);
+              const planRef = doc(db, "users", liveUser.uid, "plans", planId);
               await setDoc(planRef, {
                 ...finalResult,
                 versions: initialVersions,

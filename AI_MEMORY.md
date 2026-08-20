@@ -907,11 +907,14 @@ Dacă oricare dintre aceste verificări este omisă în procesul de planificare,
 | `hooks/useExportActions.ts` | Scalat `pixelRatio: 1.2` pe dispozitive mobile la generarea imaginilor PDF pentru a elimina depășirea memoriei WebKit Canvas pe iPhone (oprire crash iOS Safari pe PDF-uri mari). Adăugat `URL.revokeObjectURL` la descărcarea DOCX. |
 | `components/PricingModal.tsx` | Setat font de 16px (`text-base md:text-xs`) pe input-ul codului promoțional pentru a opri auto-zoom-ul forțat din iOS Safari. |
 | `app/dashboard/DashboardContent.tsx` | Mărit zona tactilă a butonului `Trash2` la peste 44px (`p-2.5 -m-1 min-h-[44px] min-w-[44px]`), izolat `e.stopPropagation()` și mărit butoanele inline de confirmare `Da / Nu` la dimensiuni tactile sigure. |
-| `app/login/LoginContent.tsx` | Ascuns codul QR pe ecrane de mobil (`hidden md:flex`), transformat logo-ul în link navigabil, adăugat bară de navigare de sus cu buton `← Înapoi la generator` și selector de limbă `LanguageSwitcher`. |
+| `app/manifest.ts` | Web App Manifest PWA (`name`, `short_name`, `display: standalone`, `theme_color: #09090b`, `icons`). |
+| `components/NetworkStatusIndicator.tsx` | Indicator non-intrusiv de stare a rețelei (Offline / Conexiune restabilită) tradus în RO/EN/ES. |
+| `app/layout.tsx` | Adăugat export `viewport` cu `themeColor: #09090b`, meta tag-uri iOS status-bar și componenta `<NetworkStatusIndicator />`. |
 
 ### Build verificat:
 - ✅ `npx tsc --noEmit` — zero erori TypeScript
-- ✅ `✓ Compiled successfully in 11.1s`
-- ✅ `✓ Generating static pages (71/71)`
+- ✅ `✓ Compiled successfully in 8.7s`
+- ✅ `✓ Generating static pages (72/72)`
+
 
 

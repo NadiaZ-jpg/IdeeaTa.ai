@@ -10,6 +10,7 @@ interface AuthWallModalProps {
 }
 
 export const AuthWallModal: React.FC<AuthWallModalProps> = ({ locale, onClose, onLoginClick }) => {
+  const ui = UI_STRINGS[locale] || UI_STRINGS.ro;
   return (
     <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[200] flex items-center justify-center p-4">
       <div className="bg-zinc-900 border border-zinc-800 rounded-3xl p-8 max-w-md w-full flex flex-col shadow-2xl relative overflow-hidden animate-in fade-in zoom-in-95 duration-200">
@@ -28,14 +29,10 @@ export const AuthWallModal: React.FC<AuthWallModalProps> = ({ locale, onClose, o
         </div>
         
         <h3 key={`title-${locale}`} className="text-2xl font-black text-white mb-3 relative z-10">
-          {locale === "en" ? "Create a free account" : locale === "es" ? "Crea una cuenta gratis" : "Creează-ți un cont gratuit"}
+          {ui.authWallTitle}
         </h3>
         <p key={`desc-${locale}`} className="text-zinc-400 mb-6 text-sm leading-relaxed relative z-10 font-sans">
-          {locale === "en" 
-            ? "Create a free account to use our advanced tools and customize your business plan."
-            : locale === "es"
-            ? "Crea tu cuenta gratuita para usar nuestras herramientas avanzadas y personalizar tu plan de negocios."
-            : "Creează-ți un cont gratuit pentru a folosi instrumentele noastre avansate și a personaliza planul tău de afaceri."}
+          {ui.authWallDesc}
         </p>
         
         <button 
@@ -43,7 +40,7 @@ export const AuthWallModal: React.FC<AuthWallModalProps> = ({ locale, onClose, o
           onClick={onLoginClick}
           className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 px-4 rounded-xl transition-all shadow-lg shadow-emerald-900/30 flex items-center justify-center gap-2"
         >
-          <span key={`btn-${locale}`}>{locale === "en" ? "Login / Register" : locale === "es" ? "Iniciar sesión / Registrarse" : "Conectare / Înregistrare"}</span>
+          <span key={`btn-${locale}`}>{ui.authWallCta}</span>
           <span>➔</span>
         </button>
         
@@ -53,7 +50,7 @@ export const AuthWallModal: React.FC<AuthWallModalProps> = ({ locale, onClose, o
           onClick={onClose}
           className="mt-3 w-full bg-zinc-800/80 hover:bg-zinc-800 text-zinc-400 hover:text-white font-bold py-3 px-4 rounded-xl transition-all text-sm"
         >
-          {locale === "en" ? "Maybe later" : locale === "es" ? "Quizás más tarde" : "Mai târziu"}
+          {ui.authWallLater}
         </button>
       </div>
     </div>

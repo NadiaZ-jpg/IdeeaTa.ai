@@ -113,6 +113,15 @@ type UIStringsShape = {
   // Erori comune (migrate din translations.ts)
   errorServerPrefix: string; errorNetworkError: string; errorInvalidFormat: string; errorGenerationFallback: string;
   errorProcessingCredit: string; errorSavingDocument: string;
+  // F4b — auth wall / email verify / cookies / mobile chrome
+  errorEditProcessFailed: string;
+  authWallTitle: string; authWallDesc: string; authWallCta: string; authWallLater: string;
+  emailVerifyTitle: string; emailVerifyDesc: string; emailVerifyContinue: string;
+  emailVerifyResend: string; emailVerifySent: string;
+  cookieBannerBefore: string; cookiePolicyLabel: string; cookieEssentialOnly: string; cookieAccept: string;
+  continueFacebook: string; editBtn: string; exportBtn: string; deleteBtn: string;
+  tabOverview: string; tabFinance: string; tabMarketing: string; tabSwot: string;
+  alertValidPercentRange: string; budgetReducePrompt: string;
 };
 
 export const UI_STRINGS: Record<Locale, UIStringsShape> = {
@@ -271,6 +280,30 @@ export const UI_STRINGS: Record<Locale, UIStringsShape> = {
     mockupBeforeTitle: "Înainte", mockupBeforeDesc: "\"Vreau să deschid o cafenea. Am experiență de 5 ani în domeniu. Nu știu de unde să încep cu planul de afaceri.\"",
     errorServerPrefix: "Eroare de server: ", errorNetworkError: "Eroare de rețea. Te rugăm să mai încerci o dată.", errorInvalidFormat: "Sistemul a returnat un format invalid. Mai încearcă o dată.", errorGenerationFallback: "A apărut o eroare la generarea planului. Te rugăm să încerci din nou mai târziu.",
     errorProcessingCredit: "A apărut o eroare la procesarea creditului. Vă rugăm reîncercați.", errorSavingDocument: "A apărut o eroare la salvarea documentului.",
+    errorEditProcessFailed: "Nu s-a putut procesa comanda.",
+    authWallTitle: "Creează-ți un cont gratuit",
+    authWallDesc: "Creează-ți un cont gratuit pentru a folosi instrumentele noastre avansate și a personaliza planul tău de afaceri.",
+    authWallCta: "Conectare / Înregistrare",
+    authWallLater: "Mai târziu",
+    emailVerifyTitle: "Confirmă adresa de email",
+    emailVerifyDesc: "Pentru a genera un plan gratuit și a primi cele 3 Editări Premium, te rugăm să îți confirmi adresa de email dând click pe link-ul primit în Inbox.",
+    emailVerifyContinue: "Am confirmat, continuă",
+    emailVerifyResend: "Trimite emailul din nou",
+    emailVerifySent: "Email trimis!",
+    cookieBannerBefore: "Folosim cookie-uri esențiale pentru autentificare și plăți. Cookie-urile publicitare (AdSense) se încarcă doar dacă accepți. Vezi ",
+    cookiePolicyLabel: "Politica de Cookie-uri",
+    cookieEssentialOnly: "Doar esențiale",
+    cookieAccept: "Acceptă",
+    continueFacebook: "Continuă cu Facebook",
+    editBtn: "Editează",
+    exportBtn: "Export",
+    deleteBtn: "Șterge",
+    tabOverview: "📈 Prezentare",
+    tabFinance: "💰 Finanțe",
+    tabMarketing: "📣 Promovare",
+    tabSwot: "📋 SWOT",
+    alertValidPercentRange: "Te rog introdu un procent valid între 1 și 90.",
+    budgetReducePrompt: "Cu ce procent vrei să reduci bugetul? (ex: 20)",
   },
   en: {
     pricing: "Pricing", logOut: "Log Out", logIn: "Log In", tryFree: "Try Free",
@@ -427,6 +460,30 @@ export const UI_STRINGS: Record<Locale, UIStringsShape> = {
     mockupBeforeTitle: "Before", mockupBeforeDesc: "\"I want to open a coffee shop. I have 5 years of experience in the field. I don't know where to start with the business plan.\"",
     errorServerPrefix: "Server error: ", errorNetworkError: "Network error. Please try again.", errorInvalidFormat: "The system returned an invalid format. Please try again.", errorGenerationFallback: "An error occurred during plan generation. Please try again later.",
     errorProcessingCredit: "An error occurred while processing the credit. Please try again.", errorSavingDocument: "An error occurred while saving the document.",
+    errorEditProcessFailed: "Could not process the request.",
+    authWallTitle: "Create a free account",
+    authWallDesc: "Create a free account to use our advanced tools and customize your business plan.",
+    authWallCta: "Login / Register",
+    authWallLater: "Maybe later",
+    emailVerifyTitle: "Confirm your email address",
+    emailVerifyDesc: "To generate a free plan and receive the 3 Premium Edits, please confirm your email address by clicking the link sent to your Inbox.",
+    emailVerifyContinue: "I confirmed, continue",
+    emailVerifyResend: "Resend verification email",
+    emailVerifySent: "Email sent!",
+    cookieBannerBefore: "We use essential cookies for authentication and payments. Advertising cookies (AdSense) are loaded only if you accept. See our ",
+    cookiePolicyLabel: "Cookie Policy",
+    cookieEssentialOnly: "Essential only",
+    cookieAccept: "Accept",
+    continueFacebook: "Continue with Facebook",
+    editBtn: "Edit",
+    exportBtn: "Export",
+    deleteBtn: "Delete",
+    tabOverview: "📈 Overview",
+    tabFinance: "💰 Finance",
+    tabMarketing: "📣 Marketing",
+    tabSwot: "📋 SWOT",
+    alertValidPercentRange: "Please enter a valid percentage between 1 and 90.",
+    budgetReducePrompt: "By what percentage do you want to reduce the budget? (e.g. 20)",
   },
   es: {
     pricing: "Precios", logOut: "Cerrar sesión", logIn: "Iniciar sesión", tryFree: "Probar Gratis",
@@ -583,5 +640,29 @@ export const UI_STRINGS: Record<Locale, UIStringsShape> = {
     mockupBeforeTitle: "Antes", mockupBeforeDesc: "\"Quiero abrir una cafetería. Tengo 5 años de experiencia. No sé por dónde empezar con el plan de negocio.\"",
     errorServerPrefix: "Error del servidor: ", errorNetworkError: "Error de red. Por favor, inténtelo de nuevo.", errorInvalidFormat: "El sistema devolvió un formato no válido. Por favor, inténtelo de nuevo.", errorGenerationFallback: "Ocurrió un error al generar el plan. Por favor, inténtelo de nuevo más tarde.",
     errorProcessingCredit: "Ocurrió un error al procesar el crédito. Por favor, inténtelo de nuevo.", errorSavingDocument: "Ocurrió un error al guardar el documento.",
+    errorEditProcessFailed: "No se pudo procesar la solicitud.",
+    authWallTitle: "Crea una cuenta gratis",
+    authWallDesc: "Crea tu cuenta gratuita para usar nuestras herramientas avanzadas y personalizar tu plan de negocios.",
+    authWallCta: "Iniciar sesión / Registrarse",
+    authWallLater: "Quizás más tarde",
+    emailVerifyTitle: "Confirma tu dirección de email",
+    emailVerifyDesc: "Para generar un plan gratuito y recibir las 3 Ediciones Premium, confirme su dirección de correo electrónico haciendo clic en el enlace enviado a su bandeja de entrada.",
+    emailVerifyContinue: "Lo he confirmado, continuar",
+    emailVerifyResend: "Reenviar correo de verificación",
+    emailVerifySent: "¡Correo enviado!",
+    cookieBannerBefore: "Usamos cookies esenciales para autenticación y pagos. Las cookies publicitarias (AdSense) se cargan solo si aceptas. Consulta nuestra ",
+    cookiePolicyLabel: "Política de Cookies",
+    cookieEssentialOnly: "Solo esenciales",
+    cookieAccept: "Aceptar",
+    continueFacebook: "Continuar con Facebook",
+    editBtn: "Editar",
+    exportBtn: "Exportar",
+    deleteBtn: "Eliminar",
+    tabOverview: "📈 Resumen",
+    tabFinance: "💰 Finanzas",
+    tabMarketing: "📣 Marketing",
+    tabSwot: "📋 FODA",
+    alertValidPercentRange: "Introduce un porcentaje válido entre 1 y 90.",
+    budgetReducePrompt: "¿En qué porcentaje quieres reducir el presupuesto? (ej: 20)",
   }
 };

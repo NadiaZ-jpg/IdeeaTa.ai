@@ -8,6 +8,13 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { LanguageSwitcher } from '@/components/LanguageSwitcher';
 import { QRCodeSVG } from 'qrcode.react';
+import {
+  mapEmailAuthError,
+  mapResetAuthError,
+  mapSocialAuthError,
+  authMsg,
+} from '@/lib/authErrorMessages';
+import { UI_STRINGS } from '@/lib/uiStrings';
 
 export default function LoginContent({ locale = "ro" }: { locale?: "ro" | "en" | "es" }) {
   const [email, setEmail] = useState("");
@@ -22,6 +29,7 @@ export default function LoginContent({ locale = "ro" }: { locale?: "ro" | "en" |
   const router = useRouter();
   const isEn = locale === "en";
   const isEs = locale === "es";
+  const ui = UI_STRINGS[locale] || UI_STRINGS.ro;
 
   useEffect(() => {
     try {
@@ -49,36 +57,14 @@ export default function LoginContent({ locale = "ro" }: { locale?: "ro" | "en" |
       await signInWithPopup(auth, authProvider);
       // onAuthStateChanged redirectează automat la /dashboard
     } catch (error: any) {
-      if (error.code === 'auth/popup-closed-by-user') return;
-      if (error.code === 'auth/account-exists-with-different-credential') {
-        setAuthError(
-          isEn 
-            ? "An account already exists with this email. Try logging in with a different method."
-            : isEs
-            ? "Ya existe una cuenta con este correo electrónico. Intenta iniciar sesión con un método diferente."
-            : "Există deja un cont cu acest email. Încearcă cu altă metodă de login."
-        );
-      } else {
-        setAuthError(
-          isEn 
-            ? "Authentication error. Please try again." 
-            : isEs
-            ? "Error de autenticación. Por favor, inténtalo de nuevo."
-            : "Eroare la autentificare. Încearcă din nou."
-        );
-      }
+      const msg = mapSocialAuthError(locale, error, provider);
+      if (msg) setAuthError(msg);
     }
   };
 
   const handleForgotPassword = async () => {
     if (!email) {
-      setAuthError(
-        isEn 
-          ? "Enter your email address to receive the reset link." 
-          : isEs
-          ? "Introduce tu dirección de correo electrónico para recibir el enlace de restablecimiento."
-          : "Introdu adresa de email pentru a primi link-ul de resetare."
-      );
+      setAuthError(authMsg(locale, "forgotNeedEmail"));
       return;
     }
     setIsEmailLoading(true);
@@ -88,17 +74,7 @@ export default function LoginContent({ locale = "ro" }: { locale?: "ro" | "en" |
       setResetEmailSent(true);
     } catch (error: any) {
       console.error("Eroare resetare parola:", error);
-      if (error.code === 'auth/user-not-found') {
-        setAuthError(
-          isEn 
-            ? "There is no account with this email address." 
-            : isEs
-            ? "No existe ninguna cuenta con esta dirección de correo electrónico."
-            : "Nu există niciun cont cu această adresă de email."
-        );
-      } else {
-        setAuthError(error.message || (isEn ? "An error occurred. Please try again." : isEs ? "Ocurrió un error. Por favor, inténtalo de nuevo." : "A apărut o eroare. Încearcă din nou."));
-      }
+      setAuthError(mapResetAuthError(locale, error));
     } finally {
       setIsEmailLoading(false);
     }
@@ -139,15 +115,7 @@ export default function LoginContent({ locale = "ro" }: { locale?: "ro" | "en" |
       // Daca are succes, onAuthStateChanged va redirectiona automat
     } catch (error: any) {
       console.error("Eroare email auth:", error);
-      if (error.code === 'auth/invalid-credential' || error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password') {
-        setAuthError(isEn ? "Incorrect email or password." : isEs ? "Correo electrónico o contraseña incorrectos." : "Email sau parolă incorectă.");
-      } else if (error.code === 'auth/email-already-in-use') {
-        setAuthError(isEn ? "An account already exists with this email. Please log in." : isEs ? "Ya existe una cuenta con este correo electrónico. Por favor, inicia sesión." : "Există deja un cont cu acest email. Te rugăm să te loghezi.");
-      } else if (error.code === 'auth/weak-password') {
-        setAuthError(isEn ? "Password must be at least 6 characters long." : isEs ? "La contraseña debe tener al menos 6 caracteres." : "Parola trebuie să aibă cel puțin 6 caractere.");
-      } else {
-        setAuthError(error.message || (isEn ? "An unknown authentication error occurred." : isEs ? "Ocurrió un error de autenticación desconocido." : "A apărut o eroare necunoscută la autentificare."));
-      }
+      setAuthError(mapEmailAuthError(locale, error));
       setIsEmailLoading(false);
     }
   };
@@ -205,7 +173,7 @@ export default function LoginContent({ locale = "ro" }: { locale?: "ro" | "en" |
                 <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
                 <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
               </svg>
-              {isEn ? "Continue with Google" : isEs ? "Continuar con Google" : "Continuă cu Google"}
+              {ui.continueGoogle}
             </button>
 
             <button
@@ -217,7 +185,7 @@ export default function LoginContent({ locale = "ro" }: { locale?: "ro" | "en" |
               <svg viewBox="0 0 24 24" className="w-5 h-5 shrink-0" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
                 <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
               </svg>
-              {isEn ? "Continue with Facebook" : isEs ? "Continuar con Facebook" : "Continuă cu Facebook"}
+              {ui.continueFacebook}
             </button>
           </div>
         )}

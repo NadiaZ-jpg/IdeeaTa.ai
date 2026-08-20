@@ -1188,6 +1188,19 @@ Fișiere: `lib/versionStack.ts`, `lib/planQuota.ts`, `lib/proPackQuotaAdmin.ts`,
 
 ---
 
+## FREEZE — Sesiunea F4b (20 August 2026): Hardcodes → i18n
+
+**Mutat în `UI_STRINGS` / `authErrorMessages`:**
+- LoginContent + DemoMobile auth → `mapEmailAuthError` / `mapSocialAuthError` / `authMsg`
+- AuthWallModal, EmailVerificationModal, CookieBanner → chei noi (`authWall*`, `emailVerify*`, `cookie*`)
+- Demo/Studio Mobile: generate/edit errors, budget %, tab-uri, share/export
+
+**Rămâne (F4c, opțional):** PricingModal promo, ConversionBanners, restul ternarelor din Mobile section titles.
+
+**Acceptanță:** login EN/ES erori din helper; cookie banner din UI_STRINGS; tab-uri Mobile din `ui.tab*`.
+
+---
+
 ## FREEZE — Fix ES explicații goale (20 August 2026)
 
 **Bug:** pe `/es` (Desktop+Mobile+Tablet) SWOT/buget ies cu titluri dar `explicatie_tehnica` / `explicatie` goale. Cauze: (1) fill pe generate tăiat la 14s; (2) client fill cerea auth → oaspeții Demo rămâneau goi.

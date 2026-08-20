@@ -26,6 +26,7 @@ import { getExamples } from '@/lib/examples';
 import { t } from '@/lib/translations';
 import { UI_STRINGS } from '@/lib/uiStrings';
 import { buildGenerateRequestBody } from '@/lib/generateRequest';
+import { mapEmailAuthError, mapSocialAuthError } from '@/lib/authErrorMessages';
 import dynamic from 'next/dynamic';
 import { formatObjectNumbers, formatNumberedText } from "@/lib/utils";
 import { useSharedPlanLoader } from "@/hooks/useSharedPlanLoader";
@@ -633,7 +634,7 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
             return;
           }
           if (attempts >= maxAttempts) {
-            throw new Error(errBody?.message || "Eroare la generare");
+            throw new Error(errBody?.message || ui.errorGenerationFallback);
           }
           continue;
         }
@@ -693,13 +694,7 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
       } catch (error: any) {
         if (attempts >= maxAttempts) {
           console.error("Eroare generare:", error);
-          alert(
-            locale === "en"
-              ? "An error occurred during generation. Please try again."
-              : locale === "es"
-              ? "Ocurrió un error al generar. Por favor, inténtelo de nuevo."
-              : "A apărut o eroare la generare. Vă rugăm să încercați din nou."
-          );
+          alert(ui.errorGenerationFallback);
         }
       }
     }
@@ -764,24 +759,13 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
     if (action === "optimize_budget") {
       let entered = customInput?.trim() || "";
       if (!entered) {
-        const promptMsg =
-          locale === "en"
-            ? "By what percentage do you want to reduce the budgeted costs? (e.g. 20)"
-            : locale === "es"
-            ? "¿Qué porcentaje deseas reducir de los costos presupuestados? (ej. 20)"
-            : "Cu ce procent dorești să reduci costurile bugetate? (ex: 20)";
+        const promptMsg = ui.budgetReducePrompt;
         entered = (typeof window !== "undefined" ? window.prompt(promptMsg, "20") : null) || "";
       }
       if (!entered) return;
       const percent = parseInt(entered.replace(/%/g, "").trim(), 10);
       if (isNaN(percent) || percent <= 0 || percent > 90) {
-        alert(
-          locale === "en"
-            ? "Please enter a valid percentage between 1 and 90 (e.g. 20)."
-            : locale === "es"
-            ? "Introduce un porcentaje válido entre 1 y 90 (ej. 20)."
-            : "Te rog introdu un procent valid între 1 și 90 (ex: 20)."
-        );
+        alert(ui.alertValidPercentRange);
         return;
       }
       budgetPercent = percent;
@@ -916,7 +900,7 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
       }
     } catch (e) {
       console.error(e);
-      alert(locale === "en" ? "Could not process the request." : locale === "es" ? "No se pudo procesar la solicitud." : "Nu s-a putut procesa comanda.");
+      alert(ui.errorEditProcessFailed);
     } finally {
       setIsEditingAi(false);
       setAiPromptInput("");
@@ -931,14 +915,8 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
       await signInWithPopup(auth, authProvider);
       setShowAuthModal(false);
     } catch (error: any) {
-      if (error.code === 'auth/popup-closed-by-user') return;
-      setAuthError(
-        locale === "en"
-          ? "Social sign-in failed. Please try again."
-          : locale === "es"
-          ? "Error al iniciar sesión con la red social. Inténtalo de nuevo."
-          : "Eroare la autentificare cu partenerul social."
-      );
+      const msg = mapSocialAuthError(locale, error, provider);
+      if (msg) setAuthError(msg);
     }
   };
 
@@ -976,39 +954,7 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
         setVerificationEmailSent(true);
       }
     } catch (error: any) {
-      if (error.code === 'auth/email-already-in-use') {
-        setAuthError(
-          locale === "en"
-            ? "An account already exists with this email. Please log in."
-            : locale === "es"
-            ? "Ya existe una cuenta con este correo. Por favor, inicia sesión."
-            : "Există deja un cont cu acest email. Te rugăm să te loghezi."
-        );
-      } else if (error.code === 'auth/weak-password') {
-        setAuthError(
-          locale === "en"
-            ? "Password must be at least 6 characters."
-            : locale === "es"
-            ? "La contraseña debe tener al menos 6 caracteres."
-            : "Parola trebuie să aibă cel puțin 6 caractere."
-        );
-      } else if (error.code === 'auth/invalid-email') {
-        setAuthError(
-          locale === "en"
-            ? "Invalid email address."
-            : locale === "es"
-            ? "Correo electrónico no válido."
-            : "Adresă de email invalidă."
-        );
-      } else {
-        setAuthError(
-          locale === "en"
-            ? "Incorrect email or password."
-            : locale === "es"
-            ? "Correo o contraseña incorrectos."
-            : "Email sau parolă incorectă."
-        );
-      }
+      setAuthError(mapEmailAuthError(locale, error));
     } finally {
       setIsEmailLoading(false);
     }
@@ -1450,25 +1396,25 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
                     onClick={() => setActiveTab("overview")}
                     className={`flex-1 text-center md:text-left py-3 md:py-2.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap px-4 md:px-5 ${activeTab === "overview" ? "bg-zinc-900 text-emerald-400 border border-zinc-800/80 shadow-md shadow-black/40" : "text-zinc-400 hover:text-white border border-transparent"}`}
                   >
-                    {locale === "en" ? "📈 Overview" : locale === "es" ? "📈 Resumen" : "📈 Prezentare"}
+                    {ui.tabOverview}
                   </button>
                   <button
                     onClick={() => setActiveTab("budget")}
                     className={`flex-1 text-center md:text-left py-3 md:py-2.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap px-4 md:px-5 ${activeTab === "budget" ? "bg-zinc-900 text-emerald-400 border border-zinc-800/80 shadow-md shadow-black/40" : "text-zinc-400 hover:text-white border border-transparent"}`}
                   >
-                    {locale === "en" ? "💰 Finance" : locale === "es" ? "💰 Finanzas" : "💰 Finanțe"}
+                    {ui.tabFinance}
                   </button>
                   <button
                     onClick={() => setActiveTab("marketing")}
                     className={`flex-1 text-center md:text-left py-3 md:py-2.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap px-4 md:px-5 ${activeTab === "marketing" ? "bg-zinc-900 text-emerald-400 border border-zinc-800/80 shadow-md shadow-black/40" : "text-zinc-400 hover:text-white border border-transparent"}`}
                   >
-                    {locale === "en" ? "📣 Marketing" : locale === "es" ? "📣 Marketing" : "📣 Promovare"}
+                    {ui.tabMarketing}
                   </button>
                   <button
                     onClick={() => setActiveTab("swot")}
                     className={`flex-1 text-center md:text-left py-3 md:py-2.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap px-4 md:px-5 ${activeTab === "swot" ? "bg-zinc-900 text-emerald-400 border border-zinc-800/80 shadow-md shadow-black/40" : "text-zinc-400 hover:text-white border border-transparent"}`}
                   >
-                    {locale === "en" ? "📋 SWOT" : locale === "es" ? "📋 FODA" : "📋 SWOT"}
+                    {ui.tabSwot}
                   </button>
                 </div>
 

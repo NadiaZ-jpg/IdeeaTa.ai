@@ -1,20 +1,30 @@
-"use client";
-import React, { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
-import DemoContent from './DemoContent';
-import { redirectRoEntryIfNeeded } from '@/lib/localeEntry';
+import React from 'react';
+import { headers } from 'next/headers';
+import dynamic from 'next/dynamic';
+import LocaleRedirectGuard from '@/components/LocaleRedirectGuard';
 
-export default function DemoPage() {
-  const router = useRouter();
-  const [locale, setLocale] = useState<"ro" | "en" | "es">("ro");
-  const [mounted, setMounted] = useState(false);
+const DemoDesktop = dynamic(() => import('@/components/DemoDesktop'), {
+  ssr: true,
+  loading: () => <div className="min-h-screen bg-[#09090b]" />,
+});
 
-  useEffect(() => {
-    if (redirectRoEntryIfNeeded(router.replace.bind(router), "/demo")) return;
-    setLocale("ro");
-    setMounted(true);
-  }, [router]);
+const DemoMobile = dynamic(() => import('@/components/DemoMobile'), {
+  ssr: true,
+  loading: () => <div className="min-h-screen bg-[#09090b]" />,
+});
 
-  if (!mounted) return <div className="min-h-screen bg-[#09090b]" />;
-  return <DemoContent locale={locale} />;
+export default async function DemoPage() {
+  const headersList = await headers();
+  const deviceType = headersList.get('x-device-type') || 'desktop';
+
+  return (
+    <>
+      <LocaleRedirectGuard pathRo="/demo" />
+      {deviceType === 'mobile' ? (
+        <DemoMobile locale="ro" />
+      ) : (
+        <DemoDesktop locale="ro" />
+      )}
+    </>
+  );
 }

@@ -1,11 +1,30 @@
-"use client";
-import React, { useEffect } from 'react';
-import DemoContent from '@/app/demo/DemoContent';
+import React from 'react';
+import { headers } from 'next/headers';
+import dynamic from 'next/dynamic';
+import LocalePreferredSetter from '@/components/LocalePreferredSetter';
 
-export default function DemoPageEs() {
-  useEffect(() => {
-    localStorage.setItem("preferred_language", "es");
-  }, []);
+const DemoDesktop = dynamic(() => import('@/components/DemoDesktop'), {
+  ssr: true,
+  loading: () => <div className="min-h-screen bg-[#09090b]" />,
+});
 
-  return <DemoContent locale="es" />;
+const DemoMobile = dynamic(() => import('@/components/DemoMobile'), {
+  ssr: true,
+  loading: () => <div className="min-h-screen bg-[#09090b]" />,
+});
+
+export default async function DemoPageEs() {
+  const headersList = await headers();
+  const deviceType = headersList.get('x-device-type') || 'desktop';
+
+  return (
+    <>
+      <LocalePreferredSetter locale="es" />
+      {deviceType === 'mobile' ? (
+        <DemoMobile locale="es" />
+      ) : (
+        <DemoDesktop locale="es" />
+      )}
+    </>
+  );
 }

@@ -1,20 +1,30 @@
-"use client";
-import React, { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
-import StudioContent from './StudioContent';
-import { redirectRoEntryIfNeeded } from '@/lib/localeEntry';
+import React from 'react';
+import { headers } from 'next/headers';
+import dynamic from 'next/dynamic';
+import LocaleRedirectGuard from '@/components/LocaleRedirectGuard';
 
-export default function StudioPage() {
-  const router = useRouter();
-  const [locale, setLocale] = useState<"ro" | "en" | "es">("ro");
-  const [mounted, setMounted] = useState(false);
+const StudioDesktop = dynamic(() => import('@/components/StudioDesktop'), {
+  ssr: true,
+  loading: () => <div className="min-h-screen bg-[#09090b]" />,
+});
 
-  useEffect(() => {
-    if (redirectRoEntryIfNeeded(router.replace.bind(router), "/studio")) return;
-    setLocale("ro");
-    setMounted(true);
-  }, [router]);
+const StudioMobile = dynamic(() => import('@/components/StudioMobile'), {
+  ssr: true,
+  loading: () => <div className="min-h-screen bg-[#09090b]" />,
+});
 
-  if (!mounted) return <div className="min-h-screen bg-[#09090b]" />;
-  return <StudioContent locale={locale} />;
+export default async function StudioPage() {
+  const headersList = await headers();
+  const deviceType = headersList.get('x-device-type') || 'desktop';
+
+  return (
+    <>
+      <LocaleRedirectGuard pathRo="/studio" />
+      {deviceType === 'mobile' ? (
+        <StudioMobile locale="ro" />
+      ) : (
+        <StudioDesktop locale="ro" />
+      )}
+    </>
+  );
 }

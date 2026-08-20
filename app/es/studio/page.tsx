@@ -1,10 +1,30 @@
-"use client";
-import React, { useEffect } from 'react';
-import StudioContent from '@/app/studio/StudioContent';
+import React from 'react';
+import { headers } from 'next/headers';
+import dynamic from 'next/dynamic';
+import LocalePreferredSetter from '@/components/LocalePreferredSetter';
 
-export default function StudioPageEs() {
-  useEffect(() => {
-    localStorage.setItem("preferred_language", "es");
-  }, []);
-  return <StudioContent locale="es" />;
+const StudioDesktop = dynamic(() => import('@/components/StudioDesktop'), {
+  ssr: true,
+  loading: () => <div className="min-h-screen bg-[#09090b]" />,
+});
+
+const StudioMobile = dynamic(() => import('@/components/StudioMobile'), {
+  ssr: true,
+  loading: () => <div className="min-h-screen bg-[#09090b]" />,
+});
+
+export default async function StudioPageEs() {
+  const headersList = await headers();
+  const deviceType = headersList.get('x-device-type') || 'desktop';
+
+  return (
+    <>
+      <LocalePreferredSetter locale="es" />
+      {deviceType === 'mobile' ? (
+        <StudioMobile locale="es" />
+      ) : (
+        <StudioDesktop locale="es" />
+      )}
+    </>
+  );
 }

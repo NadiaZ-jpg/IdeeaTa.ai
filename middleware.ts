@@ -13,10 +13,15 @@ export function middleware(req: NextRequest) {
   const requestHeaders = new Headers(req.headers);
   requestHeaders.set("x-locale", locale);
 
+  const userAgent = req.headers.get("user-agent") || "";
+  const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(userAgent);
+  requestHeaders.set("x-device-type", isMobile ? "mobile" : "desktop");
+
   const res = NextResponse.next({
     request: { headers: requestHeaders },
   });
   res.headers.set("x-locale", locale);
+  res.headers.set("x-device-type", isMobile ? "mobile" : "desktop");
   return res;
 }
 

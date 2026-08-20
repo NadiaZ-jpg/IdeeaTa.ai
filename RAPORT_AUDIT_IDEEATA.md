@@ -24,8 +24,8 @@
 | **Telefon** | **Nu e bine** | Poți genera și exporta. Unele unelte Pro pentru oaspeți nu deschid login-ul corect. Pe Demo nu poți edita textul cu mâna (doar cu AI). Pe Studio, unele tab-uri de variante pot rămâne în urmă. |
 | **Tabletă** | **Rău** | Nu există un ecran făcut special pentru tabletă. iPad-ul primește UI de telefon. Unele tablete Windows primesc UI de PC înghesuit. |
 | **Română (RO)** | **Bine** | Limba de bază. Cea mai stabilă. |
-| **Engleză (EN)** | **Nu e bine** | Site-ul e tradus, exporturile și plățile în EUR sunt ok. Dar pe Desktop, erorile de autentificare pot apărea în română. |
-| **Spaniolă (ES)** | **Nu e bine** | Interfața e tradusă. Uneori planul AI iese cu explicații goale la SWOT/buget (am pus deja „umplere” automată, dar nu e perfect). |
+| **Engleză (EN)** | **Bine**, cu resturi | Site tradus, exporturi/plăți EUR ok. Login Desktop EN reparat (C1). Redirect limbă pe legal/resurse încă incomplet. |
+| **Spaniolă (ES)** | **Nu e bine** | Interfață tradusă; Login Desktop ES reparat (C1). Uneori explicații SWOT/buget goale (umplere auto există, nu e perfect). |
 
 ---
 
@@ -46,7 +46,7 @@
 - Unelte Pro: pe Original = editare (tab nou); pe alt tab = combinație — clarificat în tipuri UI + alerte la cotă 0 (B2, 20 aug). Export = tab-ul activ.
 
 ### Rău
-- **Erori la login pe Desktop** (Google / email / parolă): pe versiunea engleză și spaniolă, mesajele pot apărea **tot în română**. Pe telefon și pe pagina de Login dedicată sunt deja traduse.
+- ~~**Erori la login pe Desktop**~~ — **reparat C1** (20 aug): mesaje EN/ES pe Demo/Studio Desktop.
 
 ---
 

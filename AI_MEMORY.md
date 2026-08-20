@@ -1043,6 +1043,20 @@ Fișiere: `lib/versionStack.ts`, `lib/planQuota.ts`, `lib/proPackQuotaAdmin.ts`,
 
 ---
 
+## FREEZE — Sesiunea C1 (20 August 2026): Auth Desktop EN/ES
+
+**Bug:** pe Demo/Studio Desktop, erorile Google/email/reset erau hardcodate în română pe `/en` și `/es`.
+
+**Fix:**
+- `lib/authErrorMessages.ts` — mesaje RO/EN/ES (aliniațe Login/Mobile).
+- `DemoDesktop` + `StudioDesktop` folosesc `mapSocialAuthError` / `mapEmailAuthError` / `mapResetAuthError` / `authMsg`.
+
+**Acceptanță:** `/en/demo` și `/es/demo` Desktop — parolă greșită → EN/ES; `/demo` rămâne RO. Mobile = sanity (deja localizat).
+
+**Nu în C1:** C2 (Demo Mobile Pro→auth), C3.
+
+---
+
 ## FREEZE — Ops simplu (20 August 2026): doar `main` + 3 comenzi
 
 **Regulă agenți:** branch de lucru = **`main`**. Fără feature branches noi decât pe cerere explicită.

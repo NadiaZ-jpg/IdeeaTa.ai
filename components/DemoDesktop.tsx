@@ -45,6 +45,7 @@ import { isAdminEmail } from '@/lib/adminEmails';
 import { isPlanExportUnlocked, hasAccountStandardAccess } from '@/lib/planUnlock';
 import { stripPaymentSuccessParams, pollVerifyCheckout, paymentSuccessMessage } from '@/lib/paymentReturn';
 import { passwordResetActionCodeSettings } from '@/lib/authActionUrls';
+import { authMsg, mapEmailAuthError, mapResetAuthError, mapSocialAuthError } from '@/lib/authErrorMessages';
 import { canUseFreeToneEdit, consumeFreeToneEdit, isProToneKey, toneVersionKey } from '@/lib/toneQuota';
 import { useCompleteMissingPlanFields } from '@/hooks/useCompleteMissingPlanFields';
 import { useUIState } from '@/hooks/useUIState';
@@ -916,7 +917,8 @@ export default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" | 
       .then(() => { setAuthError(null); })
       .catch((error: any) => {
         console.error("Eroare Google login:", error);
-        setAuthError("Nu s-a putut conecta cu Google. Încearcă din nou.");
+        const msg = mapSocialAuthError(locale, error, "google");
+        if (msg) setAuthError(msg);
       });
   };
 
@@ -926,14 +928,15 @@ export default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" | 
       .then(() => { setAuthError(null); })
       .catch((error: any) => {
         console.error("Eroare Facebook login:", error);
-        setAuthError("Nu s-a putut conecta cu Facebook. Încearcă din nou.");
+        const msg = mapSocialAuthError(locale, error, "facebook");
+        if (msg) setAuthError(msg);
       });
   };
 
   const handleForgotPassword = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email) {
-      setAuthError("Introdu adresa de email pentru a primi link-ul de resetare.");
+      setAuthError(authMsg(locale, "forgotNeedEmail"));
       return;
     }
     setIsEmailLoading(true);
@@ -942,11 +945,7 @@ export default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" | 
       await sendPasswordResetEmail(auth, email, passwordResetActionCodeSettings(locale));
       setResetEmailSent(true);
     } catch (error: any) {
-      if (error.code === 'auth/user-not-found') {
-        setAuthError("Nu există niciun cont cu această adresă de email.");
-      } else {
-        setAuthError(error.message || "A apărut o eroare. Încearcă din nou.");
-      }
+      setAuthError(mapResetAuthError(locale, error));
     } finally {
       setIsEmailLoading(false);
     }
@@ -986,15 +985,7 @@ export default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" | 
       // If successful, onAuthStateChanged will handle the redirect/state update
     } catch (error: any) {
       console.error("Eroare email auth:", error);
-      if (error.code === 'auth/invalid-credential' || error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password') {
-        setAuthError("Email sau parolă incorectă.");
-      } else if (error.code === 'auth/email-already-in-use') {
-        setAuthError("Există deja un cont cu acest email. Te rugăm să te loghezi.");
-      } else if (error.code === 'auth/weak-password') {
-        setAuthError("Parola trebuie să aibă cel puțin 6 caractere.");
-      } else {
-        setAuthError(error.message || "A apărut o eroare necunoscută la autentificare.");
-      }
+      setAuthError(mapEmailAuthError(locale, error));
     } finally {
       setIsEmailLoading(false);
     }

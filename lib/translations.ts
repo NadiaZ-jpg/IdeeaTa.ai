@@ -1,3 +1,4 @@
+/** F4: prefer `import { t, translations } from "@/lib/i18n"`. Landing/Footer catalog. */
 export const translations = {
   ro: {
     // Landing Page

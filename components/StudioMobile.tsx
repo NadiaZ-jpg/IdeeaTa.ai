@@ -16,6 +16,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { t } from '@/lib/translations';
 import { UI_STRINGS } from '@/lib/uiStrings';
+import { buildGenerateRequestBody } from '@/lib/generateRequest';
 import { createAndCopySharedPlanLink } from '@/lib/sharePlan';
 import { StudioMobileGenerateHint } from '@/components/StudioMobileGenerateHint';
 import { getExamples } from '@/lib/examples';
@@ -843,12 +844,13 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
       const res = await fetch("/api/generate", {
         method: "POST",
         headers,
-        body: JSON.stringify({
-          skill,
-          locale,
-          currency: locale === "ro" ? "RON" : "EUR",
-          surface: "studio",
-        }),
+        body: JSON.stringify(
+          buildGenerateRequestBody({
+            skill,
+            locale,
+            surface: "studio",
+          })
+        ),
       });
 
       const resText = await res.text();

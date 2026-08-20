@@ -1,6 +1,6 @@
 /**
- * UI_STRINGS - Centralizare completa a string-urilor UI
- * Folosit in DemoDesktop.tsx si StudioDesktop.tsx
+ * UI_STRINGS - Centralizare string-uri UI Demo/Studio.
+ * F4: import preferat din `@/lib/i18n` (re-export). Nu crea un al 3-lea catalog.
  * Pattern: const ui = UI_STRINGS[locale]; => ui.cheie
  */
 

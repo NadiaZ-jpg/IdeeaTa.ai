@@ -146,7 +146,8 @@
 ## 7. Lista „Nu e bine” — datorii / UX
 
 - Confuzie cote Pro: editare vs combinare variante — **rezolvat B2** (tips + alerte).  
-- Două sisteme de traduceri; texte împrăștiate.  
+- ~~Două sisteme de traduceri~~ — **F4 Faza 1**: entry canonic `lib/i18n.ts` (datele încă în uiStrings + translations).
+- ~~Cod Desktop/Telefon aproape dublat~~ — **F5 Faza 1**: `buildGenerateRequestBody` shared; merge UI = F5b.
 - ~~Redirect automat de limbă doar pe câteva pagini~~ — **F2**: și legal/resurse.  
 - ~~Limita de 3 planuri ca oaspete doar pe client~~ — **F3**: și pe server (IP/zi).
 - ~~Uneori scrie „LEI”, alteori „RON”~~ — **reparat F1** (etichetă unică **RON**).
@@ -167,7 +168,7 @@
 - **C1–C3 · D1–D3 · E1 (E-B):** auth EN/ES Desktop, Demo Mobile Pro→auth, Studio Mobile, share Desktop, EditForm Demo Mobile, guest list Mobile, tabletă după lățime.
 
 **Încă pe listă (plan):**  
-- F4–F5 (proiecte mari) și restul din plan (E-C layout dedicat = separat).
+- F4b / F5b (proiecte mari rămase) și E-C layout dedicat = separat.
 
 ---
 

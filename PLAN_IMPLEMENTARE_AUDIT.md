@@ -34,6 +34,8 @@
 | **F1** LEI → RON | ✅ | Must ✅ | Must ✅ | Sanity | ✅ | N/A* | N/A* |
 | **F2** Redirect legal/resurse | ✅ | Must ✅ | Must ✅ | Sanity | — | ✅ | ✅ |
 | **F3** Guest cotă 3 server | ✅ | Must ✅ | Must ✅ | Sanity | ✅ | ✅ | ✅ |
+| **F4** i18n Faza 1 | ✅ | Sanity | Sanity | Sanity | ✅ | ✅ | ✅ |
+| **F5** shared generate Faza 1 | ✅ | Sanity | Sanity | Sanity | ✅ | ✅ | ✅ |
 | Ops `./update.sh` | ✅ | — | — | — | — | — | — |
 
 \*A2: migrare/Dashboard pe toate device-urile după login; bug-ul delete-on-name era cross-device.
@@ -217,8 +219,8 @@
 | F-ES | Explicații SWOT/buget ES goale | Must | Must | Must | — | — | Must | ✅ 20 Aug (fill timeout + guest) |
 | F2 | Redirect limbă legal/resurse | ✅ | Must | Must | Sanity | — | Must | Must | ✅ 20 Aug |
 | F3 | Cotă guest 3 și pe server | ✅ | Must | Must | Sanity | Must | Must | Must | ✅ 20 Aug |
-| F4 | Un sistem traduceri | Must | Must | Must | Must | Must | Must | **Târziu** |
-| F5 | Un creier Desktop+Mobile | Must | Must | Must | — | — | — | **Târziu** |
+| F4 | Un sistem traduceri | ✅ Faza1 | Must | Must | Must | Must | Must | Must | ✅ entry `lib/i18n.ts` |
+| F5 | Un creier Desktop+Mobile | ✅ Faza1 | Must | Must | Must | — | — | — | ✅ `generateRequest`; UI merge = F5b |
 
 \*F1 pe EN/ES: verifică că nu apar LEI greșit pe locale EUR.
 
@@ -274,6 +276,6 @@ F4–F5   proiecte mari (amânate)
 
 ## Următorul pas
 
-**C1–C3 · D1–D3 · E1 · F1–F3** ✅. Urmează **F4–F5** (proiecte mari, târziu) sau alt item.
+**Audit hotfixes C–F3 + F4/F5 Faza 1** ✅. Urmează F4b (hardcodes) / F5b (shells) când vrei, sau mentenanță.
 
 Spune ce vrei următor.

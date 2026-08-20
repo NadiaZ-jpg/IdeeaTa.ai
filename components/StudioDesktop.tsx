@@ -12,6 +12,7 @@ import BuyMeACoffeeModal from '@/components/BuyMeACoffeeModal';
 import { useStudioFirebaseSync } from '@/hooks/useStudioFirebaseSync';
 import { t } from '@/lib/translations';
 import { UI_STRINGS } from '@/lib/uiStrings';
+import { buildGenerateRequestBody } from '@/lib/generateRequest';
 import { formatPriceLocalized } from '@/lib/priceHelper';
 import { getExamples } from '@/lib/examples';
 
@@ -1144,12 +1145,14 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
         fetch("/api/generate", {
           method: "POST",
           headers,
-          body: JSON.stringify({
-            skill,
-            locale,
-            currency: locale === "ro" ? currency : "EUR",
-            surface: "studio",
-          }),
+          body: JSON.stringify(
+            buildGenerateRequestBody({
+              skill,
+              locale,
+              currencyToggle: currency,
+              surface: "studio",
+            })
+          ),
         }),
         new Promise(resolve => setTimeout(resolve, 2000))
       ]);

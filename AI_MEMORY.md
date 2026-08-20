@@ -1171,6 +1171,23 @@ Fișiere: `lib/versionStack.ts`, `lib/planQuota.ts`, `lib/proPackQuotaAdmin.ts`,
 
 ---
 
+## FREEZE — Sesiunea F4 + F5 Faza 1 (20 August 2026)
+
+### F4 — Un sistem traduceri (Faza 1)
+- Canonical entry: **`lib/i18n.ts`** (`UI_STRINGS`, `t`, `translations`, `ui()`).
+- Datele rămân în `uiStrings.ts` + `translations.ts` (re-export); **nu** adăuga al 3-lea catalog.
+- Importuri vechi rămân valide. F4b (hardcodes) = sesiune viitoare.
+
+### F5 — Un creier Desktop+Mobile (Faza 1)
+- **Shared deja:** `useAuthUser`, `useExportActions`, `useSharedPlanLoader`, `useStudioFirebaseSync`, `planHelpers`, `versionStack`, `ActionBar`, `planQuota`, …
+- **Nou:** `lib/generateRequest.ts` → `buildGenerateRequestBody` folosit pe Demo+Studio Desktop+Mobile.
+- **Regulă:** bug pe generate currency/locale → fix în `generateRequest` întâi.
+- F5b = shells UI subțiri (nu acum).
+
+**Acceptanță:** `tsc` OK; generare pe cele 4 ecrane neschimbată vizual; import `@/lib/i18n` disponibil.
+
+---
+
 ## FREEZE — Fix ES explicații goale (20 August 2026)
 
 **Bug:** pe `/es` (Desktop+Mobile+Tablet) SWOT/buget ies cu titluri dar `explicatie_tehnica` / `explicatie` goale. Cauze: (1) fill pe generate tăiat la 14s; (2) client fill cerea auth → oaspeții Demo rămâneau goi.

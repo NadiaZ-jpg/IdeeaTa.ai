@@ -25,6 +25,7 @@ import Link from 'next/link';
 import { getExamples } from '@/lib/examples';
 import { t } from '@/lib/translations';
 import { UI_STRINGS } from '@/lib/uiStrings';
+import { buildGenerateRequestBody } from '@/lib/generateRequest';
 import dynamic from 'next/dynamic';
 import { formatObjectNumbers, formatNumberedText } from "@/lib/utils";
 import { useSharedPlanLoader } from "@/hooks/useSharedPlanLoader";
@@ -614,12 +615,13 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
         const res = await fetch("/api/generate", {
           method: "POST",
           headers,
-          body: JSON.stringify({
-            skill: inputSkill,
-            locale,
-            currency: locale === "ro" ? "RON" : "EUR",
-            surface: "demo",
-          }),
+          body: JSON.stringify(
+            buildGenerateRequestBody({
+              skill: inputSkill,
+              locale,
+              surface: "demo",
+            })
+          ),
         });
 
         if (!res.ok) {

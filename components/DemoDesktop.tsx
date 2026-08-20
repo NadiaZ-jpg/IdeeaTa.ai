@@ -15,6 +15,7 @@ import { migrateLocalPlansToFirebase } from '@/lib/migrationManager';
 import { getExamples } from '@/lib/examples';
 import { t } from '@/lib/translations';
 import { UI_STRINGS } from '@/lib/uiStrings';
+import { buildGenerateRequestBody } from '@/lib/generateRequest';
 import { formatPriceLocalized } from '@/lib/priceHelper';
 import { formatObjectNumbers, formatNumberedText } from "@/lib/utils";
 import { EXPERT_TEMPLATES, ExpertTemplate } from '@/lib/templatesData';
@@ -1099,12 +1100,14 @@ export default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" | 
         fetch("/api/generate", {
           method: "POST",
           headers,
-          body: JSON.stringify({
-            skill,
-            locale,
-            currency: locale === "ro" ? currency : "EUR",
-            surface: "demo",
-          }),
+          body: JSON.stringify(
+            buildGenerateRequestBody({
+              skill,
+              locale,
+              currencyToggle: currency,
+              surface: "demo",
+            })
+          ),
         }),
         new Promise(resolve => setTimeout(resolve, 2000))
       ]);

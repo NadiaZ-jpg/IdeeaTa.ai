@@ -34,6 +34,8 @@ import dynamic from 'next/dynamic';
 import { useExportActions } from "@/hooks/useExportActions";
 import { useAuthUser } from '@/hooks/useAuthUser';
 import { useCompleteMissingPlanFields } from "@/hooks/useCompleteMissingPlanFields";
+import { useSharedPlanLoader } from "@/hooks/useSharedPlanLoader";
+import { resolveLoadedStudioPlan, exportActiveTabDisplayLabel } from "@/lib/studioActiveVersion";
 import { StudioPdfSlides } from "@/components/pdf/StudioPdfSlides";
 import { truncateText, splitTextIntoSlides } from "@/lib/planHelpers";
 import { formatPriceLocalized } from "@/lib/priceHelper";
@@ -52,7 +54,6 @@ import {
   applyExpertLibrarySection,
   type VersionStackAccess,
 } from "@/lib/versionStack";
-import { exportActiveTabDisplayLabel } from "@/lib/studioActiveVersion";
 
 import { MobileProToolsPanel, type MobileAiPrompt } from '@/components/tools/MobileProToolsPanel';
 import { ExpertSectionsDrawer } from '@/components/modals/ExpertSectionsDrawer';
@@ -65,8 +66,7 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
   const isEs = locale === "es";
   const router = useRouter();
   const [isSharedView, setIsSharedView] = useState(false);
-  const [result, setResult] = useState<any>(null);
-  useCompleteMissingPlanFields(result, setResult, locale);
+  const [resultState, setResultState] = useState<any>(null);
   const [versions, setVersionsState] = useState<any>({});
   const activeVersionIdRef = useRef<string>("original");
   const [activeVersionId, _setActiveVersionId] = useState<string>("original");
@@ -88,6 +88,44 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
       return nextVal;
     });
   };
+
+  /** Keep versions[active] in sync (auto-fill + edits) — same as Studio Desktop / Demo Mobile. */
+  const setResult = (valOrFn: any) => {
+    setResultState((prev: any) => {
+      const nextVal = typeof valOrFn === "function" ? valOrFn(prev) : valOrFn;
+      if (nextVal === null) {
+        setVersions({});
+        setActiveVersionId("original");
+      } else {
+        setVersions((prevVers: any) => ({
+          ...prevVers,
+          [activeVersionIdRef.current]: nextVal,
+        }));
+      }
+      return nextVal;
+    });
+  };
+
+  const result = resultState;
+  useCompleteMissingPlanFields(result, setResult, locale);
+
+  const { isCheckingShared, shareError } = useSharedPlanLoader({
+    pageLocale: locale,
+    onLoaded: (plan) => {
+      const { versions: v, activeVersionId: a, displayResult } = resolveLoadedStudioPlan(plan);
+      setVersionsState(v);
+      setActiveVersionId(a);
+      setResultState(displayResult);
+      try {
+        localStorage.setItem("current_generated_plan", JSON.stringify(displayResult));
+        persistCurrentVersions(v, a);
+      } catch {
+        /* ignore */
+      }
+    },
+    onSharedView: () => setIsSharedView(true),
+    resetDemoCounters: false,
+  });
   
   const [activeTab, setActiveTab] = useState<"overview" | "budget" | "marketing" | "swot">("overview");
   const [loading, setLoading] = useState(false);
@@ -407,7 +445,8 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
     user,
     onPlanLoaded: (data) => {
       setStudioLoadTimedOut(false);
-      setResult(data);
+      // setResultState (nu setResult) — versions e deja setat de hook; evită race pe mapă
+      setResultState(data);
     },
     setVersionsState: setVersions,
     setActiveVersionId,
@@ -907,7 +946,33 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
     return () => clearTimeout(timer);
   }, [result, user, router, ui.routes.dashboard]);
 
+  if (isCheckingShared) {
+    return (
+      <div className="min-h-screen bg-[#09090b] text-white flex flex-col items-center justify-center p-6 text-center">
+        <div className="w-10 h-10 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin mb-4"></div>
+        <p className="text-zinc-400 text-sm">{ui.studioLoadingWorkspace}</p>
+      </div>
+    );
+  }
+
   if (!result) {
+    if (shareError) {
+      return (
+        <div className="min-h-screen bg-[#09090b] text-white flex flex-col items-center justify-center p-6 text-center gap-4">
+          <div className="rounded-2xl border border-amber-500/40 bg-amber-500/10 px-4 py-3 max-w-sm">
+            <p className="text-amber-200 font-bold text-sm">{ui.sharedPlanNotFound}</p>
+            <p className="text-zinc-400 text-xs mt-1">{ui.sharedPlanNotFoundHint}</p>
+          </div>
+          <Link
+            href={isEn ? "/en/studio" : isEs ? "/es/studio" : "/studio"}
+            className="text-emerald-400 text-sm font-bold underline"
+          >
+            {locale === "en" ? "Back to Studio" : locale === "es" ? "Volver al Studio" : "Înapoi la Studio"}
+          </Link>
+        </div>
+      );
+    }
+
     if (!user) {
       return (
         <div className="min-h-screen bg-[#09090b] text-white flex flex-col items-center justify-center p-6 text-center">

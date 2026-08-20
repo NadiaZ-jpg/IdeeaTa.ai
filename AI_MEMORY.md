@@ -1071,6 +1071,20 @@ Fișiere: `lib/versionStack.ts`, `lib/planQuota.ts`, `lib/proPackQuotaAdmin.ts`,
 
 ---
 
+## FREEZE — Sesiunea C3 (20 August 2026): Studio Mobile tabs + sharedId
+
+**Bug:** (a) `useCompleteMissingPlanFields` actualiza doar `result`, nu `versions[active]` → tab-urile rămâneau în urmă. (b) `?sharedId=` nu era încărcat pe Studio Mobile (Demo da).
+
+**Fix:**
+- `setResult` wrapping ca pe Desktop/Demo Mobile — sync pe tab-ul activ.
+- `useSharedPlanLoader` + `resolveLoadedStudioPlan`; UI eroare RO/EN/ES; `onPlanLoaded` Firestore folosește `setResultState` (fără race pe mapă).
+
+**Acceptanță:** după auto-fill, tab activ = ecran; `/studio?sharedId=` (și /en|/es) încarcă planul pe telefon.
+
+**Nu în C3:** D1 Share Desktop, D2 edit manual Demo Mobile.
+
+---
+
 ## FREEZE — Ops simplu (20 August 2026): doar `main` + 3 comenzi
 
 **Regulă agenți:** branch de lucru = **`main`**. Fără feature branches noi decât pe cerere explicită.

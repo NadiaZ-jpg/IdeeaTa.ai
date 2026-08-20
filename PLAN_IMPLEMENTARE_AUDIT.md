@@ -26,6 +26,7 @@
 | **B2** Edit vs combine + export | ✅ | Must ✅ | Must ✅ | Sanity | ✅ | ✅ | ✅ |
 | **C1** Auth Desktop EN/ES | ✅ | Must ✅ | Sanity | Sanity | ✅ | ✅ | ✅ |
 | **C2** Demo Mobile Pro→auth | ✅ | Sanity | Must ✅ | Must* | ✅ | ✅ | ✅ |
+| **C3** Studio Mobile tabs+shared | ✅ | Sanity | Must ✅ | Must* | ✅ | ✅ | ✅ |
 | Ops `./update.sh` | ✅ | — | — | — | — | — | — |
 
 \*A2: migrare/Dashboard pe toate device-urile după login; bug-ul delete-on-name era cross-device.
@@ -265,6 +266,6 @@ F4–F5   proiecte mari (amânate)
 
 ## Următorul pas
 
-**C1** ✅ · **C2** ✅. Urmează **C3** — Studio Mobile tabs + sharedId.
+**C1–C3** ✅. Urmează **D1** — Share pe Desktop (RO/EN/ES).
 
-Spune `executa C3` ca să continuăm pe `main`.
+Spune `executa D1` ca să continuăm pe `main`.

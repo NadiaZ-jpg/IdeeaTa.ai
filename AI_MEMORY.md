@@ -789,5 +789,34 @@ Dacă oricare dintre aceste verificări este omisă în procesul de planificare,
 - ✅ S1: Hook orfan + Memory leak
 - ✅ S2: useAuthUser creat + aplicat Demo (Desktop + Mobile)
 - ✅ S3: useAuthUser aplicat Studio (Desktop + Mobile)
-- ⏳ S4: Consolidare i18n — eliminare import dual `translations.ts`
+- ✅ S4: Consolidare i18n — eliminare import dual `translations.ts` (4 chei eroare migrate în `uiStrings.ts`, apeluri `t` înlocuite în componente)
+- ✅ S4.5: Refactorizare `useExportActions` — eliminare parametru `t` (2 alert-uri din hook migrate la `UI_STRINGS[locale]`, actualizat toți 4 apelanții)
 - ⏳ S5: Interfață TypeScript `BusinessPlan` — elimina tipuri `any`
+
+---
+
+## FREEZE — Sesiunile 4 & 4.5 Refactorizare (20 August 2026)
+
+### Fișiere modificate și ÎNGHEȚATE:
+| Fișier | Modificare |
+|---|---|
+| `lib/uiStrings.ts` | Adăugat 6 chei de erori migrate din `translations.ts` (`errorServerPrefix`, `errorNetworkError`, `errorInvalidFormat`, `errorGenerationFallback`, `errorProcessingCredit`, `errorSavingDocument`) în interfață + implementări RO/EN/ES. |
+| `hooks/useExportActions.ts` | Eliminat parametrul `t` și prop-ul corespunzător din interfață. Înlocuit apelurile `t(...)` cu `UI_STRINGS[locale]`. |
+| `components/DemoDesktop.tsx` | Actualizat apelul `useExportActions` pentru a elimina prop-ul `t`. Înlocuit apelurile locale `t(...)` de erori cu `ui.errorXxx`. |
+| `components/DemoMobile.tsx` | Actualizat apelul `useExportActions` pentru a elimina prop-ul `t`. Eliminat importul neutilizat de `t`. |
+| `components/StudioDesktop.tsx` | Actualizat apelul `useExportActions` pentru a elimina prop-ul `t`. Înlocuit apelurile locale `t(...)` de erori cu `ui.errorXxx`. |
+| `components/StudioMobile.tsx` | Actualizat apelul `useExportActions` pentru a elimina prop-ul `t`. Înlocuit apelurile locale `t(...)` de erori cu `ui.errorXxx`. |
+
+### Build verificat:
+- ✅ `npx tsc --noEmit` — zero erori TypeScript
+- ✅ `✓ Compiled successfully in 8.9s`
+- ✅ `✓ Generating static pages (71/71)`
+
+### Git Checkpoint:
+- Commit-uri: `2ba21d9` (S4) + `13da418` (S4.5)
+- Mesaje: 
+  - `refactor(S4): migrare 4 chei eroare din translations.ts in uiStrings.ts (RO/EN/ES) + 10 apeluri t() inlocuite cu ui.* in componente`
+  - `refactor(S4.5): remove t function parameter from useExportActions hook and update all callers`
+- Branch: `cursor/pdf-cta-locale-and-plan-fill`
+- Push: ✅ `To https://github.com/NadiaZ-jpg/IdeeaTa.ai.git`
+

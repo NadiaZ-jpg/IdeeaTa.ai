@@ -14,6 +14,7 @@ import { buildExportVersionFileSuffix, resolveExportPlanBody } from "@/lib/studi
 import { planUnlockPayload } from "@/lib/planUnlock";
 import { auth } from "@/lib/firebase";
 import { BusinessPlan } from "@/lib/normalizePlanResult";
+import { DEVICE_LAYOUT_MOBILE_MAX_PX } from "@/lib/deviceLayout";
 
 interface UseExportActionsProps {
   result: BusinessPlan | null;
@@ -197,7 +198,9 @@ export function useExportActions({
           es: "Plan de negocios generado inteligentemente por IdeeaTa.ai"
         };
 
-        const isMobileScreen = typeof window !== "undefined" && (window.innerWidth < 1024 || /Android|iPhone|iPad|iPod/i.test(navigator.userAgent));
+        const isMobileScreen =
+          typeof window !== "undefined" &&
+          window.innerWidth < DEVICE_LAYOUT_MOBILE_MAX_PX;
         const effectivePixelRatio = isMobileScreen ? 1.2 : 2;
 
         for (let i = 0; i < slidesArray.length; i++) {

@@ -22,7 +22,7 @@
 |-------|------|-----------------|
 | **Desktop (PC)** | **Bine**, cu câteva găuri | Cel mai complet. Poți genera, edita, exporta, folosi unelte Pro. Lipsesc: buton clar de Share; la login pe site-ul EN/ES unele mesaje de eroare apar tot în română. |
 | **Telefon** | **Nu e bine** | Poți genera și exporta. Unele unelte Pro pentru oaspeți nu deschid login-ul corect. Pe Demo nu poți edita textul cu mâna (doar cu AI). Pe Studio, unele tab-uri de variante pot rămâne în urmă. |
-| **Tabletă** | **Rău** | Nu există un ecran făcut special pentru tabletă. iPad-ul primește UI de telefon. Unele tablete Windows primesc UI de PC înghesuit. |
+| **Tabletă** | **Bine** (E-B) | Demo/Studio după lățime: &lt;1024 → Mobile, ≥1024 → Desktop. Fără layout dedicat (E-C amânat). |
 | **Română (RO)** | **Bine** | Limba de bază. Cea mai stabilă. |
 | **Engleză (EN)** | **Bine**, cu resturi | Site tradus, exporturi/plăți EUR ok. Login Desktop EN reparat (C1). Redirect limbă pe legal/resurse încă incomplet. |
 | **Spaniolă (ES)** | **Nu e bine** → îmbunătățit | Interfață tradusă; fill explicații SWOT/buget întărit (20 aug: timeout + guest fill). Verifică pe generări noi. |
@@ -72,16 +72,12 @@
 
 ## 3. Tabletă
 
-### Bine
-- Dacă tableta e tratată ca telefon (ex. multe iPad-uri), beneficiezi de layout-ul mobil (care pe ecrane mid se întinde puțin).
+### Bine (după E-B, 20 Aug 2026)
+- **Demo / Studio** aleg UI după **lățimea ecranului**: &lt;1024px → Mobile, ≥1024px → Desktop (nu doar User-Agent).
+- iPad lat și fereastră îngustă pe PC primesc layout previzibil; landing rămâne responsive CSS.
 
-### Nu e bine / Rău
-- **Nu există produs „tabletă”.** Site-ul alege doar: *telefon* sau *PC*, după tipul de dispozitiv (User-Agent), **nu** după lățimea ecranului.
-- **iPad** → de obicei UI de **telefon** (uneori prea „mic” ca idee, pe un ecran mare).
-- **Tabletă Windows / Chrome îngust pe PC** → UI de **Desktop** înghesuit (sidebar-uri de PC pe ecran mic).
-- Testele din Chrome „mod telefon” pot minți: dacă nu simulează și tipul de dispozitiv, vezi Desktop pe un ecran de telefon.
-
-**Pe scurt:** tableta e cea mai slabă experiență din cele trei.
+### Notă
+- Nu există încă un **al treilea** layout „tablet dedicat” (E-C amânat). Pe mid-width (&lt;1024) folosești Mobile (cu grid tabletă deja în Demo/Studio Mobile).
 
 ---
 
@@ -168,10 +164,10 @@
 - **Admin:** conturile admin au cote nelimitate.  
 - **ES:** umplere automată a explicațiilor goale la generare.  
 - **Deploy:** script care copiază fișierele necesare ca site-ul să nu se rupă după update.
-- **C1–C3 · D1–D2:** auth EN/ES Desktop, Demo Mobile Pro→auth, Studio Mobile setResult/sharedId, share Desktop, EditForm Demo Mobile.
+- **C1–C3 · D1–D3 · E1 (E-B):** auth EN/ES Desktop, Demo Mobile Pro→auth, Studio Mobile, share Desktop, EditForm Demo Mobile, guest list Mobile, tabletă după lățime.
 
 **Încă pe listă (plan):**  
-- Decizie tabletă (E); F1–F3 și restul din plan.
+- F1–F3 și restul din plan (E-C layout dedicat = separat).
 
 ---
 
@@ -181,7 +177,7 @@
 2. Traducerea mesajelor de login pe Desktop (EN/ES).  
 3. Repararea pe telefon: login la Pro pentru oaspeți + tab-uri Studio.  
 4. Share pe Desktop + încărcare plan partajat pe Studio telefon.  
-5. Decizie tabletă: telefon, PC, sau ecran special.  
+5. ~~Decizie tabletă~~ — **E-B făcut** (lățime &lt;1024 → Mobile).  
 6. Pe termen lung: un singur „creier” de cod pentru Desktop și telefon, ca să nu se mai strice pe unul și pe celălalt nu.
 
 ---
@@ -192,7 +188,7 @@
 |------------------|--------|
 | Telefon real | Folosește telefonul, nu doar fereastra îngustă pe PC. |
 | „Mod telefon” pe PC | Activează și emularea de dispozitiv mobil (altfel poți vedea Desktop). |
-| iPad | Așteaptă-te la UI de telefon. |
+| iPad / tabletă | Lățime ≥1024 → UI Desktop; &lt;1024 → UI Mobile (E-B). |
 | EN / ES login pe PC | Încearcă Greșit parola pe Demo Desktop — dacă vezi română, e bug-ul cunoscut. |
 | Două planuri cu același nume | După A2: ambele trebuie să apară în Dashboard (id-uri diferite). |
 

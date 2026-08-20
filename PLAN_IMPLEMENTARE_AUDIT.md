@@ -12,7 +12,7 @@
 | **N/A** | Nu se aplică (ex. bug doar Desktop) |
 | **Decizie** | Depinde de alegerea produsului (fază E) |
 
-**Tabletă:** până la faza E, „Tabletă” = același build ca Mobile sau Desktop (după UA). Sanity = același flux pe iPad sau Chrome device + UA mobil. După E1, tabletă = regula aleasă.
+**Tabletă:** după E1 (**E-B**): Mobile UI dacă lățimea &lt; 1024px, Desktop UI dacă ≥ 1024px (client + Client Hints când există). UA rămâne doar hint SSR.
 
 ---
 
@@ -30,6 +30,7 @@
 | **D1** Share Desktop | ✅ | Must ✅ | Sanity | Sanity | ✅ | ✅ | ✅ |
 | **D2** Edit manual Demo Mobile | ✅ | Sanity | Must ✅ | Must* | ✅ | ✅ | ✅ |
 | **D3** Guest list Demo Mobile | ✅ | Sanity | Must ✅ | Must* | ✅ | ✅ | ✅ |
+| **E1** Tabletă **E-B** (width &lt;1024) | ✅ | Sanity | Sanity | Must ✅ | ✅ | ✅ | ✅ |
 | Ops `./update.sh` | ✅ | — | — | — | — | — | — |
 
 \*A2: migrare/Dashboard pe toate device-urile după login; bug-ul delete-on-name era cross-device.
@@ -184,23 +185,23 @@
 
 # Faza E — Tabletă (decizie + implementare)
 
-### Decizie (obligatorie înainte de E1)
+### Decizie: **E-B** (ales 20 Aug 2026)
 
-| Opțiune | Desktop | Mobile | Tabletă | Note |
-|---------|---------|--------|---------|------|
-| **E-A** Tablete → mereu Mobile | neschimbat | neschimbat | **Must** = Mobile | Simplu |
-| **E-B** Breakpoint lățime | Desktop dacă lat | Mobile dacă îngust | **Must** după width | Corectează și „Chrome îngust” |
-| **E-C** Layout tablet dedicat | — | — | **Must** layout nou | Amână; proiect separat |
+| Opțiune | Status | Note |
+|---------|--------|------|
+| E-A Tablete → mereu Mobile | — | Neales |
+| **E-B** Breakpoint lățime (&lt;1024 → Mobile) | ✅ | Implementat E1 |
+| E-C Layout tablet dedicat | amânat | Proiect separat |
 
-### E1 — implementare opțiunea aleasă
+### E1 — implementat
 
 | | Desktop | Mobile | Tabletă |
 |--|---------|--------|---------|
-| **RO** | Sanity | Sanity | **Must** |
-| **EN** | Sanity | Sanity | **Must** |
-| **ES** | Sanity | Sanity | **Must** |
+| **RO** | Sanity | Sanity | **Must** ✅ |
+| **EN** | Sanity | Sanity | **Must** ✅ |
+| **ES** | Sanity | Sanity | **Must** ✅ |
 
-**Acceptanță:** iPad + o tabletă Windows/Chrome: UI previzibil pe cele 3 limbi (landing, demo, studio).  
+**Acceptanță:** iPad lat (≥1024) → Desktop; fereastră &lt;1024 (orice device) → Mobile; RO/EN/ES demo+studio.  
 **Estimare:** E-A/E-B 0,5–1; E-C = în afara acestui sprint.
 
 ---
@@ -270,6 +271,6 @@ F4–F5   proiecte mari (amânate)
 
 ## Următorul pas
 
-**C1–C3 · D1–D3** ✅. Urmează faza **E** (tabletă — decizie E-A / E-B / E-C) sau **F1–F3**.
+**C1–C3 · D1–D3 · E1 (E-B)** ✅. Urmează **F1–F3**.
 
-Spune `executa E` (cu opțiunea aleasă) sau următorul item.
+Spune `executa F1` (sau F2 / F3).

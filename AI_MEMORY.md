@@ -1127,6 +1127,22 @@ Fișiere: `lib/versionStack.ts`, `lib/planQuota.ts`, `lib/proPackQuotaAdmin.ts`,
 
 ---
 
+## FREEZE — Sesiunea E1 / E-B (20 August 2026): Tabletă după lățime
+
+**Decizie:** E-B (nu E-A / E-C).
+
+**Regulă:** viewport &lt; 1024px → UI Mobile; ≥ 1024px → UI Desktop.
+
+**Fix:**
+- `lib/deviceLayout.ts` — prag unic.
+- `useDeviceDetect` — `matchMedia`, acceptă hint SSR.
+- `DemoViewportSwitch` / `StudioViewportSwitch` — dispecer client pe `/demo` + `/studio` (RO/EN/ES).
+- `middleware` — `Sec-CH-Viewport-Width` când există; altfel UA ca hint SSR + `Accept-CH`.
+
+**Acceptanță:** iPad lat → Desktop Demo/Studio; Chrome îngust &lt;1024 → Mobile; resize comută layout-ul.
+
+---
+
 ## FREEZE — Fix ES explicații goale (20 August 2026)
 
 **Bug:** pe `/es` (Desktop+Mobile+Tablet) SWOT/buget ies cu titluri dar `explicatie_tehnica` / `explicatie` goale. Cauze: (1) fill pe generate tăiat la 14s; (2) client fill cerea auth → oaspeții Demo rămâneau goi.

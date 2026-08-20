@@ -41,7 +41,7 @@
 - Landing, resurse, pagini legale, cookie-uri, reclame doar pe pagini de conținut (nu în Studio/Demo).
 
 ### Nu e bine
-- Nu există un buton clar „Distribuie” pe Desktop (pe telefon există).
+- ~~Nu există un buton clar „Distribuie” pe Desktop~~ — **reparat D1** (Partajează / Share / Compartir în ActionBar).
 - Două sisteme de traduceri în paralel → greu de întreținut; unele texte rămân pe lângă.
 - Unelte Pro: pe Original = editare (tab nou); pe alt tab = combinație — clarificat în tipuri UI + alerte la cotă 0 (B2, 20 aug). Export = tab-ul activ.
 

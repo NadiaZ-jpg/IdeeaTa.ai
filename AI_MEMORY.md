@@ -1085,6 +1085,20 @@ Fișiere: `lib/versionStack.ts`, `lib/planQuota.ts`, `lib/proPackQuotaAdmin.ts`,
 
 ---
 
+## FREEZE — Sesiunea D1 (20 August 2026): Share pe Desktop
+
+**Lipsă:** pe telefon exista buton share; pe Desktop ActionBar nu avea „Partajează / Share / Compartir”.
+
+**Fix:**
+- `ActionBar`: buton share (ascuns pe guest shared preview).
+- `DemoDesktop` + `StudioDesktop`: `createAndCopySharedPlanLink` + toast `ui.shareCopied`; guest → auth modal.
+
+**Acceptanță:** Demo + Studio Desktop RO/EN/ES — un click → link în clipboard + feedback. Mobile = sanity.
+
+**Nu în D1:** D2 edit manual Demo Mobile, D3 guest list Mobile.
+
+---
+
 ## FREEZE — Ops simplu (20 August 2026): doar `main` + 3 comenzi
 
 **Regulă agenți:** branch de lucru = **`main`**. Fără feature branches noi decât pe cerere explicită.

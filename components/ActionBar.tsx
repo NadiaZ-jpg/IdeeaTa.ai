@@ -20,6 +20,9 @@ interface ActionBarProps {
   onDownloadAction: (type: "pdf-summary" | "pdf" | "pptx" | "word") => void;
   onShowPricingModal: () => void;
   onShowExportModal?: () => void;
+  /** Desktop D1: create/copy share link (parent opens auth if guest). */
+  onShare?: () => void;
+  shareBusy?: boolean;
   currency: string;
   setCurrency: (c: string) => void;
   isDownloading: string | null;
@@ -51,6 +54,8 @@ export function ActionBar({
   onDownloadAction,
   onShowPricingModal,
   onShowExportModal,
+  onShare,
+  shareBusy = false,
   currency,
   setCurrency,
   isDownloading,
@@ -66,9 +71,11 @@ export function ActionBar({
 
   const editLabel = `🪄 ${stripLeadingEmoji(ui.editingStudio)}`;
   const resetLabel = `💡 ${stripLeadingEmoji(ui.anotherIdea)}`;
+  const shareLabel = `🔗 ${stripLeadingEmoji(ui.shareBtn)}`;
   // Guest shared preview only — logged-in users always keep Otra idea / Another idea / Altă idee
   const guestSharedPreview = !!(isSharedView && !user);
   const allowCurrency = showCurrencyToggle && !guestSharedPreview && loc === "ro";
+  const showShare = typeof onShare === "function" && !guestSharedPreview;
 
   const downloadBlock = (
     <div className="relative group w-full md:w-auto flex-none">
@@ -183,6 +190,18 @@ export function ActionBar({
           </div>
         </div>
       </div>
+
+      {showShare && (
+        <button
+          type="button"
+          onClick={onShare}
+          disabled={shareBusy || isDownloading !== null}
+          title={ui.shareLinkTitle}
+          className="w-full md:flex-1 h-10 bg-zinc-900 hover:bg-zinc-800 text-zinc-300 hover:text-white px-4 rounded-xl font-bold transition-all shadow-xl border border-zinc-700/60 flex items-center justify-center gap-2 text-xs whitespace-nowrap cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          {shareBusy ? "…" : shareLabel}
+        </button>
+      )}
 
       <div className="w-full md:w-auto flex flex-col md:flex-row gap-4 items-center justify-between">
         {allowCurrency && (

@@ -53,6 +53,7 @@ import { useAuthUser } from '@/hooks/useAuthUser';
 import { ActionBar } from '@/components/ActionBar';
 import { MockupPreview } from '@/components/MockupPreview';
 import { VersionSelector } from '@/components/VersionSelector';
+import { createAndCopySharedPlanLink } from '@/lib/sharePlan';
 import { ProPackQuotaBar } from '@/components/ProPackQuotaBar';
 import {
   buildStackedVersionKey,
@@ -164,6 +165,8 @@ export default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" | 
   const [isSharedView, setIsSharedView] = useState(false);
   const [isCheckingShared, setIsCheckingShared] = useState(true);
   const [shareError, setShareError] = useState<"not_found" | "network" | null>(null);
+  const [showShareSuccess, setShowShareSuccess] = useState(false);
+  const [shareBusy, setShareBusy] = useState(false);
 
   // UI State (modale, dropdown-uri) — gestionate centralizat în useUIState
   const {
@@ -1243,6 +1246,30 @@ export default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" | 
     },
   });
 
+  const handleShare = async () => {
+    if (!result) return;
+    if (!user) {
+      setShowAuthModal(true);
+      return;
+    }
+    setShareBusy(true);
+    try {
+      const token = await user.getIdToken();
+      const url = await createAndCopySharedPlanLink(result, locale, token);
+      if (url) {
+        setShowShareSuccess(true);
+        setTimeout(() => setShowShareSuccess(false), 2500);
+      } else {
+        alert(ui.shareError);
+      }
+    } catch (err) {
+      console.error(err);
+      alert(ui.shareError);
+    } finally {
+      setShareBusy(false);
+    }
+  };
+
   const renderSidebar = () => (
     <DemoLeftSidebar 
       user={user}
@@ -1966,6 +1993,8 @@ export default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" | 
             onStartEditing={startEditing}
             onDownloadAction={downloadAction}
             onShowPricingModal={() => setShowPricingModal(true)}
+            onShare={handleShare}
+            shareBusy={shareBusy}
             currency={currency}
             setCurrency={setCurrency}
             isDownloading={isDownloading}
@@ -1975,6 +2004,12 @@ export default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" | 
             showCurrencyToggle={shouldShowCurrencyToggle(locale, isSharedView && !user)}
             user={user}
           />
+
+          {showShareSuccess && (
+            <div className="bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-sm text-center py-2.5 rounded-xl animate-pulse font-bold">
+              {ui.shareCopied}
+            </div>
+          )}
 
           {!isEditing && (
             <VersionSelector

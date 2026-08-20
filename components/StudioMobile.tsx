@@ -1079,15 +1079,17 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
           </div>
         )}
 
-        {/* Studio Info Card */}
-        <div className="bg-zinc-900/60 border border-zinc-800/80 rounded-xl p-4 flex justify-between items-center backdrop-blur-md gap-3">
-          <div className="min-w-0">
-            <span className="text-[9px] bg-amber-500/10 border border-amber-500/20 text-amber-400 px-2 py-0.5 rounded-full font-bold uppercase block w-max mb-1">
+        {/* Studio Info Card — title full-width above actions */}
+        <div className="bg-zinc-900/60 border border-zinc-800/80 rounded-xl p-4 flex flex-col gap-3 backdrop-blur-md">
+          <div className="w-full min-w-0 space-y-1.5">
+            <span className="text-[9px] bg-amber-500/10 border border-amber-500/20 text-amber-400 px-2 py-0.5 rounded-full font-bold uppercase inline-block">
               {ui.editingStudio}
             </span>
-            <h2 className="text-sm font-black text-white truncate">{result.nume || (ui.businessPlan)}</h2>
+            <h2 className="text-base sm:text-lg font-black text-white leading-snug break-words w-full">
+              {result.nume || ui.businessPlan}
+            </h2>
           </div>
-          <div className="flex items-center gap-2 shrink-0">
+          <div className="flex flex-wrap gap-2 w-full">
             <button
               type="button"
               onClick={() => {
@@ -1110,7 +1112,7 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
             </button>
             <button
               onClick={() => setShowPricingModal(true)}
-              className="bg-gradient-to-r from-amber-500 to-orange-500 text-black text-[10px] font-bold px-2.5 py-1.5 rounded-lg shrink-0 min-h-[44px]"
+              className="bg-gradient-to-r from-amber-500 to-orange-500 text-black text-[10px] font-bold px-2.5 py-1.5 rounded-lg shrink-0 min-h-[44px] ml-auto"
             >
               {ui.pricing}
             </button>

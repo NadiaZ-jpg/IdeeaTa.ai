@@ -1222,15 +1222,17 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
 
         {!loading && result && !isEditing && (
           <div className="flex flex-col gap-4 animate-in fade-in duration-300">
-            {/* Sticky mini header */}
-            <div className="bg-zinc-900/60 border border-zinc-800 rounded-xl p-4 flex items-center justify-between gap-4 backdrop-blur-md">
-              <div className="min-w-0">
-                <span className="text-[9px] bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 px-2 py-0.5 rounded-full font-bold uppercase tracking-wider block w-max mb-1">
+            {/* Sticky mini header — title full-width above actions */}
+            <div className="bg-zinc-900/60 border border-zinc-800 rounded-xl p-4 flex flex-col gap-3 backdrop-blur-md">
+              <div className="w-full min-w-0 space-y-1.5">
+                <span className="text-[9px] bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 px-2 py-0.5 rounded-full font-bold uppercase tracking-wider inline-block">
                   {ui.planGeneratedTitle}
                 </span>
-                <h2 className="text-sm font-black text-white truncate">{result.nume || (ui.businessPlan)}</h2>
+                <h2 className="text-base sm:text-lg font-black text-white leading-snug break-words w-full">
+                  {result.nume || ui.businessPlan}
+                </h2>
               </div>
-              <div className="flex gap-2 shrink-0">
+              <div className="flex flex-wrap gap-2 w-full">
                 {!isSharedView || user ? (
                   <button
                     type="button"
@@ -1264,14 +1266,14 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
                 ) : null}
                 <button
                   onClick={handleShare}
-                  className="bg-zinc-800 hover:bg-zinc-700 text-white font-bold p-2 -m-1 rounded-lg text-xs transition-all active:scale-95 inline-flex items-center justify-center min-w-[44px] min-h-[44px]"
+                  className="bg-zinc-800 hover:bg-zinc-700 text-white font-bold p-2 rounded-lg text-xs transition-all active:scale-95 inline-flex items-center justify-center min-w-[44px] min-h-[44px]"
                   title={ui.shareLinkTitle}
                 >
                   🔗
                 </button>
                 <button
                   onClick={() => handleDownload('pdf')}
-                  className="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-3 py-2 rounded-lg text-xs transition-all active:scale-95 inline-flex items-center justify-center gap-1.5 min-h-[44px]"
+                  className="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-3 py-2 rounded-lg text-xs transition-all active:scale-95 inline-flex items-center justify-center gap-1.5 min-h-[44px] ml-auto"
                 >
                   <span>{ui.exportBtn}</span>
                   <span>📥</span>

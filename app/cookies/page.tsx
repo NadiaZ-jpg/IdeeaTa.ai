@@ -1,7 +1,11 @@
 import Link from 'next/link';
+import LocaleRedirectGuard from '@/components/LocaleRedirectGuard';
 
 export default function CookiesPage() {
   return (
+    <>
+      <LocaleRedirectGuard pathRo="/cookies" />
+      
     <div className="min-h-screen bg-[#09090b] text-zinc-300 py-24 px-4 sm:px-8">
       <div className="max-w-4xl mx-auto prose prose-invert prose-emerald text-justify">
         <Link href="/demo?start=nou" className="text-zinc-500 hover:text-white transition-colors text-sm font-bold flex items-center gap-2 mb-8 inline-flex no-underline">
@@ -57,6 +61,7 @@ export default function CookiesPage() {
           </Link>
         </div>
       </div>
-    </div>
+    </div>
+    </>
   );
 }

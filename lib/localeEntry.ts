@@ -1,10 +1,12 @@
 /**
- * Intrare pe rutele RO fără prefix (/demo, /studio, …):
+ * Intrare pe rutele RO fără prefix (/demo, /studio, /privacy, /resurse, …):
  * - preferință limba (localStorage) + detecție browser
  * - păstrează query-ul (?sharedId=, ?start=nou, …)
+ * - mapare slug-uri localizate (despre-noi ↔ about-us, resurse ↔ resources)
  * - NU forțează redirect pe preferred când există sharedId
- *   (locale-ul planului partajat e sursa de adevăr — vezi pdfCtaBehavior)
  */
+
+import { switchLocalePath } from "@/lib/localePaths";
 
 export type AppLocale = "ro" | "en" | "es";
 
@@ -36,13 +38,16 @@ export function hasSharedPlanQuery(): boolean {
 
 /**
  * Path localizat: pathRo = "/demo" | "/studio" | "/login" | "/dashboard" | "".
- * RO rămâne fără prefix; EN/ES → /en… /es…
+ * Preferă switchLocalePath (slug-uri EN/ES); fallback prefix.
  */
 export function localizedPath(locale: AppLocale, pathRo: string): string {
-  const clean = pathRo === "/" ? "" : pathRo;
-  if (locale === "en") return `/en${clean}`;
-  if (locale === "es") return `/es${clean}`;
-  return clean || "/";
+  const clean = pathRo === "/" ? "/" : pathRo || "/";
+  if (locale === "ro") return clean === "/" ? "/" : clean;
+  const mapped = switchLocalePath(clean, "ro", locale);
+  if (mapped && mapped !== clean) return mapped;
+  if (locale === "en") return clean === "/" ? "/en" : `/en${clean}`;
+  if (locale === "es") return clean === "/" ? "/es" : `/es${clean}`;
+  return clean;
 }
 
 type ReplaceFn = (url: string) => void;
@@ -51,8 +56,8 @@ type ReplaceFn = (url: string) => void;
  * Pe rutele RO: redirecționează spre EN/ES dacă preferred/browser o cer.
  * Returnează true dacă a pornit redirect (nu mai monta pagina RO).
  *
- * Excepție: ?sharedId= — nu redirecta după preferred (evită pierdere query + loop
- * cu redirectIfSharedLocaleMismatch).
+ * Excepție: ?sharedId= — nu redirecta după preferred.
+ * F2: folosește pathname curent + switchLocalePath (legal/resurse).
  */
 export function redirectRoEntryIfNeeded(
   replace: ReplaceFn,
@@ -60,14 +65,31 @@ export function redirectRoEntryIfNeeded(
 ): boolean {
   if (typeof window === "undefined") return false;
 
-  // Plan partajat: locale-ul din share decide, nu preferred_language
   if (hasSharedPlanQuery()) return false;
 
   const search = currentSearch();
   const preferred = readPreferredLanguage();
+  const currentPath = window.location.pathname || pathRo || "/";
+
+  const go = (locale: "en" | "es") => {
+    const target = switchLocalePath(currentPath, "ro", locale);
+    if (!target || target === currentPath) {
+      replace(`${localizedPath(locale, pathRo || currentPath)}${search}`);
+      return;
+    }
+    replace(`${target}${search}`);
+  };
+
+  // Already on preferred locale path — no redirect (EN/ES pages that also mount the guard).
+  if (preferred === "en" && (currentPath === "/en" || currentPath.startsWith("/en/"))) {
+    return false;
+  }
+  if (preferred === "es" && (currentPath === "/es" || currentPath.startsWith("/es/"))) {
+    return false;
+  }
 
   if (preferred === "en" || preferred === "es") {
-    replace(`${localizedPath(preferred, pathRo)}${search}`);
+    go(preferred);
     return true;
   }
 
@@ -75,7 +97,7 @@ export function redirectRoEntryIfNeeded(
     const detected = detectBrowserLocale();
     localStorage.setItem("preferred_language", detected);
     if (detected === "en" || detected === "es") {
-      replace(`${localizedPath(detected, pathRo)}${search}`);
+      go(detected);
       return true;
     }
   }

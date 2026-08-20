@@ -2,6 +2,7 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import { Fragment } from "react";
 import { AdBanner } from "@/components/AdBanner";
+import LocaleRedirectGuard from "@/components/LocaleRedirectGuard";
 import {
   getResourceBySlug,
   RESOURCE_ARTICLES,
@@ -66,6 +67,8 @@ export function ResourceArticlePage({
   const adAfterIndex = Math.min(1, Math.max(0, sections.length - 2));
 
   return (
+    <>
+      {locale === "ro" ? <LocaleRedirectGuard pathRo={article.path.ro} /> : null}
     <div className="min-h-screen bg-[#09090b] text-zinc-300 py-16 md:py-24 px-4 sm:px-8">
       <article className="max-w-3xl mx-auto">
         <nav className="mb-8 text-sm">
@@ -120,6 +123,7 @@ export function ResourceArticlePage({
         </div>
       </article>
     </div>
+    </>
   );
 }
 
@@ -129,6 +133,8 @@ export function ResourcesHubPage({ locale }: { locale: ResourceLocale }) {
     locale === "en" ? "Read" : locale === "es" ? "Leer" : "Citește";
 
   return (
+    <>
+      {locale === "ro" ? <LocaleRedirectGuard pathRo={hub.path} /> : null}
     <div className="min-h-screen bg-[#09090b] text-zinc-300 py-16 md:py-24 px-4 sm:px-8">
       <div className="max-w-3xl mx-auto">
         <h1 className="text-3xl md:text-4xl font-black text-white mb-4 text-center">{hub.title}</h1>
@@ -155,5 +161,6 @@ export function ResourcesHubPage({ locale }: { locale: ResourceLocale }) {
         </div>
       </div>
     </div>
+    </>
   );
 }

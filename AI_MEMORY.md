@@ -1156,6 +1156,21 @@ Fișiere: `lib/versionStack.ts`, `lib/planQuota.ts`, `lib/proPackQuotaAdmin.ts`,
 
 ---
 
+## FREEZE — Sesiunea F2 + F3 (20 August 2026)
+
+### F2 — Redirect limbă pe legal / resurse
+- `localeEntry.redirectRoEntryIfNeeded` folosește `switchLocalePath` (slug-uri: despre-noi↔about-us, resurse↔resources, …).
+- `LocaleRedirectGuard` pe paginile RO: privacy, cookies, contact, termeni, despre-noi + hub/articole resurse.
+- `LocalePreferredSetter` în layout EN/ES.
+
+### F3 — Cotă guest 3 pe server
+- `GUEST_IP_DAILY_PLAN_LIMIT = 3` (aceeași ca client) pe `/api/generate` guest, cheie `gen:guest-plan:{ip}`.
+- Cod răspuns `GUEST_LIMIT`; hourly soft cap 12.
+
+**Acceptanță:** preferred=en pe `/privacy` → `/en/privacy`; preferred=es pe `/resurse/...` → slug ES; după 3 generări guest (chiar cu localStorage șters) → 403 pe generate.
+
+---
+
 ## FREEZE — Fix ES explicații goale (20 August 2026)
 
 **Bug:** pe `/es` (Desktop+Mobile+Tablet) SWOT/buget ies cu titluri dar `explicatie_tehnica` / `explicatie` goale. Cauze: (1) fill pe generate tăiat la 14s; (2) client fill cerea auth → oaspeții Demo rămâneau goi.

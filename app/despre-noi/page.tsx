@@ -1,7 +1,11 @@
 import Link from 'next/link';
+import LocaleRedirectGuard from '@/components/LocaleRedirectGuard';
 
 export default function DespreNoiPage() {
   return (
+    <>
+      <LocaleRedirectGuard pathRo="/despre-noi" />
+      
     <div className="min-h-screen bg-[#09090b] text-zinc-300 py-24 px-4 sm:px-8">
       <div className="max-w-4xl mx-auto prose prose-invert prose-emerald">
         <h1 className="text-center text-4xl font-black mb-8">Despre IdeeaTa.ai</h1>
@@ -33,6 +37,7 @@ export default function DespreNoiPage() {
           </Link>
         </div>
       </div>
-    </div>
+    </div>
+    </>
   );
 }

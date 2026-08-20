@@ -1,7 +1,11 @@
 import Link from 'next/link';
+import LocaleRedirectGuard from '@/components/LocaleRedirectGuard';
 
 export default function ContactPage() {
   return (
+    <>
+      <LocaleRedirectGuard pathRo="/contact" />
+      
     <div className="min-h-screen bg-[#09090b] text-zinc-300 py-24 px-4 sm:px-8 flex items-center justify-center">
       <div className="max-w-2xl w-full mx-auto bg-zinc-900/50 border border-zinc-800 rounded-3xl p-8 md:p-12 text-center shadow-2xl relative overflow-hidden">
         {/* Glow effect */}
@@ -30,6 +34,7 @@ export default function ContactPage() {
           </Link>
         </div>
       </div>
-    </div>
+    </div>
+    </>
   );
 }

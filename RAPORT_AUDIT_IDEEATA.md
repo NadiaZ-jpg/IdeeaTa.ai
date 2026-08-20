@@ -90,7 +90,7 @@
 ### Engleză — Nu e bine (cu un punct Rău)
 - **Bine:** pagini `/en`, exporturi, plăți EUR, SEO.
 - **Rău:** pe Desktop, unele erori de autentificare apar în română.
-- **Nu e bine:** dacă cineva aterizează pe o pagină legală/resurse pe URL românesc, site-ul nu îl redirecționează mereu automat spre engleză (doar pe paginile principale: acasă, demo, studio, login, dashboard).
+- **Nu e bine:** ~~redirect limbă pe legal/resurse~~ — **reparat F2**.
 
 ### Spaniolă — Nu e bine
 - **Bine:** pagini `/es`, interfață tradusă, EUR, umplere automată a explicațiilor goale la generare.
@@ -147,10 +147,10 @@
 
 - Confuzie cote Pro: editare vs combinare variante — **rezolvat B2** (tips + alerte).  
 - Două sisteme de traduceri; texte împrăștiate.  
-- Redirect automat de limbă doar pe câteva pagini, nu pe legal/resurse.  
+- ~~Redirect automat de limbă doar pe câteva pagini~~ — **F2**: și legal/resurse.  
+- ~~Limita de 3 planuri ca oaspete doar pe client~~ — **F3**: și pe server (IP/zi).
 - ~~Uneori scrie „LEI”, alteori „RON”~~ — **reparat F1** (etichetă unică **RON**).
 - Cod Desktop/Telefon aproape dublat → reparațiile trebuie făcute de 4 ori și se uită pe unele ecrane.  
-- Limita de 3 planuri ca oaspete e ținută mai ales pe telefon/browser, nu 100% pe server.  
 - Pe server: dacă se publică greșit (fără scriptul de deploy), site-ul poate rămâne alb (deja s-a întâmplat; există `deploy.sh` ca regulă).
 
 ---
@@ -167,7 +167,7 @@
 - **C1–C3 · D1–D3 · E1 (E-B):** auth EN/ES Desktop, Demo Mobile Pro→auth, Studio Mobile, share Desktop, EditForm Demo Mobile, guest list Mobile, tabletă după lățime.
 
 **Încă pe listă (plan):**  
-- F1–F3 și restul din plan (E-C layout dedicat = separat).
+- F4–F5 (proiecte mari) și restul din plan (E-C layout dedicat = separat).
 
 ---
 

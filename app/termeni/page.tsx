@@ -1,7 +1,11 @@
 import Link from 'next/link';
+import LocaleRedirectGuard from '@/components/LocaleRedirectGuard';
 
 export default function TermeniPage() {
   return (
+    <>
+      <LocaleRedirectGuard pathRo="/termeni" />
+      
     <div className="min-h-screen bg-[#09090b] text-zinc-300 py-24 px-4 sm:px-8">
       <div className="max-w-4xl mx-auto prose prose-invert prose-emerald text-justify">
         <h1>Termeni și Condiții pentru IdeeaTa.ai</h1>
@@ -61,6 +65,7 @@ export default function TermeniPage() {
           </Link>
         </div>
       </div>
-    </div>
+    </div>
+    </>
   );
 }

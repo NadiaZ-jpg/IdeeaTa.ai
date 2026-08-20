@@ -5,7 +5,7 @@ import { adminAuth } from "@/lib/firebase-admin";
 import { getGeneratePrompt } from "@/lib/promptConfig";
 import { normalizePlanResult, planNeedsExplanationFill } from "@/lib/normalizePlanResult";
 import { fillMissingPlanExplanations } from "@/lib/fillMissingPlanExplanations";
-import { GUEST_IP_DAILY_ABUSE_LIMIT, GUEST_IP_HOURLY_ABUSE_LIMIT } from "@/lib/planQuota";
+import { GUEST_IP_DAILY_PLAN_LIMIT, GUEST_IP_HOURLY_ABUSE_LIMIT } from "@/lib/planQuota";
 import { assertAndConsumeGenerateQuota, refundGenerateQuota, type GenerateQuotaConsume } from "@/lib/proPackQuotaAdmin";
 import { clientIpFromRequest, consumeRateLimit } from "@/lib/apiRateLimit";
 import { isAdminEmail } from "@/lib/adminEmails";
@@ -89,12 +89,12 @@ export async function POST(req: NextRequest) {
         );
       }
       const ip = clientIpFromRequest(req);
-      // Product limit (3 successful) is enforced client-side via demoGenerateCount.
-      // IP buckets are abuse ceilings only — must stay above client retries.
-      if (!(await consumeRateLimit(`gen:guest:${ip}`, GUEST_IP_DAILY_ABUSE_LIMIT, DAY_MS))) {
+      // F3: product limit of 3 guest plans per IP / day (same as client GUEST_DEMO_PLAN_LIMIT).
+      if (!(await consumeRateLimit(`gen:guest-plan:${ip}`, GUEST_IP_DAILY_PLAN_LIMIT, DAY_MS))) {
         return NextResponse.json(
           {
             error: "LIMIT_REACHED",
+            code: "GUEST_LIMIT",
             message:
               locale === "en"
                 ? "Guest generate limit reached. Create a free account."

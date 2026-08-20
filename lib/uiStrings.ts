@@ -138,6 +138,7 @@ type UIStringsShape = {
   businessDescription: string; marketOpportunity: string; targetAudience: string;
   fundsDistribution: string; promotionAndStrategy: string;
   toneCustomizeTitle: string; toneCustomizeDesc: string;
+  freeWithAccountBadge: string; toneGuestHint: string;
   addExpertSection: string; addInvestmentItem: string;
   optimizeBudgetAssistant: string; optimizeBudgetLocked: string;
   studioBackToStudio: string; dashboardShort: string;
@@ -375,7 +376,9 @@ export const UI_STRINGS: Record<Locale, UIStringsShape> = {
     fundsDistribution: "Distribuția Fondurilor",
     promotionAndStrategy: "Promovare & Strategie",
     toneCustomizeTitle: "Personalizează Tonul Prezentării",
-    toneCustomizeDesc: "Schimbă automat tonul planului salvat folosind asistentul.",
+    toneCustomizeDesc: "Schimbă automat tonul planului folosind asistentul.",
+    freeWithAccountBadge: "Gratis cu cont",
+    toneGuestHint: "Cont gratuit deblochează Profesional și Creativ. Persuasiv și Prietenos rămân Pro.",
     addExpertSection: "Adaugă Secțiune Expertă",
     addInvestmentItem: "Adaugă Cheltuială / Investiție",
     optimizeBudgetAssistant: "Optimizează Buget Asistat",
@@ -634,7 +637,9 @@ export const UI_STRINGS: Record<Locale, UIStringsShape> = {
     fundsDistribution: "Funds Distribution",
     promotionAndStrategy: "Promotion & Strategy",
     toneCustomizeTitle: "Customize Presentation Tone",
-    toneCustomizeDesc: "Automatically change the tone of the saved plan using Assistant.",
+    toneCustomizeDesc: "Automatically change the plan tone using Assistant.",
+    freeWithAccountBadge: "Free w/ account",
+    toneGuestHint: "A free account unlocks Professional and Creative. Persuasive and Friendly stay Pro.",
     addExpertSection: "Add Expert Section",
     addInvestmentItem: "Add Investment Item",
     optimizeBudgetAssistant: "Optimize Budget with Assistant",
@@ -893,7 +898,9 @@ export const UI_STRINGS: Record<Locale, UIStringsShape> = {
     fundsDistribution: "Distribución de Fondos",
     promotionAndStrategy: "Promoción y Estrategia",
     toneCustomizeTitle: "Personalizar el Tono de la Presentación",
-    toneCustomizeDesc: "Cambia automáticamente el tono del plan guardado usando Asistente.",
+    toneCustomizeDesc: "Cambia automáticamente el tono del plan usando Asistente.",
+    freeWithAccountBadge: "Gratis con cuenta",
+    toneGuestHint: "Una cuenta gratuita desbloquea Profesional y Creativo. Persuasivo y Amigable siguen siendo Pro.",
     addExpertSection: "Añadir Sección Experta",
     addInvestmentItem: "Añadir Elemento de Inversión",
     optimizeBudgetAssistant: "Optimizar Presupuesto con Asistente",

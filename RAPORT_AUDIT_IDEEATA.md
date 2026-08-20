@@ -25,7 +25,7 @@
 | **Tabletă** | **Rău** | Nu există un ecran făcut special pentru tabletă. iPad-ul primește UI de telefon. Unele tablete Windows primesc UI de PC înghesuit. |
 | **Română (RO)** | **Bine** | Limba de bază. Cea mai stabilă. |
 | **Engleză (EN)** | **Bine**, cu resturi | Site tradus, exporturi/plăți EUR ok. Login Desktop EN reparat (C1). Redirect limbă pe legal/resurse încă incomplet. |
-| **Spaniolă (ES)** | **Nu e bine** | Interfață tradusă; Login Desktop ES reparat (C1). Uneori explicații SWOT/buget goale (umplere auto există, nu e perfect). |
+| **Spaniolă (ES)** | **Nu e bine** → îmbunătățit | Interfață tradusă; fill explicații SWOT/buget întărit (20 aug: timeout + guest fill). Verifică pe generări noi. |
 
 ---
 

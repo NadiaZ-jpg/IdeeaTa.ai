@@ -1114,6 +1114,19 @@ Fișiere: `lib/versionStack.ts`, `lib/planQuota.ts`, `lib/proPackQuotaAdmin.ts`,
 
 ---
 
+## FREEZE — Fix ES explicații goale (20 August 2026)
+
+**Bug:** pe `/es` (Desktop+Mobile+Tablet) SWOT/buget ies cu titluri dar `explicatie_tehnica` / `explicatie` goale. Cauze: (1) fill pe generate tăiat la 14s; (2) client fill cerea auth → oaspeții Demo rămâneau goi.
+
+**Fix:**
+- `generate`: `maxDuration` 90; `maxOutputTokens` mai mare pe ES; fill 50s + retry 25s; 2 pass-uri Gemini.
+- `complete-plan-fields`: guest permis cu rate-limit IP (8/h).
+- `useCompleteMissingPlanFields` v8: umple și fără login.
+
+**Acceptanță:** generare ES → după răspuns (poate ~1 min), justificări buget + explicații SWOT populate pe Demo/Studio telefon și PC.
+
+---
+
 ## FREEZE — Ops simplu (20 August 2026): doar `main` + 3 comenzi
 
 **Regulă agenți:** branch de lucru = **`main`**. Fără feature branches noi decât pe cerere explicită.

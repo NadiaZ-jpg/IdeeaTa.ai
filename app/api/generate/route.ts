@@ -10,7 +10,7 @@ import { assertAndConsumeGenerateQuota, refundGenerateQuota, type GenerateQuotaC
 import { clientIpFromRequest, consumeRateLimit } from "@/lib/apiRateLimit";
 import { isAdminEmail } from "@/lib/adminEmails";
 
-export const maxDuration = 60;
+export const maxDuration = 90;
 
 const apiKey = process.env.GEMINI_API_KEY?.trim() || "";
 const ai = new GoogleGenAI({ apiKey });
@@ -122,7 +122,11 @@ export async function POST(req: NextRequest) {
         response = await ai.models.generateContent({
           model: "gemini-2.5-flash",
           contents: prompt,
-          config: { responseMimeType: "application/json" },
+          config: {
+            responseMimeType: "application/json",
+            // ES plans are long; low token caps cut SWOT/budget explanations mid-JSON
+            maxOutputTokens: locale === "es" ? 16384 : 12288,
+          },
         });
         break;
       } catch (e: any) {
@@ -141,10 +145,14 @@ export async function POST(req: NextRequest) {
       let parsedText = normalizePlanResult(JSON.parse(text));
       parsedText.selectedCurrency =
         currency || (locale === "en" || locale === "es" ? "EUR" : "LEI");
-      // ES models often omit SWOT/budget explanations on cold starts; fill before response
-      // so the first 1–2 Spanish plans are not left with empty "Explicación…" fields.
+      // ES models often omit SWOT/budget explanations; fill before response (Desktop+Mobile+Tablet).
+      // 14s was too short (logs: timeout → partial). Allow ~50s within maxDuration 90.
       if (locale === "es" && planNeedsExplanationFill(parsedText)) {
-        parsedText = await fillMissingPlanExplanations(parsedText, "es", 14000);
+        parsedText = await fillMissingPlanExplanations(parsedText, "es", 50000);
+        // Last chance if still incomplete (e.g. first pass timed out mid-flight)
+        if (planNeedsExplanationFill(parsedText)) {
+          parsedText = await fillMissingPlanExplanations(parsedText, "es", 25000);
+        }
       }
       text = JSON.stringify(parsedText);
     } catch (e) {

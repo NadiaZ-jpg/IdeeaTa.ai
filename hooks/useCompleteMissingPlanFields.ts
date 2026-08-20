@@ -79,13 +79,13 @@ export function useCompleteMissingPlanFields(
 
   useEffect(() => {
     if (!enabled || !result || !needsFill || !planId) return;
-    // Wait for Firebase auth — /api/complete-plan-fields requires Bearer token.
-    if (!authUid) return;
+    // Guests may fill too (API IP rate-limit) — critical for Demo ES without account.
+    // Logged-in users still preferred when authUid is ready.
 
     const beforeCount = swotItemCount(result);
     const beforeIncomplete = incompleteExplCount(result);
-    // v7: auth-aware + do not poison attemptedKeys on cancel/no-token
-    const planKey = `${planId}:fields-v7:i${beforeIncomplete}:s${beforeCount}`;
+    // v8: guest-capable fill (no auth poison) + ES incomplete explanations
+    const planKey = `${planId}:fields-v8:i${beforeIncomplete}:s${beforeCount}:u${authUid || "guest"}`;
     if (attemptedKeys.current.has(planKey)) return;
     if (inFlightKey.current === planKey) return;
 
@@ -107,13 +107,9 @@ export function useCompleteMissingPlanFields(
           const headers: Record<string, string> = { "Content-Type": "application/json" };
           try {
             const token = auth.currentUser ? await auth.currentUser.getIdToken() : null;
-            if (!token) {
-              // Auth not ready yet — leave unattempted so effect can retry when authUid updates.
-              return;
-            }
-            headers.Authorization = `Bearer ${token}`;
+            if (token) headers.Authorization = `Bearer ${token}`;
           } catch {
-            return;
+            /* guest path — no token */
           }
 
           const res = await fetch("/api/complete-plan-fields", {
@@ -121,7 +117,11 @@ export function useCompleteMissingPlanFields(
             headers,
             body: JSON.stringify({ plan: current, locale }),
           });
-          if (!res.ok) continue;
+          if (!res.ok) {
+            // Auth errors should not poison guests forever
+            if (res.status === 401 || res.status === 429) return;
+            continue;
+          }
           gotApiOk = true;
           const data = await res.json();
           if (cancelled || !data?.plan) continue;
@@ -152,8 +152,6 @@ export function useCompleteMissingPlanFields(
       } catch (e) {
         console.error("[useCompleteMissingPlanFields]", e);
       } finally {
-        // Only lock the key after a real API attempt finished (success or exhausted).
-        // Cancelled / no-token runs must remain retryable — critical for ES first generations.
         if (!cancelled && (best || gotApiOk)) {
           attemptedKeys.current.add(planKey);
           markedAttempted = true;
@@ -164,7 +162,6 @@ export function useCompleteMissingPlanFields(
 
     return () => {
       cancelled = true;
-      // If cleanup runs before we marked attempted, allow a fresh run.
       if (!markedAttempted && inFlightKey.current === planKey) {
         inFlightKey.current = null;
       }

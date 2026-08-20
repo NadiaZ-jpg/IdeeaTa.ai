@@ -209,6 +209,7 @@
 | ID | Item | Desktop | Mobile | Tabletă | RO | EN | ES | Când |
 |----|------|---------|--------|---------|----|----|-----|------|
 | F1 | LEI vs RON consistent | Must | Must | Sanity | Must | N/A* | N/A* | Scurt |
+| F-ES | Explicații SWOT/buget ES goale | Must | Must | Must | — | — | Must | ✅ 20 Aug (fill timeout + guest) |
 | F2 | Redirect limbă legal/resurse | Must | Must | Sanity | — | Must | Must | După C |
 | F3 | Cotă guest 3 și pe server | Must | Must | Sanity | Must | Must | Must | După C |
 | F4 | Un sistem traduceri | Must | Must | Must | Must | Must | Must | **Târziu** |

@@ -830,7 +830,7 @@ Dacă oricare dintre aceste verificări este omisă în procesul de planificare,
 | `lib/normalizePlanResult.ts` | Definit interfața strictă `BusinessPlan` și sub-interfețele (`SwotItem`, `AnalizaSwot`, `BudgetItem`, `PlanFinanciar`, `PlanOperational`, `ViziuneStrategie`, `AnalizaPietei`). Înlocuit semnăturile de tip `any` cu `BusinessPlan` pe funcțiile exportate. |
 | `lib/fillMissingPlanExplanations.ts` | Importat și aplicat tipul `BusinessPlan` pe parametrii funcției și pe promise-urile asincrone. |
 | `hooks/useCompleteMissingPlanFields.ts` | Aliniat tipizarea la `BusinessPlan` pe stările `result`, `setResult` și parametrii de numărare SWOT/erori. |
-| `hooks/useExportActions.ts` | Tipizat prop-ul `result` ca `BusinessPlan | null`. |
+| `hooks/useExportActions.ts` | Tipizat prop-ul `result` as `BusinessPlan | null`. |
 | `lib/planHelpers.ts` | Schimbat parametrul `text: any` la `text: unknown` în `truncateText`, `splitTextIntoSlides` și `getDynamicTextSize`. |
 | `lib/utils.ts` | Transformat `formatObjectNumbers` într-o funcție generică type-safe `<T>(obj: T): T` care prezervă tipul original al planului sau obiectului pasat. |
 
@@ -842,6 +842,26 @@ Dacă oricare dintre aceste verificări este omisă în procesul de planificare,
 ### Git Checkpoint:
 - Commit: `edd5479`
 - Mesaj: `refactor(S5): introduce BusinessPlan interface and apply strong type safety across normalization, explanation filling, and utility functions`
+- Branch: `cursor/pdf-cta-locale-and-plan-fill`
+- Push: ✅ `To https://github.com/NadiaZ-jpg/IdeeaTa.ai.git`
+
+---
+
+## FREEZE — Aliniere Versiune ESLint (20 August 2026)
+
+### Fișiere modificate și ÎNGHEȚATE:
+| Fișier | Modificare |
+|---|---|
+| `package.json` | Schimbat versiunea `"eslint-config-next"` de la `"16.0.8"` la `"15.4.9"` pentru a corespunde cu versiunea Next.js active (remediere OPT #2 din Audit). |
+
+### Build verificat:
+- ✅ `npx tsc --noEmit` — zero erori TypeScript
+- ✅ `✓ Compiled successfully in 10.3s`
+- ✅ `✓ Generating static pages (71/71)`
+
+### Git Checkpoint:
+- Commit: `ed38654`
+- Mesaj: `build: align eslint-config-next version with Next.js (OPT #2)`
 - Branch: `cursor/pdf-cta-locale-and-plan-fill`
 - Push: ✅ `To https://github.com/NadiaZ-jpg/IdeeaTa.ai.git`
 

@@ -7,7 +7,7 @@
 /**
  * Trunchiează un text la o lungime specificată și adaugă "...".
  */
-export const truncateText = (text: any, length: number): string => {
+export const truncateText = (text: unknown, length: number): string => {
   if (text === null || text === undefined) return "";
   const str = typeof text === "string" ? text : String(text);
   if (!str) return "";
@@ -18,7 +18,7 @@ export const truncateText = (text: any, length: number): string => {
  * Împarte un text lung în slide-uri bazate pe numărul maxim de caractere,
  * evitând tăierea în mijlocul paragrafelor sau al titlurilor scurte.
  */
-export const splitTextIntoSlides = (text: any, maxChars: number = 1500): string[] => {
+export const splitTextIntoSlides = (text: unknown, maxChars: number = 1500): string[] => {
   if (!text || typeof text !== 'string') return [];
   const paragraphs = text.split('\n');
 
@@ -65,7 +65,7 @@ export const splitTextIntoSlides = (text: any, maxChars: number = 1500): string[
  * pentru a asigura că textele lungi nu depășesc limitele containerului.
  */
 export const getDynamicTextSize = (
-  text: any,
+  text: unknown,
   limits = { large: 400, medium: 800, extra: 1200 },
   classes = { default: 'text-2xl', medium: 'text-xl', small: 'text-lg', xsmall: 'text-base' }
 ): string => {

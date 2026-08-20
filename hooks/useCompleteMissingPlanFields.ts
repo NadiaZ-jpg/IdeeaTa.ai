@@ -5,27 +5,29 @@ import {
   budgetItemNeedsExplanationFill,
   planNeedsExplanationFill,
   swotItemNeedsExplanationFill,
+  BusinessPlan,
 } from "@/lib/normalizePlanResult";
 import { formatObjectNumbers } from "@/lib/utils";
 import { auth } from "@/lib/firebase";
 
 type Locale = "ro" | "en" | "es";
 
-function swotItemCount(plan: any): number {
+function swotItemCount(plan: BusinessPlan | null | undefined): number {
   const swot = plan?.analiza_swot;
   if (!swot) return 0;
   let n = 0;
-  for (const key of ["puncte_tari", "puncte_forte", "puncte_slabe", "oportunitati", "amenintari"]) {
-    if (Array.isArray(swot[key])) n += swot[key].length;
+  for (const key of ["puncte_tari", "puncte_forte", "puncte_slabe", "oportunitati", "amenintari"] as const) {
+    const arr = (swot as any)[key];
+    if (Array.isArray(arr)) n += arr.length;
   }
   return n;
 }
 
-function incompleteExplCount(plan: any): number {
+function incompleteExplCount(plan: BusinessPlan | null | undefined): number {
   let n = 0;
   const swot = plan?.analiza_swot;
   if (swot) {
-    for (const key of ["puncte_tari", "puncte_slabe", "oportunitati", "amenintari"]) {
+    for (const key of ["puncte_tari", "puncte_slabe", "oportunitati", "amenintari"] as const) {
       const arr = swot[key];
       if (!Array.isArray(arr)) continue;
       for (const item of arr) {
@@ -48,8 +50,8 @@ function incompleteExplCount(plan: any): number {
  * Shared by Demo + Studio, Desktop + Mobile, RO/EN/ES.
  */
 export function useCompleteMissingPlanFields(
-  result: any,
-  setResult: (plan: any) => void,
+  result: BusinessPlan | null,
+  setResult: (plan: BusinessPlan) => void,
   locale: Locale,
   enabled = true
 ) {
@@ -78,7 +80,7 @@ export function useCompleteMissingPlanFields(
 
     (async () => {
       let current = snapshot;
-      let best: any = null;
+      let best: BusinessPlan | null = null;
       try {
         for (let attempt = 0; attempt < 2; attempt++) {
           if (cancelled) return;

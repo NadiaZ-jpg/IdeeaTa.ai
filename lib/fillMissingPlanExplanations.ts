@@ -4,6 +4,7 @@ import {
   mergeFilledExplanations,
   normalizePlanResult,
   planNeedsExplanationFill,
+  BusinessPlan,
 } from "@/lib/normalizePlanResult";
 
 const apiKey = process.env.GEMINI_API_KEY?.trim() || "";
@@ -30,10 +31,10 @@ function extractJsonObject(text: string): any | null {
  * client hook useCompleteMissingPlanFields finishes the rest (Demo+Studio D/M RO/EN/ES).
  */
 export async function fillMissingPlanExplanations(
-  plan: any,
+  plan: BusinessPlan,
   locale: "ro" | "en" | "es",
   timeoutMs = 0
-): Promise<any> {
+): Promise<BusinessPlan> {
   const normalized = normalizePlanResult(plan);
   if (!planNeedsExplanationFill(normalized) || !apiKey) {
     return normalized;
@@ -62,7 +63,7 @@ export async function fillMissingPlanExplanations(
   try {
     return await Promise.race([
       fillPromise,
-      new Promise<any>((resolve) => {
+      new Promise<BusinessPlan>((resolve) => {
         timer = setTimeout(() => {
           console.warn(`[fillMissingPlanExplanations] timeout ${timeoutMs}ms — returning partial plan`);
           resolve(normalized);

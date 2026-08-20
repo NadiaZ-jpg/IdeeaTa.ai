@@ -4,6 +4,70 @@
  * Models often invent aliases (ES/EN) or omit fields on later array items.
  */
 
+export interface SwotItem {
+  titlu: string;
+  explicatie_tehnica: string;
+}
+
+export interface AnalizaSwot {
+  puncte_tari: SwotItem[];
+  puncte_slabe: SwotItem[];
+  oportunitati: SwotItem[];
+  amenintari: SwotItem[];
+}
+
+export interface BudgetItem {
+  item: string;
+  cost: string | number;
+  explicatie: string;
+  [key: string]: any;
+}
+
+export interface PlanFinanciar {
+  buget_investitii?: BudgetItem[];
+  strategie_financiara?: string;
+  [key: string]: any;
+}
+
+export interface PlanOperational {
+  descriere_flux: string;
+  resurse_umane: string;
+  locatie_dotari: string;
+  [key: string]: any;
+}
+
+export interface ViziuneStrategie {
+  obiective_scurt: string;
+  obiective_mediu: string;
+  misiune_valori: string;
+  [key: string]: any;
+}
+
+export interface AnalizaPietei {
+  clienti_tinta: string;
+  concurenta: string;
+  strategie_marketing: string;
+  [key: string]: any;
+}
+
+export interface BusinessPlan {
+  id?: string;
+  nume: string;
+  descriere?: string;
+  analiza_swot: AnalizaSwot;
+  plan_financiar: PlanFinanciar;
+  plan_operational: PlanOperational;
+  viziune_strategie: ViziuneStrategie;
+  analiza_pietei: AnalizaPietei;
+  selectedCurrency?: string;
+  savedAt?: string;
+  versionId?: string;
+  versions?: Record<string, any>;
+  isPaid?: boolean;
+  [key: string]: any;
+}
+
+
 function firstNonEmptyString(...candidates: unknown[]): string {
   for (const c of candidates) {
     if (c === null || c === undefined) continue;
@@ -171,13 +235,13 @@ function pickSwotCategoryArray(swot: Record<string, unknown>, canonical: string)
  * After tone / investor / EU rewrite: keep AI titles, but never wipe explanations
  * when the model returns empty explicatie_tehnica.
  */
-export function mergeSwotPreservingExplanations(originalSwot: any, incomingSwot: any): any {
+export function mergeSwotPreservingExplanations(originalSwot: any, incomingSwot: any): AnalizaSwot {
   if (!incomingSwot || typeof incomingSwot !== "object") {
-    return originalSwot || incomingSwot;
+    return (originalSwot || incomingSwot) as AnalizaSwot;
   }
   const origNorm = normalizePlanResult({ analiza_swot: originalSwot || {} }).analiza_swot || {};
   const incNorm = normalizePlanResult({ analiza_swot: incomingSwot }).analiza_swot || {};
-  const out: Record<string, unknown> = { ...incNorm };
+  const out: any = { ...incNorm };
 
   for (const key of ["puncte_tari", "puncte_slabe", "oportunitati", "amenintari"] as const) {
     const incArr = Array.isArray(incNorm[key]) ? (incNorm[key] as any[]) : [];
@@ -196,7 +260,7 @@ export function mergeSwotPreservingExplanations(originalSwot: any, incomingSwot:
       };
     });
   }
-  return out;
+  return out as AnalizaSwot;
 }
 
 /** Canonical operational keys + common ES/EN aliases the model invents. */
@@ -429,10 +493,10 @@ function normalizePlanOperational(op: any): Record<string, any> {
 /**
  * Returns a shallow-cloned plan with SWOT + budget fields normalized to canonical keys.
  */
-export function normalizePlanResult<T = any>(plan: T): T {
-  if (!plan || typeof plan !== "object") return plan;
+export function normalizePlanResult(plan: any): BusinessPlan {
+  if (!plan || typeof plan !== "object") return plan as any;
 
-  const next: any = { ...(plan as any) };
+  const next: any = { ...plan };
 
   if (next.analiza_swot && typeof next.analiza_swot === "object") {
     const raw = { ...next.analiza_swot };
@@ -502,16 +566,16 @@ export function normalizePlanResult<T = any>(plan: T): T {
     next.analiza_pietei = normalizeMarketAnalysis(next.analiza_pietei);
   }
 
-  return next as T;
+  return next as BusinessPlan;
 }
 
 /** True when SWOT/budget explanations are missing/truncated OR operational text fields are missing. */
-export function planNeedsExplanationFill(plan: any): boolean {
+export function planNeedsExplanationFill(plan: BusinessPlan): boolean {
   if (!plan || typeof plan !== "object") return false;
   const swot = plan.analiza_swot;
   if (swot) {
     for (const key of SWOT_KEYS) {
-      const arr = swot[key];
+      const arr = (swot as any)[key];
       if (!Array.isArray(arr)) continue;
       for (const item of arr) {
         if (swotItemNeedsExplanationFill(item)) return true;
@@ -543,7 +607,7 @@ export function planNeedsExplanationFill(plan: any): boolean {
   return false;
 }
 
-export function buildFillMissingExplanationsPrompt(plan: any, locale: "ro" | "en" | "es"): string {
+export function buildFillMissingExplanationsPrompt(plan: BusinessPlan, locale: "ro" | "en" | "es"): string {
   const lang =
     locale === "en" ? "English" : locale === "es" ? "Spanish" : "Romanian";
 
@@ -553,10 +617,10 @@ export function buildFillMissingExplanationsPrompt(plan: any, locale: "ro" | "en
 
   // Compact SWOT: only titlu + explicatie (empty ones are the job)
   const compactSwot: Record<string, { titlu: string; explicatie_tehnica: string }[]> = {};
-  const swot = plan?.analiza_swot || {};
-  for (const key of ["puncte_tari", "puncte_slabe", "oportunitati", "amenintari"]) {
-    const arr = Array.isArray(swot[key]) ? swot[key] : [];
-    compactSwot[key] = arr.map((item: any) => {
+  const swot = plan?.analiza_swot;
+  for (const key of ["puncte_tari", "puncte_slabe", "oportunitati", "amenintari"] as const) {
+    const arr = swot ? swot[key] : [];
+    compactSwot[key] = (arr || []).map((item: any) => {
       const n = normalizeSwotItem(item);
       return { titlu: n.titlu, explicatie_tehnica: n.explicatie_tehnica || "" };
     });
@@ -619,7 +683,7 @@ ${JSON.stringify(payload)}`;
 }
 
 /** Merge a fill-pass payload back into the full plan — never drop existing SWOT/budget rows. */
-export function mergeFilledExplanations(plan: any, filled: any): any {
+export function mergeFilledExplanations(plan: BusinessPlan, filled: any): BusinessPlan {
   if (!plan || !filled) return plan;
   const next = normalizePlanResult({ ...plan });
 
@@ -670,7 +734,7 @@ export function mergeFilledExplanations(plan: any, filled: any): any {
   if (Array.isArray(filled.buget_investitii) && filled.buget_investitii.length > 0) {
     const incomingBudget = normalizePlanResult({
       plan_financiar: { buget_investitii: filled.buget_investitii },
-    }).plan_financiar.buget_investitii;
+    }).plan_financiar.buget_investitii || [];
 
     if (!next.plan_financiar) next.plan_financiar = {};
     const original = Array.isArray(next.plan_financiar.buget_investitii)

@@ -13,9 +13,10 @@ import { UI_STRINGS } from "@/lib/uiStrings";
 import { buildExportVersionFileSuffix } from "@/lib/studioActiveVersion";
 import { planUnlockPayload } from "@/lib/planUnlock";
 import { auth } from "@/lib/firebase";
+import { BusinessPlan } from "@/lib/normalizePlanResult";
 
 interface UseExportActionsProps {
-  result: any;
+  result: BusinessPlan | null;
   locale: "ro" | "en" | "es";
   currency: string;
   /** Live FX (RON→EUR). Defaults to 0.201 when omitted. */

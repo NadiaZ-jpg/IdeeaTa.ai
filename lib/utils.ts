@@ -68,14 +68,14 @@ const formatObjectNumbersDeep = (obj: any): any => {
   return obj;
 };
 
-export const formatObjectNumbers = (obj: any): any => {
+export const formatObjectNumbers = <T>(obj: T): T => {
   // Canonicalize SWOT/budget field aliases before/after string formatting (Demo + Studio edit).
   const looksLikePlan =
     obj &&
     typeof obj === "object" &&
     !Array.isArray(obj) &&
-    (obj.analiza_swot || obj.plan_financiar || obj.nume);
+    ((obj as any).analiza_swot || (obj as any).plan_financiar || (obj as any).nume);
   const source = looksLikePlan ? normalizePlanResult(obj) : obj;
   const formatted = formatObjectNumbersDeep(source);
-  return looksLikePlan ? normalizePlanResult(formatted) : formatted;
+  return (looksLikePlan ? normalizePlanResult(formatted) : formatted) as T;
 };

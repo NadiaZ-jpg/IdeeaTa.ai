@@ -34,6 +34,19 @@ const nextConfig: NextConfig = {
         source: '/favicon.ico',
         destination: '/icon.svg',
       },
+      // Browsers probe these by convention (esp. mobile / device toolbar) — avoid console 404s
+      {
+        source: '/apple-touch-icon.png',
+        destination: '/icon.svg',
+      },
+      {
+        source: '/apple-touch-icon-precomposed.png',
+        destination: '/icon.svg',
+      },
+      {
+        source: '/apple-icon.png',
+        destination: '/icon.svg',
+      },
       {
         source: '/__/auth/:path*',
         destination: 'https://ideeata.firebaseapp.com/__/auth/:path*',

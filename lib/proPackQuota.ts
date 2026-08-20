@@ -181,3 +181,77 @@ export function proPackTopupConfirmDialog(
       : "OK deschide plata pentru reîncărcare. Anulează = rămâi pe pagină.";
   return window.confirm(`${proPackLimitMessage(locale, kind)}\n\n${suffix}`);
 }
+
+/**
+ * B2: guidance before upgrade when edit/combine quota blocks a Pro tool.
+ * Explains Original = edit (new tab) vs other tab = combine (+ edit for Pro tools).
+ */
+export function proPackQuotaBlockedGuidance(
+  locale: ProPackLocale,
+  kind: "edit" | "combine",
+  remaining: { edit: number; combine: number },
+  activeVersionId?: string | null
+): string {
+  const onOriginal = !activeVersionId || activeVersionId === "original";
+  const base = proPackLimitMessage(locale, kind);
+
+  if (locale === "en") {
+    if (kind === "edit") {
+      const extra = onOriginal
+        ? remaining.combine > 0
+          ? `\n\nTip: You still have ${remaining.combine} combination(s). Open an existing Pro variant tab and run a tool there to combine — or top up edits to create a new tab from Original.`
+          : `\n\nTip: On Original, each Pro tool uses 1 edit and creates a new tab. Download always exports the active tab.`
+        : `\n\nTip: On a variant tab, Pro tools use 1 edit + 1 combination. Switch to Original to create a sibling tab with edit only (if you have edits left).`;
+      return base + extra;
+    }
+    return (
+      base +
+      `\n\nTip: Switch to Original to create a new variant (uses edit, not combination). Download always exports the active tab.`
+    );
+  }
+
+  if (locale === "es") {
+    if (kind === "edit") {
+      const extra = onOriginal
+        ? remaining.combine > 0
+          ? `\n\nConsejo: Aún te quedan ${remaining.combine} combinación(es). Abre una pestaña de variante Pro y ejecuta una herramienta allí para combinar — o recarga ediciones para crear una pestaña nueva desde Original.`
+          : `\n\nConsejo: En Original, cada herramienta Pro usa 1 edición y crea una pestaña nueva. La descarga exporta siempre la pestaña activa.`
+        : `\n\nConsejo: En una variante, las herramientas Pro usan 1 edición + 1 combinación. Cambia a Original para crear una pestaña hermana solo con edición (si te quedan).`;
+      return base + extra;
+    }
+    return (
+      base +
+      `\n\nConsejo: Cambia a Original para crear una variante nueva (usa edición, no combinación). La descarga exporta siempre la pestaña activa.`
+    );
+  }
+
+  if (kind === "edit") {
+    const extra = onOriginal
+      ? remaining.combine > 0
+        ? `\n\nSfat: Mai ai ${remaining.combine} combinație/combinații. Deschide un tab Pro existent și rulează o unealtă acolo pentru a combina — sau reîncarcă editări ca să creezi tab nou din Original.`
+        : `\n\nSfat: Pe Original, fiecare unealtă Pro folosește 1 editare și creează un tab nou. Descărcarea exportă mereu tab-ul activ.`
+      : `\n\nSfat: Pe un tab variantă, uneltele Pro folosesc 1 editare + 1 combinație. Treci pe Original ca să creezi un tab frate doar cu editare (dacă mai ai editări).`;
+    return base + extra;
+  }
+  return (
+    base +
+    `\n\nSfat: Treci pe Original ca să creezi o variantă nouă (folosește editare, nu combinație). Descărcarea exportă mereu tab-ul activ.`
+  );
+}
+
+/** Alert + returns true if caller should open top-up/pricing (always true after alert). */
+export function notifyProPackQuotaBlocked(
+  locale: ProPackLocale,
+  kind: "edit" | "combine",
+  remaining: { edit: number; combine: number },
+  activeVersionId?: string | null
+): void {
+  if (typeof window === "undefined") return;
+  try {
+    window.alert(
+      proPackQuotaBlockedGuidance(locale, kind, remaining, activeVersionId)
+    );
+  } catch {
+    /* ignore */
+  }
+}

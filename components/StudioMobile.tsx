@@ -24,7 +24,7 @@ import {
   persistCurrentVersions,
   notifyVersionPersistFailed,
 } from '@/lib/persistVersionMap';
-import { canGenerateWithQuotas, readProPackRemaining, proPackTopupConfirmDialog } from '@/lib/proPackQuota';
+import { canGenerateWithQuotas, readProPackRemaining, proPackTopupConfirmDialog, notifyProPackQuotaBlocked } from '@/lib/proPackQuota';
 import { startProTopupCheckout } from '@/lib/proTopupCheckout';
 import { ProPackQuotaBar } from '@/components/ProPackQuotaBar';
 import { isAdminEmail } from '@/lib/adminEmails';
@@ -52,6 +52,7 @@ import {
   applyExpertLibrarySection,
   type VersionStackAccess,
 } from "@/lib/versionStack";
+import { exportActiveTabDisplayLabel } from "@/lib/studioActiveVersion";
 
 import { MobileProToolsPanel, type MobileAiPrompt } from '@/components/tools/MobileProToolsPanel';
 import { ExpertSectionsDrawer } from '@/components/modals/ExpertSectionsDrawer';
@@ -474,6 +475,7 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
     const usesPackQuota = !!(euFundsUnlocked && !subscriptionActive && !isAdmin);
     const isProTone = isTone && isProToneKey(customInput);
     if (usesPackQuota && ((!isTone && proPackRemaining.edit <= 0) || (isProTone && proPackRemaining.edit <= 0))) {
+      notifyProPackQuotaBlocked(locale, "edit", proPackRemaining, activeVersionId);
       openUpgradeForPackOrPricing("edit");
       return;
     }
@@ -520,6 +522,7 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
     });
 
     if (usesPackQuota && isCombine && proPackRemaining.combine <= 0) {
+      notifyProPackQuotaBlocked(locale, "combine", proPackRemaining, activeVersionId);
       openUpgradeForPackOrPricing("combine");
       return;
     }
@@ -742,6 +745,7 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
     setShowPricingModal,
     setIsSharedView,
     activeVersionId,
+    versions,
     onPlanUnlockedByCredit: () => {
       // Firestore onSnapshot în useAuthUser actualizează automat unlockedPlans/unlockedPlanIds
     },
@@ -1723,6 +1727,12 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
               <h4 className="text-sm font-black text-white">{locale === "en" ? "Export Options" : locale === "es" ? "Opciones de Exportación" : "Opțiuni de Exportare"}</h4>
               <button onClick={() => setShowExportModal(false)} className="text-xs text-zinc-500 font-bold p-1">{locale === "en" ? "Close" : locale === "es" ? "Cerrar" : "Închide"}</button>
             </div>
+            <p className="text-[11px] text-zinc-400 leading-relaxed -mt-2">
+              {ui.exportActiveTabHint}{" "}
+              <span className="text-emerald-400 font-bold">
+                {exportActiveTabDisplayLabel(activeVersionId, versions[activeVersionId] || result, locale)}
+              </span>
+            </p>
             
             <div className="flex flex-col gap-3">
               {/* PDF Sumar Gratuit (Always Available) */}

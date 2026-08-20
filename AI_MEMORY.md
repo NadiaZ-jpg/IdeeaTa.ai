@@ -1023,4 +1023,22 @@ Fișiere: `lib/versionStack.ts`, `lib/planQuota.ts`, `lib/proPackQuotaAdmin.ts`,
 
 **Nu în A2:** B2 (UX cote Pro).
 
+---
+
+## FREEZE — Sesiunea B2 (20 August 2026): UX edit vs combine + export pe tab activ
+
+**Problemă:** Utilizatorul nu înțelege când consumă *editare* (tab nou din Original) vs *combinație* (unealtă pe tab variantă); la cotă 0 mesajul era vag; exportul putea folosi un body stale față de tab-ul activ.
+
+**Fix:**
+- `lib/studioActiveVersion.ts`: `resolveExportPlanBody` + `exportActiveTabDisplayLabel`.
+- `lib/proPackQuota.ts`: `notifyProPackQuotaBlocked` / guidance RO·EN·ES cu sfaturi Original vs variantă.
+- `ui.versionToolsTip` + `ui.exportActiveTabHint` (ro/en/es).
+- `useExportActions`: export PDF/Word/PPTX din `versions[activeVersionId]`.
+- Gate-uri edit/combine pe Demo+Studio Desktop/Mobile apelează `notifyProPackQuotaBlocked` înainte de upgrade.
+- Tips: `DemoLeftSidebar` + Demo/Studio Mobile; sheet export mobil arată tab-ul activ.
+
+**Acceptanță:** Pe Original, Pro tool → edit; pe alt tab → combine (+ edit). edit=0 / combine=0 → alert cu sfat acționabil. Download = conținutul tab-ului activ (nume fișier cu sufix pe variantă).
+
+**Nu în B2:** hotfixes audit (auth errors EN/ES Desktop, Demo Mobile Pro→auth sheet, etc.).
+
 

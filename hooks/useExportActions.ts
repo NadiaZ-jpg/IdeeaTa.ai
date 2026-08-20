@@ -10,7 +10,7 @@ import {
   normalizeAppLocale,
 } from "@/lib/pdfCtaBehavior";
 import { UI_STRINGS } from "@/lib/uiStrings";
-import { buildExportVersionFileSuffix } from "@/lib/studioActiveVersion";
+import { buildExportVersionFileSuffix, resolveExportPlanBody } from "@/lib/studioActiveVersion";
 import { planUnlockPayload } from "@/lib/planUnlock";
 import { auth } from "@/lib/firebase";
 import { BusinessPlan } from "@/lib/normalizePlanResult";
@@ -33,6 +33,8 @@ interface UseExportActionsProps {
   setIsSharedView: (shared: boolean) => void;
   /** Active history tab — filename suffix (Desktop/Mobile Studio + Demo). */
   activeVersionId?: string;
+  /** Version map — B2: export body must match active tab. */
+  versions?: Record<string, any> | null;
   /** Optimistic unlock after credit spend (parent can fold into isPlanPaid). */
   onPlanUnlockedByCredit?: (planName: string, planId?: string) => void;
 }
@@ -53,15 +55,19 @@ export function useExportActions({
   setShowPricingModal,
   setIsSharedView,
   activeVersionId,
+  versions,
   onPlanUnlockedByCredit,
 }: UseExportActionsProps) {
   /** Session unlocks — prevents double credit spend before Firestore snapshot. */
   const sessionUnlockedRef = useRef<Set<string>>(new Set());
 
   const handleDownloadAction = async (mode: 'pdf' | 'pptx' | 'word' | 'pdf-summary', bypassPaymentCheck = false) => {
-    const { planName, planId } = planUnlockPayload(result || {});
+    const exportResult = resolveExportPlanBody(versions, activeVersionId, result) as BusinessPlan | null;
+    if (!exportResult) return;
+
+    const { planName, planId } = planUnlockPayload(exportResult || {});
     const unlockKey = planId || planName;
-    const versionSuffix = buildExportVersionFileSuffix(activeVersionId, result, locale);
+    const versionSuffix = buildExportVersionFileSuffix(activeVersionId, exportResult, locale);
     const sessionUnlocked = sessionUnlockedRef.current.has(unlockKey);
     const effectivelyPaid =
       bypassPaymentCheck ||
@@ -130,14 +136,14 @@ export function useExportActions({
         } catch {
           /* guest share */
         }
-        generatedShareId = await createSharedPlan(result, locale, token);
+        generatedShareId = await createSharedPlan(exportResult, locale, token);
       }
 
       if (mode === 'pptx' || mode === 'pdf' || mode === 'pdf-summary') {
         await new Promise(resolve => setTimeout(resolve, 800));
       }
 
-      const safeName = result?.nume?.replace(/[^a-zA-Z0-9]/g, '_') || 'Business';
+      const safeName = exportResult?.nume?.replace(/[^a-zA-Z0-9]/g, '_') || 'Business';
       const fileUi = UI_STRINGS[locale] || UI_STRINGS.ro;
       const presentationLabel = fileUi.filePresentation;
       const summaryFreeLabel = fileUi.fileSummaryFree;
@@ -147,12 +153,12 @@ export function useExportActions({
       // Prefer UI display currency (Desktop toggle), then plan field, then locale default.
       const exportCurrency =
         currency ||
-        result?.selectedCurrency ||
+        exportResult?.selectedCurrency ||
         (locale === "es" || locale === "en" ? "EUR" : "LEI");
       const exportFx = typeof fxRate === "number" && fxRate > 0 ? fxRate : 0.201;
 
       if (mode === 'pptx') {
-        await generatePptx(result, `${safeName}${versionSuffix}`, exportCurrency, exportFx, locale, brochureLabel);
+        await generatePptx(exportResult, `${safeName}${versionSuffix}`, exportCurrency, exportFx, locale, brochureLabel);
       } else if (mode === 'pdf' || mode === 'pdf-summary') {
         let slidesArray = Array.from(document.querySelectorAll('.pdf-presentation-slide'));
         if (slidesArray.length === 0) {
@@ -222,11 +228,11 @@ export function useExportActions({
                 chartDataUrl = await toPng(chartElement, { backgroundColor: '#ffffff' });
              } catch(e) { console.error(e); }
           }
-          const blob = await generateDocxBlob(result, chartDataUrl, locale, exportCurrency, exportFx);
+          const blob = await generateDocxBlob(exportResult, chartDataUrl, locale, exportCurrency, exportFx);
           const link = document.createElement('a');
           const objectUrl = URL.createObjectURL(blob);
           link.href = objectUrl;
-          const safeName2 = result?.nume?.replace(/[^a-zA-Z0-9]/g, '_') || 'Business';
+          const safeName2 = exportResult?.nume?.replace(/[^a-zA-Z0-9]/g, '_') || 'Business';
           link.download = `IdeeaTa_${documentLabel}_${safeName2}${versionSuffix}.docx`;
           document.body.appendChild(link);
           link.click();

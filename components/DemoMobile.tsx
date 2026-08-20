@@ -34,7 +34,7 @@ import {
   persistCurrentVersions,
   notifyVersionPersistFailed,
 } from "@/lib/persistVersionMap";
-import { canGenerateWithQuotas, readProPackRemaining, proPackTopupConfirmDialog } from "@/lib/proPackQuota";
+import { canGenerateWithQuotas, readProPackRemaining, proPackTopupConfirmDialog, notifyProPackQuotaBlocked } from "@/lib/proPackQuota";
 import { startProTopupCheckout } from "@/lib/proTopupCheckout";
 import { ProPackQuotaBar } from "@/components/ProPackQuotaBar";
 import { isAdminEmail } from "@/lib/adminEmails";
@@ -54,6 +54,7 @@ import {
   applyExpertLibrarySection,
   type VersionStackAccess,
 } from "@/lib/versionStack";
+import { exportActiveTabDisplayLabel } from "@/lib/studioActiveVersion";
 
 const BudgetPieChart = dynamic(() => import('@/components/BudgetChart').then(mod => mod.BudgetPieChart), { ssr: false });
 export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "es" }) {
@@ -274,6 +275,7 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
     setShowPricingModal,
     setIsSharedView,
     activeVersionId,
+    versions,
     onPlanUnlockedByCredit: () => {
       // Firestore onSnapshot în useAuthUser actualizează automat unlockedPlans/unlockedPlanIds
     },
@@ -645,6 +647,7 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
       ((!isTone && proPackRemaining.edit <= 0) ||
         (isTone && isProToneKey(customInput) && proPackRemaining.edit <= 0))
     ) {
+      notifyProPackQuotaBlocked(locale, "edit", proPackRemaining, activeVersionId);
       openUpgradeForPackOrPricing("edit");
       return;
     }
@@ -690,6 +693,7 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
     });
 
     if (usesPackQuota && isCombine && proPackRemaining.combine <= 0) {
+      notifyProPackQuotaBlocked(locale, "combine", proPackRemaining, activeVersionId);
       openUpgradeForPackOrPricing("combine");
       return;
     }
@@ -1259,6 +1263,12 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
                 {!isSharedView && (
                 <div className="flex flex-col gap-2.5 w-full">
                 <div className="flex items-start gap-2 bg-emerald-500/10 border border-emerald-500/20 p-3.5 rounded-2xl w-full">
+                  <span className="text-emerald-400 mt-0.5 text-base shrink-0">🪄</span>
+                  <p className="text-[12px] text-emerald-100/70 leading-relaxed">
+                    <span dangerouslySetInnerHTML={{ __html: ui.versionToolsTip }} />
+                  </p>
+                </div>
+                <div className="flex items-start gap-2 bg-emerald-500/10 border border-emerald-500/20 p-3.5 rounded-2xl w-full">
                   <span className="text-emerald-400 mt-0.5 text-base shrink-0">🏛️</span>
                   <p className="text-[12px] text-emerald-100/70 leading-relaxed">
                     <span dangerouslySetInnerHTML={{ __html: ui.expertLibraryTip }} />
@@ -1630,6 +1640,12 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
               <h4 className="text-sm font-black text-white">{locale === "en" ? "Export Options" : locale === "es" ? "Opciones de Exportación" : "Opțiuni de Exportare"}</h4>
               <button onClick={() => setShowExportModal(false)} className="text-xs text-zinc-500 font-bold p-2 -m-2 inline-flex items-center justify-center min-w-[44px] min-h-[44px]">{locale === "en" ? "Close" : locale === "es" ? "Cerrar" : "Închide"}</button>
             </div>
+            <p className="text-[11px] text-zinc-400 leading-relaxed -mt-2">
+              {ui.exportActiveTabHint}{" "}
+              <span className="text-emerald-400 font-bold">
+                {exportActiveTabDisplayLabel(activeVersionId, versions[activeVersionId] || result, locale)}
+              </span>
+            </p>
             
             <div className="flex flex-col gap-3">
               {/* PDF Sumar Gratuit */}

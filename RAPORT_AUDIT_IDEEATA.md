@@ -43,7 +43,7 @@
 ### Nu e bine
 - Nu există un buton clar „Distribuie” pe Desktop (pe telefon există).
 - Două sisteme de traduceri în paralel → greu de întreținut; unele texte rămân pe lângă.
-- Unelte Pro: diferența dintre „editare” și „combinare variante” e confuză pentru utilizator (plan B2).
+- Unelte Pro: pe Original = editare (tab nou); pe alt tab = combinație — clarificat în tipuri UI + alerte la cotă 0 (B2, 20 aug). Export = tab-ul activ.
 
 ### Rău
 - **Erori la login pe Desktop** (Google / email / parolă): pe versiunea engleză și spaniolă, mesajele pot apărea **tot în română**. Pe telefon și pe pagina de Login dedicată sunt deja traduse.
@@ -150,7 +150,7 @@
 
 ## 7. Lista „Nu e bine” — datorii / UX
 
-- Confuzie cote Pro: editare vs combinare variante (plan B2).  
+- Confuzie cote Pro: editare vs combinare variante — **rezolvat B2** (tips + alerte).  
 - Două sisteme de traduceri; texte împrăștiate.  
 - Redirect automat de limbă doar pe câteva pagini, nu pe legal/resurse.  
 - Uneori scrie „LEI”, alteori „RON” (același leu).  
@@ -165,24 +165,24 @@
 - **A1:** pe Desktop, planurile de oaspete ajung mai sigur în listă înainte de cont.  
 - **B1:** uneltele Pro creează tab-uri chiar dacă spațiul local e plin.  
 - **A2:** Dashboard nu mai șterge pe nume; migrarea e pe id (planuri distincte cu același nume rămân).  
+- **B2:** tipuri + alerte edit vs combine; export pe tab-ul activ.  
 - **Admin:** conturile admin au cote nelimitate.  
 - **ES:** umplere automată a explicațiilor goale la generare.  
 - **Deploy:** script care copiază fișierele necesare ca site-ul să nu se rupă după update.
 
 **Încă pe listă (plan):**  
-- **B2** — Claritate unelte Pro + export pe tab-ul activ.
+- Hotfixes din audit (auth EN/ES Desktop, Demo Mobile Pro→auth, Studio Mobile sharedId / setResult, share Desktop, tabletă).
 
 ---
 
 ## 9. Ce facem mai departe (ordine recomandată, pe limba omului)
 
-1. Publicare pe server a ultimelor reparații (dacă încă lipsește update-ul cu iconițe Apple / A2).  
+1. Publicare pe server a ultimelor reparații (A2 + B2, dacă încă lipsește pe Hetzner).  
 2. Traducerea mesajelor de login pe Desktop (EN/ES).  
 3. Repararea pe telefon: login la Pro pentru oaspeți + tab-uri Studio.  
 4. Share pe Desktop + încărcare plan partajat pe Studio telefon.  
-5. **B2:** mesaje clare la unelte Pro.  
-6. Decizie tabletă: telefon, PC, sau ecran special.  
-7. Pe termen lung: un singur „creier” de cod pentru Desktop și telefon, ca să nu se mai strice pe unul și pe celălalt nu.
+5. Decizie tabletă: telefon, PC, sau ecran special.  
+6. Pe termen lung: un singur „creier” de cod pentru Desktop și telefon, ca să nu se mai strice pe unul și pe celălalt nu.
 
 ---
 

@@ -38,6 +38,7 @@ import {
   canGenerateWithQuotas,
   readProPackRemaining,
   proPackTopupConfirmDialog,
+  notifyProPackQuotaBlocked,
 } from '@/lib/proPackQuota';
 import { startProTopupCheckout } from '@/lib/proTopupCheckout';
 import { isAdminEmail } from '@/lib/adminEmails';
@@ -319,6 +320,7 @@ export default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" | 
     const usesPackQuota = !!(euFundsUnlocked && !subscriptionActive && !isAdmin);
     const consumesProEdit = !isActionFree || isProTone;
     if (usesPackQuota && consumesProEdit && proPackRemaining.edit <= 0) {
+      notifyProPackQuotaBlocked(locale, "edit", proPackRemaining, activeVersionId);
       openUpgradeForPackOrPricing("edit");
       return;
     }
@@ -362,6 +364,7 @@ export default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" | 
     });
 
     if (usesPackQuota && isCombine && proPackRemaining.combine <= 0) {
+      notifyProPackQuotaBlocked(locale, "combine", proPackRemaining, activeVersionId);
       openUpgradeForPackOrPricing("combine");
       return;
     }
@@ -1243,6 +1246,7 @@ export default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" | 
     setShowPricingModal,
     setIsSharedView,
     activeVersionId,
+    versions,
     onPlanUnlockedByCredit: () => {
       // Firestore onSnapshot în useAuthUser actualizează automat unlockedPlans/unlockedPlanIds
     },

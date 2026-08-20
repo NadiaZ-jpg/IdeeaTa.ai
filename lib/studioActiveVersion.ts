@@ -88,3 +88,31 @@ export function buildExportVersionFileSuffix(
   const fallback = activeVersionId.replace(/[^\w\-]+/g, "_").slice(0, 40);
   return fallback ? `_${fallback}` : "";
 }
+
+/**
+ * B2: export / download must use the active history tab body, not a stale top-level plan.
+ */
+export function resolveExportPlanBody(
+  versions: Record<string, any> | null | undefined,
+  activeVersionId: string | null | undefined,
+  fallbackResult: any
+): any {
+  const id = activeVersionId || "original";
+  if (versions && typeof versions === "object" && versions[id]) {
+    return versions[id];
+  }
+  return fallbackResult;
+}
+
+/** Human label for “you are downloading …” (B2). */
+export function exportActiveTabDisplayLabel(
+  activeVersionId: string | null | undefined,
+  plan: any,
+  locale: VersionLocale
+): string {
+  const ui = UI_STRINGS[locale] || UI_STRINGS.ro;
+  if (!activeVersionId || activeVersionId === "original") {
+    return ui.versionOriginal || ui.originalVersion || "Original";
+  }
+  return formatVersionTabTitle(activeVersionId, plan, locale, ui);
+}

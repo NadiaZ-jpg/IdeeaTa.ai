@@ -40,28 +40,28 @@ export default function LandingPageContent({ locale = "ro" }: { locale?: "ro" | 
       <div className="fixed top-[-10%] left-[-10%] w-[500px] h-[500px] rounded-full bg-emerald-500/10 blur-[120px] pointer-events-none z-0"></div>
       <div className="fixed bottom-[-10%] right-[-10%] w-[600px] h-[600px] rounded-full bg-amber-500/10 blur-[150px] pointer-events-none z-0"></div>
 
-      {/* Navigation */}
-      <nav className="relative z-50 w-full px-6 py-6 flex items-center justify-between max-w-7xl mx-auto">
-        <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-emerald-400 to-emerald-600 flex items-center justify-center shadow-lg shadow-emerald-500/20">
+      {/* Navigation — compact on mobile to avoid horizontal overflow / white gutter */}
+      <nav className="relative z-50 w-full max-w-7xl mx-auto px-4 sm:px-6 py-4 sm:py-6 flex items-center justify-between gap-2 min-w-0">
+        <div className="flex items-center gap-2 shrink-0 min-w-0">
+          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-emerald-400 to-emerald-600 flex items-center justify-center shadow-lg shadow-emerald-500/20 shrink-0">
             <span className="text-white font-bold text-xl">I</span>
           </div>
-          <span className="text-xl font-black text-transparent bg-gradient-to-r from-zinc-100 to-zinc-400 bg-clip-text tracking-tight">IdeeaTa.ai</span>
+          <span className="text-lg sm:text-xl font-black text-transparent bg-gradient-to-r from-zinc-100 to-zinc-400 bg-clip-text tracking-tight truncate">IdeeaTa.ai</span>
         </div>
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-2 sm:gap-4 shrink-0">
           <LanguageSwitcher currentLocale={locale} />
           {!isLoading && (
             isLoggedIn ? (
               <Link 
                 href={isEn ? "/en/studio" : isEs ? "/es/studio" : "/studio"} 
-                className="text-sm font-semibold text-zinc-300 hover:text-white px-4 py-2 transition-colors"
+                className="hidden sm:inline-flex text-sm font-semibold text-zinc-300 hover:text-white px-4 py-2 transition-colors min-h-[44px] items-center"
               >
                 {isEn ? "Go to Studio →" : isEs ? "Entrar al Studio →" : "Intră în Studio →"}
               </Link>
             ) : (
               <Link 
                 href={isEn ? "/en/login" : isEs ? "/es/login" : "/login"} 
-                className="text-sm font-semibold text-zinc-300 hover:text-white px-4 py-2 transition-colors"
+                className="hidden sm:inline-flex text-sm font-semibold text-zinc-300 hover:text-white px-4 py-2 transition-colors min-h-[44px] items-center"
               >
                 {isEn ? "Log In" : isEs ? "Iniciar sesión" : "Autentificare"}
               </Link>
@@ -69,7 +69,7 @@ export default function LandingPageContent({ locale = "ro" }: { locale?: "ro" | 
           )}
           <Link 
             href={isEn ? "/en/demo?start=new" : isEs ? "/es/demo?start=nuevo" : "/demo?start=nou"} 
-            className="text-sm font-bold bg-white text-black px-5 py-2.5 rounded-full hover:bg-zinc-200 transition-all hover:scale-105 shadow-[0_0_20px_rgba(255,255,255,0.1)]"
+            className="text-xs sm:text-sm font-bold bg-white text-black px-3 sm:px-5 py-2 sm:py-2.5 rounded-full hover:bg-zinc-200 transition-all hover:scale-105 shadow-[0_0_20px_rgba(255,255,255,0.1)] whitespace-nowrap min-h-[44px] inline-flex items-center"
           >
             {isEn ? "Try for Free" : isEs ? "Probar Gratis" : "Testează Gratuit"}
           </Link>

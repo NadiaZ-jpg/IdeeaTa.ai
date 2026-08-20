@@ -23,11 +23,11 @@ export default async function RootLayout({children}: {children: React.ReactNode}
     localeHeader === "en" || localeHeader === "es" ? localeHeader : "ro";
 
   return (
-    <html lang={lang} suppressHydrationWarning>
+    <html lang={lang} suppressHydrationWarning className="bg-[#09090b]">
       <head>
         <meta name="google-adsense-account" content="ca-pub-5089980515174940" />
       </head>
-      <body suppressHydrationWarning className="flex flex-col min-h-screen">
+      <body suppressHydrationWarning className="flex flex-col min-h-screen bg-[#09090b] text-zinc-100 overflow-x-hidden">
         <NetworkStatusIndicator />
         {children}
         <Footer />

@@ -31,6 +31,10 @@ const nextConfig: NextConfig = {
   async rewrites() {
     return [
       {
+        source: '/favicon.ico',
+        destination: '/icon.svg',
+      },
+      {
         source: '/__/auth/:path*',
         destination: 'https://ideeata.firebaseapp.com/__/auth/:path*',
       },

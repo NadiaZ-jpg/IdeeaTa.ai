@@ -112,6 +112,7 @@ type UIStringsShape = {
   mockupBeforeTitle: string; mockupBeforeDesc: string;
   // Erori comune (migrate din translations.ts)
   errorServerPrefix: string; errorNetworkError: string; errorInvalidFormat: string; errorGenerationFallback: string;
+  errorProcessingCredit: string; errorSavingDocument: string;
 };
 
 export const UI_STRINGS: Record<Locale, UIStringsShape> = {
@@ -267,6 +268,7 @@ export const UI_STRINGS: Record<Locale, UIStringsShape> = {
     mockupLiveStatus: "## Stadiu Generare", mockupLiveStat1: "Analiză Competiție", mockupLiveStat2: "Strategie Prețuri", mockupLiveStat3: "Calcul ROI", mockupLiveComplete: "Complet",
     mockupBeforeTitle: "Înainte", mockupBeforeDesc: "\"Vreau să deschid o cafenea. Am experiență de 5 ani în domeniu. Nu știu de unde să încep cu planul de afaceri.\"",
     errorServerPrefix: "Eroare de server: ", errorNetworkError: "Eroare de rețea. Te rugăm să mai încerci o dată.", errorInvalidFormat: "Sistemul a returnat un format invalid. Mai încearcă o dată.", errorGenerationFallback: "A apărut o eroare la generarea planului. Te rugăm să încerci din nou mai târziu.",
+    errorProcessingCredit: "A apărut o eroare la procesarea creditului. Vă rugăm reîncercați.", errorSavingDocument: "A apărut o eroare la salvarea documentului.",
   },
   en: {
     pricing: "Pricing", logOut: "Log Out", logIn: "Log In", tryFree: "Try Free",
@@ -420,6 +422,7 @@ export const UI_STRINGS: Record<Locale, UIStringsShape> = {
     mockupLiveStatus: "## Generation Status", mockupLiveStat1: "Competition Analysis", mockupLiveStat2: "Pricing Strategy", mockupLiveStat3: "ROI Calculation", mockupLiveComplete: "Complete",
     mockupBeforeTitle: "Before", mockupBeforeDesc: "\"I want to open a coffee shop. I have 5 years of experience in the field. I don't know where to start with the business plan.\"",
     errorServerPrefix: "Server error: ", errorNetworkError: "Network error. Please try again.", errorInvalidFormat: "The system returned an invalid format. Please try again.", errorGenerationFallback: "An error occurred during plan generation. Please try again later.",
+    errorProcessingCredit: "An error occurred while processing the credit. Please try again.", errorSavingDocument: "An error occurred while saving the document.",
   },
   es: {
     pricing: "Precios", logOut: "Cerrar sesión", logIn: "Iniciar sesión", tryFree: "Probar Gratis",
@@ -573,5 +576,6 @@ export const UI_STRINGS: Record<Locale, UIStringsShape> = {
     mockupLiveStatus: "## Estado de Generación", mockupLiveStat1: "Análisis de la Competencia", mockupLiveStat2: "Estrategia de Precios", mockupLiveStat3: "Cálculo del ROI", mockupLiveComplete: "Completo",
     mockupBeforeTitle: "Antes", mockupBeforeDesc: "\"Quiero abrir una cafetería. Tengo 5 años de experiencia. No sé por dónde empezar con el plan de negocio.\"",
     errorServerPrefix: "Error del servidor: ", errorNetworkError: "Error de red. Por favor, inténtelo de nuevo.", errorInvalidFormat: "El sistema devolvió un formato no válido. Por favor, inténtelo de nuevo.", errorGenerationFallback: "Ocurrió un error al generar el plan. Por favor, inténtelo de nuevo más tarde.",
+    errorProcessingCredit: "Ocurrió un error al procesar el crédito. Por favor, inténtelo de nuevo.", errorSavingDocument: "Ocurrió un error al guardar el documento.",
   }
 };

@@ -1255,7 +1255,6 @@ export default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" | 
     setPendingDownloadMode,
     setShowPricingModal,
     setIsSharedView,
-    t,
     activeVersionId,
     onPlanUnlockedByCredit: () => {
       // Firestore onSnapshot în useAuthUser actualizează automat unlockedPlans/unlockedPlanIds

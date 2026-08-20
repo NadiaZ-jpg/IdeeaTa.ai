@@ -30,7 +30,6 @@ interface UseExportActionsProps {
   setPendingDownloadMode: (mode: any) => void;
   setShowPricingModal: (show: boolean) => void;
   setIsSharedView: (shared: boolean) => void;
-  t: any;
   /** Active history tab — filename suffix (Desktop/Mobile Studio + Demo). */
   activeVersionId?: string;
   /** Optimistic unlock after credit spend (parent can fold into isPlanPaid). */
@@ -52,7 +51,6 @@ export function useExportActions({
   setPendingDownloadMode,
   setShowPricingModal,
   setIsSharedView,
-  t,
   activeVersionId,
   onPlanUnlockedByCredit,
 }: UseExportActionsProps) {
@@ -111,7 +109,7 @@ export function useExportActions({
           onPlanUnlockedByCredit?.(planName, planId);
         } catch (e) {
           console.error("Eroare la scaderea creditului:", e);
-          alert(t("errorProcessingCredit", locale));
+          alert(UI_STRINGS[locale].errorProcessingCredit);
           return;
         }
       } else {
@@ -233,7 +231,7 @@ export function useExportActions({
       await new Promise(resolve => setTimeout(resolve, 2000));
     } catch (e) {
       console.error("Eroare la generarea documentului", e);
-      alert(t("errorSavingDocument", locale));
+      alert(UI_STRINGS[locale].errorSavingDocument);
     } finally {
       setIsDownloading(null);
     }

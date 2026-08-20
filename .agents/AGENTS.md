@@ -15,7 +15,7 @@ REGULA #14: (Modularizare) Orice funcționalitate nouă se creează ca fișier/c
 REGULA #15: (Anti-Crash AI) Este INTERZISĂ randarea directă a valorilor de la AI. Toate textele dinamice trec prin funcții de siguranță (formatNumberedText sau safeText).
 REGULA #16: (Sertarul Intangibil) Logica de fetch Firebase (StudioDataLoader.tsx) rămâne definitiv izolată. Este INTERZISĂ reintegrarea ei în page.tsx.
 REGULA #17: (FREEZE PACHETE) Pachete: Standard (~8 EUR / 39 RON), Editare+Instrumente Profesionale (~20 EUR / 99 RON, cote 10/8/4), Top-up Pro (5 EUR / 25 RON, +5/+4/+2). Cotă + Lemon în lib/proPackQuota*, lemonCheckout, webhook. Modificare doar cu "override freeze pachete".
-REGULA #18: (FREEZE ADSENSE) Integrarea Google AdSense este ÎNGHEȚATĂ. Modificare doar cu "override freeze adsense".
+REGULA #18: (FREEZE ADSENSE) Integrarea Google AdSense este ÎNGHEȚATĂ. Modificare doar cu "override freeze adsense". Scriptul/reclamele rulează DOAR pe Landing + Resurse via `AdBanner` / `loadAdSenseScript`. Este INTERZISă reintroducerea `<AdSenseLoader />` în `app/layout.tsx` (root) fără override — Demo/Studio rămân fără ads.
 REGULA #19: (ANTI-DISTRUGERE) Niciodată nu folosi comenzi distructive fără plan aprobat de utilizator.
 
 ## FREEZE — Pasul 1 (14 Iulie 2026)
@@ -101,6 +101,20 @@ Orice agent care primește o instrucțiune ambiguă trebuie să CEARĂ CONFIRMAR
 8. **Evitarea Dependențelor/Pachetelor Noi (No Unsolicited Packages):** Este interzisă instalarea de dependințe externe (`npm install`) fără acordul utilizatorului, dacă funcționalitatea poate fi scrisă nativ sau folosind pachetele deja existente în proiect (cum ar fi `lucide-react`, `pptxgenjs`, `docx`, `jspdf`).
 9. **Conservarea Comentariilor și a Documentației Existente (Preserve Context):** Comentariile existente de cod, JSDoc și notele de debug trebuie păstrate intacte în timpul modificărilor. Eliminarea lor abuzivă este strict interzisă.
 10. **Fără Polling / Interogări în Loop:** După lansarea unei comenzi asincrone în terminal (`npm run build` sau `npx tsc`), se va aștepta notificarea automată a sistemului. Este interzisă verificarea repetată a statusului sau citirea logurilor în loop.
+
+---
+
+## REGULA #23: (Deploy Hetzner — Next.js `standalone` + PM2)
+
+**Producție:** `ideeata.ai` pe Hetzner (`167.233.93.47`), app PM2 `ideeata`, cwd `/root/IdeeaTa.ai/.next/standalone`, `output: 'standalone'` în `next.config.ts`.
+
+1. **OBLIGATORIU după fiecare `npm run build` pe server:** copierea asset-urilor în standalone **înainte** de `pm2 restart`:
+   - `.next/static` → `.next/standalone/.next/static`
+   - `public` → `.next/standalone/public`
+   - `.env` → `.next/standalone/.env` (păstrează FIREBASE_* etc.)
+2. **Fără pasul de mai sus** → HTML nou + chunk-uri 404 → `ChunkLoadError` / „Application error: a client-side exception…”.
+3. **Script oficial în repo:** `deploy.sh` (rădăcina proiectului). Pe server: `chmod +x deploy.sh && ./deploy.sh` (sau `bash deploy.sh`). Nu se inventează un alt flux de deploy care omite copierea staticului.
+4. Agenții **nu** rulează deploy pe Hetzner fără acordul expres al utilizatorului (vezi REGULA #20).
 
 ---
 
@@ -433,4 +447,11 @@ Orice agent care primește o instrucțiune ambiguă trebuie să CEARĂ CONFIRMAR
 - Corectat coordonatele link-ului de paywall în PDF-ul exportat (`hooks/useExportActions.ts`) pentru a acoperi tot slide-ul final de CTA, asigurând click-ul garantat pe orice cititor PDF.
 - Verificat build Next.js: ✅ `✓ Compiled successfully`, ✅ `✓ Generating static pages (44/44)`.
 - Git committed & pushed.
+
+### Checkpoint-20-August-2026-S7-Deploy-Standalone-Fix
+- Sesiunea 7 (mobile/tabletă RO/EN/ES) pe branch `cursor/pdf-cta-locale-and-plan-fill`.
+- Incident live: `ChunkLoadError` pe `ideeata.ai` după rebuild — cauza = `.next/static` necopiat în `.next/standalone` (nu AdSense).
+- Remediat pe Hetzner: `cp -a .next/static .next/standalone/.next/` + `public` + `pm2 restart ideeata`.
+- `deploy.sh` adăugat în repo (REGULA #23).
+- Layout: `<NetworkStatusIndicator />` în root; **fără** `<AdSenseLoader />` în root (REGULA #18).
 

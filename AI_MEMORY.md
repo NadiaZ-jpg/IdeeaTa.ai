@@ -619,7 +619,9 @@ Dacă oricare dintre aceste verificări este omisă în procesul de planificare,
 **override freeze adsense:**
 - `isAdSenseContentPath` — doar `/`, `/en`, `/es` + `/resurse|en/resources|es/recursos` (+ articole).
 - `loadAdSenseScript` no-op pe Demo/Studio/login/dashboard/legal.
-- `AdSenseLoader` gated pe pathname; `CookieBanner` salvează doar consent (nu injectează script).
+- Ads pe conținut via `AdBanner` → `loadAdSenseScript`; `CookieBanner` salvează doar consent (nu injectează script).
+- **`AdSenseLoader` NU se montează în `app/layout.tsx` (root)** — rămâne disponibil ca fișier, dar root fără ads (confirmare 20 Aug 2026 + REGULA #18).
+- Meta `google-adsense-account` rămâne în layout `<head>`.
 - Hub Resurse: `AdBanner` la final (slot A).
 **ÎNGHEȚAT** — nu se reîncarcă adsbygoogle pe tool pages fără override.
 
@@ -909,12 +911,42 @@ Dacă oricare dintre aceste verificări este omisă în procesul de planificare,
 | `app/dashboard/DashboardContent.tsx` | Mărit zona tactilă a butonului `Trash2` la peste 44px (`p-2.5 -m-1 min-h-[44px] min-w-[44px]`), izolat `e.stopPropagation()` și mărit butoanele inline de confirmare `Da / Nu` la dimensiuni tactile sigure. |
 | `app/manifest.ts` | Web App Manifest PWA (`name`, `short_name`, `display: standalone`, `theme_color: #09090b`, `icons`). |
 | `components/NetworkStatusIndicator.tsx` | Indicator non-intrusiv de stare a rețelei (Offline / Conexiune restabilită) tradus în RO/EN/ES. |
-| `app/layout.tsx` | Adăugat export `viewport` cu `themeColor: #09090b`, meta tag-uri iOS status-bar și componenta `<NetworkStatusIndicator />`. |
+| `app/layout.tsx` | `viewport.themeColor: #09090b` + `<NetworkStatusIndicator />` în body. **Fără** `<AdSenseLoader />` în root (ads doar pe Landing/Resurse via `AdBanner`). Meta `google-adsense-account` rămâne în `<head>`. |
+| `deploy.sh` | Script oficial deploy Hetzner: `npm ci` → `npm run build` → copiază `.next/static` + `public` (+ `.env`) în standalone → `pm2 restart ideeata`. |
 
 ### Build verificat:
 - ✅ `npx tsc --noEmit` — zero erori TypeScript
 - ✅ `✓ Compiled successfully in 8.7s`
 - ✅ `✓ Generating static pages (72/72)`
 
+### Git (S7 + polish):
+- `d2bb3be` — feat(mobile): total alignment… (Sesiunea 7)
+- `5f696a6` — PWA manifest, theme-color, NetworkStatus
+- `5ec71b6` — curățare layout (meta duplicate / hydration)
+- `a224328` — scos `AdSenseLoader` din root layout (corect pentru REGULA #18; **nu** a reparat ChunkLoadError-ul de pe live)
+- Branch: `cursor/pdf-cta-locale-and-plan-fill`
+
+---
+
+## FREEZE — Ops 20 August 2026: ChunkLoadError + Deploy Standalone (Hetzner)
+
+### Incident
+- Simptom: „Application error: a client-side exception…” + `ChunkLoadError: Loading chunk 5229 failed` (404 pe `/_next/static/chunks/…`).
+- Cauză reală: după `next build` + `pm2 restart`, HTML-ul venea din build-ul nou, dar **`.next/static` nu era copiat** în `.next/standalone/.next/static` (PM2 cwd = `/root/IdeeaTa.ai/.next/standalone`).
+- Nu a fost cauzat de AdSense / NetworkStatus; commit-urile de layout nu înlocuiesc pasul de copiere static.
+
+### Remediere aplicată pe server
+```bash
+mkdir -p .next/standalone/.next
+cp -a .next/static .next/standalone/.next/
+cp -a public .next/standalone/
+pm2 restart ideeata
+```
+Verificare: chunk-urile (`5229-…`, CSS, layout) → HTTP 200 pe `ideeata.ai`.
+
+### Reguli ops (vezi și REGULA #23 în `.agents/AGENTS.md`)
+- Deploy **doar** via `./deploy.sh` (sau același flux: build → copy static/public/env → pm2 restart).
+- Păstrează `.env` și în `.next/standalone/.env` după rebuild.
+- AdSense: **nu** reinjecta `AdSenseLoader` în root layout fără `override freeze adsense`.
 
 

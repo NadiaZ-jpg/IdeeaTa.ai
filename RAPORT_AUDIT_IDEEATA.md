@@ -168,7 +168,7 @@
 - **C1–C3 · D1–D3 · E1 (E-B):** auth EN/ES Desktop, Demo Mobile Pro→auth, Studio Mobile, share Desktop, EditForm Demo Mobile, guest list Mobile, tabletă după lățime.
 
 **Încă pe listă (plan):**  
-- F4b / F5b (proiecte mari rămase) și E-C layout dedicat = separat.
+- F5b (merge Desktop+Mobile) și E-C layout dedicat = separat. F4c (PricingModal / banners / Mobile section titles) ✅.
 
 ---
 

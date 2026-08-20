@@ -1195,9 +1195,20 @@ Fișiere: `lib/versionStack.ts`, `lib/planQuota.ts`, `lib/proPackQuotaAdmin.ts`,
 - AuthWallModal, EmailVerificationModal, CookieBanner → chei noi (`authWall*`, `emailVerify*`, `cookie*`)
 - Demo/Studio Mobile: generate/edit errors, budget %, tab-uri, share/export
 
-**Rămâne (F4c, opțional):** PricingModal promo, ConversionBanners, restul ternarelor din Mobile section titles.
-
 **Acceptanță:** login EN/ES erori din helper; cookie banner din UI_STRINGS; tab-uri Mobile din `ui.tab*`.
+
+---
+
+## FREEZE — Sesiunea F4c (20 August 2026): Pricing + banners + Mobile section titles
+
+**Mutat în `UI_STRINGS`:**
+- `PricingModal` — titlu, features, promo/checkout errors, trust badges
+- `ConversionBanners` — shared preview + guest save CTA
+- Demo/Studio Mobile — titluri secțiune (descriere, piață, public, buget, promovare, SWOT, ton, optimize budget)
+
+**Rămâne (opțional):** F5b merge Desktop+Mobile; hardcodes rămase (auth modal copy, export options labels pe Mobile).
+
+**Acceptanță:** PricingModal / ConversionBanners fără ternare locale; titluri secțiune Mobile din `ui.*`.
 
 ---
 

@@ -1227,7 +1227,7 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
                 <span className="text-[9px] bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 px-2 py-0.5 rounded-full font-bold uppercase tracking-wider block w-max mb-1">
                   {locale === "en" ? "Plan Generated" : locale === "es" ? "Plan Generado" : "Plan Generat"}
                 </span>
-                <h2 className="text-sm font-black text-white truncate">{result.nume || (locale === "en" ? "Business Plan" : locale === "es" ? "Plan de Negocios" : "Plan de Afaceri")}</h2>
+                <h2 className="text-sm font-black text-white truncate">{result.nume || (ui.businessPlan)}</h2>
               </div>
               <div className="flex gap-2 shrink-0">
                 {!isSharedView || user ? (
@@ -1237,7 +1237,7 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
                     className="bg-zinc-800 hover:bg-zinc-700 text-white font-bold px-2.5 py-2 rounded-lg text-[10px] transition-all active:scale-95 inline-flex items-center justify-center min-h-[44px] whitespace-nowrap"
                     title={ui.editingStudio}
                   >
-                    ✏️ {locale === "en" ? "Edit" : locale === "es" ? "Editar" : "Editează"}
+                    ✏️ {ui.editBtn}
                   </button>
                 ) : null}
                 {!isSharedView || user ? (
@@ -1272,7 +1272,7 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
                   onClick={() => handleDownload('pdf')}
                   className="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-3 py-2 rounded-lg text-xs transition-all active:scale-95 inline-flex items-center justify-center gap-1.5 min-h-[44px]"
                 >
-                  <span>{locale === "en" ? "Export" : locale === "es" ? "Exportar" : "Export"}</span>
+                  <span>{ui.exportBtn}</span>
                   <span>📥</span>
                 </button>
               </div>
@@ -1296,7 +1296,7 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
                       className="w-full px-4 py-3 rounded-xl bg-zinc-900/80 border border-zinc-800 hover:border-emerald-500/40 text-amber-300 hover:text-amber-200 font-bold text-xs flex items-center justify-between transition-all cursor-pointer shadow-sm"
                     >
                       <span className="flex items-center gap-1.5">
-                        <span>📜 {locale === "en" ? "Version History" : locale === "es" ? "Historial de Versiones" : "Istoric Versiuni"} ({Object.keys(versions).length})</span>
+                        <span>📜 {ui.versionHistory} ({Object.keys(versions).length})</span>
                       </span>
                       <span className="flex items-center gap-2">
                         <span className="text-[10px] text-zinc-400 font-normal truncate max-w-[9rem]">
@@ -1309,7 +1309,7 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
                     {showVersionDropdown && (
                       <div className="absolute top-full left-0 right-0 mt-1 bg-zinc-950 border border-zinc-800 rounded-2xl p-2 shadow-2xl z-30 animate-in fade-in slide-in-from-top-1 duration-150">
                         <div className="text-[9px] uppercase font-black tracking-widest text-zinc-500 px-3 py-2 border-b border-zinc-900 flex justify-between items-center">
-                          <span>{locale === "en" ? "Saved Versions" : locale === "es" ? "Versiones Guardadas" : "Versiuni Salvate"}</span>
+                          <span>{ui.savedVersions}</span>
                           <button type="button" onClick={() => setShowVersionDropdown(false)} className="text-zinc-500 hover:text-white text-xs min-w-[44px] min-h-[44px]">✕</button>
                         </div>
                         <div className="max-h-64 overflow-y-auto flex flex-col gap-1 mt-1">
@@ -1439,17 +1439,17 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
                 {activeTab === "overview" && (
                 <div className="space-y-5 animate-in fade-in slide-in-from-bottom-2 duration-200">
                   <div className="space-y-1">
-                    <h3 className="text-emerald-400 font-bold text-sm">{locale === "en" ? "Business Description" : locale === "es" ? "Descripción del Negocio" : "Descriere Afacere"}</h3>
+                    <h3 className="text-emerald-400 font-bold text-sm">{ui.businessDescription}</h3>
                     <p className="text-zinc-300 text-xs leading-relaxed">{formatNumberedText(result.viziune_strategie?.misiune_valori || result.descriere)}</p>
                   </div>
                   <div className="h-px bg-zinc-800/60"></div>
                   <div className="space-y-1">
-                    <h3 className="text-emerald-400 font-bold text-sm">{locale === "en" ? "Market Opportunity" : locale === "es" ? "Oportunidad de Mercado" : "Oportunitatea Pieței"}</h3>
+                    <h3 className="text-emerald-400 font-bold text-sm">{ui.marketOpportunity}</h3>
                     <p className="text-zinc-300 text-xs leading-relaxed">{formatNumberedText(result.analiza_pietei?.concurenta || result.oportunitate_piata)}</p>
                   </div>
                   <div className="h-px bg-zinc-800/60"></div>
                   <div className="space-y-1">
-                    <h3 className="text-emerald-400 font-bold text-sm">{locale === "en" ? "Target Audience" : locale === "es" ? "Público Objetivo" : "Publicul Țintă"}</h3>
+                    <h3 className="text-emerald-400 font-bold text-sm">{ui.targetAudience}</h3>
                     <p className="text-zinc-300 text-xs leading-relaxed">{formatNumberedText(result.analiza_pietei?.clienti_tinta || result.public_tinta)}</p>
                   </div>
                 </div>
@@ -1458,7 +1458,7 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
               {activeTab === "budget" && (
                 <div className="space-y-6 md:grid md:grid-cols-2 md:gap-6 md:space-y-0 animate-in fade-in slide-in-from-bottom-2 duration-200">
                   <div className="space-y-3">
-                    <h3 className="text-emerald-400 font-bold text-sm">{locale === "en" ? "Initial Investment Budget" : locale === "es" ? "Presupuesto Inicial de Inversión" : "Buget Inițial de Investiții"}</h3>
+                    <h3 className="text-emerald-400 font-bold text-sm">{ui.investmentBudget}</h3>
                     <div className="space-y-2">
                       {(() => {
                         const COLORS = ['#10b981', '#ef4444', '#3b82f6', '#f59e0b', '#8b5cf6', '#06b6d4', '#f97316'];
@@ -1495,7 +1495,7 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
 
                   {/* Budget Chart (Dynamic container) */}
                   <div className="bg-zinc-950/30 border border-zinc-800/60 rounded-xl p-4 flex flex-col items-center justify-center">
-                    <h4 className="text-[10px] font-bold text-zinc-400 mb-4 uppercase">{locale === "en" ? "Funds Distribution" : locale === "es" ? "Distribución de Fondos" : "Distribuția Fondurilor"}</h4>
+                    <h4 className="text-[10px] font-bold text-zinc-400 mb-4 uppercase">{ui.fundsDistribution}</h4>
                     <div className="w-full h-[280px] sm:h-[350px] flex items-center justify-center">
                       <BudgetPieChart budget={result.plan_financiar?.buget_investitii || []} currency={result.selectedCurrency || (locale === "ro" ? "RON" : "EUR")} />
                     </div>
@@ -1506,7 +1506,7 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
               {activeTab === "marketing" && (
                 <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-200">
                   <div className="space-y-3">
-                    <h3 className="text-emerald-400 font-bold text-sm">{locale === "en" ? "Promotion & Strategy" : locale === "es" ? "Promoción y Estrategia" : "Promovare & Strategie"}</h3>
+                    <h3 className="text-emerald-400 font-bold text-sm">{ui.promotionAndStrategy}</h3>
                     {result.analiza_pietei?.strategie_marketing ? (
                       <div className="bg-zinc-950/30 border border-zinc-800/60 rounded-xl p-4">
                         <p className="text-zinc-300 text-xs leading-relaxed">{formatNumberedText(result.analiza_pietei.strategie_marketing)}</p>
@@ -1526,8 +1526,8 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
                   {/* Tone Editor Bottom Element */}
                   <div className="bg-zinc-950/40 border border-zinc-800/60 rounded-xl p-4 space-y-3">
                     <div className="space-y-1">
-                      <h4 className="text-xs font-bold text-zinc-200">{locale === "en" ? "Customize Presentation Tone" : locale === "es" ? "Personalizar el Tono de la Presentación" : "Personalizează Tonul Prezentării"}</h4>
-                      <p className="text-[10px] text-zinc-400">{locale === "en" ? "Automatically rewrite the business plan in a formal, commercial, or friendly style." : locale === "es" ? "Reescribe automáticamente el plan de negocios en un estilo formal, comercial o amigable." : "Rescrie automat planul de afaceri într-un stil formal, comercial sau prietenos."}</p>
+                      <h4 className="text-xs font-bold text-zinc-200">{ui.toneCustomizeTitle}</h4>
+                      <p className="text-[10px] text-zinc-400">{ui.toneCustomizeDesc}</p>
                     </div>
                     <ToneEditor
                       user={user}
@@ -1546,22 +1546,22 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
 
               {activeTab === "swot" && (
                 <div className="space-y-5 animate-in fade-in slide-in-from-bottom-2 duration-200">
-                  <h3 className="text-emerald-400 font-bold text-sm">{locale === "en" ? "SWOT Analysis" : locale === "es" ? "Análisis FODA" : "Analiza SWOT"}</h3>
+                  <h3 className="text-emerald-400 font-bold text-sm">{ui.swotTitle}</h3>
                   <div className="grid grid-cols-1 gap-3">
                     <div className="bg-emerald-950/10 border border-emerald-800/20 rounded-xl p-4">
-                      <span className="text-[10px] text-emerald-400 font-black tracking-wider uppercase block mb-1">{locale === "en" ? "💪 Strengths" : locale === "es" ? "💪 Fortalezas" : "💪 Puncte Forte (Strengths)"}</span>
+                      <span className="text-[10px] text-emerald-400 font-black tracking-wider uppercase block mb-1">{`💪 ${ui.strengths}`}</span>
                       {renderSwotCategory(result.analiza_swot?.puncte_tari || result.analiza_swot?.puncte_forte)}
                     </div>
                     <div className="bg-rose-950/10 border border-rose-800/20 rounded-xl p-4">
-                      <span className="text-[10px] text-rose-400 font-black tracking-wider uppercase block mb-1">{locale === "en" ? "⚠️ Weaknesses" : locale === "es" ? "⚠️ Debilidades" : "⚠️ Puncte Slabe (Weaknesses)"}</span>
+                      <span className="text-[10px] text-rose-400 font-black tracking-wider uppercase block mb-1">{`⚠️ ${ui.weaknesses}`}</span>
                       {renderSwotCategory(result.analiza_swot?.puncte_slabe)}
                     </div>
                     <div className="bg-blue-950/10 border border-blue-800/20 rounded-xl p-4">
-                      <span className="text-[10px] text-blue-400 font-black tracking-wider uppercase block mb-1">{locale === "en" ? "🚀 Opportunities" : locale === "es" ? "🚀 Oportunidades" : "🚀 Oportunități (Opportunities)"}</span>
+                      <span className="text-[10px] text-blue-400 font-black tracking-wider uppercase block mb-1">{`🚀 ${ui.opportunities}`}</span>
                       {renderSwotCategory(result.analiza_swot?.oportunitati)}
                     </div>
                     <div className="bg-amber-950/10 border border-amber-800/20 rounded-xl p-4">
-                      <span className="text-[10px] text-amber-400 font-black tracking-wider uppercase block mb-1">{locale === "en" ? "☠️ Threats" : locale === "es" ? "☠️ Amenazas" : "☠️ Amenințări (Threats)"}</span>
+                      <span className="text-[10px] text-amber-400 font-black tracking-wider uppercase block mb-1">{`☠️ ${ui.threats}`}</span>
                       {renderSwotCategory(result.analiza_swot?.amenintari)}
                     </div>
                   </div>
@@ -1668,14 +1668,14 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
                 className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 rounded-xl text-xs transition-all active:scale-95 disabled:opacity-50 min-h-[44px]"
               >
                 {isEmailLoading 
-                  ? (locale === "en" ? "Processing..." : locale === "es" ? "Procesando..." : "Se procesează...") 
-                  : (isLoginMode ? (locale === "en" ? "Log In" : locale === "es" ? "Iniciar sesión" : "Conectare") : (locale === "en" ? "Register" : locale === "es" ? "Registrarse" : "Înregistrare"))}
+                  ? (ui.processing) 
+                  : (isLoginMode ? ui.loginBtn2 : ui.registerBtn)}
               </button>
             </form>
 
             <div className="flex items-center my-4">
               <div className="flex-1 h-px bg-zinc-800"></div>
-              <span className="px-3 text-[10px] text-zinc-500 font-bold uppercase">{locale === "en" ? "Or" : locale === "es" ? "O" : "Sau"}</span>
+              <span className="px-3 text-[10px] text-zinc-500 font-bold uppercase">{ui.orDivider}</span>
               <div className="flex-1 h-px bg-zinc-800"></div>
             </div>
 
@@ -1729,7 +1729,7 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
         userId={user?.uid || ""}
         userEmail={user?.email || ""}
         currency={locale === "ro" ? "RON" : "EUR"}
-        planName={result?.nume || (locale === "en" ? "Business Plan" : locale === "es" ? "Plan de Negocios" : "Plan de Afaceri")}
+        planName={result?.nume || (ui.businessPlan)}
         planId={result?.id}
         locale={locale}
       />
@@ -1743,7 +1743,7 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
           <div className="bg-zinc-900 border-t border-zinc-800 rounded-t-3xl p-6 max-h-[85vh] overflow-y-auto space-y-5 animate-in slide-in-from-bottom duration-300 flex flex-col w-full md:max-w-lg md:mx-auto md:left-1/2 md:-translate-x-1/2 md:right-auto">
             <div className="flex justify-between items-center border-b border-zinc-800/60 pb-3">
               <h4 className="text-sm font-black text-white">{locale === "en" ? "Export Options" : locale === "es" ? "Opciones de Exportación" : "Opțiuni de Exportare"}</h4>
-              <button onClick={() => setShowExportModal(false)} className="text-xs text-zinc-500 font-bold p-2 -m-2 inline-flex items-center justify-center min-w-[44px] min-h-[44px]">{locale === "en" ? "Close" : locale === "es" ? "Cerrar" : "Închide"}</button>
+              <button onClick={() => setShowExportModal(false)} className="text-xs text-zinc-500 font-bold p-2 -m-2 inline-flex items-center justify-center min-w-[44px] min-h-[44px]">{ui.closeBtn}</button>
             </div>
             <p className="text-[11px] text-zinc-400 leading-relaxed -mt-2">
               {ui.exportActiveTabHint}{" "}

@@ -958,7 +958,7 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
             href={isEn ? "/en/studio" : isEs ? "/es/studio" : "/studio"}
             className="text-emerald-400 text-sm font-bold underline"
           >
-            {locale === "en" ? "Back to Studio" : locale === "es" ? "Volver al Studio" : "Înapoi la Studio"}
+            {ui.studioBackToStudio}
           </Link>
         </div>
       );
@@ -1023,9 +1023,9 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
       <header className={`h-16 px-4 flex items-center justify-between border-b border-zinc-800/80 sticky top-0 bg-[#09090b]/80 backdrop-blur-md z-30 transition-transform duration-300 ${showHeader ? 'translate-y-0' : '-translate-y-full'}`}>
         <Link href={ui.routes.dashboard} className="text-xs font-bold text-zinc-400 hover:text-white flex items-center gap-1 min-h-[44px] min-w-[44px]">
           <span>←</span>
-          <span>{locale === "en" ? "Dashboard" : locale === "es" ? "Panel" : "Dashboard"}</span>
+          <span>{ui.dashboardShort}</span>
         </Link>
-        <span className="text-sm font-black">{locale === "en" ? "Mobile Studio" : locale === "es" ? "Studio Móvil" : "Studio Mobil"}</span>
+        <span className="text-sm font-black">{ui.studioMobileBadge}</span>
         <div className="flex items-center gap-2">
           <button
             onClick={handleShare}
@@ -1082,9 +1082,9 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
         <div className="bg-zinc-900/60 border border-zinc-800/80 rounded-xl p-4 flex justify-between items-center backdrop-blur-md gap-3">
           <div className="min-w-0">
             <span className="text-[9px] bg-amber-500/10 border border-amber-500/20 text-amber-400 px-2 py-0.5 rounded-full font-bold uppercase block w-max mb-1">
-              {locale === "en" ? "Edit Mode" : locale === "es" ? "Modo de Edición" : "Mod Editare"}
+              {ui.editingStudio}
             </span>
-            <h2 className="text-sm font-black text-white truncate">{result.nume || (locale === "en" ? "Business Plan" : locale === "es" ? "Plan de Negocios" : "Plan de Afaceri")}</h2>
+            <h2 className="text-sm font-black text-white truncate">{result.nume || (ui.businessPlan)}</h2>
           </div>
           <div className="flex items-center gap-2 shrink-0">
             <button
@@ -1128,7 +1128,7 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
                   className="w-full px-4 py-3 rounded-xl bg-zinc-900/80 border border-zinc-800 hover:border-emerald-500/40 text-amber-300 hover:text-amber-200 font-bold text-xs flex items-center justify-between transition-all cursor-pointer shadow-sm"
                 >
                   <span className="flex items-center gap-1.5">
-                    <span>📜 {locale === "en" ? "Version History" : locale === "es" ? "Historial de Versiones" : "Istoric Versiuni"} ({Object.keys(versions).length})</span>
+                    <span>📜 {ui.versionHistory} ({Object.keys(versions).length})</span>
                   </span>
                   <span className="flex items-center gap-2">
                     <span className="text-[10px] text-zinc-400 font-normal truncate max-w-[140px]">
@@ -1141,7 +1141,7 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
                 {showVersionDropdown && (
                   <div className="absolute top-full left-0 right-0 mt-1 bg-zinc-950 border border-zinc-800 rounded-2xl p-2 shadow-2xl z-30 animate-in fade-in slide-in-from-top-1 duration-150">
                     <div className="text-[9px] uppercase font-black tracking-widest text-zinc-500 px-3 py-2 border-b border-zinc-900 flex justify-between items-center">
-                      <span>{locale === "en" ? "Saved Versions" : locale === "es" ? "Versiones Guardadas" : "Versiuni Salvate"}</span>
+                      <span>{ui.savedVersions}</span>
                       <button type="button" onClick={() => setShowVersionDropdown(false)} className="text-zinc-500 hover:text-white text-xs min-w-[44px] min-h-[44px]">✕</button>
                     </div>
                     <div className="max-h-64 overflow-y-auto flex flex-col gap-1 mt-1">
@@ -1254,19 +1254,19 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
             <div className="space-y-5 animate-in fade-in slide-in-from-bottom-2 duration-200">
               <div className="space-y-1 relative group">
                 <div className="flex justify-between items-center">
-                  <h3 className="text-emerald-400 font-bold text-sm">{locale === "en" ? "Business Description" : locale === "es" ? "Descripción del Negocio" : "Descriere Afacere"}</h3>
+                  <h3 className="text-emerald-400 font-bold text-sm">{ui.businessDescription}</h3>
                   <button
                     onClick={() => {
                       const isNew = result.viziune_strategie?.misiune_valori !== undefined;
                       setEditingField({
                         key: isNew ? "viziune_strategie.misiune_valori" : "descriere",
-                        title: locale === "en" ? "Business Description" : locale === "es" ? "Descripción del Negocio" : "Descriere Afacere",
+                        title: ui.businessDescription,
                         value: isNew ? (result.viziune_strategie?.misiune_valori || "") : (result.descriere || "")
                       });
                     }}
                     className="text-[11px] text-zinc-500 hover:text-white p-2 -m-2 inline-flex items-center justify-center min-w-[36px] min-h-[36px]"
                   >
-                    {locale === "en" ? "✏️ Edit" : locale === "es" ? "✏️ Editar" : "✏️ Editează"}
+                    {`✏️ ${ui.editBtn}`}
                   </button>
                 </div>
                 <p className="text-zinc-300 text-xs leading-relaxed">{formatNumberedText(result.viziune_strategie?.misiune_valori || result.descriere)}</p>
@@ -1276,19 +1276,19 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
 
               <div className="space-y-1 relative group">
                 <div className="flex justify-between items-center">
-                  <h3 className="text-emerald-400 font-bold text-sm">{locale === "en" ? "Market Opportunity" : locale === "es" ? "Oportunidad de Mercado" : "Oportunitatea Pieței"}</h3>
+                  <h3 className="text-emerald-400 font-bold text-sm">{ui.marketOpportunity}</h3>
                   <button
                     onClick={() => {
                       const isNew = result.analiza_pietei?.concurenta !== undefined;
                       setEditingField({
                         key: isNew ? "analiza_pietei.concurenta" : "oportunitate_piata",
-                        title: locale === "en" ? "Market Opportunity" : locale === "es" ? "Oportunidad de Mercado" : "Oportunitatea Pieței",
+                        title: ui.marketOpportunity,
                         value: isNew ? (result.analiza_pietei?.concurenta || "") : (result.oportunitate_piata || "")
                       });
                     }}
                     className="text-[11px] text-zinc-500 hover:text-white p-2 -m-2 inline-flex items-center justify-center min-w-[36px] min-h-[36px]"
                   >
-                    {locale === "en" ? "✏️ Edit" : locale === "es" ? "✏️ Editar" : "✏️ Editează"}
+                    {`✏️ ${ui.editBtn}`}
                   </button>
                 </div>
                 <p className="text-zinc-300 text-xs leading-relaxed">{formatNumberedText(result.analiza_pietei?.concurenta || result.oportunitate_piata)}</p>
@@ -1298,19 +1298,19 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
 
               <div className="space-y-1 relative group">
                 <div className="flex justify-between items-center">
-                  <h3 className="text-emerald-400 font-bold text-sm">{locale === "en" ? "Target Audience" : locale === "es" ? "Público Objetivo" : "Publicul Țintă"}</h3>
+                  <h3 className="text-emerald-400 font-bold text-sm">{ui.targetAudience}</h3>
                   <button
                     onClick={() => {
                       const isNew = result.analiza_pietei?.clienti_tinta !== undefined;
                       setEditingField({
                         key: isNew ? "analiza_pietei.clienti_tinta" : "public_tinta",
-                        title: locale === "en" ? "Target Audience" : locale === "es" ? "Público Objetivo" : "Publicul Țintă",
+                        title: ui.targetAudience,
                         value: isNew ? (result.analiza_pietei?.clienti_tinta || "") : (result.public_tinta || "")
                       });
                     }}
                     className="text-[11px] text-zinc-500 hover:text-white p-2 -m-2 inline-flex items-center justify-center min-w-[36px] min-h-[36px]"
                   >
-                    {locale === "en" ? "✏️ Edit" : locale === "es" ? "✏️ Editar" : "✏️ Editează"}
+                    {`✏️ ${ui.editBtn}`}
                   </button>
                 </div>
                 <p className="text-zinc-300 text-xs leading-relaxed">{formatNumberedText(result.analiza_pietei?.clienti_tinta || result.public_tinta)}</p>
@@ -1327,7 +1327,7 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
                         onClick={() => setEditingField({ key: `sectiuni_aditionale.${idx}.continut`, title: sec.titlu, value: sec.continut || "" })}
                         className="text-[11px] text-zinc-500 hover:text-white p-2 -m-2 inline-flex items-center justify-center min-w-[36px] min-h-[36px]"
                       >
-                        {locale === "en" ? "✏️ Edit" : locale === "es" ? "✏️ Editar" : "✏️ Editează"}
+                        {`✏️ ${ui.editBtn}`}
                       </button>
                       <button
                         onClick={async () => {
@@ -1345,7 +1345,7 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
                         }}
                         className="text-[11px] text-red-500 hover:text-red-450 font-semibold p-2 -m-2 inline-flex items-center justify-center min-w-[36px] min-h-[36px]"
                       >
-                        {locale === "en" ? "✕ Delete" : locale === "es" ? "✕ Eliminar" : "✕ Șterge"}
+                        {`✕ ${ui.deleteBtn}`}
                       </button>
                     </div>
                   </div>
@@ -1359,7 +1359,7 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
                   onClick={() => setShowExpertDrawer(true)}
                   className="w-full bg-emerald-950/40 hover:bg-emerald-950/60 border border-emerald-500/30 text-emerald-400 hover:text-emerald-300 font-bold py-3.5 rounded-xl text-xs transition-all active:scale-[0.98] text-center"
                 >
-                  ➕ {locale === "en" ? "Add Expert Section" : locale === "es" ? "Añadir Sección Experta" : "Adaugă Secțiune Expertă"}
+                  ➕ {ui.addExpertSection}
                 </button>
               </div>
             </div>
@@ -1369,7 +1369,7 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
             <div className="space-y-6 md:grid md:grid-cols-2 md:gap-6 md:space-y-0 animate-in fade-in slide-in-from-bottom-2 duration-200">
               <div className="space-y-3">
                 <div className="flex justify-between items-center">
-                  <h3 className="text-emerald-400 font-bold text-sm">{locale === "en" ? "Initial Investment Budget" : locale === "es" ? "Presupuesto Inicial de Inversión" : "Buget Inițial de Investiții"}</h3>
+                  <h3 className="text-emerald-400 font-bold text-sm">{ui.investmentBudget}</h3>
                   <button
                     onClick={() => {
                       if (hasProAccess) {
@@ -1385,8 +1385,8 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
                     }`}
                   >
                     {hasProAccess
-                      ? (locale === "en" ? "Optimize Budget with Assistant" : locale === "es" ? "Optimizar Presupuesto con Asistente" : "Optimizează Buget Asistat")
-                      : (locale === "en" ? "🔒 Optimize Budget with Assistant" : locale === "es" ? "🔒 Optimizar Presupuesto con Asistente" : "🔒 Optimizați Buget Asistat")
+                      ? ui.optimizeBudgetAssistant
+                      : ui.optimizeBudgetLocked
                     }
                   </button>
                 </div>
@@ -1417,14 +1417,14 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
                                   <button
                                     onClick={() => setEditingBudgetItem({ index: idx, item: label, cost: String(price || '0') })}
                                     className="text-[11px] text-zinc-500 hover:text-white p-2 -m-1 inline-flex items-center justify-center min-w-[36px] min-h-[36px]"
-                                    title={locale === "en" ? "Edit" : locale === "es" ? "Editar" : "Editează"}
+                                    title={ui.editBtn}
                                   >
                                     ✏️
                                   </button>
                                   <button
                                     onClick={() => handleDeleteBudgetItem(idx)}
                                     className="text-[11px] text-red-500 hover:text-red-400 p-2 -m-1 inline-flex items-center justify-center min-w-[36px] min-h-[36px]"
-                                    title={locale === "en" ? "Delete" : locale === "es" ? "Eliminar" : "Șterge"}
+                                    title={ui.deleteBtn}
                                   >
                                     ✕
                                   </button>
@@ -1440,7 +1440,7 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
                           className="w-full mt-2 bg-emerald-950/40 hover:bg-emerald-950/60 border border-emerald-500/30 text-emerald-400 hover:text-emerald-300 font-bold py-3 rounded-xl text-xs transition-all active:scale-[0.98] text-center flex items-center justify-center gap-1.5"
                         >
                           <span>➕</span>
-                          <span>{locale === "en" ? "Add Investment Item" : locale === "es" ? "Añadir Elemento de Inversión" : "Adaugă Cheltuială / Investiție"}</span>
+                          <span>{ui.addInvestmentItem}</span>
                         </button>
                       </>
                     );
@@ -1450,7 +1450,7 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
 
               {/* Chart Container */}
               <div className="bg-zinc-950/30 border border-zinc-800/60 rounded-xl p-4 flex flex-col items-center justify-center">
-                <h4 className="text-[10px] font-bold text-zinc-400 mb-4 uppercase">{locale === "en" ? "Funds Distribution" : locale === "es" ? "Distribución de Fondos" : "Distribuția Fondurilor"}</h4>
+                <h4 className="text-[10px] font-bold text-zinc-400 mb-4 uppercase">{ui.fundsDistribution}</h4>
                 <div className="w-full h-[280px] sm:h-[350px] flex items-center justify-center">
                       <BudgetPieChart budget={result.plan_financiar?.buget_investitii || []} currency={result.selectedCurrency || (locale === "ro" ? "RON" : "EUR")} />
                 </div>
@@ -1462,17 +1462,17 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
             <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-200">
               <div className="space-y-3">
                 <div className="flex justify-between items-center">
-                  <h3 className="text-emerald-400 font-bold text-sm">{locale === "en" ? "Promotion & Strategy" : locale === "es" ? "Promoción y Estrategia" : "Promovare & Strategie"}</h3>
+                  <h3 className="text-emerald-400 font-bold text-sm">{ui.promotionAndStrategy}</h3>
                   {result.analiza_pietei?.strategie_marketing !== undefined && (
                     <button
                       onClick={() => setEditingField({
                         key: "analiza_pietei.strategie_marketing",
-                        title: locale === "en" ? "Marketing Strategy" : locale === "es" ? "Estrategia de Marketing" : "Strategia de Marketing",
+                        title: ui.marketingStrategy,
                         value: result.analiza_pietei?.strategie_marketing || ""
                       })}
                       className="text-[11px] text-zinc-500 hover:text-white p-2 -m-2 inline-flex items-center justify-center min-w-[36px] min-h-[36px]"
                     >
-                      {locale === "en" ? "✏️ Edit" : locale === "es" ? "✏️ Editar" : "✏️ Editează"}
+                      {`✏️ ${ui.editBtn}`}
                     </button>
                   )}
                 </div>
@@ -1495,8 +1495,8 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
               {/* Tone Editor inside Studio */}
               <div className="bg-zinc-950/40 border border-zinc-800/60 rounded-xl p-4 space-y-3">
                 <div className="space-y-1">
-                  <h4 className="text-xs font-bold text-zinc-200">{locale === "en" ? "Customize Presentation Tone" : locale === "es" ? "Personalizar el Tono de la Presentación" : "Personalizează Tonul Prezentării"}</h4>
-                  <p className="text-[10px] text-zinc-400">{locale === "en" ? "Automatically change the tone of the saved plan using Assistant." : locale === "es" ? "Cambia automáticamente el tono del plan guardado usando Asistente." : "Schimbă automat tonul planului salvat folosind asistentul."}</p>
+                  <h4 className="text-xs font-bold text-zinc-200">{ui.toneCustomizeTitle}</h4>
+                  <p className="text-[10px] text-zinc-400">{ui.toneCustomizeDesc}</p>
                 </div>
                 <ToneEditor
                   user={user}
@@ -1515,23 +1515,23 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
 
           {activeTab === "swot" && (
             <div className="space-y-5 animate-in fade-in slide-in-from-bottom-2 duration-200">
-              <h3 className="text-emerald-400 font-bold text-sm">{locale === "en" ? "SWOT Analysis" : locale === "es" ? "Análisis FODA" : "Analiza SWOT"}</h3>
+              <h3 className="text-emerald-400 font-bold text-sm">{ui.swotTitle}</h3>
               <div className="grid grid-cols-1 gap-3">
                 <div className="bg-emerald-950/10 border border-emerald-800/20 rounded-xl p-4 relative">
                   <div className="flex justify-between items-center mb-1">
-                    <span className="text-[10px] text-emerald-400 font-black tracking-wider uppercase">{locale === "en" ? "💪 Strengths" : locale === "es" ? "💪 Fortalezas" : "💪 Puncte Forte"}</span>
+                    <span className="text-[10px] text-emerald-400 font-black tracking-wider uppercase">{`💪 ${ui.strengths}`}</span>
                     <button
                       onClick={() => {
                         const isNew = result.analiza_swot?.puncte_tari !== undefined;
                         setEditingField({
                           key: isNew ? "analiza_swot.puncte_tari" : "analiza_swot.puncte_forte",
-                          title: locale === "en" ? "Strengths" : locale === "es" ? "Fortalezas" : "Puncte Forte (Strengths)",
+                          title: ui.strengths,
                           value: getSwotString(result.analiza_swot?.puncte_tari || result.analiza_swot?.puncte_forte)
                         });
                       }}
                       className="text-[10px] text-zinc-500 hover:text-white p-2 -m-2 inline-flex items-center justify-center min-w-[36px] min-h-[36px]"
                     >
-                      {locale === "en" ? "✏️ Edit" : locale === "es" ? "✏️ Editar" : "✏️ Editează"}
+                      {`✏️ ${ui.editBtn}`}
                     </button>
                   </div>
                   {renderSwotCategory(result.analiza_swot?.puncte_tari || result.analiza_swot?.puncte_forte)}
@@ -1539,16 +1539,16 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
                 
                 <div className="bg-rose-950/10 border border-rose-800/20 rounded-xl p-4 relative">
                   <div className="flex justify-between items-center mb-1">
-                    <span className="text-[10px] text-rose-400 font-black tracking-wider uppercase">{locale === "en" ? "⚠️ Weaknesses" : locale === "es" ? "⚠️ Debilidades" : "⚠️ Puncte Slabe"}</span>
+                    <span className="text-[10px] text-rose-400 font-black tracking-wider uppercase">{`⚠️ ${ui.weaknesses}`}</span>
                     <button
                       onClick={() => setEditingField({
                         key: "analiza_swot.puncte_slabe",
-                        title: locale === "en" ? "Weaknesses" : locale === "es" ? "Debilidades" : "Puncte Slabe (Weaknesses)",
+                        title: ui.weaknesses,
                         value: getSwotString(result.analiza_swot?.puncte_slabe)
                       })}
                       className="text-[10px] text-zinc-500 hover:text-white p-2 -m-2 inline-flex items-center justify-center min-w-[36px] min-h-[36px]"
                     >
-                      {locale === "en" ? "✏️ Edit" : locale === "es" ? "✏️ Editar" : "✏️ Editează"}
+                      {`✏️ ${ui.editBtn}`}
                     </button>
                   </div>
                   {renderSwotCategory(result.analiza_swot?.puncte_slabe)}
@@ -1556,16 +1556,16 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
 
                 <div className="bg-blue-950/10 border border-blue-800/20 rounded-xl p-4 relative">
                   <div className="flex justify-between items-center mb-1">
-                    <span className="text-[10px] text-blue-400 font-black tracking-wider uppercase">{locale === "en" ? "🚀 Opportunities" : locale === "es" ? "🚀 Oportunidades" : "🚀 Oportunități"}</span>
+                    <span className="text-[10px] text-blue-400 font-black tracking-wider uppercase">{`🚀 ${ui.opportunities}`}</span>
                     <button
                       onClick={() => setEditingField({
                         key: "analiza_swot.oportunitati",
-                        title: locale === "en" ? "Opportunities" : locale === "es" ? "Oportunidades" : "Oportunități (Opportunities)",
+                        title: ui.opportunities,
                         value: getSwotString(result.analiza_swot?.oportunitati)
                       })}
                       className="text-[10px] text-zinc-500 hover:text-white p-2 -m-2 inline-flex items-center justify-center min-w-[36px] min-h-[36px]"
                     >
-                      {locale === "en" ? "✏️ Edit" : locale === "es" ? "✏️ Editar" : "✏️ Editează"}
+                      {`✏️ ${ui.editBtn}`}
                     </button>
                   </div>
                   {renderSwotCategory(result.analiza_swot?.oportunitati)}
@@ -1573,16 +1573,16 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
 
                 <div className="bg-amber-950/10 border border-amber-800/20 rounded-xl p-4 relative">
                   <div className="flex justify-between items-center mb-1">
-                    <span className="text-[10px] text-amber-400 font-black tracking-wider uppercase">{locale === "en" ? "☠️ Threats" : locale === "es" ? "☠️ Amenazas" : "☠️ Amenințări"}</span>
+                    <span className="text-[10px] text-amber-400 font-black tracking-wider uppercase">{`☠️ ${ui.threats}`}</span>
                     <button
                       onClick={() => setEditingField({
                         key: "analiza_swot.amenintari",
-                        title: locale === "en" ? "Threats" : locale === "es" ? "Amenazas" : "Amenințări (Threats)",
+                        title: ui.threats,
                         value: getSwotString(result.analiza_swot?.amenintari)
                       })}
                       className="text-[10px] text-zinc-500 hover:text-white p-2 -m-2 inline-flex items-center justify-center min-w-[36px] min-h-[36px]"
                     >
-                      {locale === "en" ? "✏️ Edit" : locale === "es" ? "✏️ Editar" : "✏️ Editează"}
+                      {`✏️ ${ui.editBtn}`}
                     </button>
                   </div>
                   {renderSwotCategory(result.analiza_swot?.amenintari)}
@@ -1604,7 +1604,7 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
           <div className="bg-zinc-900 border-t border-zinc-800 rounded-t-3xl p-6 max-h-[85vh] overflow-y-auto space-y-4 animate-in slide-in-from-bottom duration-300 flex flex-col w-full md:max-w-lg md:mx-auto md:left-1/2 md:-translate-x-1/2 md:right-auto">
             <div className="flex justify-between items-center border-b border-zinc-800/60 pb-3">
               <h4 className="text-sm font-black text-white">{editingField.title}</h4>
-              <button onClick={() => setEditingField(null)} className="text-xs text-zinc-500 font-bold p-1">{locale === "en" ? "Close" : locale === "es" ? "Cerrar" : "Închide"}</button>
+              <button onClick={() => setEditingField(null)} className="text-xs text-zinc-500 font-bold p-1">{ui.closeBtn}</button>
             </div>
             
             <textarea
@@ -1644,7 +1644,7 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
                   : (locale === "en" ? "Edit Budget Item" : locale === "es" ? "Editar Elemento del Presupuesto" : "Editează Cheltuiala")}
               </h4>
               <button onClick={() => setEditingBudgetItem(null)} className="text-xs text-zinc-500 font-bold p-1">
-                {locale === "en" ? "Close" : locale === "es" ? "Cerrar" : "Închide"}
+                {ui.closeBtn}
               </button>
             </div>
             
@@ -1768,7 +1768,7 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
         userId={user?.uid || ""}
         userEmail={user?.email || ""}
         currency={locale === "es" || locale === "en" ? "EUR" : "RON"}
-        planName={result?.nume || (locale === "en" ? "Business Plan" : locale === "es" ? "Plan de Negocios" : "Plan de Afaceri")}
+        planName={result?.nume || (ui.businessPlan)}
         planId={result?.id}
         locale={locale}
       />
@@ -1783,7 +1783,7 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
           <div className="bg-zinc-900 border-t border-zinc-800 rounded-t-3xl p-6 max-h-[85vh] overflow-y-auto space-y-5 animate-in slide-in-from-bottom duration-300 flex flex-col w-full md:max-w-lg md:mx-auto md:left-1/2 md:-translate-x-1/2 md:right-auto">
             <div className="flex justify-between items-center border-b border-zinc-800/60 pb-3">
               <h4 className="text-sm font-black text-white">{locale === "en" ? "Export Options" : locale === "es" ? "Opciones de Exportación" : "Opțiuni de Exportare"}</h4>
-              <button onClick={() => setShowExportModal(false)} className="text-xs text-zinc-500 font-bold p-1">{locale === "en" ? "Close" : locale === "es" ? "Cerrar" : "Închide"}</button>
+              <button onClick={() => setShowExportModal(false)} className="text-xs text-zinc-500 font-bold p-1">{ui.closeBtn}</button>
             </div>
             <p className="text-[11px] text-zinc-400 leading-relaxed -mt-2">
               {ui.exportActiveTabHint}{" "}

@@ -91,9 +91,10 @@ export function removePlanFromLocalMirrors(planId: string): void {
 }
 
 /**
- * Guest Demo: append a generated plan to demo_plans_list immediately (sync).
- * Dedupe by id only — same business name must NOT drop a distinct plan (Sesiunea A1).
- * Returns true if the plan was newly appended.
+ * Guest Demo: sync a generated plan into demo_plans_list immediately (A1 / D3).
+ * - Dedupe / match by **id** only (same business name must keep distinct plans).
+ * - If id already exists → **upsert** (keeps list current after ES fill / edits).
+ * Returns true if newly appended; false if updated or skipped.
  */
 export function appendGuestPlanToLocalList(plan: any): boolean {
   if (typeof window === "undefined" || !plan || typeof plan !== "object") return false;
@@ -108,7 +109,10 @@ export function appendGuestPlanToLocalList(plan: any): boolean {
     let list: any[] = listStr ? JSON.parse(listStr) : [];
     if (!Array.isArray(list)) list = [];
     const id = String(planToSave.id);
-    if (list.some((p: any) => String(p?.id || "") === id)) {
+    const idx = list.findIndex((p: any) => String(p?.id || "") === id);
+    if (idx >= 0) {
+      list[idx] = planToSave;
+      localStorage.setItem("demo_plans_list", JSON.stringify(list));
       return false;
     }
     list.push(planToSave);

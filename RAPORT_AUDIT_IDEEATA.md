@@ -59,7 +59,6 @@
 - Limba UI (RO/EN/ES) în mare parte ok.
 
 ### Nu e bine
-- Lista planurilor de oaspete (înainte de cont) e mai puțin „sigură” decât pe Desktop (reparat pe Desktop; pe telefon lipsește o plasă de siguranță).
 - Unele drumuri spre „upgrade / top-up” diferă față de Desktop.
 - Pe Landing, linkurile Login / Studio din meniu sunt ascunse pe ecran mic (rămâne CTA-ul principal).
 
@@ -162,16 +161,17 @@
 
 ## 8. Ce e deja reparat recent (context)
 
-- **A1:** pe Desktop, planurile de oaspete ajung mai sigur în listă înainte de cont.  
+- **A1 / D3:** pe Desktop și pe telefon, planurile de oaspete ajung (și se actualizează) în listă înainte de cont.
 - **B1:** uneltele Pro creează tab-uri chiar dacă spațiul local e plin.  
 - **A2:** Dashboard nu mai șterge pe nume; migrarea e pe id (planuri distincte cu același nume rămân).  
 - **B2:** tipuri + alerte edit vs combine; export pe tab-ul activ.  
 - **Admin:** conturile admin au cote nelimitate.  
 - **ES:** umplere automată a explicațiilor goale la generare.  
 - **Deploy:** script care copiază fișierele necesare ca site-ul să nu se rupă după update.
+- **C1–C3 · D1–D2:** auth EN/ES Desktop, Demo Mobile Pro→auth, Studio Mobile setResult/sharedId, share Desktop, EditForm Demo Mobile.
 
 **Încă pe listă (plan):**  
-- Hotfixes din audit (auth EN/ES Desktop, Demo Mobile Pro→auth, Studio Mobile sharedId / setResult, share Desktop, tabletă).
+- Decizie tabletă (E); F1–F3 și restul din plan.
 
 ---
 

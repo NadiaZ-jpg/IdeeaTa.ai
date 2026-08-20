@@ -1114,6 +1114,19 @@ Fișiere: `lib/versionStack.ts`, `lib/planQuota.ts`, `lib/proPackQuotaAdmin.ts`,
 
 ---
 
+## FREEZE — Sesiunea D3 (20 August 2026): Guest list Demo Mobile (= A1)
+
+**Gap:** Mobile avea append la generare, dar fără fallback pe schimbări `result` (fill ES / edit) și fără upsert pe id → lista putea rămâne în urmă față de Desktop.
+
+**Fix:**
+- `appendGuestPlanToLocalList`: upsert pe id (update dacă există).
+- `DemoMobile`: useEffect fallback ca Desktop (skip shared view; `auth.currentUser`).
+- `DemoDesktop`: același skip pe shared + upsert.
+
+**Acceptanță:** 3 generări guest pe telefon → `demo_plans_list` cu 3 id-uri; după fill/edit, același id e actualizat; signup → migrate vede toate.
+
+---
+
 ## FREEZE — Fix ES explicații goale (20 August 2026)
 
 **Bug:** pe `/es` (Desktop+Mobile+Tablet) SWOT/buget ies cu titluri dar `explicatie_tehnica` / `explicatie` goale. Cauze: (1) fill pe generate tăiat la 14s; (2) client fill cerea auth → oaspeții Demo rămâneau goi.

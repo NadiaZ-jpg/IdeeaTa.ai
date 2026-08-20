@@ -29,6 +29,7 @@
 | **C3** Studio Mobile tabs+shared | ✅ | Sanity | Must ✅ | Must* | ✅ | ✅ | ✅ |
 | **D1** Share Desktop | ✅ | Must ✅ | Sanity | Sanity | ✅ | ✅ | ✅ |
 | **D2** Edit manual Demo Mobile | ✅ | Sanity | Must ✅ | Must* | ✅ | ✅ | ✅ |
+| **D3** Guest list Demo Mobile | ✅ | Sanity | Must ✅ | Must* | ✅ | ✅ | ✅ |
 | Ops `./update.sh` | ✅ | — | — | — | — | — | — |
 
 \*A2: migrare/Dashboard pe toate device-urile după login; bug-ul delete-on-name era cross-device.
@@ -269,6 +270,6 @@ F4–F5   proiecte mari (amânate)
 
 ## Următorul pas
 
-**C1–C3 · D1–D2** ✅. Urmează **D3** (guest list Mobile ca A1).
+**C1–C3 · D1–D3** ✅. Urmează faza **E** (tabletă — decizie E-A / E-B / E-C) sau **F1–F3**.
 
-Spune `executa D3` ca să continuăm pe `main`.
+Spune `executa E` (cu opțiunea aleasă) sau următorul item.

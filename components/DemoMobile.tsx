@@ -553,6 +553,26 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
     return () => window.removeEventListener('popstate', handlePopState);
   }, [user, isEditing]);
 
+  // Persist current plan; guest list written sync in generate() + fallback upsert (D3 = A1 Mobile).
+  const isInitialMountGuestList = useRef(true);
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (isInitialMountGuestList.current) {
+      isInitialMountGuestList.current = false;
+      return;
+    }
+    if (result) {
+      try {
+        localStorage.setItem("current_generated_plan", JSON.stringify(result));
+      } catch {
+        /* ignore */
+      }
+      if (!user && !auth.currentUser && !isSharedView) {
+        appendGuestPlanToLocalList(result);
+      }
+    }
+  }, [result, user, isSharedView]);
+
   const handleGenerate = async (nicheExample?: string) => {
     const inputSkill = nicheExample || skill;
     if (!inputSkill.trim()) return;

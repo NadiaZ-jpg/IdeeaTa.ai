@@ -867,7 +867,7 @@ export default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" | 
   }, [user]);
 
   // Persist current plan for refresh; guest list is written sync in generate() (A1).
-  // Fallback: if a plan appears while still guest and is missing from the list, append once.
+  // Fallback upsert: if a plan appears/updates while still guest and is missing/stale in the list.
   const isInitialMount = useRef(true);
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -877,13 +877,13 @@ export default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" | 
     }
     if (result) {
       localStorage.setItem("current_generated_plan", JSON.stringify(result));
-      if (!user && !auth.currentUser) {
+      if (!user && !auth.currentUser && !isSharedView) {
         appendGuestPlanToLocalList(result);
       }
     } else {
       localStorage.removeItem("current_generated_plan");
     }
-  }, [result, user]);
+  }, [result, user, isSharedView]);
 
   // Prevenire copiere conținut dacă este protejat
   useEffect(() => {

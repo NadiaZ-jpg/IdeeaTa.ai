@@ -1,0 +1,201 @@
+# Raport IdeeaTa.ai — ce merge, ce e șubred, ce e stricat
+
+**Data:** 20 august 2026  
+**Pentru:** echipă + oricine vrea să înțeleagă starea produsului (fără jargon greu)  
+**Acoperă:** Desktop · Telefon · Tabletă × Română · Engleză · Spaniolă
+
+---
+
+## Cum se citește acest raport
+
+| Cuvânt | Înseamnă |
+|--------|----------|
+| **Bine** | Funcționează cum trebuie. Utilizatorul poate termina treaba. |
+| **Nu e bine** | Merge, dar e confuz, incomplet sau ușor de stricat. Trebuie îmbunătățit. |
+| **Rău** | Bug serios: pierdere de date, ecran blocat, text greșit de limbă, sau lipsește o funcție importantă. |
+
+---
+
+## Verdict pe scurt (1 minut)
+
+| Pe ce | Notă | Pe limba omului |
+|-------|------|-----------------|
+| **Desktop (PC)** | **Bine**, cu câteva găuri | Cel mai complet. Poți genera, edita, exporta, folosi unelte Pro. Lipsesc: buton clar de Share; la login pe site-ul EN/ES unele mesaje de eroare apar tot în română. |
+| **Telefon** | **Nu e bine** | Poți genera și exporta. Unele unelte Pro pentru oaspeți nu deschid login-ul corect. Pe Demo nu poți edita textul cu mâna (doar cu AI). Pe Studio, unele tab-uri de variante pot rămâne în urmă. |
+| **Tabletă** | **Rău** | Nu există un ecran făcut special pentru tabletă. iPad-ul primește UI de telefon. Unele tablete Windows primesc UI de PC înghesuit. |
+| **Română (RO)** | **Bine** | Limba de bază. Cea mai stabilă. |
+| **Engleză (EN)** | **Nu e bine** | Site-ul e tradus, exporturile și plățile în EUR sunt ok. Dar pe Desktop, erorile de autentificare pot apărea în română. |
+| **Spaniolă (ES)** | **Nu e bine** | Interfața e tradusă. Uneori planul AI iese cu explicații goale la SWOT/buget (am pus deja „umplere” automată, dar nu e perfect). |
+
+---
+
+## 1. Desktop (calculator / ecran mare)
+
+### Bine
+- Generare plan (Demo și Studio).
+- Editare manuală a planului.
+- Unelte Pro: ton, fonduri UE, investitori, buget, capitole expert.
+- Tab-uri de variante (chiar dacă spațiul de pe disc e plin — reparat recent).
+- Export PDF, Word, PowerPoint.
+- Cont, cote, pachete Standard / Pro, admin nelimitat.
+- Landing, resurse, pagini legale, cookie-uri, reclame doar pe pagini de conținut (nu în Studio/Demo).
+
+### Nu e bine
+- Nu există un buton clar „Distribuie” pe Desktop (pe telefon există).
+- Două sisteme de traduceri în paralel → greu de întreținut; unele texte rămân pe lângă.
+- Unelte Pro: diferența dintre „editare” și „combinare variante” e confuză pentru utilizator (plan B2).
+
+### Rău
+- **Erori la login pe Desktop** (Google / email / parolă): pe versiunea engleză și spaniolă, mesajele pot apărea **tot în română**. Pe telefon și pe pagina de Login dedicată sunt deja traduse.
+
+---
+
+## 2. Telefon (mobil)
+
+### Bine
+- Generare plan, meniu mobil, unelte Pro în panouri, export, share nativ (trimite link).
+- Pe Demo: poți deschide un plan primit pe link.
+- Pe Studio: poți genera și edita pe loc (câmpuri / buget).
+- Limba UI (RO/EN/ES) în mare parte ok.
+
+### Nu e bine
+- Lista planurilor de oaspete (înainte de cont) e mai puțin „sigură” decât pe Desktop (reparat pe Desktop; pe telefon lipsește o plasă de siguranță).
+- Unele drumuri spre „upgrade / top-up” diferă față de Desktop.
+- Pe Landing, linkurile Login / Studio din meniu sunt ascunse pe ecran mic (rămâne CTA-ul principal).
+
+### Rău
+1. **Oaspete + unealtă Pro pe Demo:** în loc să deschidă fereastra de autentificare, poate rămâne „în procesare” și login-ul nu apare.
+2. **Pe Demo nu există editare manuală** (pe Desktop da) — pe telefon schimbi planul doar prin AI / unelte.
+3. **Pe Studio (telefon):** după ce sistemul completează automat câmpuri lipsă, **tab-urile de variante** pot rămâne în urmă față de ce vezi pe ecran.
+4. **Pe Studio (telefon):** un link de tip „plan partajat” (`sharedId`) **nu încarcă** planul (pe Demo da).
+
+---
+
+## 3. Tabletă
+
+### Bine
+- Dacă tableta e tratată ca telefon (ex. multe iPad-uri), beneficiezi de layout-ul mobil (care pe ecrane mid se întinde puțin).
+
+### Nu e bine / Rău
+- **Nu există produs „tabletă”.** Site-ul alege doar: *telefon* sau *PC*, după tipul de dispozitiv (User-Agent), **nu** după lățimea ecranului.
+- **iPad** → de obicei UI de **telefon** (uneori prea „mic” ca idee, pe un ecran mare).
+- **Tabletă Windows / Chrome îngust pe PC** → UI de **Desktop** înghesuit (sidebar-uri de PC pe ecran mic).
+- Testele din Chrome „mod telefon” pot minți: dacă nu simulează și tipul de dispozitiv, vezi Desktop pe un ecran de telefon.
+
+**Pe scurt:** tableta e cea mai slabă experiență din cele trei.
+
+---
+
+## 4. Română · Engleză · Spaniolă
+
+### Română — Bine
+- Rute, texte, planuri AI, monedă LEI/RON, pagini legale și resurse.
+- Cea mai testată și cea mai stabilă.
+
+### Engleză — Nu e bine (cu un punct Rău)
+- **Bine:** pagini `/en`, exporturi, plăți EUR, SEO.
+- **Rău:** pe Desktop, unele erori de autentificare apar în română.
+- **Nu e bine:** dacă cineva aterizează pe o pagină legală/resurse pe URL românesc, site-ul nu îl redirecționează mereu automat spre engleză (doar pe paginile principale: acasă, demo, studio, login, dashboard).
+
+### Spaniolă — Nu e bine
+- **Bine:** pagini `/es`, interfață tradusă, EUR, umplere automată a explicațiilor goale la generare.
+- **Nu e bine:** uneori SWOT / buget ies cu titluri ok dar explicații goale (mai ales la început); AI-ul e mai fragil decât pe RO/EN.
+- **Rău (același ca EN):** erori auth pe Desktop pot fi în română.
+
+**Important:** bug-urile de pe telefon/tabletă (spinner, tab-uri, share) apar **la fel pe toate limbile** — nu sunt „probleme de spaniolă”, ci probleme de ecran.
+
+---
+
+## 5. Zonele produsului (toate pe scurt)
+
+| Zonă | Desktop | Telefon | Tabletă | RO | EN | ES |
+|------|---------|---------|---------|----|----|-----|
+| Landing | Bine | Nu e bine | Nu e bine | Bine | Bine | Bine |
+| Demo — generare | Bine | Bine | Nu e bine | Bine | Bine | Bine |
+| Demo — oaspete → cont | Bine | Nu e bine | Nu e bine | Bine | Bine | Bine |
+| Demo — editare manuală | Bine | **Rău** | Nu e bine | Bine | Bine | Bine |
+| Demo — unelte Pro | Bine | Nu e bine* | Nu e bine | Bine | Bine | Bine |
+| Studio — generare / plan | Bine | Bine | Nu e bine | Bine | Bine | Bine |
+| Studio — tab-uri variante | Bine | **Rău** | Nu e bine | Bine | Bine | Bine |
+| Export PDF/Word/PPT | Bine | Bine | Nu e bine | Bine | Bine | Bine |
+| Distribuire (Share) | **Rău** | Nu e bine** | Nu e bine | Bine | Bine | Bine |
+| Dashboard (proiectele mele) | Bine | Bine | Nu e bine | Bine | Bine | Bine |
+| Login / cont | Bine**** | Bine | Nu e bine | Bine | Nu e bine**** | Nu e bine**** |
+| Prețuri / upgrade | Bine | Nu e bine | Nu e bine | Bine | Bine | Bine |
+| Resurse + reclame | Bine | Bine | Bine | Bine | Bine | Bine |
+| Pagini legale / contact | Bine | Bine | Bine | Bine | Bine | Bine |
+| Calitate text AI | Bine | Bine | Bine | Bine | Bine | Nu e bine |
+| Publicare pe server | Bine | Bine | Bine | Bine | Bine | Bine |
+
+\* Pe telefon: login la Pro pentru oaspeți poate eșua (vezi mai sus).  
+\*\* Pe telefon Demo share inbound e ok; pe Studio telefon link-ul shared nu încarcă.  
+\*\*\* ~~Dashboard delete pe nume~~ — **reparat în A2** (20 Aug 2026).  
+\*\*\*\* Pagina Login dedicată e tradusă; modalul de pe Demo/Studio **Desktop** poate arăta erori în română pe EN/ES.
+
+---
+
+## 6. Lista „Rău” — ce trebuie reparat (prioritar)
+
+1. **Desktop EN/ES: mesaje de login în română.**  
+2. **Demo telefon: oaspete + unealtă Pro → nu se deschide autentificarea / rămâne blocat.**  
+3. **Studio telefon: tab-urile de variante pot rămâne vechi** după completarea automată.  
+4. **Studio telefon: link de plan partajat nu încarcă.**  
+5. **Demo telefon: fără editare manuală** (doar AI).  
+6. **Desktop: fără buton Share clar.**  
+7. **Tabletă: fără experiență dedicată** (alegere greșită telefon vs PC).
+
+~~Dashboard șterge pe nume~~ — **rezolvat A2.**
+
+---
+
+## 7. Lista „Nu e bine” — datorii / UX
+
+- Confuzie cote Pro: editare vs combinare variante (plan B2).  
+- Două sisteme de traduceri; texte împrăștiate.  
+- Redirect automat de limbă doar pe câteva pagini, nu pe legal/resurse.  
+- Uneori scrie „LEI”, alteori „RON” (același leu).  
+- Cod Desktop/Telefon aproape dublat → reparațiile trebuie făcute de 4 ori și se uită pe unele ecrane.  
+- Limita de 3 planuri ca oaspete e ținută mai ales pe telefon/browser, nu 100% pe server.  
+- Pe server: dacă se publică greșit (fără scriptul de deploy), site-ul poate rămâne alb (deja s-a întâmplat; există `deploy.sh` ca regulă).
+
+---
+
+## 8. Ce e deja reparat recent (context)
+
+- **A1:** pe Desktop, planurile de oaspete ajung mai sigur în listă înainte de cont.  
+- **B1:** uneltele Pro creează tab-uri chiar dacă spațiul local e plin.  
+- **A2:** Dashboard nu mai șterge pe nume; migrarea e pe id (planuri distincte cu același nume rămân).  
+- **Admin:** conturile admin au cote nelimitate.  
+- **ES:** umplere automată a explicațiilor goale la generare.  
+- **Deploy:** script care copiază fișierele necesare ca site-ul să nu se rupă după update.
+
+**Încă pe listă (plan):**  
+- **B2** — Claritate unelte Pro + export pe tab-ul activ.
+
+---
+
+## 9. Ce facem mai departe (ordine recomandată, pe limba omului)
+
+1. Publicare pe server a ultimelor reparații (dacă încă lipsește update-ul cu iconițe Apple / A2).  
+2. Traducerea mesajelor de login pe Desktop (EN/ES).  
+3. Repararea pe telefon: login la Pro pentru oaspeți + tab-uri Studio.  
+4. Share pe Desktop + încărcare plan partajat pe Studio telefon.  
+5. **B2:** mesaje clare la unelte Pro.  
+6. Decizie tabletă: telefon, PC, sau ecran special.  
+7. Pe termen lung: un singur „creier” de cod pentru Desktop și telefon, ca să nu se mai strice pe unul și pe celălalt nu.
+
+---
+
+## 10. Pentru testeri (fără DevTools sofisticat)
+
+| Vrei să testezi… | Fă așa |
+|------------------|--------|
+| Telefon real | Folosește telefonul, nu doar fereastra îngustă pe PC. |
+| „Mod telefon” pe PC | Activează și emularea de dispozitiv mobil (altfel poți vedea Desktop). |
+| iPad | Așteaptă-te la UI de telefon. |
+| EN / ES login pe PC | Încearcă Greșit parola pe Demo Desktop — dacă vezi română, e bug-ul cunoscut. |
+| Două planuri cu același nume | După A2: ambele trebuie să apară în Dashboard (id-uri diferite). |
+
+---
+
+*Document generat din analiza codului și a logicii aplicației (Demo, Studio, Dashboard, limbi, deploy). Nu înlocuiește testarea manuală pe dispozitive reale.*

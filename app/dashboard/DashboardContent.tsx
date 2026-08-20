@@ -193,20 +193,13 @@ export default function DashboardContent({ locale = "ro" }: { locale?: "ro" | "e
         
         const fetchedPlans: any[] = [];
         const seenIds = new Set<string>();
-        const seenNames = new Set<string>();
 
+        // A2: keep every distinct plan id — never auto-deleteDoc on duplicate business name.
         snapshot.forEach((docSnap) => {
           const pData: any = { id: docSnap.id, ...docSnap.data() };
-          const pName = pData.nume ? pData.nume.trim().toLowerCase() : "";
-          
-          if (!seenIds.has(pData.id) && (!pName || !seenNames.has(pName))) {
-            seenIds.add(pData.id);
-            if (pName) seenNames.add(pName);
-            fetchedPlans.push(pData);
-          } else {
-            // Curățăm automat duplicatul din Firestore în fundal
-            deleteDoc(doc(db, "users", currentUser.uid, "plans", docSnap.id)).catch(console.error);
-          }
+          if (seenIds.has(pData.id)) return;
+          seenIds.add(pData.id);
+          fetchedPlans.push(pData);
         });
         
         setLifetimePlanCount(

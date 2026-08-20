@@ -55,12 +55,13 @@ export function markPlanDeletedLocally(uid: string, planId: string, planName?: s
   if (typeof window === "undefined" || !planId) return;
   const set = readDeletedPlanIds(uid);
   set.add(planId);
+  // Optional name marker for diagnostics; migrate skips by **id** only (A2).
   if (planName?.trim()) set.add(`name:${planName.trim().toLowerCase()}`);
   localStorage.setItem(deletedPlansStorageKey(uid), JSON.stringify([...set]));
   removePlanFromLocalMirrors(planId);
 }
 
-/** Scoate planul din current_generated_plan + demo_plans_list. */
+/** Scoate planul din current_generated_plan + demo_plans_list (doar pe id — A2). */
 export function removePlanFromLocalMirrors(planId: string): void {
   if (typeof window === "undefined" || !planId) return;
 
@@ -68,7 +69,7 @@ export function removePlanFromLocalMirrors(planId: string): void {
     const current = localStorage.getItem("current_generated_plan");
     if (current) {
       const plan = JSON.parse(current);
-      if (plan?.id === planId || plan?.nume === planId) {
+      if (String(plan?.id || "") === planId) {
         localStorage.removeItem("current_generated_plan");
         localStorage.removeItem("current_versions");
       }
@@ -82,9 +83,7 @@ export function removePlanFromLocalMirrors(planId: string): void {
     if (!listStr) return;
     const list = JSON.parse(listStr);
     if (!Array.isArray(list)) return;
-    const next = list.filter(
-      (p: any) => p?.id !== planId && String(p?.nume || "") !== planId
-    );
+    const next = list.filter((p: any) => String(p?.id || "") !== planId);
     localStorage.setItem("demo_plans_list", JSON.stringify(next));
   } catch {
     /* ignore */

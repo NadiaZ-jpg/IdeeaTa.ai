@@ -1008,4 +1008,19 @@ Fișiere: `lib/versionStack.ts`, `lib/planQuota.ts`, `lib/proPackQuotaAdmin.ts`,
 
 **Nu în B1:** B2 (UX edit vs combine + export pe tab activ) — separat.
 
+---
+
+## FREEZE — Sesiunea A2 (20 August 2026): Migrate + Dashboard harden (id-first)
+
+**Bug:** Dashboard auto-`deleteDoc` pe planuri cu același `nume` → pierdere planuri distincte. Migrarea sărea upload la „duplicate name” (și le pierdea din listă), plus dedupe local pe nume.
+
+**Fix:**
+- `DashboardContent`: listează toate id-urile; **fără** ștergere automată pe nume.
+- `migrateLocalPlansToFirebase`: fold `current_generated_plan` → listă; colectare/dedupe **doar pe id**; upload dacă doc-ul nu există; tombstone delete pe id; paid/admin fără plafon artificial la migrare.
+- `removePlanFromLocalMirrors`: scoate doar pe id.
+
+**Acceptanță:** 2 planuri guest cu același nume AI, id-uri diferite → după signup ambele în Dashboard. Ștergerea unuia nu șterge celălalt. Cont gratuit: max 4 uploadate, restul rămân local.
+
+**Nu în A2:** B2 (UX cote Pro).
+
 

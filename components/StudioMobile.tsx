@@ -8,6 +8,8 @@ import { onAuthStateChanged, User, sendEmailVerification, signOut } from 'fireba
 import { doc, setDoc, getDoc, updateDoc, onSnapshot, collection, getDocs } from 'firebase/firestore';
 import { PricingModal } from '@/components/PricingModal';
 import { LanguageSwitcher } from '@/components/LanguageSwitcher';
+import { MobileHeaderMenu } from '@/components/MobileHeaderMenu';
+import BuyMeACoffeeModal from '@/components/BuyMeACoffeeModal';
 import { useStudioFirebaseSync } from '@/hooks/useStudioFirebaseSync';
 import { ToneEditor } from '@/components/ToneEditor';
 import Link from 'next/link';
@@ -17,7 +19,7 @@ import { UI_STRINGS } from '@/lib/uiStrings';
 import { createAndCopySharedPlanLink } from '@/lib/sharePlan';
 import { StudioMobileGenerateHint } from '@/components/StudioMobileGenerateHint';
 import { getExamples } from '@/lib/examples';
-import { FREE_ACCOUNT_PLAN_LIMIT, hasUnlimitedGenerateAccess } from '@/lib/planQuota';
+import { FREE_ACCOUNT_PLAN_LIMIT, hasUnlimitedGenerateAccess, clearLocalPlanState } from '@/lib/planQuota';
 import { canGenerateWithQuotas, readProPackRemaining, proPackTopupConfirmDialog } from '@/lib/proPackQuota';
 import { startProTopupCheckout } from '@/lib/proTopupCheckout';
 import { ProPackQuotaBar } from '@/components/ProPackQuotaBar';
@@ -47,8 +49,8 @@ import {
   type VersionStackAccess,
 } from "@/lib/versionStack";
 
-import { EXPERT_TEMPLATES, expertModulesAllFilterLabel } from '@/lib/templatesData';
 import { MobileProToolsPanel, type MobileAiPrompt } from '@/components/tools/MobileProToolsPanel';
+import { ExpertSectionsDrawer } from '@/components/modals/ExpertSectionsDrawer';
 
 const BudgetPieChart = dynamic(() => import('@/components/BudgetChart').then(mod => mod.BudgetPieChart), { ssr: false });
 
@@ -67,6 +69,7 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
   const [loading, setLoading] = useState(false);
   const [fxRate, setFxRate] = useState(0.201);
   const [showPricingModal, setShowPricingModal] = useState(false);
+  const [showBmcModal, setShowBmcModal] = useState(false);
   const [isDownloading, setIsDownloading] = useState<'pdf' | 'word' | 'pptx' | 'pdf-summary' | null>(null);
   
   const [topupLoading, setTopupLoading] = useState(false);
@@ -197,7 +200,6 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
   const [showShareSuccess, setShowShareSuccess] = useState(false);
   const [showVersionDropdown, setShowVersionDropdown] = useState(false);
   const [showExpertDrawer, setShowExpertDrawer] = useState(false);
-  const [selectedExpertCategory, setSelectedExpertCategory] = useState("all");
   const [showHeader, setShowHeader] = useState(true);
   const lastScrollY = useRef(0);
 
@@ -216,8 +218,133 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  // Prevenire reîncărcare accidentală când există plan activ pe mobil (Pull-to-Refresh guard)
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (result && !isSharedView && !isDownloading) {
+        e.preventDefault();
+        e.returnValue = "";
+      }
+    };
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    return () => window.removeEventListener("beforeunload", handleBeforeUnload);
+  }, [result, isSharedView, isDownloading]);
+
+  // Ascultă evenimentul de back/forward (popstate) pentru sincronizare gesturi pe mobil
+  useEffect(() => {
+    const handlePopState = () => {
+      const searchParams = new URLSearchParams(window.location.search);
+      const isIdea = searchParams.get('view') === 'idea' || searchParams.has('sharedId') || searchParams.has('shareId');
+      
+      if (isIdea) {
+        setResult((prevResult: any) => {
+          if (!prevResult) {
+            const savedVersionsStr = localStorage.getItem("current_versions");
+            if (savedVersionsStr) {
+              try {
+                const { versions: v, activeVersionId: a } = JSON.parse(savedVersionsStr);
+                setVersions(v);
+                setActiveVersionId(a);
+                return v[a];
+              } catch (e) {
+                console.error(e);
+              }
+            }
+            const saved = localStorage.getItem("current_generated_plan");
+            if (saved && saved !== "null" && saved !== "undefined") {
+              try {
+                const parsed = formatObjectNumbers(JSON.parse(saved));
+                setVersions({ original: parsed });
+                setActiveVersionId("original");
+                return parsed;
+              } catch (e) {
+                console.error(e);
+              }
+            }
+            return null;
+          }
+          return prevResult;
+        });
+      }
+
+      if (user && !searchParams.has("sharedId") && !searchParams.has("shareId")) {
+        setIsSharedView(false);
+      }
+    };
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, [user]);
+
   // Editare Manuală Drawer
   const [editingField, setEditingField] = useState<{key: string, title: string, value: string} | null>(null);
+  const [editingBudgetItem, setEditingBudgetItem] = useState<{ index: number | 'new'; item: string; cost: string } | null>(null);
+
+  const handleSaveBudgetItem = async () => {
+    if (!editingBudgetItem || !editingBudgetItem.item.trim()) return;
+    const currentBudget = [...(result?.plan_financiar?.buget_investitii || [])];
+    const costNum = parseInt(editingBudgetItem.cost.toString().replace(/[^0-9]/g, '') || '0', 10);
+
+    if (editingBudgetItem.index === 'new') {
+      currentBudget.push({
+        item: editingBudgetItem.item.trim(),
+        cost: costNum,
+        categorie: editingBudgetItem.item.trim(),
+        suma_lei: costNum,
+      });
+    } else {
+      const idx = editingBudgetItem.index;
+      currentBudget[idx] = {
+        ...currentBudget[idx],
+        item: editingBudgetItem.item.trim(),
+        cost: costNum,
+        categorie: editingBudgetItem.item.trim(),
+        suma_lei: costNum,
+      };
+    }
+
+    const updated = {
+      ...result,
+      plan_financiar: {
+        ...(result?.plan_financiar || {}),
+        buget_investitii: currentBudget,
+      },
+    };
+
+    setResult(updated);
+    if (typeof window !== "undefined") {
+      localStorage.setItem("current_generated_plan", JSON.stringify(updated));
+    }
+    const nextVersions = {
+      ...(versions && Object.keys(versions).length ? versions : { original: updated }),
+      [activeVersionId]: updated,
+    };
+    setVersions(nextVersions);
+    await syncCurrentPlanToFirestore(updated, nextVersions);
+    setEditingBudgetItem(null);
+  };
+
+  const handleDeleteBudgetItem = async (idx: number) => {
+    const currentBudget = [...(result?.plan_financiar?.buget_investitii || [])];
+    currentBudget.splice(idx, 1);
+    const updated = {
+      ...result,
+      plan_financiar: {
+        ...(result?.plan_financiar || {}),
+        buget_investitii: currentBudget,
+      },
+    };
+
+    setResult(updated);
+    if (typeof window !== "undefined") {
+      localStorage.setItem("current_generated_plan", JSON.stringify(updated));
+    }
+    const nextVersions = {
+      ...(versions && Object.keys(versions).length ? versions : { original: updated }),
+      [activeVersionId]: updated,
+    };
+    setVersions(nextVersions);
+    await syncCurrentPlanToFirestore(updated, nextVersions);
+  };
 
   const renderSwotCategory = (catData: any) => {
     if (!catData) return null;
@@ -815,11 +942,10 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
         </Link>
         <span className="text-sm font-black">{locale === "en" ? "Mobile Studio" : locale === "es" ? "Studio Móvil" : "Studio Mobil"}</span>
         <div className="flex items-center gap-2">
-          <LanguageSwitcher currentLocale={locale} />
           <button
             onClick={handleShare}
-            className="bg-zinc-800 text-white font-bold p-2 rounded-lg text-xs min-h-[44px] min-w-[44px]"
-            title={locale === "en" ? "Share" : locale === "es" ? "Compartir" : "Distribui"}
+            className="bg-zinc-800 text-white font-bold p-2 rounded-lg text-xs min-h-[44px] min-w-[44px] flex items-center justify-center"
+            title={locale === "en" ? "Share" : locale === "es" ? "Compartir" : "Distribuie"}
           >
             🔗
           </button>
@@ -830,6 +956,21 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
             <span>{locale === "en" ? "Export" : locale === "es" ? "Exportar" : "Export"}</span>
             <span>📥</span>
           </button>
+          <MobileHeaderMenu
+            locale={locale}
+            user={user}
+            isAdmin={isAdmin}
+            hasProAccess={hasProAccess}
+            hasStandardAccess={hasStandardAccess}
+            subscriptionActive={subscriptionActive}
+            onOpenCoffee={() => setShowBmcModal(true)}
+            onOpenPricing={() => setShowPricingModal(true)}
+            onRequireLogin={() => router.push(isEn ? "/en/login" : isEs ? "/es/login" : "/login")}
+            onLogout={async () => {
+              clearLocalPlanState();
+              await signOut(auth);
+            }}
+          />
         </div>
       </header>
 
@@ -1167,33 +1308,57 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
                 <div className="space-y-2">
                   {(() => {
                     const COLORS = ['#10b981', '#ef4444', '#3b82f6', '#f59e0b', '#8b5cf6', '#06b6d4', '#f97316'];
-                    const sortedBudget = [...(result.plan_financiar?.buget_investitii || [])]
-                      .map((item) => {
-                        const costText = item.cost !== undefined ? item.cost : item.suma_lei;
-                        const cost = parseInt(costText?.toString().replace(/[^0-9]/g, '') || '0');
-                        return { ...item, costVal: cost };
-                      })
-                      .filter(item => item.costVal > 0)
-                      .sort((a, b) => b.costVal - a.costVal);
+                    const budgetList = Array.isArray(result.plan_financiar?.buget_investitii) ? result.plan_financiar.buget_investitii : [];
 
-                    return sortedBudget.map((item: any, idx: number) => {
-                      const label = item.item || item.categorie || '';
-                      const price = item.cost !== undefined ? item.cost : item.suma_lei;
-                      const planCurrency = result.selectedCurrency || (locale === "ro" ? "LEI" : "EUR");
-                      const bulletColor = COLORS[idx % COLORS.length];
+                    return (
+                      <>
+                        {budgetList.map((item: any, idx: number) => {
+                          const label = item.item || item.categorie || '';
+                          const price = item.cost !== undefined ? item.cost : item.suma_lei;
+                          const planCurrency = result.selectedCurrency || (locale === "ro" ? "LEI" : "EUR");
+                          const bulletColor = COLORS[idx % COLORS.length];
 
-                      return (
-                        <div key={idx} className="bg-zinc-950/40 border border-zinc-800/50 rounded-xl p-3 flex justify-between items-center text-xs">
-                          <span className="font-semibold text-zinc-300 flex items-center gap-2">
-                            <span className="w-2 h-2 rounded-[3px] shrink-0" style={{ backgroundColor: bulletColor }} />
-                            <span>{label}</span>
-                          </span>
-                          <span className="font-black text-emerald-400">
-                            {typeof price === 'number' ? price.toLocaleString() : String(price)} {(!price?.toString().toLowerCase().includes('lei') && !price?.toString().toLowerCase().includes('eur')) ? planCurrency : ""}
-                          </span>
-                        </div>
-                      );
-                    });
+                          return (
+                            <div key={idx} className="bg-zinc-950/40 border border-zinc-800/50 rounded-xl p-3 flex justify-between items-center text-xs">
+                              <span className="font-semibold text-zinc-300 flex items-center gap-2 flex-1 pr-2 truncate">
+                                <span className="w-2 h-2 rounded-[3px] shrink-0" style={{ backgroundColor: bulletColor }} />
+                                <span className="truncate">{label}</span>
+                              </span>
+                              <div className="flex items-center gap-2 shrink-0">
+                                <span className="font-black text-emerald-400">
+                                  {typeof price === 'number' ? price.toLocaleString() : String(price)} {(!price?.toString().toLowerCase().includes('lei') && !price?.toString().toLowerCase().includes('eur')) ? planCurrency : ""}
+                                </span>
+                                <div className="flex items-center gap-1 pl-1">
+                                  <button
+                                    onClick={() => setEditingBudgetItem({ index: idx, item: label, cost: String(price || '0') })}
+                                    className="text-[11px] text-zinc-500 hover:text-white p-2 -m-1 inline-flex items-center justify-center min-w-[36px] min-h-[36px]"
+                                    title={locale === "en" ? "Edit" : locale === "es" ? "Editar" : "Editează"}
+                                  >
+                                    ✏️
+                                  </button>
+                                  <button
+                                    onClick={() => handleDeleteBudgetItem(idx)}
+                                    className="text-[11px] text-red-500 hover:text-red-400 p-2 -m-1 inline-flex items-center justify-center min-w-[36px] min-h-[36px]"
+                                    title={locale === "en" ? "Delete" : locale === "es" ? "Eliminar" : "Șterge"}
+                                  >
+                                    ✕
+                                  </button>
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        })}
+
+                        {/* Buton Adaugă Cheltuială Nouă */}
+                        <button
+                          onClick={() => setEditingBudgetItem({ index: 'new', item: '', cost: '' })}
+                          className="w-full mt-2 bg-emerald-950/40 hover:bg-emerald-950/60 border border-emerald-500/30 text-emerald-400 hover:text-emerald-300 font-bold py-3 rounded-xl text-xs transition-all active:scale-[0.98] text-center flex items-center justify-center gap-1.5"
+                        >
+                          <span>➕</span>
+                          <span>{locale === "en" ? "Add Investment Item" : locale === "es" ? "Añadir Elemento de Inversión" : "Adaugă Cheltuială / Investiție"}</span>
+                        </button>
+                      </>
+                    );
                   })()}
                 </div>
               </div>
@@ -1382,6 +1547,73 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
         </div>
       )}
 
+      {/* Budget Item Editor Bottom-Sheet Drawer */}
+      {editingBudgetItem && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex flex-col justify-end">
+          <div className="flex-1" onClick={() => setEditingBudgetItem(null)}></div>
+          <div className="bg-zinc-900 border-t border-zinc-800 rounded-t-3xl p-6 max-h-[85vh] overflow-y-auto space-y-4 animate-in slide-in-from-bottom duration-300 flex flex-col w-full md:max-w-lg md:mx-auto md:left-1/2 md:-translate-x-1/2 md:right-auto">
+            <div className="flex justify-between items-center border-b border-zinc-800/60 pb-3">
+              <h4 className="text-sm font-black text-white">
+                {editingBudgetItem.index === 'new'
+                  ? (locale === "en" ? "Add Budget Item" : locale === "es" ? "Añadir Elemento al Presupuesto" : "Adaugă Cheltuială Nouă")
+                  : (locale === "en" ? "Edit Budget Item" : locale === "es" ? "Editar Elemento del Presupuesto" : "Editează Cheltuiala")}
+              </h4>
+              <button onClick={() => setEditingBudgetItem(null)} className="text-xs text-zinc-500 font-bold p-1">
+                {locale === "en" ? "Close" : locale === "es" ? "Cerrar" : "Închide"}
+              </button>
+            </div>
+            
+            <div className="space-y-3">
+              <div>
+                <label className="text-[11px] font-bold text-zinc-400 block mb-1">
+                  {locale === "en" ? "Item / Category Name" : locale === "es" ? "Nombre del Elemento / Categoría" : "Nume Cheltuială / Categorie"}
+                </label>
+                <input
+                  type="text"
+                  value={editingBudgetItem.item}
+                  onChange={(e) => setEditingBudgetItem({ ...editingBudgetItem, item: e.target.value })}
+                  placeholder={locale === "en" ? "e.g. Equipment & Hardware" : locale === "es" ? "ej. Equipamiento y Hardware" : "ex: Echipamente și Mobilier"}
+                  className="w-full bg-zinc-950 border border-zinc-800 focus:border-emerald-500 rounded-xl p-3.5 text-base md:text-xs text-white placeholder-zinc-500 outline-none transition-all"
+                />
+              </div>
+
+              <div>
+                <label className="text-[11px] font-bold text-zinc-400 block mb-1">
+                  {locale === "en" 
+                    ? `Cost (${result?.selectedCurrency || "EUR"})` 
+                    : locale === "es" 
+                    ? `Coste (${result?.selectedCurrency || "EUR"})` 
+                    : `Cost (${result?.selectedCurrency || "LEI"})`}
+                </label>
+                <input
+                  type="number"
+                  value={editingBudgetItem.cost}
+                  onChange={(e) => setEditingBudgetItem({ ...editingBudgetItem, cost: e.target.value })}
+                  placeholder="0"
+                  className="w-full bg-zinc-950 border border-zinc-800 focus:border-emerald-500 rounded-xl p-3.5 text-base md:text-xs text-white placeholder-zinc-500 outline-none transition-all"
+                />
+              </div>
+            </div>
+            
+            <div className="grid grid-cols-2 gap-3 pt-2">
+              <button
+                onClick={() => setEditingBudgetItem(null)}
+                className="w-full bg-zinc-950 border border-zinc-800 text-zinc-400 font-bold py-3.5 rounded-xl text-xs transition-all active:scale-95 text-center"
+              >
+                {locale === "en" ? "Cancel" : locale === "es" ? "Cancelar" : "Renunță"}
+              </button>
+              <button
+                onClick={handleSaveBudgetItem}
+                disabled={!editingBudgetItem.item.trim()}
+                className="w-full bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white font-bold py-3.5 rounded-xl text-xs transition-all active:scale-95 text-center"
+              >
+                {locale === "en" ? "Save" : locale === "es" ? "Guardar" : "Salvează"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Verification Guard Modal */}
       {showVerificationModal && (
         <div className="fixed inset-0 bg-black/90 backdrop-blur-md z-50 flex items-center justify-center p-4">
@@ -1528,135 +1760,66 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
 
       {/* Drawer Librăria de Secțiuni Experte Mobil */}
       {showExpertDrawer && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex flex-col justify-end">
-          {/* Backdrop Touch Close */}
-          <div className="flex-1" onClick={() => setShowExpertDrawer(false)}></div>
-          
-          {/* Drawer Sheet */}
-          <div className="bg-zinc-900 border-t border-zinc-800 rounded-t-3xl p-6 max-h-[85vh] overflow-y-auto space-y-4 animate-in slide-in-from-bottom duration-300 flex flex-col w-full md:max-w-lg md:mx-auto md:left-1/2 md:-translate-x-1/2 md:right-auto">
-            <div className="flex justify-between items-center border-b border-zinc-800/60 pb-3">
-              <h4 className="text-sm font-black text-white">{locale === "en" ? "Expert Modules Library" : locale === "es" ? "Librería de Módulos Expertos" : "Librăria de Secțiuni Experte"}</h4>
-              <button onClick={() => setShowExpertDrawer(false)} className="text-xs text-zinc-500 font-bold p-1">{locale === "en" ? "Close" : locale === "es" ? "Cerrar" : "Închide"}</button>
-            </div>
-            
-            {/* Category horizontal scroll bar */}
-            <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-none snap-x px-1">
-              <button
-                onClick={() => setSelectedExpertCategory("all")}
-                className={`flex-shrink-0 px-3 py-1.5 rounded-lg text-[10px] font-bold snap-start transition-all ${selectedExpertCategory === "all" ? "bg-emerald-600 text-white" : "bg-zinc-950 text-zinc-400 border border-zinc-800"}`}
-              >
-                {expertModulesAllFilterLabel(locale)}
-              </button>
-              {Array.from(new Set(EXPERT_TEMPLATES.map(t => t.category[locale] || t.category.ro))).map((cat, idx) => (
-                <button
-                  key={idx}
-                  onClick={() => setSelectedExpertCategory(cat)}
-                  className={`flex-shrink-0 px-3 py-1.5 rounded-lg text-[10px] font-bold snap-start transition-all ${selectedExpertCategory === cat ? "bg-emerald-600 text-white" : "bg-zinc-950 text-zinc-400 border border-zinc-800"}`}
-                >
-                  {cat}
-                </button>
-              ))}
-            </div>
-
-            {/* List of templates */}
-            <div className="flex flex-col gap-3 overflow-y-auto flex-grow max-h-[50vh] pr-1 scrollbar-none">
-              {EXPERT_TEMPLATES.filter(tpl => selectedExpertCategory === "all" || (tpl.category[locale] || tpl.category.ro) === selectedExpertCategory).map((tpl) => {
-                const canAddExpert = hasProAccess || isAdmin;
-                return (
-                  <div 
-                    key={tpl.id}
-                    className="bg-zinc-950/60 border border-zinc-800 rounded-xl p-4 flex flex-col justify-between gap-3"
-                  >
-                    <div>
-                      <span className="text-[9px] uppercase font-bold tracking-wider text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/15 inline-block mb-1.5">
-                        {tpl.category[locale] || tpl.category.ro}
-                      </span>
-                      <h5 className="text-xs font-bold text-white leading-snug">
-                        {tpl.title[locale] || tpl.title.ro}
-                      </h5>
-                      <p className="text-[10px] text-zinc-400 leading-normal mt-1">
-                        {tpl.desc[locale] || tpl.desc.ro}
-                      </p>
-                    </div>
-                    <button
-                      onClick={async () => {
-                        if (!user) {
-                          setShowExpertDrawer(false);
-                          setShowPricingModal(true);
-                          return;
-                        }
-                        if (!canAddExpert) {
-                          setShowExpertDrawer(false);
-                          setShowPricingModal(true);
-                          return;
-                        }
-                        const businessName = result?.nume || (locale === "en" ? "Your Business" : locale === "es" ? "Tu Empresa" : "Compania Ta");
-                        const rawContent = tpl.content[locale] || tpl.content.ro;
-                        const formattedContent = rawContent.replace(/{NUME_AFACERE}/g, businessName);
-
-                        const newSection = {
-                          titlu: tpl.title[locale] || tpl.title.ro,
-                          continut: formattedContent
-                        };
-
-                        const applied = applyExpertLibrarySection({
-                          activeVersionId,
-                          versions,
-                          result,
-                          newSection,
-                          access: versionStackAccess,
-                        });
-                        if (!applied.ok) {
-                          setShowExpertDrawer(false);
-                          if (applied.reason === "no_access") {
-                            alert(noCombineAccessMessage(locale));
-                            setShowPricingModal(true);
-                            return;
-                          }
-                          if (applied.reason === "limit") {
-                            const isStandardOnly = !!(
-                              versionStackAccess.hasStandardAccess &&
-                              !versionStackAccess.hasFullAccess &&
-                              !versionStackAccess.isAdmin
-                            );
-                            alert(stackLimitReachedMessage(locale, applied.limit, isStandardOnly));
-                            if (isStandardOnly) setShowPricingModal(true);
-                            return;
-                          }
-                          return;
-                        }
-
-                        setResult(applied.plan);
-                        localStorage.setItem("current_generated_plan", JSON.stringify(applied.plan));
-                        setVersions(applied.versions);
-                        setActiveVersionId(applied.activeVersionId);
-                        await syncCurrentPlanToFirestore(applied.plan, applied.versions);
-                        setShowExpertDrawer(false);
-
-                        setTimeout(() => {
-                          const el = document.getElementById(`custom-section-${applied.sectionIndex}`);
-                          if (el) {
-                            el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                          }
-                        }, 300);
-                      }}
-                      className={`w-full py-2.5 rounded-lg text-[11px] font-bold text-center transition-all active:scale-[0.98] ${
-                        canAddExpert 
-                          ? "bg-emerald-600 text-white" 
-                          : "bg-zinc-800 border border-zinc-700 text-zinc-300"
-                      }`}
-                    >
-                      {canAddExpert 
-                        ? (locale === "en" ? "Add Section" : locale === "es" ? "Añadir Sección" : "Adaugă Secțiunea") 
-                        : (locale === "en" ? "🔒 Add Section (PRO)" : locale === "es" ? "🔒 Añadir (PRO)" : "🔒 Adaugă (PRO)")
-                      }
-                    </button>
-                  </div>
+        <ExpertSectionsDrawer
+          locale={locale}
+          user={user}
+          hasProAccess={hasProAccess}
+          isAdmin={isAdmin}
+          businessName={result?.nume || (locale === "en" ? "Your Business" : locale === "es" ? "Tu Empresa" : "Compania Ta")}
+          onRequireAuth={() => {
+            setShowExpertDrawer(false);
+            router.push(isEn ? "/en/login" : isEs ? "/es/login" : "/login");
+          }}
+          onRequirePro={() => {
+            setShowExpertDrawer(false);
+            openUpgradeForPackOrPricing("edit");
+          }}
+          onAddSection={(newSection) => {
+            const applied = applyExpertLibrarySection({
+              activeVersionId,
+              versions,
+              result,
+              newSection,
+              access: versionStackAccess,
+            });
+            if (!applied.ok) {
+              setShowExpertDrawer(false);
+              if (applied.reason === "no_access") {
+                alert(noCombineAccessMessage(locale));
+                setShowPricingModal(true);
+                return;
+              }
+              if (applied.reason === "limit") {
+                const isStandardOnly = !!(
+                  versionStackAccess.hasStandardAccess &&
+                  !versionStackAccess.hasFullAccess &&
+                  !versionStackAccess.isAdmin
                 );
-              })}
-            </div>
-          </div>
-        </div>
+                alert(stackLimitReachedMessage(locale, applied.limit, isStandardOnly));
+                if (isStandardOnly) setShowPricingModal(true);
+                return;
+              }
+              return;
+            }
+
+            setResult(applied.plan);
+            if (typeof window !== "undefined") {
+              localStorage.setItem("current_generated_plan", JSON.stringify(applied.plan));
+            }
+            setVersions(applied.versions);
+            setActiveVersionId(applied.activeVersionId);
+            void syncCurrentPlanToFirestore(applied.plan, applied.versions);
+            setShowExpertDrawer(false);
+
+            setTimeout(() => {
+              const el = document.getElementById(`custom-section-${applied.sectionIndex}`);
+              if (el) {
+                el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+              }
+            }, 300);
+          }}
+          onClose={() => setShowExpertDrawer(false)}
+        />
       )}
       {result && (
         <div className="fixed top-[-9999px] left-[-9999px] w-[1280px] opacity-0 pointer-events-none z-[-50]">
@@ -1687,6 +1850,13 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
           />
         </div>
       )}
+
+      {/* Buy Me a Coffee Modal */}
+      <BuyMeACoffeeModal
+        isOpen={showBmcModal}
+        onClose={() => setShowBmcModal(false)}
+        locale={locale}
+      />
     </div>
   );
 }

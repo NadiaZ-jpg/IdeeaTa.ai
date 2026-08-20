@@ -197,7 +197,7 @@ export function PricingModal({
               value={promoInput}
               onChange={(e) => setPromoInput(e.target.value)}
               placeholder={locale === "en" ? "Promo code" : locale === "es" ? "Código promocional" : "Cod promoțional"} 
-              className="bg-zinc-900 border border-zinc-800 text-white text-xs px-3 py-1.5 rounded-lg w-28 md:w-32 focus:outline-none focus:border-emerald-500 transition-colors"
+              className="bg-zinc-900 border border-zinc-800 text-white text-base md:text-xs px-3 py-1.5 rounded-lg w-28 md:w-32 focus:outline-none focus:border-emerald-500 transition-colors"
               onKeyDown={async (e) => {
                 if (e.key === 'Enter') {
                   handleValidatePromo();

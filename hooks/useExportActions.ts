@@ -191,9 +191,12 @@ export function useExportActions({
           es: "Plan de negocios generado inteligentemente por IdeeaTa.ai"
         };
 
+        const isMobileScreen = typeof window !== "undefined" && (window.innerWidth < 1024 || /Android|iPhone|iPad|iPod/i.test(navigator.userAgent));
+        const effectivePixelRatio = isMobileScreen ? 1.2 : 2;
+
         for (let i = 0; i < slidesArray.length; i++) {
           const slideElement = slidesArray[i] as HTMLElement;
-          const dataUrl = await toPng(slideElement, { quality: 1.0, pixelRatio: 2 });
+          const dataUrl = await toPng(slideElement, { quality: 1.0, pixelRatio: effectivePixelRatio });
           if (i > 0) pdf.addPage([1280, 720], "landscape");
           pdf.addImage(dataUrl, 'PNG', 0, 0, 1280, 720);
 
@@ -221,12 +224,14 @@ export function useExportActions({
           }
           const blob = await generateDocxBlob(result, chartDataUrl, locale, exportCurrency, exportFx);
           const link = document.createElement('a');
-          link.href = URL.createObjectURL(blob);
+          const objectUrl = URL.createObjectURL(blob);
+          link.href = objectUrl;
           const safeName2 = result?.nume?.replace(/[^a-zA-Z0-9]/g, '_') || 'Business';
           link.download = `IdeeaTa_${documentLabel}_${safeName2}${versionSuffix}.docx`;
           document.body.appendChild(link);
           link.click();
           document.body.removeChild(link);
+          URL.revokeObjectURL(objectUrl);
       }
 
       await new Promise(resolve => setTimeout(resolve, 2000));

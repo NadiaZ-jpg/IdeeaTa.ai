@@ -8,6 +8,8 @@ import { signInWithPopup, GoogleAuthProvider, FacebookAuthProvider, onAuthStateC
 import { doc, setDoc, getDoc, increment, arrayUnion, onSnapshot, collection, getDocs } from 'firebase/firestore';
 import { PricingModal } from '@/components/PricingModal';
 import { LanguageSwitcher } from '@/components/LanguageSwitcher';
+import { MobileHeaderMenu } from '@/components/MobileHeaderMenu';
+import BuyMeACoffeeModal from '@/components/BuyMeACoffeeModal';
 import { useExportActions } from "@/hooks/useExportActions";
 import { useCompleteMissingPlanFields } from "@/hooks/useCompleteMissingPlanFields";
 import { DemoPdfSlides } from "@/components/pdf/DemoPdfSlides";
@@ -27,7 +29,7 @@ import { formatObjectNumbers, formatNumberedText } from "@/lib/utils";
 import { useSharedPlanLoader } from "@/hooks/useSharedPlanLoader";
 import { useAuthUser } from '@/hooks/useAuthUser';
 import { createAndCopySharedPlanLink } from "@/lib/sharePlan";
-import { FREE_ACCOUNT_PLAN_LIMIT, GUEST_DEMO_PLAN_LIMIT, hasUnlimitedGenerateAccess } from "@/lib/planQuota";
+import { FREE_ACCOUNT_PLAN_LIMIT, GUEST_DEMO_PLAN_LIMIT, hasUnlimitedGenerateAccess, clearLocalPlanState } from "@/lib/planQuota";
 import { canGenerateWithQuotas, readProPackRemaining, proPackTopupConfirmDialog } from "@/lib/proPackQuota";
 import { startProTopupCheckout } from "@/lib/proTopupCheckout";
 import { ProPackQuotaBar } from "@/components/ProPackQuotaBar";
@@ -134,6 +136,7 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
   const [isDownloading, setIsDownloading] = useState<'pdf' | 'word' | 'pptx' | 'pdf-summary' | null>(null);
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [showPricingModal, setShowPricingModal] = useState(false);
+  const [showBmcModal, setShowBmcModal] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoginMode, setIsLoginMode] = useState(true);
@@ -413,6 +416,56 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
     return () => window.removeEventListener("beforeunload", handleBeforeUnload);
   }, [result, isSharedView, isDownloading]);
 
+  // Ascultă evenimentul de back/forward (popstate) pentru sincronizare gesturi pe mobil
+  useEffect(() => {
+    const handlePopState = () => {
+      const searchParams = new URLSearchParams(window.location.search);
+      const isIdea = searchParams.get('view') === 'idea' || searchParams.has('sharedId') || searchParams.has('shareId');
+      const isLogin = searchParams.get('login') === 'true';
+
+      if (isLogin) {
+        setShowAuthModal(true);
+      }
+
+      if (isIdea) {
+        setResultState((prevResult: any) => {
+          if (!prevResult) {
+            const savedVersionsStr = localStorage.getItem("current_versions");
+            if (savedVersionsStr) {
+              try {
+                const { versions: v, activeVersionId: a } = JSON.parse(savedVersionsStr);
+                setVersionsState(v);
+                setActiveVersionId(a);
+                return v[a];
+              } catch (e) {
+                console.error(e);
+              }
+            }
+            const saved = localStorage.getItem("current_generated_plan");
+            if (saved && saved !== "null" && saved !== "undefined") {
+              try {
+                const parsed = formatObjectNumbers(JSON.parse(saved));
+                setVersionsState({ original: parsed });
+                setActiveVersionId("original");
+                return parsed;
+              } catch (e) {
+                console.error(e);
+              }
+            }
+            return null;
+          }
+          return prevResult;
+        });
+      }
+
+      if (user && !searchParams.has("sharedId") && !searchParams.has("shareId")) {
+        setIsSharedView(false);
+      }
+    };
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, [user]);
+
   const handleGenerate = async (nicheExample?: string) => {
     const inputSkill = nicheExample || skill;
     if (!inputSkill.trim()) return;
@@ -440,108 +493,122 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
     setLoading(true);
     setResult(null);
 
-    try {
-      const token = user ? await user.getIdToken() : null;
-      const headers: Record<string, string> = { "Content-Type": "application/json" };
-      if (token) headers["Authorization"] = `Bearer ${token}`;
+    let attempts = 0;
+    const maxAttempts = 2;
+    let success = false;
 
-      const res = await fetch("/api/generate", {
-        method: "POST",
-        headers,
-        body: JSON.stringify({
-          skill: inputSkill,
-          locale,
-          currency: locale === "ro" ? "LEI" : "EUR",
-          surface: "demo",
-        }),
-      });
+    while (attempts < maxAttempts && !success) {
+      attempts++;
+      try {
+        const token = user ? await user.getIdToken() : null;
+        const headers: Record<string, string> = { "Content-Type": "application/json" };
+        if (token) headers["Authorization"] = `Bearer ${token}`;
 
-      if (!res.ok) {
-        const errBody = await res.json().catch(() => ({}));
-        if (errBody?.error === "LIMIT_REACHED") {
-          if (!user) setShowAuthModal(true);
-          else openUpgradeForPackOrPricing("generate");
-          return;
-        }
-        throw new Error(errBody?.message || "Eroare la generare");
-      }
+        const res = await fetch("/api/generate", {
+          method: "POST",
+          headers,
+          body: JSON.stringify({
+            skill: inputSkill,
+            locale,
+            currency: locale === "ro" ? "LEI" : "EUR",
+            surface: "demo",
+          }),
+        });
 
-      const data = await res.json();
-      if (data.fx_rate) setFxRate(data.fx_rate);
-
-      if (data && data.ideas && data.ideas.length > 0) {
-        const content = data.ideas[0];
-        let cleanJson = content.replace(/```json/g, '').replace(/```/g, '').trim();
-        cleanJson = cleanJson.replace(/[„“”]/g, '"');
-        const startIndex = cleanJson.indexOf('{');
-        const endIndex = cleanJson.lastIndexOf('}');
-        if (startIndex !== -1 && endIndex !== -1) cleanJson = cleanJson.substring(startIndex, endIndex + 1);
-
-        cleanJson = cleanJson.replace(/,\s*([}\]])/g, '$1');
-        const finalResult = formatObjectNumbers(JSON.parse(cleanJson));
-        const planId =
-          String(finalResult.nume || "Plan").replace(/[^a-zA-Z0-9]/g, "_") + "_" + Date.now();
-        finalResult.id = planId;
-        const initialVersions = { original: finalResult };
-        setActiveVersionId("original");
-        setVersions(initialVersions);
-        setResultState(finalResult);
-        localStorage.setItem("current_generated_plan", JSON.stringify(finalResult));
-        localStorage.setItem(
-          "current_versions",
-          JSON.stringify({ versions: initialVersions, activeVersionId: "original" })
-        );
-        if (typeof window !== "undefined") {
-          window.history.pushState({ view: "idea" }, "", window.location.pathname + "?view=idea");
+        if (!res.ok) {
+          const errBody = await res.json().catch(() => ({}));
+          if (errBody?.error === "LIMIT_REACHED") {
+            if (!user) setShowAuthModal(true);
+            else openUpgradeForPackOrPricing("generate");
+            setLoading(false);
+            return;
+          }
+          if (attempts >= maxAttempts) {
+            throw new Error(errBody?.message || "Eroare la generare");
+          }
+          continue;
         }
 
-        if (!user) {
-          const count = parseInt(localStorage.getItem("demoGenerateCount") || "0", 10);
-          localStorage.setItem("demoGenerateCount", (count + 1).toString());
-          setDemoCount(count + 1);
-        }
+        const data = await res.json();
+        if (data.fx_rate) setFxRate(data.fx_rate);
 
-        // Guest only: listă locală pentru migrare la login.
-        // Logat → doar Firestore (altfel migrate creează duplicate cu alt id).
-        if (!user) {
-          try {
-            const listStr = localStorage.getItem("demo_plans_list");
-            let list = listStr ? JSON.parse(listStr) : [];
-            if (!Array.isArray(list)) list = [];
-            const exists = list.some((p: any) => p.nume === finalResult.nume || p.id === planId);
-            if (!exists) {
-              list.push(finalResult);
-              localStorage.setItem("demo_plans_list", JSON.stringify(list));
+        if (data && data.ideas && data.ideas.length > 0) {
+          const content = data.ideas[0];
+          let cleanJson = content.replace(/```json/g, '').replace(/```/g, '').trim();
+          cleanJson = cleanJson.replace(/[„“”]/g, '"');
+          const startIndex = cleanJson.indexOf('{');
+          const endIndex = cleanJson.lastIndexOf('}');
+          if (startIndex !== -1 && endIndex !== -1) cleanJson = cleanJson.substring(startIndex, endIndex + 1);
+
+          cleanJson = cleanJson.replace(/,\s*([}\]])/g, '$1');
+          const finalResult = formatObjectNumbers(JSON.parse(cleanJson));
+          const planId =
+            String(finalResult.nume || "Plan").replace(/[^a-zA-Z0-9]/g, "_") + "_" + Date.now();
+          finalResult.id = planId;
+          const initialVersions = { original: finalResult };
+          setActiveVersionId("original");
+          setVersions(initialVersions);
+          setResultState(finalResult);
+          setSkill("");
+          localStorage.setItem("current_generated_plan", JSON.stringify(finalResult));
+          localStorage.setItem(
+            "current_versions",
+            JSON.stringify({ versions: initialVersions, activeVersionId: "original" })
+          );
+          if (typeof window !== "undefined") {
+            window.history.pushState({ view: "idea" }, "", window.location.pathname + "?view=idea");
+          }
+
+          if (!user) {
+            const count = parseInt(localStorage.getItem("demoGenerateCount") || "0", 10);
+            localStorage.setItem("demoGenerateCount", (count + 1).toString());
+            setDemoCount(count + 1);
+          }
+
+          // Guest only: listă locală pentru migrare la login.
+          // Logat → doar Firestore (altfel migrate creează duplicate cu alt id).
+          if (!user) {
+            try {
+              const listStr = localStorage.getItem("demo_plans_list");
+              let list = listStr ? JSON.parse(listStr) : [];
+              if (!Array.isArray(list)) list = [];
+              const exists = list.some((p: any) => p.nume === finalResult.nume || p.id === planId);
+              if (!exists) {
+                list.push(finalResult);
+                localStorage.setItem("demo_plans_list", JSON.stringify(list));
+              }
+            } catch (err) {
+              console.error(err);
             }
-          } catch (err) {
-            console.error(err);
+          } else {
+            try {
+              await setDoc(doc(db, "users", user.uid, "plans", planId), {
+                ...finalResult,
+                versions: initialVersions,
+                activeVersionId: "original",
+                createdAt: new Date().toISOString(),
+                isPaid: false,
+              });
+            } catch (fsError) {
+              console.error("Firestore save error:", fsError);
+            }
           }
-        } else {
-          try {
-            await setDoc(doc(db, "users", user.uid, "plans", planId), {
-              ...finalResult,
-              versions: initialVersions,
-              activeVersionId: "original",
-              createdAt: new Date().toISOString(),
-              isPaid: false,
-            });
-          } catch (fsError) {
-            console.error("Firestore save error:", fsError);
-          }
+          success = true;
+        }
+      } catch (error: any) {
+        if (attempts >= maxAttempts) {
+          console.error("Eroare generare:", error);
+          alert(
+            locale === "en"
+              ? "An error occurred during generation. Please try again."
+              : locale === "es"
+              ? "Ocurrió un error al generar. Por favor, inténtelo de nuevo."
+              : "A apărut o eroare la generare. Vă rugăm să încercați din nou."
+          );
         }
       }
-    } catch (error: any) {
-      console.error("Eroare generare:", error);
-      alert(
-        locale === "en"
-          ? "An error occurred during generation. Please try again."
-          : locale === "es"
-          ? "Ocurrió un error al generar. Por favor, inténtelo de nuevo."
-          : "A apărut o eroare la generare. Vă rugăm să încercați din nou."
-      );
-    } finally {
-      setLoading(false);
     }
+    setLoading(false);
   };
 
   const handleAiEdit = async (
@@ -886,7 +953,21 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
         <Link href={isEn ? "/en" : isEs ? "/es" : "/"} className="text-xl font-black tracking-tight">
           IdeeaTa<span className="text-emerald-500">.ai</span>
         </Link>
-        {!result && <LanguageSwitcher currentLocale={locale} />}
+        <MobileHeaderMenu
+          locale={locale}
+          user={user}
+          isAdmin={isAdmin}
+          hasProAccess={hasProAccess}
+          hasStandardAccess={hasStandardAccess}
+          subscriptionActive={subscriptionActive}
+          onOpenCoffee={() => setShowBmcModal(true)}
+          onOpenPricing={() => setShowPricingModal(true)}
+          onRequireLogin={() => setShowAuthModal(true)}
+          onLogout={async () => {
+            clearLocalPlanState();
+            await signOut(auth);
+          }}
+        />
       </header>
 
       {hasProPackQuota && (
@@ -1698,6 +1779,13 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
           onClose={() => setShowExpertDrawer(false)}
         />
       )}
+
+      {/* Buy Me a Coffee Modal */}
+      <BuyMeACoffeeModal
+        isOpen={showBmcModal}
+        onClose={() => setShowBmcModal(false)}
+        locale={locale}
+      />
     </div>
   );
 }

@@ -893,3 +893,25 @@ Dacă oricare dintre aceste verificări este omisă în procesul de planificare,
 - Branch: `cursor/pdf-cta-locale-and-plan-fill`
 - Push: ✅ `To https://github.com/NadiaZ-jpg/IdeeaTa.ai.git`
 
+---
+
+## FREEZE — Sesiunea 7: Aliniere Totală & Remediere Mobile/Tabletă (20 August 2026)
+
+### Fișiere modificate și ÎNGHEȚATE:
+| Fișier | Modificare |
+|---|---|
+| `components/MobileHeaderMenu.tsx` | Componentă modulară NOUĂ de meniu dropdown tactil pentru mobil/tabletă (Profil Email, Link Dashboard, BuyMeACoffee, Upgrade Pricing, Selector Limbă RO/EN/ES mereu vizibil, Conectare/Deconectare). Toate țintele tactile ≥44px. |
+| `components/DemoMobile.tsx` | Integrat `MobileHeaderMenu` și `BuyMeACoffeeModal`. Adăugat ascultător `handlePopState` pentru sincronizarea gesturilor Back/Forward din telefon. Adăugat ciclu auto-retry (2 reîncercări) în `handleGenerate` și resetat inputul `skill` după generare. |
+| `components/StudioMobile.tsx` | Integrat `MobileHeaderMenu` și `BuyMeACoffeeModal`. Eliminat drawer-ul duplicat de secțiuni experte și refolosit `ExpertSectionsDrawer`. Adăugat `beforeunload` (Pull-to-Refresh guard) și `handlePopState`. Adăugat modul complet de editare/adăugare/ștergere cheltuieli din Bugetul de Investiții. |
+| `lib/sharePlan.ts` | Adăugat suport nativ Web Share API (`navigator.share`) pentru telefoane/tablete, încapsulat `navigator.clipboard.writeText` în `try/catch` securizat împotriva `NotAllowedError` pe iOS Safari și adăugat fallback manual prompt. |
+| `hooks/useExportActions.ts` | Scalat `pixelRatio: 1.2` pe dispozitive mobile la generarea imaginilor PDF pentru a elimina depășirea memoriei WebKit Canvas pe iPhone (oprire crash iOS Safari pe PDF-uri mari). Adăugat `URL.revokeObjectURL` la descărcarea DOCX. |
+| `components/PricingModal.tsx` | Setat font de 16px (`text-base md:text-xs`) pe input-ul codului promoțional pentru a opri auto-zoom-ul forțat din iOS Safari. |
+| `app/dashboard/DashboardContent.tsx` | Mărit zona tactilă a butonului `Trash2` la peste 44px (`p-2.5 -m-1 min-h-[44px] min-w-[44px]`), izolat `e.stopPropagation()` și mărit butoanele inline de confirmare `Da / Nu` la dimensiuni tactile sigure. |
+| `app/login/LoginContent.tsx` | Ascuns codul QR pe ecrane de mobil (`hidden md:flex`), transformat logo-ul în link navigabil, adăugat bară de navigare de sus cu buton `← Înapoi la generator` și selector de limbă `LanguageSwitcher`. |
+
+### Build verificat:
+- ✅ `npx tsc --noEmit` — zero erori TypeScript
+- ✅ `✓ Compiled successfully in 11.1s`
+- ✅ `✓ Generating static pages (71/71)`
+
+

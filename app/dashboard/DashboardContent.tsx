@@ -468,7 +468,7 @@ export default function DashboardContent({ locale = "ro" }: { locale?: "ro" | "e
                         <button
                           type="button"
                           onClick={(e) => handleDeletePlan(e, plan.id)}
-                          className="px-2.5 py-1 bg-red-600 hover:bg-red-500 text-white rounded-lg font-bold transition-all cursor-pointer text-xs"
+                          className="px-3 py-2 bg-red-600 hover:bg-red-500 text-white rounded-xl font-bold transition-all cursor-pointer text-xs min-h-[44px] min-w-[44px] flex items-center justify-center active:scale-95"
                         >
                           {isEn ? "Yes" : isEs ? "Sí" : "Da"}
                         </button>
@@ -478,7 +478,7 @@ export default function DashboardContent({ locale = "ro" }: { locale?: "ro" | "e
                             e.stopPropagation();
                             setConfirmDeleteId(null);
                           }}
-                          className="px-2.5 py-1 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 rounded-lg font-bold transition-all cursor-pointer text-xs"
+                          className="px-3 py-2 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 rounded-xl font-bold transition-all cursor-pointer text-xs min-h-[44px] min-w-[44px] flex items-center justify-center active:scale-95"
                         >
                           {isEn ? "No" : isEs ? "No" : "Nu"}
                         </button>
@@ -487,14 +487,14 @@ export default function DashboardContent({ locale = "ro" }: { locale?: "ro" | "e
                   ) : (
                     <>
                       <span>{isEn ? "Open in Studio" : isEs ? "Abrir en Studio" : "Deschide în Studio"}</span>
-                      <div className="flex items-center gap-3">
+                      <div className="flex items-center gap-2">
                         <button
                           type="button"
                           onClick={(e) => {
                             e.stopPropagation();
                             setConfirmDeleteId(plan.id);
                           }}
-                          className="p-1.5 text-zinc-500 hover:text-red-400 hover:bg-zinc-800/50 rounded-lg transition-all"
+                          className="p-2.5 -m-1 text-zinc-500 hover:text-red-400 hover:bg-zinc-800/80 rounded-xl transition-all min-h-[44px] min-w-[44px] flex items-center justify-center cursor-pointer active:scale-95"
                           title={isEn ? "Delete plan" : isEs ? "Eliminar plan" : "Șterge planul"}
                         >
                           <Trash2 className="w-4 h-4" />

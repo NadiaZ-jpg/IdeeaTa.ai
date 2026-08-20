@@ -5,6 +5,8 @@ import { migrateLocalPlansToFirebase } from '@/lib/migrationManager';
 import { signInWithPopup, GoogleAuthProvider, FacebookAuthProvider, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, sendPasswordResetEmail, sendEmailVerification } from 'firebase/auth';
 import { passwordResetActionCodeSettings } from '@/lib/authActionUrls';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
+import { LanguageSwitcher } from '@/components/LanguageSwitcher';
 import { QRCodeSVG } from 'qrcode.react';
 
 export default function LoginContent({ locale = "ro" }: { locale?: "ro" | "en" | "es" }) {
@@ -164,10 +166,24 @@ export default function LoginContent({ locale = "ro" }: { locale?: "ro" | "en" |
       <div className="absolute top-[10%] left-[-15%] w-[600px] h-[600px] rounded-full bg-emerald-500/5 blur-[120px] pointer-events-none animate-pulse duration-[8000ms] z-0"></div>
       <div className="absolute top-[35%] right-[-15%] w-[650px] h-[650px] rounded-full bg-amber-500/5 blur-[150px] pointer-events-none animate-pulse duration-[12000ms] z-0"></div>
       
-      <div className="w-full max-w-md p-8 md:p-12 bg-zinc-900/80 backdrop-blur-md rounded-3xl border border-zinc-800 shadow-2xl relative z-10 flex flex-col items-center my-12 shrink-0">
+      {/* Top Navigation Bar */}
+      <div className="w-full max-w-md flex items-center justify-between z-20 pt-2 pb-1">
+        <Link
+          href={isEn ? "/en/demo" : isEs ? "/es/demo" : "/demo"}
+          className="text-xs font-bold text-zinc-400 hover:text-white flex items-center gap-1.5 min-h-[44px] min-w-[44px] px-2 py-2 rounded-xl transition-colors hover:bg-zinc-800/40"
+        >
+          <span>←</span>
+          <span>{isEn ? "Back to generator" : isEs ? "Volver al generador" : "Înapoi la generator"}</span>
+        </Link>
+        <LanguageSwitcher currentLocale={locale} />
+      </div>
+
+      <div className="w-full max-w-md p-8 md:p-12 bg-zinc-900/80 backdrop-blur-md rounded-3xl border border-zinc-800 shadow-2xl relative z-10 flex flex-col items-center my-6 md:my-12 shrink-0">
         
         {/* Logo */}
-        <h1 className="text-4xl font-black text-transparent bg-gradient-to-r from-zinc-400 via-emerald-400 to-zinc-400 bg-clip-text text-center mb-2 tracking-tighter">IdeeaTa.ai</h1>
+        <Link href={isEn ? "/en" : isEs ? "/es" : "/"} className="text-4xl font-black text-transparent bg-gradient-to-r from-zinc-400 via-emerald-400 to-zinc-400 bg-clip-text text-center mb-2 tracking-tighter hover:opacity-90 transition-opacity cursor-pointer">
+          IdeeaTa.ai
+        </Link>
         <p className="text-zinc-400 text-center mb-8 font-medium text-sm">
           {isLoginMode && !isForgotMode && (isEn ? "Welcome back! Log in to your account." : isEs ? "¡Bienvenido de nuevo! Inicia sesión en tu cuenta." : "Bine ai revenit! Intră în contul tău.")}
           {!isLoginMode && (isEn ? "Create your free account in a few seconds." : isEs ? "Crea tu cuenta gratuita en unos pocos segundos." : "Creează-ți contul gratuit în câteva secunde.")}
@@ -311,7 +327,7 @@ export default function LoginContent({ locale = "ro" }: { locale?: "ro" | "en" |
         )}
 
         {/* ── QR Code — Demo pe mobil ── */}
-        <div className="w-full mt-8 pt-8 border-t border-zinc-800 flex items-center gap-5">
+        <div className="w-full mt-8 pt-8 border-t border-zinc-800 hidden md:flex items-center gap-5">
           <div className="bg-white p-2.5 rounded-2xl shadow-lg shrink-0">
             <QRCodeSVG
               value={

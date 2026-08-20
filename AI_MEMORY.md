@@ -1143,6 +1143,19 @@ Fișiere: `lib/versionStack.ts`, `lib/planQuota.ts`, `lib/proPackQuotaAdmin.ts`,
 
 ---
 
+## FREEZE — Sesiunea F1 (20 August 2026): Monedă RO = RON
+
+**Decizie:** etichetă unică **RON** (nu LEI) pe UI, export, prompt AI, toggle.
+
+**Fix:**
+- `lib/planCurrency.ts` — `normalizePlanCurrency` (LEI legacy → RON).
+- `priceHelper` / ActionBar / Demo+Studio / generate / Docx / PPTX / Dashboard / mockup RO.
+- EN/ES rămân EUR; LEI din planuri vechi e afișat ca RON.
+
+**Acceptanță:** toggle RO arată RON; PDF/Word/PPTX RO cu RON; EN/ES fără LEI greșit.
+
+---
+
 ## FREEZE — Fix ES explicații goale (20 August 2026)
 
 **Bug:** pe `/es` (Desktop+Mobile+Tablet) SWOT/buget ies cu titluri dar `explicatie_tehnica` / `explicatie` goale. Cauze: (1) fill pe generate tăiat la 14s; (2) client fill cerea auth → oaspeții Demo rămâneau goi.

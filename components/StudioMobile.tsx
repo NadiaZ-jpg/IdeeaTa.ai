@@ -199,7 +199,7 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
         ...updatedResult,
         id: planId,
         updatedAt: new Date().toISOString(),
-        selectedCurrency: updatedResult?.selectedCurrency || (locale === "ro" ? "LEI" : "EUR"),
+        selectedCurrency: updatedResult?.selectedCurrency || (locale === "ro" ? "RON" : "EUR"),
         activeVersionId: versionIdToSave || activeVersionId,
       };
       if (versToSave && Object.keys(versToSave).length > 0) {
@@ -618,7 +618,7 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
           customStyle: isTone ? (customInput || "") : "",
           targetSection: targetSection || (action === "add_sections" ? customInput || "" : ""),
           locale,
-          currency: baseSource?.selectedCurrency || (locale === "ro" ? "LEI" : "EUR"),
+          currency: baseSource?.selectedCurrency || (locale === "ro" ? "RON" : "EUR"),
           isCombine,
         })
       });
@@ -773,7 +773,7 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
   const { downloadAction: handleDownloadAction } = useExportActions({
     result,
     locale,
-    currency: result?.selectedCurrency || (locale === "ro" ? "LEI" : "EUR"),
+    currency: result?.selectedCurrency || (locale === "ro" ? "RON" : "EUR"),
     fxRate,
     user,
     isAdmin,
@@ -846,7 +846,7 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
         body: JSON.stringify({
           skill,
           locale,
-          currency: locale === "ro" ? "LEI" : "EUR",
+          currency: locale === "ro" ? "RON" : "EUR",
           surface: "studio",
         }),
       });
@@ -915,7 +915,7 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
             activeVersionId: "original",
             createdAt: new Date().toISOString(),
             isPaid: false,
-            selectedCurrency: locale === "ro" ? "LEI" : "EUR",
+            selectedCurrency: locale === "ro" ? "RON" : "EUR",
           });
         } catch (parseError) {
           console.error("TEXTUL GENERAT DE AI A FOST:", cleanJson, parseError);
@@ -1409,7 +1409,7 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
                         {budgetList.map((item: any, idx: number) => {
                           const label = item.item || item.categorie || '';
                           const price = item.cost !== undefined ? item.cost : item.suma_lei;
-                          const planCurrency = result.selectedCurrency || (locale === "ro" ? "LEI" : "EUR");
+                          const planCurrency = result.selectedCurrency || (locale === "ro" ? "RON" : "EUR");
                           const bulletColor = COLORS[idx % COLORS.length];
 
                           return (
@@ -1420,7 +1420,7 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
                               </span>
                               <div className="flex items-center gap-2 shrink-0">
                                 <span className="font-black text-emerald-400">
-                                  {typeof price === 'number' ? price.toLocaleString() : String(price)} {(!price?.toString().toLowerCase().includes('lei') && !price?.toString().toLowerCase().includes('eur')) ? planCurrency : ""}
+                                  {typeof price === 'number' ? price.toLocaleString() : String(price)} {(!price?.toString().toLowerCase().includes('lei') && !price?.toString().toLowerCase().includes('ron') && !price?.toString().toLowerCase().includes('eur')) ? planCurrency : ""}
                                 </span>
                                 <div className="flex items-center gap-1 pl-1">
                                   <button
@@ -1461,7 +1461,7 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
               <div className="bg-zinc-950/30 border border-zinc-800/60 rounded-xl p-4 flex flex-col items-center justify-center">
                 <h4 className="text-[10px] font-bold text-zinc-400 mb-4 uppercase">{locale === "en" ? "Funds Distribution" : locale === "es" ? "Distribución de Fondos" : "Distribuția Fondurilor"}</h4>
                 <div className="w-full h-[280px] sm:h-[350px] flex items-center justify-center">
-                      <BudgetPieChart budget={result.plan_financiar?.buget_investitii || []} currency={result.selectedCurrency || (locale === "ro" ? "LEI" : "EUR")} />
+                      <BudgetPieChart budget={result.plan_financiar?.buget_investitii || []} currency={result.selectedCurrency || (locale === "ro" ? "RON" : "EUR")} />
                 </div>
               </div>
             </div>
@@ -1677,7 +1677,7 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
                     ? `Cost (${result?.selectedCurrency || "EUR"})` 
                     : locale === "es" 
                     ? `Coste (${result?.selectedCurrency || "EUR"})` 
-                    : `Cost (${result?.selectedCurrency || "LEI"})`}
+                    : `Cost (${result?.selectedCurrency || "RON"})`}
                 </label>
                 <input
                   type="number"
@@ -1776,7 +1776,7 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
         }}
         userId={user?.uid || ""}
         userEmail={user?.email || ""}
-        currency={locale === "es" || locale === "en" ? "EUR" : "LEI"}
+        currency={locale === "es" || locale === "en" ? "EUR" : "RON"}
         planName={result?.nume || (locale === "en" ? "Business Plan" : locale === "es" ? "Plan de Negocios" : "Plan de Afaceri")}
         planId={result?.id}
         locale={locale}
@@ -1927,8 +1927,8 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
             result={result} 
             ui={ui} 
             locale={locale} 
-            currency={result?.selectedCurrency || (locale === "ro" ? "LEI" : "EUR")}
-            formatPrice={(val: any) => formatPriceLocalized(val, locale, result?.selectedCurrency || (locale === "ro" ? "LEI" : "EUR"), fxRate)} 
+            currency={result?.selectedCurrency || (locale === "ro" ? "RON" : "EUR")}
+            formatPrice={(val: any) => formatPriceLocalized(val, locale, result?.selectedCurrency || (locale === "ro" ? "RON" : "EUR"), fxRate)} 
             truncateText={truncateText} 
             splitTextIntoSlides={splitTextIntoSlides} 
             formatNumberedText={formatNumberedText} 
@@ -1944,7 +1944,7 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
         >
           <BudgetPieChart
             budget={result?.plan_financiar?.buget_investitii}
-            currency={result?.selectedCurrency || (locale === "ro" ? "LEI" : "EUR")}
+            currency={result?.selectedCurrency || (locale === "ro" ? "RON" : "EUR")}
             isPdf={true}
             locale={locale}
           />

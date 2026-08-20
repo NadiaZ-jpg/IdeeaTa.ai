@@ -168,14 +168,14 @@ export const PLAN_SKELETONS = {
     },
     plan_financiar: {
       buget_investitii: [
-        { item: "Echipament/Serviciu", explicatie: "Justificare achiziție (prețuri realiste pentru 2026)", cost: "15000 LEI" }
+        { item: "Echipament/Serviciu", explicatie: "Justificare achiziție (prețuri realiste pentru 2026)", cost: "15000 RON" }
       ],
       strategie_financiara: "Rezumat riguros al modelului de venituri, stabilitatea fluxului de numerar și pragul de rentabilitate."
     }
   }
 };
 
-export function getGeneratePrompt(locale: "ro" | "en" | "es", skill: string, currency: "LEI" | "EUR" = "LEI"): string {
+export function getGeneratePrompt(locale: "ro" | "en" | "es", skill: string, currency: "RON" | "EUR" = "RON"): string {
   const isEn = locale === "en";
   const isEs = locale === "es";
   const skeleton = JSON.parse(JSON.stringify(PLAN_SKELETONS[locale] || PLAN_SKELETONS.ro));
@@ -185,7 +185,7 @@ export function getGeneratePrompt(locale: "ro" | "en" | "es", skill: string, cur
       if (currency === "EUR") {
         skeleton.plan_financiar.buget_investitii[0].cost = "3000 EUR";
       } else {
-        skeleton.plan_financiar.buget_investitii[0].cost = "15000 LEI";
+        skeleton.plan_financiar.buget_investitii[0].cost = "15000 RON";
       }
     }
   }
@@ -256,7 +256,7 @@ Trebuie să respecte standardul structural oficial din România pentru accesarea
 Trebuie să urmezi cu strictețe cerințele pentru "Pilonul Verde" (Eco-Tech/Sustenabilitate) și "Digitalizare" (Automatizare/ERP/CRM).
 Returnează rezultatul strict ca un obiect JSON valid cu următoarea structură:
 ${JSON.stringify(skeleton, null, 2)}
-Include cel puțin 6-8 articole bugetate (care să conțină tehnologie verde și software/digitalizare). Toate valorile din bugetul de investiții la câmpul 'cost' trebuie exprimate obligatoriu în monedă nativă: ${currency === "EUR" ? "EUR (ex: 3000 EUR)" : "LEI (ex: 15000 LEI)"}.
+Include cel puțin 6-8 articole bugetate (care să conțină tehnologie verde și software/digitalizare). Toate valorile din bugetul de investiții la câmpul 'cost' trebuie exprimate obligatoriu în monedă nativă: ${currency === "EUR" ? "EUR (ex: 3000 EUR)" : "RON (ex: 15000 RON)"}.
 REGULI STRICTE DE STRUCTURĂ:
 - Păstrează EXACT numele cheilor JSON din schelet (nu le traduce).
 - plan_operational trebuie să aibă text nevid la: descriere_flux, resurse_umane, locatie_dotari.
@@ -280,7 +280,7 @@ export function getEditLanguageLock(locale: "ro" | "en" | "es"): string {
   return `BLOCĂJ CRITIC LIMBĂ: TOATE valorile text din JSON trebuie să fie 100% în română. Interzis amestecul cu engleză sau spaniolă în propoziții. Poți păstra acronime financiare standard (IRR, NPV, ROI, TAM, SAM, SOM, CAC, LTV, KPI, DNSH, MVP), dar frazele complete TREBUIE să fie în română. La SWOT, FIECARE item TREBUIE să aibă "explicatie_tehnica" nevidă (2-4 propoziții). Nu returna doar titluri fără explicații.`;
 }
 
-export function getEditInstruction(action: string, locale: "ro" | "en" | "es", customStyle?: string, targetSection?: string, currency: "LEI" | "EUR" = "LEI"): string {
+export function getEditInstruction(action: string, locale: "ro" | "en" | "es", customStyle?: string, targetSection?: string, currency: "RON" | "EUR" = "RON"): string {
   const isEn = locale === "en";
   const isEs = locale === "es";
 

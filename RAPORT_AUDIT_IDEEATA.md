@@ -84,7 +84,7 @@
 ## 4. Română · Engleză · Spaniolă
 
 ### Română — Bine
-- Rute, texte, planuri AI, monedă LEI/RON, pagini legale și resurse.
+- Rute, texte, planuri AI, monedă **RON**, pagini legale și resurse.
 - Cea mai testată și cea mai stabilă.
 
 ### Engleză — Nu e bine (cu un punct Rău)
@@ -148,7 +148,7 @@
 - Confuzie cote Pro: editare vs combinare variante — **rezolvat B2** (tips + alerte).  
 - Două sisteme de traduceri; texte împrăștiate.  
 - Redirect automat de limbă doar pe câteva pagini, nu pe legal/resurse.  
-- Uneori scrie „LEI”, alteori „RON” (același leu).  
+- ~~Uneori scrie „LEI”, alteori „RON”~~ — **reparat F1** (etichetă unică **RON**).
 - Cod Desktop/Telefon aproape dublat → reparațiile trebuie făcute de 4 ori și se uită pe unele ecrane.  
 - Limita de 3 planuri ca oaspete e ținută mai ales pe telefon/browser, nu 100% pe server.  
 - Pe server: dacă se publică greșit (fără scriptul de deploy), site-ul poate rămâne alb (deja s-a întâmplat; există `deploy.sh` ca regulă).

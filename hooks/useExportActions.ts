@@ -155,7 +155,7 @@ export function useExportActions({
       const exportCurrency =
         currency ||
         exportResult?.selectedCurrency ||
-        (locale === "es" || locale === "en" ? "EUR" : "LEI");
+        (locale === "es" || locale === "en" ? "EUR" : "RON");
       const exportFx = typeof fxRate === "number" && fxRate > 0 ? fxRate : 0.201;
 
       if (mode === 'pptx') {

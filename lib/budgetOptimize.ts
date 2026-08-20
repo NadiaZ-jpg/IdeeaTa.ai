@@ -23,10 +23,10 @@ function formatReducedCost(
     upper.includes("EUR") ||
     text.includes("€");
   if (preferEur) return `${amount} EUR`;
-  if (upper.includes("LEI") || upper.includes("RON") || currency === "LEI") {
-    return `${amount} LEI`;
+  if (upper.includes("LEI") || upper.includes("RON") || currency === "RON" || currency === "LEI") {
+    return `${amount} RON`;
   }
-  return `${amount} LEI`;
+  return `${amount} RON`;
 }
 
 /**
@@ -37,7 +37,7 @@ export function applyBudgetPercentReduction(
   items: any[] | undefined,
   percent: number,
   locale: string = "ro",
-  currency: string = "LEI"
+  currency: string = "RON"
 ): any[] {
   if (!Array.isArray(items) || items.length === 0) return items || [];
   const factor = Math.max(0, 1 - percent / 100);

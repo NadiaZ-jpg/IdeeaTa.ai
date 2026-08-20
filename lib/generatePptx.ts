@@ -115,7 +115,7 @@ export const generatePptx = async (
   const tr = pptxTranslations[locale] || pptxTranslations.ro;
 
   const formatPrice = (priceText: any) =>
-    formatPriceLocalized(priceText, locale, currency || (locale === "ro" ? "LEI" : "EUR"), fxRate);
+    formatPriceLocalized(priceText, locale, currency || (locale === "ro" ? "RON" : "EUR"), fxRate);
 
   const splitTextIntoSlides = (text: string, maxLength: number) => {
     if (!text) return [];

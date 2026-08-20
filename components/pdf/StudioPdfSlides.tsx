@@ -229,7 +229,7 @@ export function StudioPdfSlides({ result, ui, locale, currency, formatPrice, tru
                  <span className="text-lg font-bold uppercase tracking-wider mr-6 text-emerald-200">{ui.estimatedTotal}</span>
                  <span className="text-lg font-black">
                    {formatPrice(`${result.plan_financiar?.buget_investitii?.reduce((sum: number, b: any) =>
-                     sum + parseInt((b.cost !== undefined ? b.cost : b.suma_lei)?.toString().replace(/[^0-9]/g, '') || '0'), 0)} ${currency || (locale === "en" || locale === "es" ? "EUR" : "LEI")}`)}
+                     sum + parseInt((b.cost !== undefined ? b.cost : b.suma_lei)?.toString().replace(/[^0-9]/g, '') || '0'), 0)} ${currency || (locale === "en" || locale === "es" ? "EUR" : "RON")}`)}
                  </span>
                </div>
             </div>

@@ -531,7 +531,7 @@ export async function POST(req: NextRequest) {
           const planCurrency =
             currency ||
             result?.selectedCurrency ||
-            (locale === "en" || locale === "es" ? "EUR" : "LEI");
+            (locale === "en" || locale === "es" ? "EUR" : "RON");
           const originalItems = result?.plan_financiar?.buget_investitii;
           const aiItems = mergedResult?.plan_financiar?.buget_investitii;
           mergedResult.plan_financiar = {

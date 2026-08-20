@@ -1,3 +1,5 @@
+import { normalizePlanCurrency } from "@/lib/planCurrency";
+
 export const parseBudgetCost = (priceText: any): number => {
   if (priceText === null || priceText === undefined || priceText === "") return 0;
   let rawText: any = priceText;
@@ -19,9 +21,7 @@ export const formatAmountInCurrency = (
   const cur =
     locale === "en" || locale === "es"
       ? "EUR"
-      : currencyToggle === "EUR"
-      ? "EUR"
-      : "LEI";
+      : normalizePlanCurrency(currencyToggle, locale);
   return `${Math.round(amount).toLocaleString(loc)} ${cur}`;
 };
 
@@ -45,6 +45,7 @@ export const formatPriceLocalized = (
   const upper = text.toUpperCase();
   const isRawEur = upper.includes("EUR") || text.includes("€");
   const isRawLei = upper.includes("LEI") || upper.includes("RON");
+  const displayCur = normalizePlanCurrency(currencyToggle, locale);
 
   // EN/ES: always show EUR. Convert only when the AI explicitly wrote LEI/RON.
   // Bare numbers (and summed totals) are already EUR for EN/ES plans — do NOT apply fxRate.
@@ -54,7 +55,7 @@ export const formatPriceLocalized = (
     return `${eurValue.toLocaleString(locale === "en" ? "en-US" : "es-ES")} EUR`;
   }
 
-  if (currencyToggle === "EUR") {
+  if (displayCur === "EUR") {
     if (isRawEur) {
       return `${numericValue.toLocaleString('ro-RO')} EUR`;
     }
@@ -62,11 +63,11 @@ export const formatPriceLocalized = (
     return `${eurValue.toLocaleString('ro-RO')} EUR`;
   }
   
-  // currencyToggle is "LEI"
+  // displayCur is RON (F1; accepts legacy LEI toggle)
   if (isRawEur) {
-    const leiValue = Math.round(numericValue / fxRate);
-    return `${leiValue.toLocaleString('ro-RO')} LEI`;
+    const ronValue = Math.round(numericValue / fxRate);
+    return `${ronValue.toLocaleString('ro-RO')} RON`;
   }
   
-  return `${numericValue.toLocaleString('ro-RO')} LEI`;
+  return `${numericValue.toLocaleString('ro-RO')} RON`;
 };

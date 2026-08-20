@@ -120,14 +120,16 @@ export default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" | 
   useCompleteMissingPlanFields(result, setResult, locale);
   const [loading, setLoading] = useState(false);
   const [fxRate, setFxRate] = useState(0.201);
-  const [currency, setCurrency] = useState(() => (locale === "ro" ? "LEI" : "EUR"));
+  const [currency, setCurrency] = useState(() => (locale === "ro" ? "RON" : "EUR"));
 
-  // EN/ES: nu lăsa LEI din planuri vechi / localStorage
+  // EN/ES: nu lăsa LEI/RON din planuri vechi / localStorage
   useEffect(() => {
     if (locale === "en" || locale === "es") {
       setCurrency("EUR");
+    } else if (currency === "LEI") {
+      setCurrency("RON"); // F1
     }
-  }, [locale]);
+  }, [locale, currency]);
   const [isDownloading, setIsDownloading] = useState<'pdf' | 'pptx' | 'word' | 'pdf-summary' | null>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [backupResult, setBackupResult] = useState<any>(null);
@@ -694,7 +696,7 @@ export default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" | 
       const payload: any = {
         ...updatedResult,
         updatedAt: new Date().toISOString(),
-        selectedCurrency: updatedResult?.selectedCurrency || currency || (locale === "ro" ? "LEI" : "EUR"),
+        selectedCurrency: updatedResult?.selectedCurrency || currency || (locale === "ro" ? "RON" : "EUR"),
         activeVersionId: versionIdToSave || activeVersionId,
       };
       if (versToSave && Object.keys(versToSave).length > 0) {
@@ -1215,7 +1217,7 @@ export default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" | 
 
   const resetApp = () => {
     setResult(null);
-    setCurrency(locale === "ro" ? "LEI" : "EUR");
+    setCurrency(locale === "ro" ? "RON" : "EUR");
     setIsSharedView(false);
     if (typeof window !== "undefined") {
       localStorage.removeItem("current_generated_plan");

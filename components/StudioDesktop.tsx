@@ -126,13 +126,15 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
   useCompleteMissingPlanFields(result, setResult, locale);
   const [loading, setLoading] = useState(false);
   const [fxRate, setFxRate] = useState(0.201);
-  const [currency, setCurrency] = useState(() => (locale === "ro" ? "LEI" : "EUR"));
+  const [currency, setCurrency] = useState(() => (locale === "ro" ? "RON" : "EUR"));
 
   useEffect(() => {
     if (locale === "en" || locale === "es") {
       setCurrency("EUR");
+    } else if (currency === "LEI") {
+      setCurrency("RON"); // F1
     }
-  }, [locale]);
+  }, [locale, currency]);
   const [isDownloading, setIsDownloading] = useState<'pdf' | 'pptx' | 'word' | 'pdf-summary' | null>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [backupResult, setBackupResult] = useState<any>(null);
@@ -1258,7 +1260,7 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
       return;
     }
     setResult(null);
-    setCurrency(locale === "ro" ? "LEI" : "EUR");
+    setCurrency(locale === "ro" ? "RON" : "EUR");
     setIsSharedView(false);
     if (typeof window !== "undefined") {
       localStorage.removeItem("current_generated_plan");

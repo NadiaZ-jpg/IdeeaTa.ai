@@ -35,7 +35,7 @@ export async function POST(req: NextRequest) {
         ? "EUR"
         : rawCurrency === "EUR"
         ? "EUR"
-        : "LEI";
+        : "RON";
 
     const authHeader = req.headers.get("Authorization");
     const isStudio = surface === "studio";
@@ -144,7 +144,7 @@ export async function POST(req: NextRequest) {
     try {
       let parsedText = normalizePlanResult(JSON.parse(text));
       parsedText.selectedCurrency =
-        currency || (locale === "en" || locale === "es" ? "EUR" : "LEI");
+        currency || (locale === "en" || locale === "es" ? "EUR" : "RON");
       // ES models often omit SWOT/budget explanations; fill before response (Desktop+Mobile+Tablet).
       // 14s was too short (logs: timeout → partial). Allow ~50s within maxDuration 90.
       if (locale === "es" && planNeedsExplanationFill(parsedText)) {

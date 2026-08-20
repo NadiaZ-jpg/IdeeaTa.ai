@@ -196,7 +196,7 @@ export function StudioPresentationSlides({
                          <span className="text-3xl font-bold uppercase tracking-wider mr-6">Total Estimat:</span>
                          <span className="text-5xl font-black text-zinc-900">
                            {formatPrice(`${result.plan_financiar?.buget_investitii?.reduce((sum: number, b: any) =>
-                             sum + parseInt((b.cost !== undefined ? b.cost : b.suma_lei)?.toString().replace(/[^0-9]/g, '') || '0'), 0)} ${currency || (locale === "en" || locale === "es" ? "EUR" : "LEI")}`)}
+                             sum + parseInt((b.cost !== undefined ? b.cost : b.suma_lei)?.toString().replace(/[^0-9]/g, '') || '0'), 0)} ${currency || (locale === "en" || locale === "es" ? "EUR" : "RON")}`)}
                          </span>
                        </div>
                     </div>

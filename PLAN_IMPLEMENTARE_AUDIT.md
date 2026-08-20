@@ -31,6 +31,7 @@
 | **D2** Edit manual Demo Mobile | ✅ | Sanity | Must ✅ | Must* | ✅ | ✅ | ✅ |
 | **D3** Guest list Demo Mobile | ✅ | Sanity | Must ✅ | Must* | ✅ | ✅ | ✅ |
 | **E1** Tabletă **E-B** (width &lt;1024) | ✅ | Sanity | Sanity | Must ✅ | ✅ | ✅ | ✅ |
+| **F1** LEI → RON | ✅ | Must ✅ | Must ✅ | Sanity | ✅ | N/A* | N/A* |
 | Ops `./update.sh` | ✅ | — | — | — | — | — | — |
 
 \*A2: migrare/Dashboard pe toate device-urile după login; bug-ul delete-on-name era cross-device.
@@ -210,7 +211,7 @@
 
 | ID | Item | Desktop | Mobile | Tabletă | RO | EN | ES | Când |
 |----|------|---------|--------|---------|----|----|-----|------|
-| F1 | LEI vs RON consistent | Must | Must | Sanity | Must | N/A* | N/A* | Scurt |
+| F1 | LEI → **RON** consistent | ✅ | Must | Must | Sanity | Must | N/A* | N/A* | ✅ 20 Aug |
 | F-ES | Explicații SWOT/buget ES goale | Must | Must | Must | — | — | Must | ✅ 20 Aug (fill timeout + guest) |
 | F2 | Redirect limbă legal/resurse | Must | Must | Sanity | — | Must | Must | După C |
 | F3 | Cotă guest 3 și pe server | Must | Must | Sanity | Must | Must | Must | După C |
@@ -271,6 +272,6 @@ F4–F5   proiecte mari (amânate)
 
 ## Următorul pas
 
-**C1–C3 · D1–D3 · E1 (E-B)** ✅. Urmează **F1–F3**.
+**C1–C3 · D1–D3 · E1 (E-B) · F1** ✅. Urmează **F2–F3**.
 
-Spune `executa F1` (sau F2 / F3).
+Spune `executa F2` (sau F3).

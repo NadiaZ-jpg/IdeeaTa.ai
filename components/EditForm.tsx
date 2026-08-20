@@ -58,7 +58,7 @@ export function EditForm({ result, updateField, removeField, readOnly = false, l
 }) {
   if (!result) return null;
 
-  const activeCurrency = currency || (locale === "ro" ? "LEI" : "EUR");
+  const activeCurrency = currency || (locale === "ro" ? "RON" : "EUR");
 
   const inputCls = (base: string) =>
     `${base} ${readOnly ? 'cursor-not-allowed opacity-80' : ''}`;
@@ -225,7 +225,7 @@ export function EditForm({ result, updateField, removeField, readOnly = false, l
                     </div>
                     <div className="flex flex-col gap-1 w-full md:w-56">
                       <label className="text-sm text-zinc-500 uppercase font-bold">{locale === "en" ? "Estimated Cost" : locale === "es" ? "Coste Estimado" : "Cost estimat"}</label>
-                      <input type="text" value={safeString(b.cost !== undefined ? b.cost : '')} onChange={readOnly ? noop : (e) => updateField(['plan_financiar', 'buget_investitii', originalIdx, 'cost'], e.target.value)} readOnly={readOnly} onCopy={readOnly ? e => e.preventDefault() : undefined} className={inputCls("bg-black/80 border border-zinc-700 p-3 rounded-lg text-lg font-bold w-full focus:outline-none focus:ring-1 focus:ring-emerald-500 focus:border-emerald-500 transition-all shadow-inner")} placeholder={activeCurrency === "EUR" ? "Ex: 3000 EUR" : "Ex: 15000 LEI"} />
+                      <input type="text" value={safeString(b.cost !== undefined ? b.cost : '')} onChange={readOnly ? noop : (e) => updateField(['plan_financiar', 'buget_investitii', originalIdx, 'cost'], e.target.value)} readOnly={readOnly} onCopy={readOnly ? e => e.preventDefault() : undefined} className={inputCls("bg-black/80 border border-zinc-700 p-3 rounded-lg text-lg font-bold w-full focus:outline-none focus:ring-1 focus:ring-emerald-500 focus:border-emerald-500 transition-all shadow-inner")} placeholder={activeCurrency === "EUR" ? "Ex: 3000 EUR" : "Ex: 15000 RON"} />
                     </div>
                   </div>
                   <div className="flex flex-col gap-1">

@@ -8,6 +8,7 @@
  */
 
 import type { jsPDF } from "jspdf";
+import { defaultCurrencyForLocale as defaultCur, type AppPlanCurrency, normalizePlanCurrency } from "@/lib/planCurrency";
 
 /** REGULA #5 — domeniul oficial în PDF / share (fără preview Vercel). */
 export const PRODUCTION_ORIGIN = "https://ideeata.ai";
@@ -59,20 +60,23 @@ export function buildShortSharedUrl(shareId: string, locale: AppLocale): string 
   return `${PRODUCTION_ORIGIN}/shared/${shareId}${q}`;
 }
 
-/** Monedă implicită pe view partajat / UI non-RO. */
-export function defaultCurrencyForLocale(locale: AppLocale): "LEI" | "EUR" {
-  return normalizeAppLocale(locale) === "ro" ? "LEI" : "EUR";
+/** Monedă implicită pe view partajat / UI non-RO. F1: RON (nu LEI). */
+export function defaultCurrencyForLocale(locale: AppLocale): AppPlanCurrency {
+  return defaultCur(normalizeAppLocale(locale));
 }
 
 export function resolveSharedViewCurrency(
   plan: { selectedCurrency?: string } | null | undefined,
   locale: AppLocale
 ): string {
-  return plan?.selectedCurrency || defaultCurrencyForLocale(locale);
+  return normalizePlanCurrency(
+    plan?.selectedCurrency || defaultCurrencyForLocale(locale),
+    locale
+  );
 }
 
 /**
- * Toggle LEI/EUR: doar RO și doar când NU e view din PDF/share.
+ * Toggle RON/EUR: doar RO și doar când NU e view din PDF/share.
  * EN/ES și shared view → ascuns pe Desktop + Mobile.
  */
 export function shouldShowCurrencyToggle(

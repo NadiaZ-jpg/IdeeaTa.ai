@@ -10,7 +10,7 @@ import {
   Cell
 } from 'recharts';
 
-export function BudgetPieChart({ budget, currency = "LEI", isPdf = false, isPptx = false, locale = "ro" }: { budget: any[], currency?: string, isPdf?: boolean, isPptx?: boolean, locale?: "ro" | "en" | "es" }) {
+export function BudgetPieChart({ budget, currency = "RON", isPdf = false, isPptx = false, locale = "ro" }: { budget: any[], currency?: string, isPdf?: boolean, isPptx?: boolean, locale?: "ro" | "en" | "es" }) {
   if (!budget || budget.length === 0) return null;
 
   const data = budget.map((b) => {

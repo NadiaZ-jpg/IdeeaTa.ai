@@ -20,6 +20,7 @@ import BuyMeACoffeeModal from '@/components/BuyMeACoffeeModal';
 import { PricingModal } from '@/components/PricingModal';
 import { UI_STRINGS } from '@/lib/uiStrings';
 import { stagePlanForStudioOpen } from '@/lib/studioPlanHandoff';
+import { normalizePlanCurrency } from '@/lib/planCurrency';
 import {
   stripPaymentSuccessParams,
   pollVerifyCheckout,
@@ -434,11 +435,11 @@ export default function DashboardContent({ locale = "ro" }: { locale?: "ro" | "e
                         </span>
                       )}
                       <span className={`text-[10px] uppercase font-black px-2 py-0.5 rounded-full border ${
-                        (plan.selectedCurrency || (locale === "ro" ? "LEI" : "EUR")) === "EUR"
+                        normalizePlanCurrency(plan.selectedCurrency, locale) === "EUR"
                           ? "bg-blue-500/10 text-blue-400 border-blue-500/20"
                           : "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
                       }`}>
-                        {plan.selectedCurrency || (locale === "ro" ? "LEI" : "EUR")}
+                        {normalizePlanCurrency(plan.selectedCurrency, locale)}
                       </span>
                     </div>
                     <div className="flex items-center gap-1.5 text-zinc-500 text-xs font-semibold bg-zinc-800/50 px-2.5 py-1 rounded-md">
@@ -563,7 +564,7 @@ export default function DashboardContent({ locale = "ro" }: { locale?: "ro" | "e
         locale={locale}
         userId={user?.uid || ""}
         userEmail={user?.email || null}
-        currency={isEn || isEs ? "EUR" : "LEI"}
+        currency={isEn || isEs ? "EUR" : "RON"}
       />
     </div>
   );

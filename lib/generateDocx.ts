@@ -116,7 +116,7 @@ function spacer(): Paragraph {
 }
 
 function formatPrice(val: any, locale: "ro" | "en" | "es" = "ro", currency?: string, fxRate = 0.201): string {
-  const activeCurrency = currency || (locale === "ro" ? "LEI" : "EUR");
+  const activeCurrency = currency || (locale === "ro" ? "RON" : "EUR");
   return formatPriceLocalized(val, locale, activeCurrency, fxRate);
 }
 
@@ -328,7 +328,7 @@ export async function generateDocxBlob(
           
           // Formateaza totalul frumos
           const formatPriceCenter = (val: number) => {
-             const activeCurrency = currency || (locale === "ro" ? "LEI" : "EUR");
+             const activeCurrency = currency || (locale === "ro" ? "RON" : "EUR");
              if (locale === "ro") {
                return new Intl.NumberFormat('ro-RO').format(val) + " " + activeCurrency;
              } else {
@@ -582,7 +582,7 @@ export async function generateDocxBlob(
       (sum: number, b: any) => sum + parseBudgetCost(b.cost !== undefined ? b.cost : b.suma_lei),
       0
     );
-    const activeCurrency = currency || (locale === "ro" ? "LEI" : "EUR");
+    const activeCurrency = currency || (locale === "ro" ? "RON" : "EUR");
 
     children.push(
       new Paragraph({

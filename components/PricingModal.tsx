@@ -8,7 +8,7 @@ interface PricingModalProps {
   onRequireLogin?: () => void;
   userId: string;
   userEmail: string | null;
-  currency: string; // "LEI" or "EUR"
+  currency: string; // "RON" or "EUR" (legacy LEI normalized)
   planName?: string;
   planId?: string;
   locale?: "ro" | "en" | "es";

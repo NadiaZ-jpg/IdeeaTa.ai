@@ -2,7 +2,7 @@
 /**
  * ActionBar — Reset / Edit / Currency / Download.
  * - Labels from UI_STRINGS[locale] (nu fallback RO pe EN/ES).
- * - Shared view guest (din PDF, nelogat): doar download localizat — fără Altă idee / Studio / LEI.
+ * - Shared view guest (din PDF, nelogat): doar download localizat — fără Altă idee / Studio / RON.
  * - Cont logat: mereu Altă idee + Studio, chiar dacă a deschis un link shared.
  */
 
@@ -208,10 +208,10 @@ export function ActionBar({
           <div className="flex gap-2 p-1 bg-black rounded-xl border border-zinc-700 h-10 w-full md:w-32 flex-none">
             <button
               type="button"
-              onClick={() => setCurrency("LEI")}
-              className={`w-1/2 flex items-center justify-center rounded-lg text-xs font-bold transition-all ${currency === "LEI" ? "bg-emerald-600 text-white" : "text-zinc-500 hover:text-white"}`}
+              onClick={() => setCurrency("RON")}
+              className={`w-1/2 flex items-center justify-center rounded-lg text-xs font-bold transition-all ${currency === "RON" || currency === "LEI" ? "bg-emerald-600 text-white" : "text-zinc-500 hover:text-white"}`}
             >
-              LEI
+              RON
             </button>
             <button
               type="button"

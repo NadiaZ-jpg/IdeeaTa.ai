@@ -186,7 +186,7 @@ export function DemoPresentationSlides({
                     <div className="absolute bottom-12 right-24">
                        <div className="bg-emerald-600 text-white px-12 py-6 flex items-center rounded-3xl shadow-2xl">
                          <span className="text-3xl font-bold uppercase tracking-wider mr-6">{ui.estimatedTotal}</span>
-                         <span className="text-5xl font-black text-zinc-900">{formatPrice(`${result.plan_financiar?.buget_investitii?.reduce((sum: number, b: any) => sum + parseInt(b.cost?.toString().replace(/[^0-9]/g, '') || '0'), 0)} ${currency || (locale === "en" || locale === "es" ? "EUR" : "LEI")}`)}</span>
+                         <span className="text-5xl font-black text-zinc-900">{formatPrice(`${result.plan_financiar?.buget_investitii?.reduce((sum: number, b: any) => sum + parseInt(b.cost?.toString().replace(/[^0-9]/g, '') || '0'), 0)} ${currency || (locale === "en" || locale === "es" ? "EUR" : "RON")}`)}</span>
                        </div>
                     </div>
                   </div>

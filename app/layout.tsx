@@ -5,7 +5,6 @@ import { ScrollToTop } from '@/components/ScrollToTop';
 import { Footer } from '@/components/Footer';
 import { CookieBanner } from '@/components/CookieBanner';
 import { AdSenseLoader } from '@/components/AdSenseLoader';
-import { NetworkStatusIndicator } from '@/components/NetworkStatusIndicator';
 import { getSiteMetadata } from '@/lib/siteMetadata';
 
 export const viewport: Viewport = {
@@ -27,12 +26,8 @@ export default async function RootLayout({children}: {children: React.ReactNode}
     <html lang={lang}>
       <head>
         <meta name="google-adsense-account" content="ca-pub-5089980515174940" />
-        <meta name="theme-color" content="#09090b" />
-        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-        <meta name="apple-mobile-web-app-capable" content="yes" />
       </head>
       <body suppressHydrationWarning className="flex flex-col min-h-screen">
-        <NetworkStatusIndicator />
         <AdSenseLoader />
         {children}
         <Footer />

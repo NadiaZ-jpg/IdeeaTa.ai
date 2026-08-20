@@ -119,6 +119,7 @@ async function assertEditEntitlement(
   try {
     const decoded = await adminAuth.verifyIdToken(authHeader.substring(7));
     const uid = decoded.uid;
+    const adminUser = isAdminEmail(decoded.email);
     const needsPro =
       PRO_EDIT_ACTIONS.has(action) ||
       (action === "professional_tone" && isProToneKey(customStyle));
@@ -126,6 +127,7 @@ async function assertEditEntitlement(
       action === "professional_tone" && isFreeToneKey(customStyle);
 
     if (
+      !adminUser &&
       !(await consumeRateLimit(`edit:user:${uid}`, needsPro ? 40 : 20, HOUR_MS))
     ) {
       return NextResponse.json(
@@ -140,7 +142,7 @@ async function assertEditEntitlement(
     data = await ensureLegacyProPackQuotas(uid, data || {});
 
     const unlimitedEdits = hasUnlimitedProEdits({
-      isAdmin: isAdminEmail(decoded.email),
+      isAdmin: adminUser,
       subscriptionActive: !!data?.subscriptionActive,
     });
 

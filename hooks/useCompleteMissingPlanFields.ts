@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
+import { onAuthStateChanged } from "firebase/auth";
 import {
   budgetItemNeedsExplanationFill,
   planNeedsExplanationFill,
@@ -48,6 +49,9 @@ function incompleteExplCount(plan: BusinessPlan | null | undefined): number {
  * Completes empty/truncated SWOT/budget/ops fields after generate or when opening Studio Edit.
  * Retries once. Does not cancel mid-flight when setResult updates the same plan.
  * Shared by Demo + Studio, Desktop + Mobile, RO/EN/ES.
+ *
+ * Important (ES cold-start): never mark a plan as "attempted" if the run was cancelled,
+ * lacked auth, or never got a successful fill — otherwise the first 1–2 ES plans stay empty forever.
  */
 export function useCompleteMissingPlanFields(
   result: BusinessPlan | null,
@@ -60,20 +64,33 @@ export function useCompleteMissingPlanFields(
   const setResultRef = useRef(setResult);
   setResultRef.current = setResult;
 
+  const [authUid, setAuthUid] = useState<string | null>(
+    () => auth.currentUser?.uid ?? null
+  );
+
+  useEffect(() => {
+    return onAuthStateChanged(auth, (user) => {
+      setAuthUid(user?.uid ?? null);
+    });
+  }, []);
+
   const planId = result ? String(result.id || result.nume || "") : "";
   const needsFill = !!(result && planNeedsExplanationFill(result));
 
   useEffect(() => {
     if (!enabled || !result || !needsFill || !planId) return;
+    // Wait for Firebase auth — /api/complete-plan-fields requires Bearer token.
+    if (!authUid) return;
 
     const beforeCount = swotItemCount(result);
     const beforeIncomplete = incompleteExplCount(result);
-    // v6: also repairs mid-sentence truncated budget/SWOT explanations
-    const planKey = `${planId}:fields-v6:i${beforeIncomplete}:s${beforeCount}`;
+    // v7: auth-aware + do not poison attemptedKeys on cancel/no-token
+    const planKey = `${planId}:fields-v7:i${beforeIncomplete}:s${beforeCount}`;
     if (attemptedKeys.current.has(planKey)) return;
     if (inFlightKey.current === planKey) return;
 
     let cancelled = false;
+    let markedAttempted = false;
     inFlightKey.current = planKey;
 
     const snapshot = result;
@@ -81,6 +98,7 @@ export function useCompleteMissingPlanFields(
     (async () => {
       let current = snapshot;
       let best: BusinessPlan | null = null;
+      let gotApiOk = false;
       try {
         for (let attempt = 0; attempt < 2; attempt++) {
           if (cancelled) return;
@@ -89,17 +107,22 @@ export function useCompleteMissingPlanFields(
           const headers: Record<string, string> = { "Content-Type": "application/json" };
           try {
             const token = auth.currentUser ? await auth.currentUser.getIdToken() : null;
-            if (!token) break;
+            if (!token) {
+              // Auth not ready yet — leave unattempted so effect can retry when authUid updates.
+              return;
+            }
             headers.Authorization = `Bearer ${token}`;
           } catch {
-            break;
+            return;
           }
+
           const res = await fetch("/api/complete-plan-fields", {
             method: "POST",
             headers,
             body: JSON.stringify({ plan: current, locale }),
           });
           if (!res.ok) continue;
+          gotApiOk = true;
           const data = await res.json();
           if (cancelled || !data?.plan) continue;
 
@@ -129,14 +152,22 @@ export function useCompleteMissingPlanFields(
       } catch (e) {
         console.error("[useCompleteMissingPlanFields]", e);
       } finally {
-        attemptedKeys.current.add(planKey);
+        // Only lock the key after a real API attempt finished (success or exhausted).
+        // Cancelled / no-token runs must remain retryable — critical for ES first generations.
+        if (!cancelled && (best || gotApiOk)) {
+          attemptedKeys.current.add(planKey);
+          markedAttempted = true;
+        }
         if (inFlightKey.current === planKey) inFlightKey.current = null;
       }
     })();
 
     return () => {
-      // Only cancel if navigating away / plan id changes — not on our own setResult
       cancelled = true;
+      // If cleanup runs before we marked attempted, allow a fresh run.
+      if (!markedAttempted && inFlightKey.current === planKey) {
+        inFlightKey.current = null;
+      }
     };
-  }, [enabled, locale, needsFill, planId]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [enabled, locale, needsFill, planId, authUid]); // eslint-disable-line react-hooks/exhaustive-deps
 }

@@ -23,16 +23,17 @@ export const GUEST_IP_HOURLY_ABUSE_LIMIT = 30;
 
 /**
  * Unlimited generate (account-level).
+ * Admin / subscription / legacy isPaid → yes.
  * Standard / one-time Pro Tools (euFundsUnlocked) → NOT unlimited (use pro pack quotas).
- * Subscription / legacy isPaid → yes.
  */
 export function hasUnlimitedGenerateAccess(opts: {
   isPaid?: boolean;
   subscriptionActive?: boolean;
+  isAdmin?: boolean;
   /** @deprecated Ignored — one-time Pro pack uses proPackGenerateRemaining */
   euFundsUnlocked?: boolean;
 }): boolean {
-  return !!(opts.isPaid || opts.subscriptionActive);
+  return !!(opts.isAdmin || opts.isPaid || opts.subscriptionActive);
 }
 
 export function deletedPlansStorageKey(uid: string): string {

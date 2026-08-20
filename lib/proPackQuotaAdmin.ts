@@ -70,6 +70,7 @@ export async function assertAndConsumeGenerateQuota(opts: {
   if (
     opts.isAdmin ||
     hasUnlimitedGenerateAccess({
+      isAdmin: opts.isAdmin,
       isPaid: !!userData?.isPaid,
       subscriptionActive: !!userData?.subscriptionActive,
     })

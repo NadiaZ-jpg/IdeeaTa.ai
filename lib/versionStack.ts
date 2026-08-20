@@ -6,6 +6,7 @@
  * - Free: max 1 tool per tab (no further combine)
  * - Standard: max 2 tools per version stack
  * - Full Access: max 4 tools per version stack
+ * - Admin (ADMIN_EMAILS): unlimited stack depth + no Pro pack / rate quotas on API
  * - Toolbar on Original: NEW sibling tab (stack depth 1)
  * - Toolbar on a non-original tab: same as Combine — apply on that tab → NEW tab with appended stack
  * - Combine (+) on a tab: applies on that tab's content → NEW tab with appended stack
@@ -55,9 +56,10 @@ export type CombineAction =
 
 const STACK_META_KEY = "_versionStack";
 
-/** Max tools allowed on one version chain for this user. */
+/** Max tools allowed on one version chain for this user. Admin = unlimited. */
 export function getVersionStackLimit(access: VersionStackAccess): number {
-  if (access.isAdmin || access.hasFullAccess) return FULL_STACK_LIMIT;
+  if (access.isAdmin) return Number.POSITIVE_INFINITY;
+  if (access.hasFullAccess) return FULL_STACK_LIMIT;
   if (access.hasStandardAccess) return STANDARD_STACK_LIMIT;
   return FREE_STACK_LIMIT;
 }

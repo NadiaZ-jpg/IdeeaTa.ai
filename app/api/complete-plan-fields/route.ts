@@ -3,6 +3,7 @@ import { fillMissingPlanExplanations } from "@/lib/fillMissingPlanExplanations";
 import { planNeedsExplanationFill } from "@/lib/normalizePlanResult";
 import { adminAuth } from "@/lib/firebase-admin";
 import { consumeRateLimit } from "@/lib/apiRateLimit";
+import { isAdminEmail } from "@/lib/adminEmails";
 
 export const maxDuration = 60;
 
@@ -20,9 +21,11 @@ export async function POST(req: NextRequest) {
     }
 
     let uid: string;
+    let adminUser = false;
     try {
       const decoded = await adminAuth.verifyIdToken(authHeader.substring(7));
       uid = decoded.uid;
+      adminUser = isAdminEmail(decoded.email);
     } catch {
       return NextResponse.json(
         { error: "Unauthorized", code: "AUTH_REQUIRED" },
@@ -30,7 +33,10 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    if (!(await consumeRateLimit(`complete:user:${uid}`, 24, HOUR_MS))) {
+    if (
+      !adminUser &&
+      !(await consumeRateLimit(`complete:user:${uid}`, 24, HOUR_MS))
+    ) {
       return NextResponse.json(
         { error: "Too many requests", code: "RATE_LIMIT" },
         { status: 429 }

@@ -3,7 +3,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { getExchangeRateRonToEur } from "@/lib/exchangeRate";
 import { adminAuth } from "@/lib/firebase-admin";
 import { getGeneratePrompt } from "@/lib/promptConfig";
-import { normalizePlanResult } from "@/lib/normalizePlanResult";
+import { normalizePlanResult, planNeedsExplanationFill } from "@/lib/normalizePlanResult";
+import { fillMissingPlanExplanations } from "@/lib/fillMissingPlanExplanations";
 import { GUEST_IP_DAILY_ABUSE_LIMIT, GUEST_IP_HOURLY_ABUSE_LIMIT } from "@/lib/planQuota";
 import { assertAndConsumeGenerateQuota, refundGenerateQuota, type GenerateQuotaConsume } from "@/lib/proPackQuotaAdmin";
 import { clientIpFromRequest, consumeRateLimit } from "@/lib/apiRateLimit";
@@ -45,8 +46,12 @@ export async function POST(req: NextRequest) {
       try {
         const decoded = await adminAuth.verifyIdToken(token);
         const userId = decoded.uid;
+        const adminUser = isAdminEmail(decoded.email);
 
-        if (!(await consumeRateLimit(`gen:user:${userId}`, 30, HOUR_MS))) {
+        if (
+          !adminUser &&
+          !(await consumeRateLimit(`gen:user:${userId}`, 30, HOUR_MS))
+        ) {
           return NextResponse.json(
             { error: "Too many requests", code: "RATE_LIMIT" },
             { status: 429 }
@@ -55,7 +60,7 @@ export async function POST(req: NextRequest) {
 
         const quota = await assertAndConsumeGenerateQuota({
           userId,
-          isAdmin: isAdminEmail(decoded.email),
+          isAdmin: adminUser,
           locale,
         });
         if (!quota.ok) {
@@ -133,9 +138,14 @@ export async function POST(req: NextRequest) {
     if (jsonMatch) text = jsonMatch[0];
 
     try {
-      const parsedText = normalizePlanResult(JSON.parse(text));
+      let parsedText = normalizePlanResult(JSON.parse(text));
       parsedText.selectedCurrency =
         currency || (locale === "en" || locale === "es" ? "EUR" : "LEI");
+      // ES models often omit SWOT/budget explanations on cold starts; fill before response
+      // so the first 1–2 Spanish plans are not left with empty "Explicación…" fields.
+      if (locale === "es" && planNeedsExplanationFill(parsedText)) {
+        parsedText = await fillMissingPlanExplanations(parsedText, "es", 14000);
+      }
       text = JSON.stringify(parsedText);
     } catch (e) {
       console.warn("[generate] normalize skip:", e);

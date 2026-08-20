@@ -949,4 +949,33 @@ Verificare: chunk-urile (`5229-…`, CSS, layout) → HTTP 200 pe `ideeata.ai`.
 - Păstrează `.env` și în `.next/standalone/.env` după rebuild.
 - AdSense: **nu** reinjecta `AdSenseLoader` în root layout fără `override freeze adsense`.
 
+---
+
+## FREEZE — 20 August 2026: Admin nelimitat (`ADMIN_EMAILS`)
+
+Emailuri: `contact@ideeata.ai`, `nadiaramonaz@gmail.com`, `adrian@ideeata.ai` (`lib/adminEmails.ts`).
+
+Pentru `isAdminEmail === true`:
+- **Combine / version stack:** `getVersionStackLimit` → `Infinity` (nu mai e plafonul Full=4).
+- **Generate / edit / complete-plan-fields / share:** fără rate-limit API.
+- **Cote Pro pack / free lifetime:** deja ocolite (`assertAndConsumeGenerateQuota`, `hasUnlimitedProEdits`, client `canGenerateWithQuotas` / `hasProAccess`).
+
+Fișiere: `lib/versionStack.ts`, `lib/planQuota.ts`, `lib/proPackQuotaAdmin.ts`, `app/api/generate/route.ts`, `app/api/edit/route.ts`, `app/api/complete-plan-fields/route.ts`, `app/api/share/route.ts`.
+
+---
+
+## FREEZE — 20 August 2026: ES empty explanations (primele 2 planuri)
+
+**Simptom:** doar pe `/es` — SWOT cu titluri OK dar `Explicación...` gol + buget cu `JUSTIFICACIÓN` placeholder; după 1–2 generări „își revine”.
+
+**Cauze:**
+1. Modelul ES omite des `explicatie_tehnica` / `explicatie` (JSON lung + spaniolă).
+2. `useCompleteMissingPlanFields` marca planul ca attempted la cancel / fără token → fill nu mai reîncearca pe același plan.
+3. `/api/generate` nu mai rula fill server-side.
+
+**Fix:**
+- Hook v7: așteaptă auth; nu marchează attempted pe cancel/no-token; reîncearcă.
+- Generate ES: `fillMissingPlanExplanations(..., 14000)` dacă `planNeedsExplanationFill`.
+- Prompt ES: prioritate explicații față de titluri scurte.
+
 

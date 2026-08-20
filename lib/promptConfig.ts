@@ -245,6 +245,7 @@ REGLAS ESTRICTAS DE ESTRUCTURA (no romper la app):
 - Semántica SWOT: oportunitati = solo oportunidades EXTERNAS positivas. amenintari = riesgos/amenazas EXTERNAS (ciberriesgo, competencia, regulación). NUNCA pongas riesgos dentro de oportunitati.
 - Incluye exactamente 4 elementos en CADA categoría SWOT (puncte_tari, puncte_slabe, oportunitati, amenintari).
 - Cada fila de presupuesto DEBE incluir "item", "cost" Y "explicatie" no vacíos. NO dejes explicatie vacío en filas posteriores.
+- PRIORIDAD ABSOLUTA: si el JSON es largo, acorta títulos o eslóganes — NUNCA dejes vacíos "explicatie_tehnica" (SWOT) ni "explicatie" (presupuesto). Cada ítem SWOT y cada fila de presupuesto debe traer su explicación completa (2–4 frases / 1–3 frases).
 CRITICAL: Todo el contenido generado (nombres, eslóganes, CNAE, SWOT, presupuesto, ubicación) DEBE estar estrictamente en español. Si la idea viene en rumano u otro idioma, tradúcela por completo al español. Cero palabras en rumano.
 No agregues texto fuera del JSON. Sin markdown (\`\`\`json) si es posible.`;
   }

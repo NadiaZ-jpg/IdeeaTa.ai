@@ -17,6 +17,7 @@ REGULA #16: (Sertarul Intangibil) Logica de fetch Firebase (StudioDataLoader.tsx
 REGULA #17: (FREEZE PACHETE) Pachete: Standard (~8 EUR / 39 RON), Editare+Instrumente Profesionale (~20 EUR / 99 RON, cote 10/8/4), Top-up Pro (5 EUR / 25 RON, +5/+4/+2). Cotă + Lemon în lib/proPackQuota*, lemonCheckout, webhook. Modificare doar cu "override freeze pachete".
 REGULA #18: (FREEZE ADSENSE) Integrarea Google AdSense este ÎNGHEȚATĂ. Modificare doar cu "override freeze adsense". Scriptul/reclamele rulează DOAR pe Landing + Resurse via `AdBanner` / `loadAdSenseScript`. Este INTERZISă reintroducerea `<AdSenseLoader />` în `app/layout.tsx` (root) fără override — Demo/Studio rămân fără ads.
 REGULA #19: (ANTI-DISTRUGERE) Niciodată nu folosi comenzi distructive fără plan aprobat de utilizator.
+REGULA #19b: (ADMIN NELIMITAT) Emailurile din `lib/adminEmails.ts` (`isAdminEmail`) au acces nelimitat: stack combine Infinity, fără rate-limit pe generate/edit/complete/share, fără cote Pro pack. Nu reduce aceste privilegii fără acord explicit.
 
 ## FREEZE — Pasul 1 (14 Iulie 2026)
 - backup_siguranta/page.tsx.backup — NU se mută înapoi în /app.

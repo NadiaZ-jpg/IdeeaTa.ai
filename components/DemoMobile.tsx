@@ -15,6 +15,7 @@ import { useCompleteMissingPlanFields } from "@/hooks/useCompleteMissingPlanFiel
 import { DemoPdfSlides } from "@/components/pdf/DemoPdfSlides";
 import { truncateText, splitTextIntoSlides } from "@/lib/planHelpers";
 import { formatPriceLocalized } from "@/lib/priceHelper";
+import { normalizePlanCurrency } from "@/lib/planCurrency";
 import { ConversionBanners } from '@/components/ConversionBanners';
 import { migrateLocalPlansToFirebase } from '@/lib/migrationManager';
 import { ToneEditor } from '@/components/ToneEditor';
@@ -1462,6 +1463,7 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
                     <div className="space-y-2">
                       {(() => {
                         const COLORS = ['#10b981', '#ef4444', '#3b82f6', '#f59e0b', '#8b5cf6', '#06b6d4', '#f97316'];
+                        const planCurrency = normalizePlanCurrency(result.selectedCurrency, locale);
                         const sortedBudget = [...(result.plan_financiar?.buget_investitii || [])]
                           .map((item) => {
                             const costText = item.cost !== undefined ? item.cost : item.suma_lei;
@@ -1470,21 +1472,26 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
                           })
                           .filter(item => item.costVal > 0)
                           .sort((a, b) => b.costVal - a.costVal);
+                        const totalCost = sortedBudget.reduce((sum, item) => sum + item.costVal, 0);
 
                         return sortedBudget.map((item: any, idx: number) => {
                           const label = item.item || item.categorie || '';
                           const price = item.cost !== undefined ? item.cost : item.suma_lei;
-                          const planCurrency = result.selectedCurrency || (locale === "ro" ? "RON" : "EUR");
                           const bulletColor = COLORS[idx % COLORS.length];
+                          const percent = totalCost > 0 ? Math.round((item.costVal / totalCost) * 100) : 0;
+                          const amountLabel = formatPriceLocalized(price, locale, planCurrency, fxRate);
 
                           return (
-                            <div key={idx} className="bg-zinc-950/40 border border-zinc-800/50 rounded-xl p-3 flex justify-between items-center text-xs">
-                              <span className="font-semibold text-zinc-300 flex items-center gap-2">
-                                <span className="w-2 h-2 rounded-[3px] shrink-0" style={{ backgroundColor: bulletColor }} />
-                                <span>{label}</span>
+                            <div key={idx} className="bg-zinc-950/40 border border-zinc-800/50 rounded-xl p-3 flex gap-3 items-start text-xs">
+                              <span className="font-semibold text-zinc-300 flex items-start gap-2 flex-1 min-w-0">
+                                <span className="w-2 h-2 rounded-[3px] shrink-0 mt-1.5" style={{ backgroundColor: bulletColor }} />
+                                <span className="leading-snug break-words">
+                                  {label}{' '}
+                                  <span className="text-zinc-500 font-medium">({percent}%)</span>
+                                </span>
                               </span>
-                              <span className="font-black text-emerald-400">
-                                {typeof price === 'number' ? price.toLocaleString() : String(price)} {(!price?.toString().toLowerCase().includes('lei') && !price?.toString().toLowerCase().includes('ron') && !price?.toString().toLowerCase().includes('eur')) ? planCurrency : ""}
+                              <span className="shrink-0 font-black text-emerald-400 whitespace-nowrap tabular-nums text-right">
+                                {amountLabel}
                               </span>
                             </div>
                           );
@@ -1495,9 +1502,13 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
 
                   {/* Budget Chart (Dynamic container) */}
                   <div className="bg-zinc-950/30 border border-zinc-800/60 rounded-xl p-4 flex flex-col items-center justify-center">
-                    <h4 className="text-[10px] font-bold text-zinc-400 mb-4 uppercase">{ui.fundsDistribution}</h4>
-                    <div className="w-full h-[280px] sm:h-[350px] flex items-center justify-center">
-                      <BudgetPieChart budget={result.plan_financiar?.buget_investitii || []} currency={result.selectedCurrency || (locale === "ro" ? "RON" : "EUR")} />
+                    <h4 className="text-[10px] font-bold text-zinc-400 mb-3 uppercase">{ui.fundsDistribution}</h4>
+                    <div className="w-full min-h-[240px] flex items-center justify-center">
+                      <BudgetPieChart
+                        budget={result.plan_financiar?.buget_investitii || []}
+                        currency={normalizePlanCurrency(result.selectedCurrency, locale)}
+                        locale={locale}
+                      />
                     </div>
                   </div>
                 </div>

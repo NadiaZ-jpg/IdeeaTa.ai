@@ -9,9 +9,12 @@ import {
   ResponsiveContainer,
   Cell
 } from 'recharts';
+import { normalizePlanCurrency } from '@/lib/planCurrency';
 
 export function BudgetPieChart({ budget, currency = "RON", isPdf = false, isPptx = false, locale = "ro" }: { budget: any[], currency?: string, isPdf?: boolean, isPptx?: boolean, locale?: "ro" | "en" | "es" }) {
   if (!budget || budget.length === 0) return null;
+
+  const displayCurrency = normalizePlanCurrency(currency, locale);
 
   const data = budget.map((b) => {
     const name = b.item || b.categorie || b.nume || (locale === "en" ? "Investment" : locale === "es" ? "Inversión" : "Investiție");
@@ -29,10 +32,10 @@ export function BudgetPieChart({ budget, currency = "RON", isPdf = false, isPptx
   const disableAnimation = isPdf || isPptx;
 
   return (
-    <div className={`flex ${isPdf || isPptx ? 'flex-row' : 'flex-col lg:flex-row'} gap-8 w-full h-full items-center justify-center select-none outline-none pointer-events-none md:pointer-events-auto`}>
+    <div className={`flex ${isPdf || isPptx ? 'flex-row' : 'flex-col lg:flex-row'} gap-6 lg:gap-8 w-full h-full items-center justify-center select-none outline-none pointer-events-none md:pointer-events-auto`}>
       {/* Pie Chart Container */}
       <motion.div 
-        className={`outline-none flex justify-center items-center ${isPdf || isPptx ? 'h-[450px] w-1/2' : 'h-[280px] sm:h-[350px] md:h-[400px] lg:h-[450px] w-full lg:w-1/2'}`}
+        className={`outline-none flex justify-center items-center shrink-0 ${isPdf || isPptx ? 'h-[450px] w-1/2' : 'h-[240px] sm:h-[300px] md:h-[400px] lg:h-[450px] w-full lg:w-1/2'}`}
         initial={disableAnimation ? { opacity: 1, scale: 1, rotate: 0 } : { opacity: 0, scale: 0.8, rotate: -20 }}
         whileInView={disableAnimation ? undefined : { opacity: 1, scale: 1, rotate: 0 }}
         viewport={disableAnimation ? undefined : { once: true, margin: "-50px" }}
@@ -77,7 +80,7 @@ export function BudgetPieChart({ budget, currency = "RON", isPdf = false, isPptx
                 ))}
               </Pie>
               <Tooltip 
-                formatter={(value: any) => [`${Number(value).toLocaleString()} ${currency}`, "Cost"]}
+                formatter={(value: any) => [`${Number(value).toLocaleString()} ${displayCurrency}`, "Cost"]}
                 contentStyle={{ backgroundColor: '#09090b', borderColor: '#27272a', color: '#fff', borderRadius: '12px', outline: 'none', fontSize: '13px' }}
                 itemStyle={{ color: '#10b981', fontWeight: 'bold' }}
               />
@@ -86,9 +89,9 @@ export function BudgetPieChart({ budget, currency = "RON", isPdf = false, isPptx
         )}
       </motion.div>
 
-      {/* Legend Container */}
+      {/* Legend — visible on mobile too (was hidden below lg) */}
       <motion.div 
-        className={`items-center justify-center py-4 ${isPdf || isPptx ? 'flex w-1/2 pl-10' : 'hidden lg:flex w-full lg:w-1/2 pl-0 lg:pl-10'}`}
+        className={`items-center justify-center ${isPdf || isPptx ? 'flex w-1/2 pl-10 py-4' : 'flex w-full lg:w-1/2 pl-0 lg:pl-10 py-1 lg:py-4'}`}
         initial={disableAnimation ? { opacity: 1, x: 0 } : { opacity: 0, x: 20 }}
         whileInView={disableAnimation ? undefined : { opacity: 1, x: 0 }}
         viewport={disableAnimation ? undefined : { once: true, margin: "-50px" }}
@@ -98,9 +101,12 @@ export function BudgetPieChart({ budget, currency = "RON", isPdf = false, isPptx
           {data.map((item, index) => {
             const percent = totalCost > 0 ? ((item.cost / totalCost) * 100).toFixed(0) : '0';
             return (
-              <li key={`legend-item-${index}`} className={`flex items-start gap-2.5 ${isPdf ? 'text-[18px] text-gray-700 font-medium' : 'text-[14px] text-zinc-300'}`}>
-                <div className="w-4 h-4 rounded-[3px] mt-1 shrink-0 shadow-sm" style={{ backgroundColor: COLORS[index % COLORS.length] }} />
-                <span className="leading-tight">{item.name} <strong className={isPdf ? 'text-gray-500 font-bold' : 'text-zinc-500'}>({percent}%)</strong></span>
+              <li key={`legend-item-${index}`} className={`flex items-start gap-2.5 ${isPdf ? 'text-[18px] text-gray-700 font-medium' : 'text-[12px] sm:text-[14px] text-zinc-300'}`}>
+                <div className="w-3.5 h-3.5 sm:w-4 sm:h-4 rounded-[3px] mt-0.5 sm:mt-1 shrink-0 shadow-sm" style={{ backgroundColor: COLORS[index % COLORS.length] }} />
+                <span className="leading-snug break-words">
+                  {item.name}{' '}
+                  <strong className={isPdf ? 'text-gray-500 font-bold' : 'text-zinc-500'}>({percent}%)</strong>
+                </span>
               </li>
             );
           })}

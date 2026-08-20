@@ -40,6 +40,7 @@ import { resolveLoadedStudioPlan, exportActiveTabDisplayLabel } from "@/lib/stud
 import { StudioPdfSlides } from "@/components/pdf/StudioPdfSlides";
 import { truncateText, splitTextIntoSlides } from "@/lib/planHelpers";
 import { formatPriceLocalized } from "@/lib/priceHelper";
+import { normalizePlanCurrency } from "@/lib/planCurrency";
 import { formatObjectNumbers, formatNumberedText } from "@/lib/utils";
 import { canUseFreeToneEdit, consumeFreeToneEdit, isFreeToneKey, isProToneKey, toneVersionKey } from "@/lib/toneQuota";
 import {
@@ -1393,29 +1394,41 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
                 <div className="space-y-2">
                   {(() => {
                     const COLORS = ['#10b981', '#ef4444', '#3b82f6', '#f59e0b', '#8b5cf6', '#06b6d4', '#f97316'];
+                    const planCurrency = normalizePlanCurrency(result.selectedCurrency, locale);
                     const budgetList = Array.isArray(result.plan_financiar?.buget_investitii) ? result.plan_financiar.buget_investitii : [];
+                    const enriched = budgetList.map((item: any, idx: number) => {
+                      const costText = item.cost !== undefined ? item.cost : item.suma_lei;
+                      const costVal = parseInt(costText?.toString().replace(/[^0-9]/g, '') || '0');
+                      return { item, idx, costVal, costText };
+                    });
+                    const totalCost = enriched.reduce((sum: number, row: { costVal: number }) => sum + (row.costVal > 0 ? row.costVal : 0), 0);
 
                     return (
                       <>
-                        {budgetList.map((item: any, idx: number) => {
+                        {enriched.map(({ item, idx, costVal, costText }: { item: any; idx: number; costVal: number; costText: any }) => {
                           const label = item.item || item.categorie || '';
-                          const price = item.cost !== undefined ? item.cost : item.suma_lei;
-                          const planCurrency = result.selectedCurrency || (locale === "ro" ? "RON" : "EUR");
                           const bulletColor = COLORS[idx % COLORS.length];
+                          const percent = totalCost > 0 && costVal > 0 ? Math.round((costVal / totalCost) * 100) : 0;
+                          const amountLabel = formatPriceLocalized(costText, locale, planCurrency, fxRate);
 
                           return (
-                            <div key={idx} className="bg-zinc-950/40 border border-zinc-800/50 rounded-xl p-3 flex justify-between items-center text-xs">
-                              <span className="font-semibold text-zinc-300 flex items-center gap-2 flex-1 pr-2 truncate">
-                                <span className="w-2 h-2 rounded-[3px] shrink-0" style={{ backgroundColor: bulletColor }} />
-                                <span className="truncate">{label}</span>
-                              </span>
-                              <div className="flex items-center gap-2 shrink-0">
-                                <span className="font-black text-emerald-400">
-                                  {typeof price === 'number' ? price.toLocaleString() : String(price)} {(!price?.toString().toLowerCase().includes('lei') && !price?.toString().toLowerCase().includes('ron') && !price?.toString().toLowerCase().includes('eur')) ? planCurrency : ""}
+                            <div key={idx} className="bg-zinc-950/40 border border-zinc-800/50 rounded-xl p-3 flex gap-2 items-start text-xs">
+                              <span className="font-semibold text-zinc-300 flex items-start gap-2 flex-1 min-w-0">
+                                <span className="w-2 h-2 rounded-[3px] shrink-0 mt-1.5" style={{ backgroundColor: bulletColor }} />
+                                <span className="leading-snug break-words">
+                                  {label}{' '}
+                                  {costVal > 0 ? (
+                                    <span className="text-zinc-500 font-medium">({percent}%)</span>
+                                  ) : null}
                                 </span>
-                                <div className="flex items-center gap-1 pl-1">
+                              </span>
+                              <div className="flex items-start gap-1 shrink-0">
+                                <span className="font-black text-emerald-400 whitespace-nowrap tabular-nums text-right pt-0.5">
+                                  {amountLabel}
+                                </span>
+                                <div className="flex items-center gap-0.5">
                                   <button
-                                    onClick={() => setEditingBudgetItem({ index: idx, item: label, cost: String(price || '0') })}
+                                    onClick={() => setEditingBudgetItem({ index: idx, item: label, cost: String(costText || '0') })}
                                     className="text-[11px] text-zinc-500 hover:text-white p-2 -m-1 inline-flex items-center justify-center min-w-[36px] min-h-[36px]"
                                     title={ui.editBtn}
                                   >
@@ -1450,9 +1463,13 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
 
               {/* Chart Container */}
               <div className="bg-zinc-950/30 border border-zinc-800/60 rounded-xl p-4 flex flex-col items-center justify-center">
-                <h4 className="text-[10px] font-bold text-zinc-400 mb-4 uppercase">{ui.fundsDistribution}</h4>
-                <div className="w-full h-[280px] sm:h-[350px] flex items-center justify-center">
-                      <BudgetPieChart budget={result.plan_financiar?.buget_investitii || []} currency={result.selectedCurrency || (locale === "ro" ? "RON" : "EUR")} />
+                <h4 className="text-[10px] font-bold text-zinc-400 mb-3 uppercase">{ui.fundsDistribution}</h4>
+                <div className="w-full min-h-[240px] flex items-center justify-center">
+                      <BudgetPieChart
+                        budget={result.plan_financiar?.buget_investitii || []}
+                        currency={normalizePlanCurrency(result.selectedCurrency, locale)}
+                        locale={locale}
+                      />
                 </div>
               </div>
             </div>

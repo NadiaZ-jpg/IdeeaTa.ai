@@ -30,6 +30,10 @@ import { useSharedPlanLoader } from "@/hooks/useSharedPlanLoader";
 import { useAuthUser } from '@/hooks/useAuthUser';
 import { createAndCopySharedPlanLink } from "@/lib/sharePlan";
 import { FREE_ACCOUNT_PLAN_LIMIT, GUEST_DEMO_PLAN_LIMIT, hasUnlimitedGenerateAccess, clearLocalPlanState, appendGuestPlanToLocalList } from "@/lib/planQuota";
+import {
+  persistCurrentVersions,
+  notifyVersionPersistFailed,
+} from "@/lib/persistVersionMap";
 import { canGenerateWithQuotas, readProPackRemaining, proPackTopupConfirmDialog } from "@/lib/proPackQuota";
 import { startProTopupCheckout } from "@/lib/proTopupCheckout";
 import { ProPackQuotaBar } from "@/components/ProPackQuotaBar";
@@ -76,33 +80,29 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
   };
 
   const setVersions = (valOrFn: any) => {
-     setVersionsState((prev: any) => {
-        const nextVal = typeof valOrFn === 'function' ? valOrFn(prev) : valOrFn;
-        if (typeof window !== "undefined") {
-           if (Object.keys(nextVal).length > 0) {
-             localStorage.setItem("current_versions", JSON.stringify({versions: nextVal, activeVersionId: activeVersionIdRef.current}));
-           } else {
-             localStorage.removeItem("current_versions");
-           }
-        }
-        return nextVal;
-     });
+    setVersionsState((prev: any) => {
+      const nextVal = typeof valOrFn === "function" ? valOrFn(prev) : valOrFn;
+      const persisted = persistCurrentVersions(nextVal, activeVersionIdRef.current);
+      if (!persisted.ok && persisted.quotaExceeded) {
+        const msg =
+          (UI_STRINGS[locale] || UI_STRINGS.ro).versionPersistFailed;
+        queueMicrotask(() => notifyVersionPersistFailed(msg));
+      }
+      return nextVal;
+    });
   };
 
   const setResult = (valOrFn: any) => {
     setResultState((prev: any) => {
-      const nextVal = typeof valOrFn === 'function' ? valOrFn(prev) : valOrFn;
+      const nextVal = typeof valOrFn === "function" ? valOrFn(prev) : valOrFn;
       if (nextVal === null) {
         setVersions({});
         setActiveVersionId("original");
       } else {
-        setVersions((prevVers: any) => {
-           const newVers = { ...prevVers, [activeVersionIdRef.current]: nextVal };
-           if (typeof window !== "undefined") {
-             localStorage.setItem("current_versions", JSON.stringify({versions: newVers, activeVersionId: activeVersionIdRef.current}));
-           }
-           return newVers;
-        });
+        setVersions((prevVers: any) => ({
+          ...prevVers,
+          [activeVersionIdRef.current]: nextVal,
+        }));
       }
       return nextVal;
     });

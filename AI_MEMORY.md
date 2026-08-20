@@ -992,4 +992,20 @@ Fișiere: `lib/versionStack.ts`, `lib/planQuota.ts`, `lib/proPackQuotaAdmin.ts`,
 
 **Acceptanță:** 3 planuri guest pe Desktop (ultima tastată) → înainte de login `demo_plans_list.length === 3` → după signup toate în Dashboard.
 
+---
+
+## FREEZE — Sesiunea B1 (20 August 2026): Version tabs survive localStorage QuotaExceeded
+
+**Bug:** Pro tool pe Original (ex. investor_ready) genera conținut, dar fără tab — `setVersions` arunca QuotaExceeded în updater → state versions nu se actualiza; `VersionSelector` ascundea UI.
+
+**Fix:**
+- `lib/persistVersionMap.ts` — `persistCurrentVersions` / `notifyVersionPersistFailed` (fără throw).
+- DemoDesktop, DemoMobile, StudioDesktop, StudioMobile: `setVersions` mereu returnează nextVal în memorie; persist în try/catch.
+- `ui.versionPersistFailed` RO/EN/ES.
+- `saveEditing` (Desktop): folosește `setVersions` (nu `setVersionsState` + `setItem` brut).
+
+**Acceptanță:** Pro investor (sau tone) pe plan mare → tab nou vizibil chiar dacă localStorage e plin; alert soft o dată / 8s; export pe tab-ul activ încă merge. Persist e best-effort.
+
+**Nu în B1:** B2 (UX edit vs combine + export pe tab activ) — separat.
+
 

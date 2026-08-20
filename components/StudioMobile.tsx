@@ -20,6 +20,10 @@ import { createAndCopySharedPlanLink } from '@/lib/sharePlan';
 import { StudioMobileGenerateHint } from '@/components/StudioMobileGenerateHint';
 import { getExamples } from '@/lib/examples';
 import { FREE_ACCOUNT_PLAN_LIMIT, hasUnlimitedGenerateAccess, clearLocalPlanState } from '@/lib/planQuota';
+import {
+  persistCurrentVersions,
+  notifyVersionPersistFailed,
+} from '@/lib/persistVersionMap';
 import { canGenerateWithQuotas, readProPackRemaining, proPackTopupConfirmDialog } from '@/lib/proPackQuota';
 import { startProTopupCheckout } from '@/lib/proTopupCheckout';
 import { ProPackQuotaBar } from '@/components/ProPackQuotaBar';
@@ -62,8 +66,27 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
   const [isSharedView, setIsSharedView] = useState(false);
   const [result, setResult] = useState<any>(null);
   useCompleteMissingPlanFields(result, setResult, locale);
-  const [versions, setVersions] = useState<any>({});
-  const [activeVersionId, setActiveVersionId] = useState<string>("original");
+  const [versions, setVersionsState] = useState<any>({});
+  const activeVersionIdRef = useRef<string>("original");
+  const [activeVersionId, _setActiveVersionId] = useState<string>("original");
+
+  const setActiveVersionId = (id: string) => {
+    activeVersionIdRef.current = id;
+    _setActiveVersionId(id);
+  };
+
+  const setVersions = (valOrFn: any) => {
+    setVersionsState((prev: any) => {
+      const nextVal = typeof valOrFn === "function" ? valOrFn(prev) : valOrFn;
+      const persisted = persistCurrentVersions(nextVal, activeVersionIdRef.current);
+      if (!persisted.ok && persisted.quotaExceeded) {
+        const msg =
+          (UI_STRINGS[locale] || UI_STRINGS.ro).versionPersistFailed;
+        queueMicrotask(() => notifyVersionPersistFailed(msg));
+      }
+      return nextVal;
+    });
+  };
   
   const [activeTab, setActiveTab] = useState<"overview" | "budget" | "marketing" | "swot">("overview");
   const [loading, setLoading] = useState(false);

@@ -31,6 +31,10 @@ import { fetchSharedPlanResult, resetDemoShareCounters, clearSharedIdFromUrl, re
 import { resolveSharedViewCurrency, shouldShowCurrencyToggle } from '@/lib/pdfCtaBehavior';
 import { FREE_ACCOUNT_PLAN_LIMIT, GUEST_DEMO_PLAN_LIMIT, clearLocalPlanState, hasUnlimitedGenerateAccess, appendGuestPlanToLocalList } from '@/lib/planQuota';
 import {
+  persistCurrentVersions,
+  notifyVersionPersistFailed,
+} from '@/lib/persistVersionMap';
+import {
   canGenerateWithQuotas,
   readProPackRemaining,
   proPackTopupConfirmDialog,
@@ -80,33 +84,30 @@ export default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" | 
   };
 
   const setVersions = (valOrFn: any) => {
-     setVersionsState((prev: any) => {
-        const nextVal = typeof valOrFn === 'function' ? valOrFn(prev) : valOrFn;
-        if (typeof window !== "undefined") {
-           if (Object.keys(nextVal).length > 0) {
-             localStorage.setItem("current_versions", JSON.stringify({versions: nextVal, activeVersionId: activeVersionIdRef.current}));
-           } else {
-             localStorage.removeItem("current_versions");
-           }
-        }
-        return nextVal;
-     });
+    setVersionsState((prev: any) => {
+      const nextVal = typeof valOrFn === "function" ? valOrFn(prev) : valOrFn;
+      // Persist outside throw path: QuotaExceeded must not abort React state (B1).
+      const persisted = persistCurrentVersions(nextVal, activeVersionIdRef.current);
+      if (!persisted.ok && persisted.quotaExceeded) {
+        const msg =
+          (UI_STRINGS[locale] || UI_STRINGS.ro).versionPersistFailed;
+        queueMicrotask(() => notifyVersionPersistFailed(msg));
+      }
+      return nextVal;
+    });
   };
 
   const setResult = (valOrFn: any) => {
     setResultState((prev: any) => {
-      const nextVal = typeof valOrFn === 'function' ? valOrFn(prev) : valOrFn;
+      const nextVal = typeof valOrFn === "function" ? valOrFn(prev) : valOrFn;
       if (nextVal === null) {
         setVersions({});
         setActiveVersionId("original");
       } else {
-        setVersions((prevVers: any) => {
-           const newVers = { ...prevVers, [activeVersionIdRef.current]: nextVal };
-           if (typeof window !== "undefined") {
-             localStorage.setItem("current_versions", JSON.stringify({versions: newVers, activeVersionId: activeVersionIdRef.current}));
-           }
-           return newVers;
-        });
+        setVersions((prevVers: any) => ({
+          ...prevVers,
+          [activeVersionIdRef.current]: nextVal,
+        }));
       }
       return nextVal;
     });
@@ -261,14 +262,14 @@ export default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" | 
       ...versions,
       [activeVersionId]: result
     };
-    setVersionsState(nextVersions);
+    setVersions(nextVersions);
     void syncCurrentPlanToFirestore(result, nextVersions, activeVersionId);
     if (typeof window !== "undefined") {
-      localStorage.setItem("current_generated_plan", JSON.stringify(result));
-      localStorage.setItem(
-        "current_versions",
-        JSON.stringify({ versions: nextVersions, activeVersionId })
-      );
+      try {
+        localStorage.setItem("current_generated_plan", JSON.stringify(result));
+      } catch {
+        /* ignore quota */
+      }
     }
     if (typeof window !== "undefined" && window.location.search.includes('edit=true')) {
       window.history.replaceState({}, document.title, window.location.pathname + '?view=idea');

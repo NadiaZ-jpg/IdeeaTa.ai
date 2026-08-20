@@ -65,7 +65,7 @@
 
 ### Rău
 1. ~~**Oaspete + unealtă Pro pe Demo:**~~ — **reparat C2** (auth modal + stop procesare).
-2. **Pe Demo nu există editare manuală** (pe Desktop da) — pe telefon schimbi planul doar prin AI / unelte.
+2. ~~**Pe Demo nu există editare manuală**~~ — **reparat D2** (`EditForm` pe telefon).
 3. ~~**Pe Studio (telefon): tab-uri după auto-fill**~~ — **reparat C3**.
 4. ~~**Pe Studio (telefon): sharedId**~~ — **reparat C3**.
 

@@ -1099,6 +1099,21 @@ Fișiere: `lib/versionStack.ts`, `lib/planQuota.ts`, `lib/proPackQuotaAdmin.ts`,
 
 ---
 
+## FREEZE — Sesiunea D2 (20 August 2026): Editare manuală Demo Mobile
+
+**Lipsă:** pe Demo telefon nu exista editare manuală (doar AI); pe Desktop da (`EditForm`).
+
+**Fix:**
+- `DemoMobile`: buton Editează + `EditForm` (același ca Desktop), Anulează / Confirmă & Salvează (`ui.*` RO/EN/ES).
+- Salvare pe `versions[active]` + localStorage + Firestore dacă e logat.
+- Guest pe plan propriu poate edita; guest pe shared → auth.
+
+**Acceptanță:** telefon RO/EN/ES — Editează → modifică text → Salvează → tab activ reflectă schimbarea.
+
+**Nu în D2:** D3 guest list Mobile.
+
+---
+
 ## FREEZE — Ops simplu (20 August 2026): doar `main` + 3 comenzi
 
 **Regulă agenți:** branch de lucru = **`main`**. Fără feature branches noi decât pe cerere explicită.

@@ -28,6 +28,7 @@
 | **C2** Demo Mobile Pro→auth | ✅ | Sanity | Must ✅ | Must* | ✅ | ✅ | ✅ |
 | **C3** Studio Mobile tabs+shared | ✅ | Sanity | Must ✅ | Must* | ✅ | ✅ | ✅ |
 | **D1** Share Desktop | ✅ | Must ✅ | Sanity | Sanity | ✅ | ✅ | ✅ |
+| **D2** Edit manual Demo Mobile | ✅ | Sanity | Must ✅ | Must* | ✅ | ✅ | ✅ |
 | Ops `./update.sh` | ✅ | — | — | — | — | — | — |
 
 \*A2: migrare/Dashboard pe toate device-urile după login; bug-ul delete-on-name era cross-device.
@@ -267,6 +268,6 @@ F4–F5   proiecte mari (amânate)
 
 ## Următorul pas
 
-**C1–C3** ✅ · **D1** ✅. Urmează **D3** (guest list Mobile) apoi **D2** (edit manual Demo Mobile).
+**C1–C3 · D1–D2** ✅. Urmează **D3** (guest list Mobile ca A1).
 
 Spune `executa D3` ca să continuăm pe `main`.

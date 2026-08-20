@@ -18,6 +18,7 @@ import { formatPriceLocalized } from "@/lib/priceHelper";
 import { ConversionBanners } from '@/components/ConversionBanners';
 import { migrateLocalPlansToFirebase } from '@/lib/migrationManager';
 import { ToneEditor } from '@/components/ToneEditor';
+import { EditForm } from '@/components/EditForm';
 import { MobileProToolsPanel, type MobileAiPrompt } from '@/components/tools/MobileProToolsPanel';
 import { ExpertSectionsDrawer } from '@/components/modals/ExpertSectionsDrawer';
 import Link from 'next/link';
@@ -232,7 +233,75 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
     }
   };
 
+  const updateField = (path: (string | number)[], value: string) => {
+    setResult((prev: any) => {
+      const next = JSON.parse(JSON.stringify(prev));
+      let curr = next;
+      for (let i = 0; i < path.length - 1; i++) {
+        curr = curr[path[i]];
+      }
+      curr[path[path.length - 1]] = value;
+      return next;
+    });
+  };
 
+  const removeField = (path: (string | number)[]) => {
+    setResult((prev: any) => {
+      const next = JSON.parse(JSON.stringify(prev));
+      let curr = next;
+      for (let i = 0; i < path.length - 1; i++) {
+        curr = curr[path[i]];
+      }
+      const lastKey = path[path.length - 1];
+      if (Array.isArray(curr)) {
+        curr.splice(lastKey as number, 1);
+      } else {
+        delete curr[lastKey];
+      }
+      return next;
+    });
+  };
+
+  const startEditing = () => {
+    if (!result) return;
+    if (isSharedView && !user) {
+      setShowAuthModal(true);
+      return;
+    }
+    setBackupResult(JSON.parse(JSON.stringify(result)));
+    setIsEditing(true);
+    try {
+      window.history.pushState({ isEditing: true }, "", window.location.pathname + "?edit=true");
+    } catch {
+      /* ignore */
+    }
+  };
+
+  const cancelEditing = () => {
+    if (backupResult) setResult(backupResult);
+    setIsEditing(false);
+    if (typeof window !== "undefined" && window.location.search.includes("edit=true")) {
+      window.history.replaceState({}, document.title, window.location.pathname + "?view=idea");
+    }
+  };
+
+  const saveEditing = () => {
+    setIsEditing(false);
+    const nextVersions = {
+      ...versions,
+      [activeVersionId]: result,
+    };
+    setVersions(nextVersions);
+    void syncCurrentPlanToFirestore(result, nextVersions, activeVersionId);
+    try {
+      localStorage.setItem("current_generated_plan", JSON.stringify(result));
+    } catch {
+      /* ignore */
+    }
+    if (typeof window !== "undefined" && window.location.search.includes("edit=true")) {
+      window.history.replaceState({}, document.title, window.location.pathname + "?view=idea");
+    }
+  };
 
   useEffect(() => {
     if (typeof window === "undefined" || !user) return;
@@ -283,6 +352,8 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
   
   // Stările pentru asistentul AI Bottom-Sheet
   const [isEditingAi, setIsEditingAi] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [backupResult, setBackupResult] = useState<any>(null);
   const [activeAiPrompt, setActiveAiPrompt] = useState<MobileAiPrompt | null>(null);
   const [aiPromptInput, setAiPromptInput] = useState("");
   const [showExpertDrawer, setShowExpertDrawer] = useState(false);
@@ -438,6 +509,11 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
         setShowAuthModal(true);
       }
 
+      if (!searchParams.get("edit") && isEditing) {
+        // Back from edit mode
+        setIsEditing(false);
+      }
+
       if (isIdea) {
         setResultState((prevResult: any) => {
           if (!prevResult) {
@@ -475,7 +551,7 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
     };
     window.addEventListener('popstate', handlePopState);
     return () => window.removeEventListener('popstate', handlePopState);
-  }, [user]);
+  }, [user, isEditing]);
 
   const handleGenerate = async (nicheExample?: string) => {
     const inputSkill = nicheExample || skill;
@@ -1141,7 +1217,41 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
           </div>
         )}
 
-        {!loading && result && (
+        {!loading && result && isEditing && (
+          <div className="flex flex-col gap-4 animate-in fade-in duration-300">
+            <div className="bg-zinc-900/60 border border-zinc-800 rounded-xl p-4 flex flex-col gap-3 backdrop-blur-md">
+              <h2 className="text-sm font-black text-emerald-400 flex items-center gap-2">
+                <span>🪄</span> {ui.editingStudio}
+              </h2>
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={cancelEditing}
+                  className="flex-1 bg-zinc-800 hover:bg-zinc-700 text-white font-bold py-3 rounded-xl text-xs transition-all active:scale-95 min-h-[44px]"
+                >
+                  {ui.cancelCross}
+                </button>
+                <button
+                  type="button"
+                  onClick={saveEditing}
+                  className="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 rounded-xl text-xs transition-all active:scale-95 min-h-[44px] border border-emerald-500"
+                >
+                  {ui.confirmSaveCheck}
+                </button>
+              </div>
+            </div>
+            <EditForm
+              result={result}
+              updateField={updateField}
+              removeField={removeField}
+              readOnly={false}
+              locale={locale}
+              currency={result?.selectedCurrency || (locale === "ro" ? "LEI" : "EUR")}
+            />
+          </div>
+        )}
+
+        {!loading && result && !isEditing && (
           <div className="flex flex-col gap-4 animate-in fade-in duration-300">
             {/* Sticky mini header */}
             <div className="bg-zinc-900/60 border border-zinc-800 rounded-xl p-4 flex items-center justify-between gap-4 backdrop-blur-md">
@@ -1155,11 +1265,22 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
                 {!isSharedView || user ? (
                   <button
                     type="button"
+                    onClick={startEditing}
+                    className="bg-zinc-800 hover:bg-zinc-700 text-white font-bold px-2.5 py-2 rounded-lg text-[10px] transition-all active:scale-95 inline-flex items-center justify-center min-h-[44px] whitespace-nowrap"
+                    title={ui.editingStudio}
+                  >
+                    ✏️ {locale === "en" ? "Edit" : locale === "es" ? "Editar" : "Editează"}
+                  </button>
+                ) : null}
+                {!isSharedView || user ? (
+                  <button
+                    type="button"
                     onClick={() => {
                       setResult(null);
                       setVersions({});
                       setActiveVersionId("original");
                       setIsSharedView(false);
+                      setIsEditing(false);
                       if (typeof window !== "undefined") {
                         localStorage.removeItem("current_generated_plan");
                         localStorage.removeItem("current_versions");

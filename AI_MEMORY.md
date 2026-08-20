@@ -1041,4 +1041,20 @@ Fișiere: `lib/versionStack.ts`, `lib/planQuota.ts`, `lib/proPackQuotaAdmin.ts`,
 
 **Nu în B2:** hotfixes audit (auth errors EN/ES Desktop, Demo Mobile Pro→auth sheet, etc.).
 
+---
+
+## FREEZE — Ops simplu (20 August 2026): doar `main` + 3 comenzi
+
+**Regulă agenți:** branch de lucru = **`main`**. Fără feature branches noi decât pe cerere explicită.
+
+| Ce | Comandă |
+|----|---------|
+| **Commit** (local, când cere Nadia) | `git checkout main` → `git pull` → `git add …` → `git commit` |
+| **GitHub** | `git push origin main` |
+| **Deploy** (Hetzner) | `cd ~/IdeeaTa.ai && ./update.sh` |
+
+- `update.sh` = `fetch` + `checkout main` + `reset --hard origin/main` + build + copy static + `pm2 restart ideeata`.
+- `deploy.sh` = deprecated pentru uz zilnic (doar helper).
+- Nu mai: stash pe server, checkout `cursor/...`, sau `pm2 restart` fără build.
+
 

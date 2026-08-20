@@ -1,13 +1,17 @@
 #!/usr/bin/env bash
-# DEPRECATED for humans/agents — use ./update.sh (pull main + build + pm2).
-# Kept only as a build/restart helper if update.sh is unavailable.
-# Run from the app root on the server: ./deploy.sh
+# Singura comandă de deploy pe Hetzner.
+# Usage: cd ~/IdeeaTa.ai && ./update.sh
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")" && pwd)"
 cd "$ROOT"
 
 APP_NAME="${PM2_APP_NAME:-ideeata}"
+
+echo "==> Sync to origin/main (discard local server edits)"
+git fetch origin
+git checkout main
+git reset --hard origin/main
 
 echo "==> Installing dependencies"
 if [[ -f package-lock.json ]]; then
@@ -19,7 +23,7 @@ fi
 echo "==> Building"
 npm run build
 
-echo "==> Syncing static assets into standalone (required — prevents ChunkLoadError)"
+echo "==> Syncing static assets into standalone"
 mkdir -p .next/standalone/.next
 rm -rf .next/standalone/.next/static
 cp -a .next/static .next/standalone/.next/
@@ -31,8 +35,8 @@ if [[ -f .env ]]; then
   echo "==> Copied .env into standalone"
 fi
 
-echo "==> Restarting PM2 app: $APP_NAME"
+echo "==> Restarting PM2: $APP_NAME"
 pm2 restart "$APP_NAME"
 
-echo "==> Deploy OK"
+echo "==> OK — $(git rev-parse --short HEAD) on main"
 pm2 describe "$APP_NAME" | head -25

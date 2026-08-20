@@ -865,3 +865,31 @@ Dacă oricare dintre aceste verificări este omisă în procesul de planificare,
 - Branch: `cursor/pdf-cta-locale-and-plan-fill`
 - Push: ✅ `To https://github.com/NadiaZ-jpg/IdeeaTa.ai.git`
 
+---
+
+## FREEZE — Sesiunea 6 SSR & Detecție Dispozitive pe Server (20 August 2026)
+
+### Fișiere modificate și ÎNGHEȚATE:
+| Fișier | Modificare |
+|---|---|
+| `middleware.ts` | Adăugat detecția headerului `user-agent` pe server și injectarea headerului custom `x-device-type` (`mobile` / `desktop`) în request-ul pasat paginii. |
+| `components/LocaleRedirectGuard.tsx` | Componentă client-side nouă ce preia logica de redirect lingvistic a intrărilor RO (`redirectRoEntryIfNeeded`) la mount. |
+| `components/LocalePreferredSetter.tsx` | Componentă client-side nouă ce setează preferința de limbă în `localStorage` la încărcarea paginilor de limbi specifice. |
+| `app/demo/page.tsx`, `app/en/demo/page.tsx`, `app/es/demo/page.tsx` | Transformate din Client Components în Server Components. Citesc tipul de dispozitiv pe server și folosesc `next/dynamic` pentru a randa și trimite doar componenta de design potrivită. |
+| `app/studio/page.tsx`, `app/en/studio/page.tsx`, `app/es/studio/page.tsx` | Transformate în Server Components cu randare dinamică la nivel de server bazată pe `x-device-type` și lazy loading. |
+
+### Fișiere ȘTERSE definitiv (nu se recreează):
+- `app/demo/DemoContent.tsx`
+- `app/studio/StudioContent.tsx`
+
+### Build verificat:
+- ✅ `npx tsc --noEmit` — zero erori TypeScript
+- ✅ `✓ Compiled successfully in 10.1s`
+- ✅ `✓ Generating static pages (71/71)`
+
+### Git Checkpoint:
+- Commit: `d23b037`
+- Mesaj: `feat(SSR): server-side device detection and dynamic page importing for Demo and Studio pages (Sesiunea 6)`
+- Branch: `cursor/pdf-cta-locale-and-plan-fill`
+- Push: ✅ `To https://github.com/NadiaZ-jpg/IdeeaTa.ai.git`
+

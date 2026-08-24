@@ -1371,6 +1371,12 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
                 {!isSharedView && (
                 <div className="flex flex-col gap-2.5 w-full">
                 <div className="flex items-start gap-2 bg-emerald-500/10 border border-emerald-500/20 p-3.5 rounded-2xl w-full">
+                  <span className="text-emerald-400 mt-0.5 text-base shrink-0">💡</span>
+                  <p className="text-[12px] text-emerald-100/70 leading-relaxed">
+                    <span dangerouslySetInnerHTML={{ __html: ui.editorTip }} />
+                  </p>
+                </div>
+                <div className="flex items-start gap-2 bg-emerald-500/10 border border-emerald-500/20 p-3.5 rounded-2xl w-full">
                   <span className="text-emerald-400 mt-0.5 text-base shrink-0">🪄</span>
                   <p className="text-[12px] text-emerald-100/70 leading-relaxed">
                     <span dangerouslySetInnerHTML={{ __html: ui.versionToolsTip }} />

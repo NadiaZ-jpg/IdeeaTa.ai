@@ -276,6 +276,52 @@ F4–F5   proiecte mari (amânate)
 
 ## Următorul pas
 
-**Audit hotfixes + F4/F5 Faza 1 + F4b + F4c + F4d** ✅. Urmează F5b (opțional) sau mentenanță.
+**Audit hotfixes + F4…F4d** ✅. Urmează: **Sfaturi full (T1)** — vezi mai jos. Apoi F5b (opțional) sau mentenanță.
 
-Spune ce vrei următor.
+---
+
+## T1 — Sfaturi full (Desktop / Mobile / Tablet × RO / EN / ES)
+
+### Setul full (4 cutii)
+
+| # | Icon | Cheie `UI_STRINGS` | Conținut pe scurt | Când apare |
+|---|------|--------------------|-------------------|------------|
+| 1 | 💡 | `editorTip` | Editează textul → Confirmă & Salvează → descarcă | Mereu când există plan (Demo + Studio) |
+| 2 | 🪄 | `versionToolsTip` | Original = tab nou / alt tab = combină; download = tab activ | Mereu când există plan (Demo + Studio) |
+| 3 | 🏛️ | `expertLibraryTip` | Bibliotecă: DNSH, fonduri UE, investitori | **Doar Studio + user logat** (niciodată Demo / guest) |
+| 4 | ⏱️ | `proPackQuotaTip` | Cotele Pro (generări / editări / combinații) sunt comune pe toate proiectele | **Doar după achiziție Instrumente Pro** (`hasProPackQuota`) |
+
+Textele există deja RO / EN / ES (Sfat / Tip / Consejo). Tabletă = UI Mobile (&lt;1024).
+
+### Matrice țintă
+
+| Sfat | Demo Desktop | Demo Mobile/Tablet | Studio Desktop | Studio Mobile/Tablet |
+|------|--------------|--------------------|----------------|----------------------|
+| 1 💡 | da | **da** ✅ | da | da |
+| 2 🪄 | da | da | da | da |
+| 3 🏛️ | nu | nu | da dacă `user` | da dacă `user` |
+| 4 ⏱️ | da dacă Pro pack | da dacă Pro pack | da dacă Pro pack | da dacă Pro pack |
+
+### Reguli produs
+
+1. **Demo** = fără 🏛️ (DNSH / bibliotecă).
+2. **🏛️** = din momentul contului (Studio + login), nu pe guest.
+3. **⏱️** = din momentul achiziției pachetului Instrumente Pro (`euFundsUnlocked` + fără abonament admin bypass) — pe toate device-urile și limbile.
+4. Aceleași 4 chei peste tot; fără ternare locale noi.
+
+### Pași implementare
+
+1. **Demo Mobile/Tablet:** adaugă cutia 💡 `editorTip` lângă 🪄 (și ⏱️ condiționat) — ordine: 💡 → 🪄 → ⏱️. ✅
+2. **Verificare Studio:** 🏛️ rămâne gated pe `user` (Desktop sidebar + Mobile).
+3. **Verificare ⏱️:** deja legat de `hasProPackQuota` / `showProPackQuotaTip` pe Demo+Studio Desktop+Mobile — smoke după plată Pro pe RO/EN/ES × telefon + PC.
+4. **Ordine vizuală unică** peste tot: 💡 → 🪄 → 🏛️ (doar Studio) → ⏱️ (doar Pro pack).
+5. `tsc` + commit/push `main` + deploy `./update.sh`.
+
+### Acceptanță (matrice)
+
+- [ ] Demo Desktop RO/EN/ES: 💡 + 🪄; fără 🏛️; ⏱️ după Pro.
+- [ ] Demo telefon/tabletă RO/EN/ES: 💡 + 🪄; fără 🏛️; ⏱️ după Pro.
+- [ ] Studio Desktop RO/EN/ES (logat): 💡 + 🪄 + 🏛️; ⏱️ după Pro.
+- [ ] Studio telefon/tabletă RO/EN/ES (logat): 💡 + 🪄 + 🏛️; ⏱️ după Pro.
+- [ ] Guest / Demo: niciodată 🏛️.
+- [ ] Fără Pro pack: niciodată ⏱️.

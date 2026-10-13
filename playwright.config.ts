@@ -32,11 +32,15 @@ export default defineConfig({
       use: {
         ...devices["Desktop Chrome"],
         viewport: { width: 1280, height: 800 },
-        launchOptions: {
-          executablePath:
-            process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH ||
-            "/opt/pw-browsers/chromium-1194/chrome-linux/chrome",
-        },
+        // executablePath doar dacă e setat explicit (cloud container).
+        // Pe server Playwright folosește browserul instalat local.
+        ...(process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH
+          ? {
+              launchOptions: {
+                executablePath: process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH,
+              },
+            }
+          : {}),
       },
     },
   ],

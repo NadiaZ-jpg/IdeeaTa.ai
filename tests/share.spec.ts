@@ -3,8 +3,11 @@ import { MOCK_GENERATE_RESPONSE, MOCK_SHARE_RESPONSE } from "./fixtures/mock-pla
 
 test.describe("Demo - share plan flow", () => {
   test.beforeEach(async ({ page }) => {
+    // Blocăm LocaleRedirectGuard: headless Chrome are UA en-US →
+    // fără "preferred_language=ro", /demo ar fi redirecționat la /en/demo.
     await page.addInitScript(() => {
       localStorage.setItem("demoGenerateCount", "0");
+      localStorage.setItem("preferred_language", "ro");
     });
 
     // Mock generate
@@ -41,8 +44,8 @@ test.describe("Demo - share plan flow", () => {
     await textarea.fill("Cafenea de specialitate vegan");
     const generateBtn = page.getByRole("button", { name: /Genereaz[ăa]/i });
     await generateBtn.click();
-    // Așteptăm planul să fie afișat
-    const resetBtn = page.getByRole("button", { name: /Plan Nou/i });
+    // Așteptăm planul să fie afișat (butonul ActionBar apare)
+    const resetBtn = page.getByRole("button", { name: /Alt.*idee/i });
     await expect(resetBtn).toBeVisible({ timeout: 30_000 });
   }
 
@@ -135,7 +138,7 @@ test.describe("Demo - share plan flow", () => {
     const generateBtn = page.getByRole("button", { name: /Generate/i });
     await generateBtn.click();
 
-    const resetBtn = page.getByRole("button", { name: /New Plan/i });
+    const resetBtn = page.getByRole("button", { name: /Another idea/i });
     await expect(resetBtn).toBeVisible({ timeout: 30_000 });
 
     const shareBtn = page.getByRole("button", { name: /Share/i });

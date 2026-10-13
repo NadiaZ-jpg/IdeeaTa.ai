@@ -23,10 +23,14 @@ test.describe("Studio - auth wall", () => {
   });
 
   test("studio shows spinner while auth state loads", async ({ page }) => {
-    await page.goto("/studio");
+    // Mergem direct la /en/studio ca să evităm redirect-ul LocaleRedirectGuard
+    // (browserul headless are UA en, deci /studio → /en/studio oricum)
+    await page.goto("/en/studio");
+    // Așteptăm StudioDesktop să se încarce (dynamic import, ssr: false)
+    await page.waitForLoadState("networkidle");
     // Spinner-ul de autentificare: element cu clasa animate-spin
     const spinner = page.locator(".animate-spin").first();
-    await expect(spinner).toBeVisible({ timeout: 10_000 });
+    await expect(spinner).toBeVisible({ timeout: 15_000 });
   });
 
   test("studio page does NOT show plan editing textarea without auth", async ({

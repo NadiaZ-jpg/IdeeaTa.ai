@@ -41,8 +41,8 @@ test.describe("Demo EN - generate plan flow", () => {
     await expect(generateBtn).toBeVisible({ timeout: 5_000 });
     await generateBtn.click();
 
-    // "New Plan" apare în ActionBar după generare
-    const resetBtn = page.getByRole("button", { name: /New Plan/i });
+    // "Another idea" apare în ActionBar după generare
+    const resetBtn = page.getByRole("button", { name: /Another idea/i });
     await expect(resetBtn).toBeVisible({ timeout: 30_000 });
   });
 
@@ -71,7 +71,7 @@ test.describe("Demo EN - generate plan flow", () => {
     const generateBtn = page.getByRole("button", { name: /Generate/i });
     await generateBtn.click();
 
-    const resetBtn = page.getByRole("button", { name: /New Plan/i });
+    const resetBtn = page.getByRole("button", { name: /Another idea/i });
     await expect(resetBtn).toBeVisible({ timeout: 30_000 });
 
     // Locale trebuie să fie "en"
@@ -87,7 +87,7 @@ test.describe("Demo EN - generate plan flow", () => {
     const generateBtn = page.getByRole("button", { name: /Generate/i });
     await generateBtn.click();
 
-    const resetBtn = page.getByRole("button", { name: /New Plan/i });
+    const resetBtn = page.getByRole("button", { name: /Another idea/i });
     await expect(resetBtn).toBeVisible({ timeout: 30_000 });
 
     const shareBtn = page.getByRole("button", { name: /Share/i });

@@ -63,7 +63,7 @@ test.describe("ES locale — currency EUR", () => {
     await generateBtn.click();
 
     // Așteptăm planul
-    const resetBtn = page.getByRole("button", { name: /Nuevo Plan/i });
+    const resetBtn = page.getByRole("button", { name: /Otra idea/i });
     await expect(resetBtn).toBeVisible({ timeout: 30_000 });
 
     // Currency trimisă la API trebuie să fie EUR

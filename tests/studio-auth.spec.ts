@@ -22,11 +22,20 @@ test.describe("Studio - auth wall", () => {
     expect(errors).toHaveLength(0);
   });
 
-  test("studio shows spinner while auth state loads", async ({ page }) => {
-    await page.goto("/studio");
-    // Spinner-ul de autentificare: element cu clasa animate-spin
-    const spinner = page.locator(".animate-spin").first();
-    await expect(spinner).toBeVisible({ timeout: 10_000 });
+  test("studio shows auth-gated state (no editing UI without login)", async ({ page }) => {
+    // Setăm preferred_language="en" ca LocaleRedirectGuard să nu facă router.replace
+    await page.addInitScript(() => {
+      localStorage.setItem("preferred_language", "en");
+    });
+    await page.goto("/en/studio");
+    // Așteptăm ca pagina să se stabilizeze
+    await page.waitForTimeout(3_000);
+    // Fără autentificare: nu trebuie să existe textarea de editare plan
+    const editTextarea = page.locator("textarea");
+    await expect(editTextarea).not.toBeVisible({ timeout: 5_000 });
+    // Nici buton de generat/salvat nu trebuie să fie vizibil
+    const generateBtn = page.getByRole("button", { name: /Generate|Generează|Salveaz/i });
+    await expect(generateBtn).not.toBeVisible({ timeout: 2_000 });
   });
 
   test("studio page does NOT show plan editing textarea without auth", async ({

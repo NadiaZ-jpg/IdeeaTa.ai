@@ -3,9 +3,11 @@ import { MOCK_GENERATE_RESPONSE } from "./fixtures/mock-plan";
 
 test.describe("Demo RO - flux generate plan", () => {
   test.beforeEach(async ({ page }) => {
-    // Resetăm contorul de generări guest pentru a evita eroarea de limită
+    // Resetăm contorul + blocăm LocaleRedirectGuard (browserul headless are UA en-US,
+    // ceea ce ar redirecta /demo → /en/demo; setăm explicit "ro" pentru testele RO).
     await page.addInitScript(() => {
       localStorage.setItem("demoGenerateCount", "0");
+      localStorage.setItem("preferred_language", "ro");
     });
 
     // Interceptăm POST /api/generate și returnăm planul mock
@@ -39,8 +41,8 @@ test.describe("Demo RO - flux generate plan", () => {
     await expect(generateBtn).toBeVisible({ timeout: 5_000 });
     await generateBtn.click();
 
-    // Așteptăm butonul "Plan Nou" din ActionBar — apare după ce planul e afișat
-    const resetBtn = page.getByRole("button", { name: /Plan Nou/i });
+    // Așteptăm butonul "Altă idee" din ActionBar — apare după ce planul e afișat
+    const resetBtn = page.getByRole("button", { name: /Alt.*idee/i });
     await expect(resetBtn).toBeVisible({ timeout: 30_000 });
   });
 
@@ -71,7 +73,7 @@ test.describe("Demo RO - flux generate plan", () => {
     await generateBtn.click();
 
     // Așteptăm planul
-    const resetBtn = page.getByRole("button", { name: /Plan Nou/i });
+    const resetBtn = page.getByRole("button", { name: /Alt.*idee/i });
     await expect(resetBtn).toBeVisible({ timeout: 30_000 });
 
     expect(capturedMethod).toBe("POST");
@@ -88,7 +90,7 @@ test.describe("Demo RO - flux generate plan", () => {
     await generateBtn.click();
 
     // Așteptăm resetBtn = plan afișat
-    const resetBtn = page.getByRole("button", { name: /Plan Nou/i });
+    const resetBtn = page.getByRole("button", { name: /Alt.*idee/i });
     await expect(resetBtn).toBeVisible({ timeout: 30_000 });
 
     // Butonul de partajare trebuie să fie vizibil

@@ -1022,12 +1022,12 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
       
       {/* Header */}
       <header className="h-16 px-4 flex items-center justify-between border-b border-zinc-800/80 sticky top-0 bg-[#09090b]/80 backdrop-blur-md z-30">
-        <Link href={ui.routes.dashboard} className="text-xs font-bold text-zinc-400 hover:text-white flex items-center gap-1 min-h-[44px] min-w-[44px]">
+        <Link href={ui.routes.dashboard} className="text-xs font-bold text-zinc-400 hover:text-white flex items-center gap-1 min-h-[44px] shrink-0">
           <span>←</span>
           <span>{ui.dashboardShort}</span>
         </Link>
-        <span className="text-sm font-black">{ui.studioMobileBadge}</span>
-        <div className="flex items-center gap-2">
+        <span className="text-sm font-black truncate max-w-[80px] text-center">{ui.studioMobileBadge}</span>
+        <div className="flex items-center gap-2 shrink-0">
           <button
             onClick={handleShare}
             className="bg-zinc-800 text-white font-bold p-2 rounded-lg text-xs min-h-[44px] min-w-[44px] flex items-center justify-center"
@@ -1085,7 +1085,7 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
             <span className="text-[9px] bg-amber-500/10 border border-amber-500/20 text-amber-400 px-2 py-0.5 rounded-full font-bold uppercase inline-block">
               {ui.editingStudio}
             </span>
-            <h2 className="text-base sm:text-lg font-black text-white leading-snug break-words w-full">
+            <h2 className="text-base sm:text-lg font-black text-white leading-snug break-words w-full text-balance">
               {result.nume || ui.businessPlan}
             </h2>
           </div>
@@ -1120,9 +1120,9 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
         </div>
 
         {/* Tablet split layout container */}
-        <div className="flex flex-col gap-4 md:grid md:grid-cols-12 md:gap-6 items-start w-full">
+        <div className="flex flex-col gap-4 lg:grid lg:grid-cols-12 lg:gap-6 items-start w-full">
           {/* Left Column (Navigation & Versions) - 4 cols */}
-          <div className="w-full md:col-span-4 flex flex-col gap-4 sticky md:top-20 z-20">
+          <div className="w-full lg:col-span-4 flex flex-col gap-4 sticky lg:top-20 z-20">
             {/* Version History Selector Mobile */}
             {versions && Object.keys(versions).length > 0 && (
               <div className="relative z-20">
@@ -1130,8 +1130,8 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
                   onClick={() => setShowVersionDropdown(!showVersionDropdown)}
                   className="w-full px-4 py-3 rounded-xl bg-zinc-900/80 border border-zinc-800 hover:border-emerald-500/40 text-amber-300 hover:text-amber-200 font-bold text-xs flex items-center justify-between transition-all cursor-pointer shadow-sm"
                 >
-                  <span className="flex items-center gap-1.5">
-                    <span>📜 {ui.versionHistory} ({Object.keys(versions).length})</span>
+                  <span className="flex items-center gap-1.5 flex-1 min-w-0">
+                    <span className="truncate">📜 {ui.versionHistory} ({Object.keys(versions).length})</span>
                   </span>
                   <span className="flex items-center gap-2">
                     <span className="text-[10px] text-zinc-400 font-normal truncate max-w-[140px]">
@@ -1224,28 +1224,28 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
             </div>
 
             {/* Tab Selection */}
-            <div className="flex md:flex-col bg-zinc-950/90 backdrop-blur-md border border-zinc-800/80 rounded-xl p-1 overflow-x-auto md:overflow-visible scrollbar-none md:gap-1 w-full shadow-inner">
+            <div className="flex lg:flex-col bg-zinc-950/90 backdrop-blur-md border border-zinc-800/80 rounded-xl p-1 overflow-x-auto lg:overflow-visible scrollbar-none lg:gap-1 w-full shadow-inner">
               <button
                 onClick={() => setActiveTab("overview")}
-                className={`flex-1 text-center md:text-left py-3 md:py-2.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap px-4 md:px-5 ${activeTab === "overview" ? "bg-zinc-900 text-emerald-400 border border-zinc-800/80 shadow-md shadow-black/40" : "text-zinc-400 hover:text-white border border-transparent"}`}
+                className={`flex-1 text-center lg:text-left py-3 lg:py-2.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap px-4 lg:px-5 ${activeTab === "overview" ? "bg-zinc-900 text-emerald-400 border border-zinc-800/80 shadow-md shadow-black/40" : "text-zinc-400 hover:text-white border border-transparent"}`}
               >
                 {ui.tabOverview}
               </button>
               <button
                 onClick={() => setActiveTab("budget")}
-                className={`flex-1 text-center md:text-left py-3 md:py-2.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap px-4 md:px-5 ${activeTab === "budget" ? "bg-zinc-900 text-emerald-400 border border-zinc-800/80 shadow-md shadow-black/40" : "text-zinc-400 hover:text-white border border-transparent"}`}
+                className={`flex-1 text-center lg:text-left py-3 lg:py-2.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap px-4 lg:px-5 ${activeTab === "budget" ? "bg-zinc-900 text-emerald-400 border border-zinc-800/80 shadow-md shadow-black/40" : "text-zinc-400 hover:text-white border border-transparent"}`}
               >
                 {ui.tabFinance}
               </button>
               <button
                 onClick={() => setActiveTab("marketing")}
-                className={`flex-1 text-center md:text-left py-3 md:py-2.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap px-4 md:px-5 ${activeTab === "marketing" ? "bg-zinc-900 text-emerald-400 border border-zinc-800/80 shadow-md shadow-black/40" : "text-zinc-400 hover:text-white border border-transparent"}`}
+                className={`flex-1 text-center lg:text-left py-3 lg:py-2.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap px-4 lg:px-5 ${activeTab === "marketing" ? "bg-zinc-900 text-emerald-400 border border-zinc-800/80 shadow-md shadow-black/40" : "text-zinc-400 hover:text-white border border-transparent"}`}
               >
                 {ui.tabMarketing}
               </button>
               <button
                 onClick={() => setActiveTab("swot")}
-                className={`flex-1 text-center md:text-left py-3 md:py-2.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap px-4 md:px-5 ${activeTab === "swot" ? "bg-zinc-900 text-emerald-400 border border-zinc-800/80 shadow-md shadow-black/40" : "text-zinc-400 hover:text-white border border-transparent"}`}
+                className={`flex-1 text-center lg:text-left py-3 lg:py-2.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap px-4 lg:px-5 ${activeTab === "swot" ? "bg-zinc-900 text-emerald-400 border border-zinc-800/80 shadow-md shadow-black/40" : "text-zinc-400 hover:text-white border border-transparent"}`}
               >
                 {ui.tabSwot}
               </button>
@@ -1253,7 +1253,7 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
           </div>
 
           {/* Right Column (Content Box) - 8 cols */}
-          <div className="w-full md:col-span-8 bg-zinc-900/30 border border-zinc-800/80 rounded-2xl p-5 space-y-6 md:min-h-[550px]">
+          <div className="w-full lg:col-span-8 bg-zinc-900/30 border border-zinc-800/80 rounded-2xl p-5 space-y-6 lg:min-h-[550px]">
              
              {activeTab === "overview" && (
             <div className="space-y-5 animate-in fade-in slide-in-from-bottom-2 duration-200">
@@ -1269,7 +1269,7 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
                         value: isNew ? (result.viziune_strategie?.misiune_valori || "") : (result.descriere || "")
                       });
                     }}
-                    className="text-[11px] text-zinc-500 hover:text-white p-2 -m-2 inline-flex items-center justify-center min-w-[36px] min-h-[36px]"
+                    className="text-[11px] text-zinc-500 hover:text-white p-2 -m-2 inline-flex items-center justify-center min-w-[44px] min-h-[44px]"
                   >
                     {`✏️ ${ui.editBtn}`}
                   </button>
@@ -1291,7 +1291,7 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
                         value: isNew ? (result.analiza_pietei?.concurenta || "") : (result.oportunitate_piata || "")
                       });
                     }}
-                    className="text-[11px] text-zinc-500 hover:text-white p-2 -m-2 inline-flex items-center justify-center min-w-[36px] min-h-[36px]"
+                    className="text-[11px] text-zinc-500 hover:text-white p-2 -m-2 inline-flex items-center justify-center min-w-[44px] min-h-[44px]"
                   >
                     {`✏️ ${ui.editBtn}`}
                   </button>
@@ -1313,7 +1313,7 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
                         value: isNew ? (result.analiza_pietei?.clienti_tinta || "") : (result.public_tinta || "")
                       });
                     }}
-                    className="text-[11px] text-zinc-500 hover:text-white p-2 -m-2 inline-flex items-center justify-center min-w-[36px] min-h-[36px]"
+                    className="text-[11px] text-zinc-500 hover:text-white p-2 -m-2 inline-flex items-center justify-center min-w-[44px] min-h-[44px]"
                   >
                     {`✏️ ${ui.editBtn}`}
                   </button>
@@ -1330,7 +1330,7 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
                     <div className="flex gap-3">
                       <button
                         onClick={() => setEditingField({ key: `sectiuni_aditionale.${idx}.continut`, title: sec.titlu, value: sec.continut || "" })}
-                        className="text-[11px] text-zinc-500 hover:text-white p-2 -m-2 inline-flex items-center justify-center min-w-[36px] min-h-[36px]"
+                        className="text-[11px] text-zinc-500 hover:text-white p-2 -m-2 inline-flex items-center justify-center min-w-[44px] min-h-[44px]"
                       >
                         {`✏️ ${ui.editBtn}`}
                       </button>
@@ -1371,7 +1371,7 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
           )}
 
           {activeTab === "budget" && (
-            <div className="space-y-6 md:grid md:grid-cols-2 md:gap-6 md:space-y-0 animate-in fade-in slide-in-from-bottom-2 duration-200">
+            <div className="space-y-6 lg:grid lg:grid-cols-2 lg:gap-6 lg:space-y-0 animate-in fade-in slide-in-from-bottom-2 duration-200">
               <div className="space-y-3">
                 <div className="flex justify-between items-center">
                   <h3 className="text-emerald-400 font-bold text-sm">{ui.investmentBudget}</h3>
@@ -1383,7 +1383,7 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
                         setShowPricingModal(true);
                       }
                     }}
-                    className={`text-[10px] px-2 py-0.5 rounded font-black uppercase transition-all ${
+                    className={`text-[10px] px-2 py-1 rounded font-black uppercase transition-all min-h-[44px] inline-flex items-center text-center ${
                       hasProAccess
                         ? "bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 hover:bg-emerald-500/25"
                         : "bg-amber-500/15 border border-amber-500/30 text-amber-300 hover:bg-amber-500/25"
@@ -1491,7 +1491,7 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
                         title: ui.marketingStrategy,
                         value: result.analiza_pietei?.strategie_marketing || ""
                       })}
-                      className="text-[11px] text-zinc-500 hover:text-white p-2 -m-2 inline-flex items-center justify-center min-w-[36px] min-h-[36px]"
+                      className="text-[11px] text-zinc-500 hover:text-white p-2 -m-2 inline-flex items-center justify-center min-w-[44px] min-h-[44px]"
                     >
                       {`✏️ ${ui.editBtn}`}
                     </button>
@@ -1625,7 +1625,7 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
           <div className="bg-zinc-900 border-t border-zinc-800 rounded-t-3xl p-6 max-h-[85vh] overflow-y-auto space-y-4 animate-in slide-in-from-bottom duration-300 flex flex-col w-full md:max-w-lg md:mx-auto md:left-1/2 md:-translate-x-1/2 md:right-auto">
             <div className="flex justify-between items-center border-b border-zinc-800/60 pb-3">
               <h4 className="text-sm font-black text-white">{editingField.title}</h4>
-              <button onClick={() => setEditingField(null)} className="text-xs text-zinc-500 font-bold p-1">{ui.closeBtn}</button>
+              <button onClick={() => setEditingField(null)} className="text-xs text-zinc-500 font-bold min-h-[44px] min-w-[44px] inline-flex items-center justify-center">{ui.closeBtn}</button>
             </div>
             
             <textarea
@@ -1664,7 +1664,7 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
                   ? ui.addBudgetItemTitle
                   : ui.editBudgetItemTitle}
               </h4>
-              <button onClick={() => setEditingBudgetItem(null)} className="text-xs text-zinc-500 font-bold p-1">
+              <button onClick={() => setEditingBudgetItem(null)} className="text-xs text-zinc-500 font-bold min-h-[44px] min-w-[44px] inline-flex items-center justify-center">
                 {ui.closeBtn}
               </button>
             </div>
@@ -1725,7 +1725,7 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
                 setShowVerificationModal(false);
                 router.push(isEn ? "/en/dashboard" : isEs ? "/es/dashboard" : "/dashboard");
               }}
-              className="absolute top-4 right-4 text-zinc-500 hover:text-white font-bold p-1 text-sm"
+              className="absolute top-4 right-4 text-zinc-500 hover:text-white font-bold p-2 min-h-[44px] min-w-[44px] inline-flex items-center justify-center"
             >
               ✕
             </button>

@@ -1056,7 +1056,7 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
               <span className="text-[10px] bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 px-3 py-1 rounded-full font-bold uppercase tracking-wider">
                 {ui.freeDemoTitle}
               </span>
-              <h1 className="text-3xl font-black tracking-tight leading-none mt-2">{t("generatePlanNow", locale)}</h1>
+              <h1 className="text-3xl font-black tracking-tight leading-tight mt-2 text-balance">{t("generatePlanNow", locale)}</h1>
               <p className="text-zinc-400 text-sm">{ui.freeDemoDesc}</p>
             </div>
 
@@ -1288,9 +1288,9 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
             )}
 
             {/* Tablet split layout container */}
-            <div className="flex flex-col gap-4 md:grid md:grid-cols-12 md:gap-6 items-start w-full">
+            <div className="flex flex-col gap-4 lg:grid lg:grid-cols-12 lg:gap-6 items-start w-full">
               {/* Left Column (Navigation & Versions) - 4 cols */}
-              <div className="w-full md:col-span-4 flex flex-col gap-4 sticky md:top-20 z-20">
+              <div className="w-full lg:col-span-4 flex flex-col gap-4 sticky lg:top-20 z-20">
                 {/* Version History Selector Mobile */}
                 {!isSharedView && versions && Object.keys(versions).length > 0 && (
                   <div className="relative z-20 font-sans">
@@ -1298,8 +1298,8 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
                       onClick={() => setShowVersionDropdown(!showVersionDropdown)}
                       className="w-full px-4 py-3 rounded-xl bg-zinc-900/80 border border-zinc-800 hover:border-emerald-500/40 text-amber-300 hover:text-amber-200 font-bold text-xs flex items-center justify-between transition-all cursor-pointer shadow-sm"
                     >
-                      <span className="flex items-center gap-1.5">
-                        <span>📜 {ui.versionHistory} ({Object.keys(versions).length})</span>
+                      <span className="flex items-center gap-1.5 flex-1 min-w-0">
+                        <span className="truncate">📜 {ui.versionHistory} ({Object.keys(versions).length})</span>
                       </span>
                       <span className="flex items-center gap-2">
                         <span className="text-[10px] text-zinc-400 font-normal truncate max-w-[9rem]">
@@ -1394,28 +1394,28 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
                 )}
 
                 {/* Mobile Tab bar */}
-                <div className="flex md:flex-col bg-zinc-950/90 backdrop-blur-md border border-zinc-800/80 rounded-xl p-1 overflow-x-auto md:overflow-visible scrollbar-none md:gap-1 w-full shadow-inner">
+                <div className="flex lg:flex-col bg-zinc-950/90 backdrop-blur-md border border-zinc-800/80 rounded-xl p-1 overflow-x-auto lg:overflow-visible scrollbar-none lg:gap-1 w-full shadow-inner">
                   <button
                     onClick={() => setActiveTab("overview")}
-                    className={`flex-1 text-center md:text-left py-3 md:py-2.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap px-4 md:px-5 ${activeTab === "overview" ? "bg-zinc-900 text-emerald-400 border border-zinc-800/80 shadow-md shadow-black/40" : "text-zinc-400 hover:text-white border border-transparent"}`}
+                    className={`flex-1 text-center lg:text-left py-3 lg:py-2.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap px-4 lg:px-5 ${activeTab === "overview" ? "bg-zinc-900 text-emerald-400 border border-zinc-800/80 shadow-md shadow-black/40" : "text-zinc-400 hover:text-white border border-transparent"}`}
                   >
                     {ui.tabOverview}
                   </button>
                   <button
                     onClick={() => setActiveTab("budget")}
-                    className={`flex-1 text-center md:text-left py-3 md:py-2.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap px-4 md:px-5 ${activeTab === "budget" ? "bg-zinc-900 text-emerald-400 border border-zinc-800/80 shadow-md shadow-black/40" : "text-zinc-400 hover:text-white border border-transparent"}`}
+                    className={`flex-1 text-center lg:text-left py-3 lg:py-2.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap px-4 lg:px-5 ${activeTab === "budget" ? "bg-zinc-900 text-emerald-400 border border-zinc-800/80 shadow-md shadow-black/40" : "text-zinc-400 hover:text-white border border-transparent"}`}
                   >
                     {ui.tabFinance}
                   </button>
                   <button
                     onClick={() => setActiveTab("marketing")}
-                    className={`flex-1 text-center md:text-left py-3 md:py-2.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap px-4 md:px-5 ${activeTab === "marketing" ? "bg-zinc-900 text-emerald-400 border border-zinc-800/80 shadow-md shadow-black/40" : "text-zinc-400 hover:text-white border border-transparent"}`}
+                    className={`flex-1 text-center lg:text-left py-3 lg:py-2.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap px-4 lg:px-5 ${activeTab === "marketing" ? "bg-zinc-900 text-emerald-400 border border-zinc-800/80 shadow-md shadow-black/40" : "text-zinc-400 hover:text-white border border-transparent"}`}
                   >
                     {ui.tabMarketing}
                   </button>
                   <button
                     onClick={() => setActiveTab("swot")}
-                    className={`flex-1 text-center md:text-left py-3 md:py-2.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap px-4 md:px-5 ${activeTab === "swot" ? "bg-zinc-900 text-emerald-400 border border-zinc-800/80 shadow-md shadow-black/40" : "text-zinc-400 hover:text-white border border-transparent"}`}
+                    className={`flex-1 text-center lg:text-left py-3 lg:py-2.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap px-4 lg:px-5 ${activeTab === "swot" ? "bg-zinc-900 text-emerald-400 border border-zinc-800/80 shadow-md shadow-black/40" : "text-zinc-400 hover:text-white border border-transparent"}`}
                   >
                     {ui.tabSwot}
                   </button>
@@ -1437,7 +1437,7 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
               </div>
 
               {/* Right Column (Content Box) - 8 cols */}
-              <div className="w-full md:col-span-8 bg-zinc-900/30 border border-zinc-800/80 rounded-2xl p-5 space-y-6 md:min-h-[550px]">
+              <div className="w-full lg:col-span-8 bg-zinc-900/30 border border-zinc-800/80 rounded-2xl p-5 space-y-6 lg:min-h-[550px]">
                 
                 {activeTab === "overview" && (
                 <div className="space-y-5 animate-in fade-in slide-in-from-bottom-2 duration-200">
@@ -1459,7 +1459,7 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
               )}
 
               {activeTab === "budget" && (
-                <div className="space-y-6 md:grid md:grid-cols-2 md:gap-6 md:space-y-0 animate-in fade-in slide-in-from-bottom-2 duration-200">
+                <div className="space-y-6 lg:grid lg:grid-cols-2 lg:gap-6 lg:space-y-0 animate-in fade-in slide-in-from-bottom-2 duration-200">
                   <div className="space-y-3">
                     <h3 className="text-emerald-400 font-bold text-sm">{ui.investmentBudget}</h3>
                     <div className="space-y-2">

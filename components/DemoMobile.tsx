@@ -224,7 +224,7 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
       const payload: any = {
         ...updatedResult,
         updatedAt: new Date().toISOString(),
-        selectedCurrency: updatedResult?.selectedCurrency || (locale === "ro" ? "RON" : "EUR"),
+        selectedCurrency: normalizePlanCurrency(updatedResult?.selectedCurrency, locale),
         activeVersionId: versionIdToSave || activeVersionId,
       };
       if (versToSave && Object.keys(versToSave).length > 0) {
@@ -334,7 +334,7 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
   const { downloadAction: handleDownloadAction } = useExportActions({
     result,
     locale,
-    currency: result?.selectedCurrency || (locale === "ro" ? "RON" : "EUR"),
+    currency: normalizePlanCurrency(result?.selectedCurrency, locale),
     fxRate,
     user,
     isAdmin,
@@ -848,7 +848,7 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
           customStyle: isTone ? (customInput || aiPromptInput) : "",
           targetSection: targetSection || (action === "add_sections" ? customInput || aiPromptInput || "" : ""),
           locale,
-          currency: baseSource?.selectedCurrency || (locale === "ro" ? "RON" : "EUR"),
+          currency: normalizePlanCurrency(baseSource?.selectedCurrency, locale),
           isCombine,
         })
       });
@@ -1215,7 +1215,7 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
               removeField={removeField}
               readOnly={false}
               locale={locale}
-              currency={result?.selectedCurrency || (locale === "ro" ? "RON" : "EUR")}
+              currency={normalizePlanCurrency(result?.selectedCurrency, locale)}
             />
           </div>
         )}
@@ -1816,8 +1816,8 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
             result={result} 
             ui={ui} 
             locale={locale} 
-            currency={result?.selectedCurrency || (locale === "ro" ? "RON" : "EUR")}
-            formatPrice={(val: any) => formatPriceLocalized(val, locale, result?.selectedCurrency || (locale === "ro" ? "RON" : "EUR"), fxRate)} 
+            currency={normalizePlanCurrency(result?.selectedCurrency, locale)}
+            formatPrice={(val: any) => formatPriceLocalized(val, locale, normalizePlanCurrency(result?.selectedCurrency, locale), fxRate)}
             truncateText={truncateText} 
             splitTextIntoSlides={splitTextIntoSlides} 
             formatNumberedText={formatNumberedText} 
@@ -1833,7 +1833,7 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
         >
           <BudgetPieChart
             budget={result?.plan_financiar?.buget_investitii}
-            currency={result?.selectedCurrency || (locale === "ro" ? "RON" : "EUR")}
+            currency={normalizePlanCurrency(result?.selectedCurrency, locale)}
             isPdf={true}
             locale={locale}
           />

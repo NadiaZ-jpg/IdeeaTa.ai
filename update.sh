@@ -8,10 +8,22 @@ cd "$ROOT"
 
 APP_NAME="${PM2_APP_NAME:-ideeata}"
 
+echo "==> Backup .env before sync"
+if [[ -f .env ]]; then
+  cp -f .env /tmp/.env.backup
+  echo "    .env backed up to /tmp/.env.backup"
+fi
+
 echo "==> Sync to origin/main (discard local server edits)"
 git fetch origin
 git checkout main
 git reset --hard origin/main
+
+# Restaurăm .env dacă git l-a șters (fișier gitignored, dar copiat accidental în tree)
+if [[ -f /tmp/.env.backup && ! -f .env ]]; then
+  cp -f /tmp/.env.backup .env
+  echo "==> .env restored from backup"
+fi
 
 echo "==> Installing dependencies"
 if [[ -f package-lock.json ]]; then

@@ -181,6 +181,11 @@ export default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" | 
     showExpertDrawer, setShowExpertDrawer,
     showStudioExportModal, setShowStudioExportModal,
   } = useUIState();
+  // Auth modal opened because guest free plans ran out → show the explanation, not the generic wall.
+  const [authReasonGuestLimit, setAuthReasonGuestLimit] = useState(false);
+  useEffect(() => {
+    if (!showAuthModal) setAuthReasonGuestLimit(false);
+  }, [showAuthModal]);
 
   const usedIdeasRef = useRef<number[]>([]);
   const [animatedPlaceholder, setAnimatedPlaceholder] = useState("");
@@ -1083,6 +1088,7 @@ export default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" | 
         if (!user) {
           const count = parseInt(localStorage.getItem("demoGenerateCount") || "0", 10);
           if (count >= GUEST_DEMO_PLAN_LIMIT) {
+            setAuthReasonGuestLimit(true);
             setShowAuthModal(true);
             return;
           }
@@ -1141,6 +1147,7 @@ export default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" | 
             // Guest: create account (+1), not packages. Logged-in: packages / top-up.
             if (!user) {
               setDemoCount(markGuestDemoLimitReached());
+              setAuthReasonGuestLimit(true);
               setShowAuthModal(true);
             }
             else openUpgradeForPackOrPricing("generate");
@@ -2147,6 +2154,7 @@ export default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" | 
       {showAuthModal && (
         <AuthWallModal 
           locale={locale} 
+          reason={authReasonGuestLimit ? "guest_limit" : undefined}
           onClose={() => setShowAuthModal(false)} 
           onLoginClick={() => {
             window.location.href = ui.routes.login;

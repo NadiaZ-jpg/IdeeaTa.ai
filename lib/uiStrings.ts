@@ -116,6 +116,7 @@ type UIStringsShape = {
   // F4b — auth wall / email verify / cookies / mobile chrome
   errorEditProcessFailed: string;
   authWallTitle: string; authWallDesc: string; authWallCta: string; authWallLater: string;
+  guestLimitTitle: string; guestLimitDesc: string;
   emailVerifyTitle: string; emailVerifyDesc: string; emailVerifyContinue: string;
   emailVerifyResend: string; emailVerifySent: string;
   cookieBannerBefore: string; cookiePolicyLabel: string; cookieEssentialOnly: string; cookieAccept: string;
@@ -314,6 +315,8 @@ export const UI_STRINGS: Record<Locale, UIStringsShape> = {
     errorServerPrefix: "Eroare de server: ", errorNetworkError: "Eroare de rețea. Te rugăm să mai încerci o dată.", errorInvalidFormat: "Sistemul a returnat un format invalid. Mai încearcă o dată.", errorGenerationFallback: "A apărut o eroare la generarea planului. Te rugăm să încerci din nou mai târziu.",
     errorProcessingCredit: "A apărut o eroare la procesarea creditului. Vă rugăm reîncercați.", errorSavingDocument: "A apărut o eroare la salvarea documentului.", errorRateLimit: "Prea multe cereri în ultimele 60 de minute. Încearcă din nou mai târziu.",
     errorEditProcessFailed: "Nu s-a putut procesa comanda.",
+    guestLimitTitle: "Ai folosit cele 3 generări gratuite de azi",
+    guestLimitDesc: "Fără cont poți genera 3 planuri pe zi și le-ai folosit pe toate. Creează un cont gratuit și primești +1 plan, iar planurile tale rămân salvate. Sau revino mâine pentru alte 3.",
     authWallTitle: "Creează-ți un cont gratuit",
     authWallDesc: "Creează-ți un cont gratuit pentru a folosi instrumentele noastre avansate și a personaliza planul tău de afaceri.",
     authWallCta: "Conectare / Înregistrare",
@@ -577,6 +580,8 @@ export const UI_STRINGS: Record<Locale, UIStringsShape> = {
     errorServerPrefix: "Server error: ", errorNetworkError: "Network error. Please try again.", errorInvalidFormat: "The system returned an invalid format. Please try again.", errorGenerationFallback: "An error occurred during plan generation. Please try again later.",
     errorProcessingCredit: "An error occurred while processing the credit. Please try again.", errorSavingDocument: "An error occurred while saving the document.", errorRateLimit: "Too many requests in the last 60 minutes. Please try again later.",
     errorEditProcessFailed: "Could not process the request.",
+    guestLimitTitle: "You've used today's 3 free generations",
+    guestLimitDesc: "Without an account you can generate 3 plans per day, and you've used them all. Create a free account to get +1 plan and keep your plans saved. Or come back tomorrow for 3 more.",
     authWallTitle: "Create a free account",
     authWallDesc: "Create a free account to use our advanced tools and customize your business plan.",
     authWallCta: "Login / Register",
@@ -840,6 +845,8 @@ export const UI_STRINGS: Record<Locale, UIStringsShape> = {
     errorServerPrefix: "Error del servidor: ", errorNetworkError: "Error de red. Por favor, inténtelo de nuevo.", errorInvalidFormat: "El sistema devolvió un formato no válido. Por favor, inténtelo de nuevo.", errorGenerationFallback: "Ocurrió un error al generar el plan. Por favor, inténtelo de nuevo más tarde.",
     errorProcessingCredit: "Ocurrió un error al procesar el crédito. Por favor, inténtelo de nuevo.", errorSavingDocument: "Ocurrió un error al guardar el documento.", errorRateLimit: "Demasiadas solicitudes en los últimos 60 minutos. Por favor, inténtalo más tarde.",
     errorEditProcessFailed: "No se pudo procesar la solicitud.",
+    guestLimitTitle: "Has usado las 3 generaciones gratis de hoy",
+    guestLimitDesc: "Sin cuenta puedes generar 3 planes al día y ya los has usado. Crea una cuenta gratuita para obtener +1 plan y guardar tus planes. O vuelve mañana para 3 más.",
     authWallTitle: "Crea una cuenta gratis",
     authWallDesc: "Crea tu cuenta gratuita para usar nuestras herramientas avanzadas y personalizar tu plan de negocios.",
     authWallCta: "Iniciar sesión / Registrarse",

@@ -30,7 +30,7 @@ import { truncateText, splitTextIntoSlides, getDynamicTextSize } from '@/lib/pla
 import { useExportActions } from '@/hooks/useExportActions';
 import { fetchSharedPlanResult, resetDemoShareCounters, clearSharedIdFromUrl, redirectIfSharedLocaleMismatch, readSharedIdFromLocation } from '@/hooks/useSharedPlanLoader';
 import { resolveSharedViewCurrency, shouldShowCurrencyToggle } from '@/lib/pdfCtaBehavior';
-import { FREE_ACCOUNT_PLAN_LIMIT, GUEST_DEMO_PLAN_LIMIT, clearLocalPlanState, hasUnlimitedGenerateAccess, appendGuestPlanToLocalList } from '@/lib/planQuota';
+import { FREE_ACCOUNT_PLAN_LIMIT, GUEST_DEMO_PLAN_LIMIT, clearLocalPlanState, hasUnlimitedGenerateAccess, appendGuestPlanToLocalList, markGuestDemoLimitReached, syncGuestDemoCountFromServer } from '@/lib/planQuota';
 import {
   persistCurrentVersions,
   notifyVersionPersistFailed,
@@ -744,6 +744,19 @@ export default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" | 
     }
   }, [user]);
 
+  // Server counts guest plans per IP/day; local counter can be reset (logout, new browser).
+  // Sync so "Mai ai X generări" matches what /api/generate will actually allow.
+  useEffect(() => {
+    if (user) return;
+    let cancelled = false;
+    syncGuestDemoCountFromServer().then((count) => {
+      if (!cancelled && count !== null) setDemoCount(count);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [user]);
+
   // Incarca planul salvat din localStorage la pornire si verifica daca s-a anulat plata
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -1126,7 +1139,10 @@ export default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" | 
         if (!res.ok) {
           if (data?.error === "LIMIT_REACHED") {
             // Guest: create account (+1), not packages. Logged-in: packages / top-up.
-            if (!user) setShowAuthModal(true);
+            if (!user) {
+              setDemoCount(markGuestDemoLimitReached());
+              setShowAuthModal(true);
+            }
             else openUpgradeForPackOrPricing("generate");
             return;
           }

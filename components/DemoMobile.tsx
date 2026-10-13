@@ -34,7 +34,7 @@ import { formatObjectNumbers, formatNumberedText } from "@/lib/utils";
 import { useSharedPlanLoader } from "@/hooks/useSharedPlanLoader";
 import { useAuthUser } from '@/hooks/useAuthUser';
 import { createAndCopySharedPlanLink } from "@/lib/sharePlan";
-import { FREE_ACCOUNT_PLAN_LIMIT, GUEST_DEMO_PLAN_LIMIT, hasUnlimitedGenerateAccess, clearLocalPlanState, appendGuestPlanToLocalList } from "@/lib/planQuota";
+import { FREE_ACCOUNT_PLAN_LIMIT, GUEST_DEMO_PLAN_LIMIT, hasUnlimitedGenerateAccess, clearLocalPlanState, appendGuestPlanToLocalList, markGuestDemoLimitReached, syncGuestDemoCountFromServer } from "@/lib/planQuota";
 import {
   persistCurrentVersions,
   notifyVersionPersistFailed,
@@ -381,6 +381,19 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  // Server counts guest plans per IP/day; local counter can be reset (logout, new browser).
+  // Sync so "Mai ai X generări" matches what /api/generate will actually allow.
+  useEffect(() => {
+    if (user) return;
+    let cancelled = false;
+    syncGuestDemoCountFromServer().then((count) => {
+      if (!cancelled && count !== null) setDemoCount(count);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [user]);
+
   const [examplesList, setExamplesList] = useState<any[]>(ALL_EXAMPLES.slice(0, 18));
 
   useEffect(() => {
@@ -631,7 +644,10 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
         if (!res.ok) {
           const errBody = await res.json().catch(() => ({}));
           if (errBody?.error === "LIMIT_REACHED") {
-            if (!user) setShowAuthModal(true);
+            if (!user) {
+              setDemoCount(markGuestDemoLimitReached());
+              setShowAuthModal(true);
+            }
             else openUpgradeForPackOrPricing("generate");
             setLoading(false);
             return;

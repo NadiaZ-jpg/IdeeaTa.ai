@@ -7,7 +7,7 @@ import { normalizePlanResult, planNeedsExplanationFill } from "@/lib/normalizePl
 import { fillMissingPlanExplanations } from "@/lib/fillMissingPlanExplanations";
 import { GUEST_IP_DAILY_PLAN_LIMIT, GUEST_IP_HOURLY_ABUSE_LIMIT } from "@/lib/planQuota";
 import { assertAndConsumeGenerateQuota, refundGenerateQuota, type GenerateQuotaConsume } from "@/lib/proPackQuotaAdmin";
-import { clientIpFromRequest, consumeRateLimit } from "@/lib/apiRateLimit";
+import { clientIpFromRequest, consumeRateLimit, peekRateLimitRemaining, refundRateLimit } from "@/lib/apiRateLimit";
 import { isAdminEmail } from "@/lib/adminEmails";
 
 export const maxDuration = 90;
@@ -24,9 +24,20 @@ function normalizeLocale(locale: unknown): Locale {
   return locale === "en" || locale === "es" ? locale : "ro";
 }
 
+const guestPlanKey = (ip: string) => `gen:guest-plan:${ip}`;
+
+/** Guest quota left on the server (per IP / day), so the Demo counter matches what POST enforces. */
+export async function GET(req: NextRequest) {
+  const ip = clientIpFromRequest(req);
+  const remaining = await peekRateLimitRemaining(guestPlanKey(ip), GUEST_IP_DAILY_PLAN_LIMIT);
+  return NextResponse.json({ guestRemaining: remaining, guestLimit: GUEST_IP_DAILY_PLAN_LIMIT });
+}
+
 export async function POST(req: NextRequest) {
   let generateRefund: { userId: string; consumed: GenerateQuotaConsume } | null =
     null;
+  // Guest slot consumed before generation; given back if generation fails.
+  let guestRefundKey: string | null = null;
   try {
     const { skill, locale: rawLocale, currency: rawCurrency, surface } = await req.json();
     const locale = normalizeLocale(rawLocale);
@@ -90,7 +101,7 @@ export async function POST(req: NextRequest) {
       }
       const ip = clientIpFromRequest(req);
       // F3: product limit of 3 guest plans per IP / day (same as client GUEST_DEMO_PLAN_LIMIT).
-      if (!(await consumeRateLimit(`gen:guest-plan:${ip}`, GUEST_IP_DAILY_PLAN_LIMIT, DAY_MS))) {
+      if (!(await consumeRateLimit(guestPlanKey(ip), GUEST_IP_DAILY_PLAN_LIMIT, DAY_MS))) {
         return NextResponse.json(
           {
             error: "LIMIT_REACHED",
@@ -105,7 +116,9 @@ export async function POST(req: NextRequest) {
           { status: 403 }
         );
       }
+      guestRefundKey = guestPlanKey(ip);
       if (!(await consumeRateLimit(`gen:guest-hour:${ip}`, GUEST_IP_HOURLY_ABUSE_LIMIT, HOUR_MS))) {
+        await refundRateLimit(guestRefundKey);
         return NextResponse.json(
           { error: "Too many requests", code: "RATE_LIMIT" },
           { status: 429 }
@@ -164,6 +177,9 @@ export async function POST(req: NextRequest) {
   } catch (error: any) {
     if (generateRefund) {
       await refundGenerateQuota(generateRefund.userId, generateRefund.consumed);
+    }
+    if (guestRefundKey) {
+      await refundRateLimit(guestRefundKey);
     }
     console.error("Generate error:", error);
     return NextResponse.json(

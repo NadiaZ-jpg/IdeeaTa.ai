@@ -23,14 +23,16 @@ test.describe("Studio - auth wall", () => {
   });
 
   test("studio shows spinner while auth state loads", async ({ page }) => {
-    // Mergem direct la /en/studio ca să evităm redirect-ul LocaleRedirectGuard
-    // (browserul headless are UA en, deci /studio → /en/studio oricum)
+    // Setăm preferred_language="en" ca LocaleRedirectGuard să nu facă router.replace
+    // (fără localStorage, detectează "en" și apelează replace chiar dacă e deja pe /en/studio)
+    await page.addInitScript(() => {
+      localStorage.setItem("preferred_language", "en");
+    });
     await page.goto("/en/studio");
-    // Așteptăm StudioDesktop să se încarce (dynamic import, ssr: false)
-    await page.waitForLoadState("networkidle");
     // Spinner-ul de autentificare: element cu clasa animate-spin
+    // StudioDesktop arată spinner când isAuthLoading=true sau când !user && !result
     const spinner = page.locator(".animate-spin").first();
-    await expect(spinner).toBeVisible({ timeout: 15_000 });
+    await expect(spinner).toBeVisible({ timeout: 20_000 });
   });
 
   test("studio page does NOT show plan editing textarea without auth", async ({

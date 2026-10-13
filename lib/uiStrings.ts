@@ -154,6 +154,7 @@ type UIStringsShape = {
   emailVerifyResentOk: string; goToDashboard: string;
   exportModalPlanLooksGreat: string; exportModalNeedAccount: string; exportModalBackToEdit: string;
   assistantWorking: string; freeDemoTitle: string; freeDemoDesc: string; planGeneratedTitle: string;
+  loggedInAs: string; languageLabel: string; guestMenuHint: string;
 };
 
 export const UI_STRINGS: Record<Locale, UIStringsShape> = {
@@ -417,6 +418,7 @@ export const UI_STRINGS: Record<Locale, UIStringsShape> = {
     freeDemoTitle: "Demo Gratuit",
     freeDemoDesc: "Transformă orice idee într-un plan complet în 60 de secunde.",
     planGeneratedTitle: "Plan Generat",
+    loggedInAs: "Conectat ca", languageLabel: "Limbă", guestMenuHint: "Salvează și accesează planurile oricând.",
   },
   en: {
     pricing: "Pricing", logOut: "Log Out", logIn: "Log In", tryFree: "Try Free",
@@ -678,6 +680,7 @@ export const UI_STRINGS: Record<Locale, UIStringsShape> = {
     freeDemoTitle: "Free Demo",
     freeDemoDesc: "Turn any idea into a complete plan in 60 seconds.",
     planGeneratedTitle: "Plan Generated",
+    loggedInAs: "Logged in as", languageLabel: "Language", guestMenuHint: "Save and access your plans anytime.",
   },
   es: {
     pricing: "Precios", logOut: "Cerrar sesión", logIn: "Iniciar sesión", tryFree: "Probar Gratis",
@@ -939,5 +942,6 @@ export const UI_STRINGS: Record<Locale, UIStringsShape> = {
     freeDemoTitle: "Demo Gratis",
     freeDemoDesc: "Convierte cualquier idea en un plan completo en 60 segundos.",
     planGeneratedTitle: "Plan Generado",
+    loggedInAs: "Conectado como", languageLabel: "Idioma", guestMenuHint: "Guarda y accede a tus planes siempre.",
   }
 };

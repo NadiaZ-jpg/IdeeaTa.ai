@@ -1,11 +1,13 @@
 "use client";
 
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useId } from "react";
+import { createPortal } from "react-dom";
 import Link from "next/link";
 import { User } from "firebase/auth";
 import { Menu, X, Folder, Coffee, Sparkles, LogIn, LogOut, User as UserIcon } from "lucide-react";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { UI_STRINGS } from "@/lib/uiStrings";
+import { useMobileOverlay } from "@/hooks/useMobileOverlay";
 
 interface MobileHeaderMenuProps {
   locale?: "ro" | "en" | "es";
@@ -33,35 +35,28 @@ export function MobileHeaderMenu({
   onLogout,
 }: MobileHeaderMenuProps) {
   const [isOpen, setIsOpen] = useState(false);
-  const menuRef = useRef<HTMLDivElement>(null);
+  const [mounted, setMounted] = useState(false);
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
+  const panelId = useId();
   const ui = UI_STRINGS[locale] || UI_STRINGS.ro;
   const isEn = locale === "en";
   const isEs = locale === "es";
 
-  // Închidere la click în exterior
-  useEffect(() => {
-    const handleClickOutside = (e: MouseEvent | TouchEvent) => {
-      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
-        setIsOpen(false);
-      }
-    };
-    if (isOpen) {
-      document.addEventListener("mousedown", handleClickOutside);
-      document.addEventListener("touchstart", handleClickOutside);
-    }
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-      document.removeEventListener("touchstart", handleClickOutside);
-    };
-  }, [isOpen]);
+  useEffect(() => setMounted(true), []);
 
-  // Închidere la apăsare Escape
+  // Blocare scroll pe fundal + închidere la Escape
+  const closeMenu = () => {
+    setIsOpen(false);
+    triggerRef.current?.focus();
+  };
+  useMobileOverlay(isOpen, closeMenu);
+
+  // Focus pe primul element din meniu la deschidere (cititoare de ecran / tastatură)
   useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setIsOpen(false);
-    };
-    if (isOpen) window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
+    if (!isOpen) return;
+    const first = panelRef.current?.querySelector<HTMLElement>("a[href], button:not([disabled])");
+    first?.focus({ preventScroll: true });
   }, [isOpen]);
 
   const getUserBadge = () => {
@@ -74,12 +69,15 @@ export function MobileHeaderMenu({
   const badge = getUserBadge();
 
   return (
-    <div className="relative" ref={menuRef}>
+    <div className="relative">
       {/* Buton declanșator mobil (Tap Target ≥44px) */}
       <button
+        ref={triggerRef}
         type="button"
         onClick={() => setIsOpen(!isOpen)}
         aria-expanded={isOpen}
+        aria-haspopup="dialog"
+        aria-controls={isOpen ? panelId : undefined}
         aria-label={isEn ? "Open navigation menu" : isEs ? "Abrir menú de navegación" : "Deschide meniul de navigare"}
         className="flex items-center justify-center p-2 rounded-xl bg-zinc-900/80 border border-zinc-800 text-zinc-300 hover:text-white hover:border-zinc-700 transition-all min-w-[44px] min-h-[44px] active:scale-95 shadow-sm"
       >
@@ -97,17 +95,24 @@ export function MobileHeaderMenu({
         )}
       </button>
 
+      {/* Portal în <body>: header-ul are backdrop-blur, care face ca `fixed` să fie
+          relativ la header (overlay-ul acoperea doar bara de sus, nu pagina). */}
+      {isOpen && mounted && createPortal(
+        <>
       {/* Overlay Backdrop */}
-      {isOpen && (
         <div 
-          className="fixed inset-0 bg-black/60 backdrop-blur-xs z-40 animate-in fade-in duration-150"
-          onClick={() => setIsOpen(false)}
+          className="fixed inset-0 bg-black/60 backdrop-blur-xs z-[60] animate-in fade-in duration-150"
+          onClick={closeMenu}
+          aria-hidden="true"
         />
-      )}
 
       {/* Dropdown Menu Container */}
-      {isOpen && (
-        <div className="absolute right-0 top-12 mt-2 w-72 max-w-[calc(100vw-24px)] bg-zinc-900/95 border border-zinc-800/90 rounded-2xl shadow-2xl backdrop-blur-xl z-50 p-3 flex flex-col gap-2 animate-in slide-in-from-top-2 zoom-in-95 duration-150 text-sm">
+        <div
+          ref={panelRef}
+          id={panelId}
+          role="dialog"
+          aria-label={isEn ? "Navigation menu" : isEs ? "Menú de navegación" : "Meniu de navigare"}
+          className="fixed right-3 top-[68px] w-72 max-w-[calc(100vw-24px)] max-h-[calc(100dvh-80px)] overflow-y-auto overscroll-contain bg-zinc-900/95 border border-zinc-800/90 rounded-2xl shadow-2xl backdrop-blur-xl z-[61] p-3 flex flex-col gap-2 animate-in slide-in-from-top-2 zoom-in-95 duration-150 text-sm text-zinc-100">
           
           {/* Antet Utilizator */}
           {user ? (
@@ -199,7 +204,7 @@ export function MobileHeaderMenu({
             <span className="text-xs text-zinc-400 font-medium">
               {ui.languageLabel}
             </span>
-            <LanguageSwitcher currentLocale={locale} />
+            <LanguageSwitcher currentLocale={locale} touch />
           </div>
 
           {/* Deconectare */}
@@ -220,6 +225,8 @@ export function MobileHeaderMenu({
           )}
 
         </div>
+        </>,
+        document.body
       )}
     </div>
   );

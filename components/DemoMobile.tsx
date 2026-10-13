@@ -1000,7 +1000,7 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-lg h-64 bg-emerald-500/10 rounded-full blur-[80px] pointer-events-none"></div>
 
       {/* Header */}
-      <header className={`h-16 px-4 flex items-center justify-between border-b border-zinc-800/80 sticky top-0 bg-[#09090b]/80 backdrop-blur-md z-30 transition-transform duration-300 ${showHeader ? 'translate-y-0' : '-translate-y-full'}`}>
+      <header className="h-16 px-4 flex items-center justify-between border-b border-zinc-800/80 sticky top-0 bg-[#09090b]/80 backdrop-blur-md z-30">
         <Link href={isEn ? "/en" : isEs ? "/es" : "/"} className="text-xl font-black tracking-tight">
           IdeeaTa<span className="text-emerald-500">.ai</span>
         </Link>

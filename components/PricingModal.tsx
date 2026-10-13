@@ -135,11 +135,12 @@ export function PricingModal({
   };
 
   return (
-    <div className="fixed inset-0 bg-black/80 backdrop-blur-md z-[110] flex items-center justify-center p-4 overflow-y-auto animate-in fade-in duration-300">
-      <div className="bg-[#09090b] border border-zinc-800 rounded-[2.5rem] w-full max-w-5xl shadow-2xl p-6 md:p-10 relative overflow-hidden flex flex-col gap-8 animate-in slide-in-from-bottom-12 duration-300 text-left">
-        
-        <div className="absolute -top-24 -left-24 w-72 h-72 bg-emerald-500/10 rounded-full blur-[100px] pointer-events-none"></div>
-        <div className="absolute -bottom-24 -right-24 w-72 h-72 bg-blue-500/10 rounded-full blur-[100px] pointer-events-none"></div>
+    <div className="fixed inset-0 bg-black/80 backdrop-blur-md z-[110] flex items-start justify-center p-4 overflow-y-auto animate-in fade-in duration-300">
+      <div className="bg-[#09090b] border border-zinc-800 rounded-[2.5rem] w-full max-w-5xl shadow-2xl p-6 md:p-10 relative flex flex-col gap-8 animate-in slide-in-from-bottom-12 duration-300 text-left my-auto">
+        <div className="absolute inset-0 overflow-hidden rounded-[2.5rem] pointer-events-none">
+          <div className="absolute -top-24 -left-24 w-72 h-72 bg-emerald-500/10 rounded-full blur-[100px]"></div>
+          <div className="absolute -bottom-24 -right-24 w-72 h-72 bg-blue-500/10 rounded-full blur-[100px]"></div>
+        </div>
 
         <button 
           onClick={onClose}

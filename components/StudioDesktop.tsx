@@ -507,7 +507,9 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
             }
             errCode = errJson.code || "";
           } catch(e) {}
-          if (
+          if (errCode === "RATE_LIMIT" || res.status === 429) {
+            errorMsg = ui.errorRateLimit;
+          } else if (
             errCode === "TONE_LIMIT" ||
             errCode === "PRO_REQUIRED" ||
             errCode === "AUTH_REQUIRED"
@@ -518,7 +520,7 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
           } else if (errCode === "PRO_PACK_COMBINE_LIMIT") {
             openUpgradeForPackOrPricing("combine");
           }
-          
+
           setAiEditError(errorMsg);
           return;
         }

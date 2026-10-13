@@ -454,7 +454,9 @@ export default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" | 
             }
             errCode = errJson.code || "";
           } catch(e) {}
-          if (
+          if (errCode === "RATE_LIMIT" || res.status === 429) {
+            errorMsg = ui.errorRateLimit;
+          } else if (
             errCode === "TONE_LIMIT" ||
             errCode === "PRO_REQUIRED" ||
             errCode === "AUTH_REQUIRED"
@@ -465,7 +467,7 @@ export default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" | 
           } else if (errCode === "PRO_PACK_COMBINE_LIMIT") {
             openUpgradeForPackOrPricing("combine");
           }
-          
+
           setAiEditError(errorMsg);
           return;
         }
@@ -1127,6 +1129,9 @@ export default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" | 
             if (!user) setShowAuthModal(true);
             else openUpgradeForPackOrPricing("generate");
             return;
+          }
+          if (data?.code === "RATE_LIMIT" || res.status === 429) {
+            throw new Error(ui.errorRateLimit);
           }
           throw new Error(data.error || `${ui.errorServerPrefix}${res.status}`);
         }

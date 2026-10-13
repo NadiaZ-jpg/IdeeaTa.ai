@@ -87,7 +87,7 @@ export function MobileHeaderMenu({
           <X className="w-5 h-5 text-emerald-400" />
         ) : user ? (
           <div className="flex items-center gap-1.5">
-            <div className="w-6 h-6 rounded-full bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center text-[11px] font-black text-emerald-400">
+            <div className="w-6 h-6 rounded-full bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center text-xs font-black text-emerald-400">
               {user.email ? user.email.charAt(0).toUpperCase() : <UserIcon className="w-3.5 h-3.5" />}
             </div>
             <Menu className="w-4 h-4 text-zinc-400" />
@@ -113,7 +113,7 @@ export function MobileHeaderMenu({
           {user ? (
             <div className="p-3 bg-zinc-950/60 rounded-xl border border-zinc-800/60 flex flex-col gap-1.5">
               <div className="flex items-center justify-between">
-                <span className="text-[11px] text-zinc-400 font-bold uppercase tracking-wider">
+                <span className="text-xs text-zinc-400 font-bold uppercase tracking-wider">
                   {ui.loggedInAs}
                 </span>
                 <span className={`text-[10px] font-black uppercase px-2 py-0.5 rounded-full border ${badge.bg}`}>

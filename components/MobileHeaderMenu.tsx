@@ -68,7 +68,7 @@ export function MobileHeaderMenu({
     if (isAdmin) return { label: "Admin", bg: "bg-red-500/20 text-red-400 border-red-500/40" };
     if (hasProAccess || subscriptionActive) return { label: "PRO", bg: "bg-emerald-500/20 text-emerald-400 border-emerald-500/40" };
     if (hasStandardAccess) return { label: "Standard", bg: "bg-blue-500/20 text-blue-400 border-blue-500/40" };
-    return { label: isEn ? "Free" : isEs ? "Gratis" : "Gratuit", bg: "bg-zinc-800 text-zinc-400 border-zinc-700" };
+    return { label: ui.freeBadge, bg: "bg-zinc-800 text-zinc-400 border-zinc-700" };
   };
 
   const badge = getUserBadge();
@@ -114,7 +114,7 @@ export function MobileHeaderMenu({
             <div className="p-3 bg-zinc-950/60 rounded-xl border border-zinc-800/60 flex flex-col gap-1.5">
               <div className="flex items-center justify-between">
                 <span className="text-[11px] text-zinc-400 font-bold uppercase tracking-wider">
-                  {isEn ? "Logged in as" : isEs ? "Conectado como" : "Conectat ca"}
+                  {ui.loggedInAs}
                 </span>
                 <span className={`text-[10px] font-black uppercase px-2 py-0.5 rounded-full border ${badge.bg}`}>
                   {badge.label}
@@ -127,7 +127,7 @@ export function MobileHeaderMenu({
           ) : (
             <div className="p-3 bg-zinc-950/60 rounded-xl border border-zinc-800/60 flex flex-col gap-2">
               <p className="text-xs text-zinc-400">
-                {isEn ? "Save and access your plans anytime." : isEs ? "Guarda y accede a tus planes siempre." : "Salvează și accesează planurile oricând."}
+                {ui.guestMenuHint}
               </p>
               {onRequireLogin ? (
                 <button
@@ -197,7 +197,7 @@ export function MobileHeaderMenu({
           {/* Selector Limbă integrat */}
           <div className="pt-2 border-t border-zinc-800/80 flex items-center justify-between px-2 py-1">
             <span className="text-xs text-zinc-400 font-medium">
-              {isEn ? "Language" : isEs ? "Idioma" : "Limbă"}
+              {ui.languageLabel}
             </span>
             <LanguageSwitcher currentLocale={locale} />
           </div>

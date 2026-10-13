@@ -140,3 +140,45 @@ export async function consumeRateLimit(
   }
   return consumeMemoryRateLimit(key, limit, windowMs);
 }
+
+/** Remaining slots without consuming (memory or Firestore). */
+export async function peekRateLimitRemaining(key: string, limit: number): Promise<number> {
+  const now = Date.now();
+  if (isFirebaseAdminReady) {
+    try {
+      const { adminDb } = await import("@/lib/firebase-admin");
+      const snap = await adminDb.collection("rate_limits").doc(rateLimitDocId(key)).get();
+      const data = snap.exists ? snap.data() : null;
+      if (!data || typeof data.resetAt !== "number" || data.resetAt <= now) return limit;
+      return Math.max(0, limit - (typeof data.count === "number" ? data.count : 0));
+    } catch (err) {
+      console.warn("[rateLimit] Firestore peek failed — memory fallback:", err);
+    }
+  }
+  const bucket = memoryBuckets.get(key);
+  if (!bucket || bucket.resetAt <= now) return limit;
+  return Math.max(0, limit - bucket.count);
+}
+
+/** Gives back one slot (e.g. the guarded work failed). Never goes below 0. */
+export async function refundRateLimit(key: string): Promise<void> {
+  const now = Date.now();
+  if (isFirebaseAdminReady) {
+    try {
+      const { adminDb } = await import("@/lib/firebase-admin");
+      const ref = adminDb.collection("rate_limits").doc(rateLimitDocId(key));
+      await adminDb.runTransaction(async (tx: any) => {
+        const snap = await tx.get(ref);
+        const data = snap.exists ? snap.data() : null;
+        if (!data || typeof data.resetAt !== "number" || data.resetAt <= now) return;
+        const count = typeof data.count === "number" ? data.count : 0;
+        if (count > 0) tx.update(ref, { count: count - 1 });
+      });
+      return;
+    } catch (err) {
+      console.warn("[rateLimit] Firestore refund failed — memory fallback:", err);
+    }
+  }
+  const bucket = memoryBuckets.get(key);
+  if (bucket && bucket.resetAt > now && bucket.count > 0) bucket.count -= 1;
+}

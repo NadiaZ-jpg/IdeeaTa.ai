@@ -123,6 +123,35 @@ export function appendGuestPlanToLocalList(plan: any): boolean {
   }
 }
 
+/** Server a refuzat (GUEST_LIMIT): aliniază contorul local ca UI să nu mai afișeze încercări rămase. */
+export function markGuestDemoLimitReached(): number {
+  if (typeof window === "undefined") return GUEST_DEMO_PLAN_LIMIT;
+  localStorage.setItem("demoGenerateCount", String(GUEST_DEMO_PLAN_LIMIT));
+  return GUEST_DEMO_PLAN_LIMIT;
+}
+
+/**
+ * Contorul local se resetează (logout, „de la capăt”, alt browser), dar serverul numără per IP/zi.
+ * Ia cota rămasă de pe server și păstrează cel mai mare dintre cele două contoare.
+ * Returnează contorul nou, sau null dacă serverul nu a răspuns.
+ */
+export async function syncGuestDemoCountFromServer(): Promise<number | null> {
+  if (typeof window === "undefined") return null;
+  try {
+    const res = await fetch("/api/generate", { method: "GET", cache: "no-store" });
+    if (!res.ok) return null;
+    const data = await res.json();
+    if (typeof data?.guestRemaining !== "number") return null;
+    const serverUsed = Math.max(0, GUEST_DEMO_PLAN_LIMIT - data.guestRemaining);
+    const localUsed = parseInt(localStorage.getItem("demoGenerateCount") || "0", 10) || 0;
+    const count = Math.min(GUEST_DEMO_PLAN_LIMIT, Math.max(localUsed, serverUsed));
+    localStorage.setItem("demoGenerateCount", String(count));
+    return count;
+  } catch {
+    return null;
+  }
+}
+
 /** La login pe cont nou (UID nou): resetează contorul guest Demo. */
 export function resetGuestDemoCounterOnLogin(): void {
   if (typeof window === "undefined") return;

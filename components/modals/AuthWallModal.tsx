@@ -7,10 +7,13 @@ interface AuthWallModalProps {
   locale: Locale;
   onClose: () => void;
   onLoginClick: () => void;
+  /** Opened because the guest used the daily free plans — explain why. */
+  reason?: "guest_limit";
 }
 
-export const AuthWallModal: React.FC<AuthWallModalProps> = ({ locale, onClose, onLoginClick }) => {
+export const AuthWallModal: React.FC<AuthWallModalProps> = ({ locale, onClose, onLoginClick, reason }) => {
   const ui = UI_STRINGS[locale] || UI_STRINGS.ro;
+  const isGuestLimit = reason === "guest_limit";
   return (
     <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[200] flex items-center justify-center p-4">
       <div className="bg-zinc-900 border border-zinc-800 rounded-3xl p-8 max-w-md w-full flex flex-col shadow-2xl relative overflow-hidden animate-in fade-in zoom-in-95 duration-200">
@@ -18,7 +21,7 @@ export const AuthWallModal: React.FC<AuthWallModalProps> = ({ locale, onClose, o
         <div className="absolute -bottom-12 -right-12 w-40 h-40 rounded-full bg-amber-500/10 blur-3xl pointer-events-none"></div>
         
         <div className="flex justify-between items-start mb-6 relative z-10">
-          <span className="text-4xl">✨</span>
+          <span className="text-4xl">{isGuestLimit ? "🎁" : "✨"}</span>
           <button 
             type="button" 
             onClick={onClose} 
@@ -29,10 +32,10 @@ export const AuthWallModal: React.FC<AuthWallModalProps> = ({ locale, onClose, o
         </div>
         
         <h3 key={`title-${locale}`} className="text-2xl font-black text-white mb-3 relative z-10">
-          {ui.authWallTitle}
+          {isGuestLimit ? ui.guestLimitTitle : ui.authWallTitle}
         </h3>
         <p key={`desc-${locale}`} className="text-zinc-400 mb-6 text-sm leading-relaxed relative z-10 font-sans">
-          {ui.authWallDesc}
+          {isGuestLimit ? ui.guestLimitDesc : ui.authWallDesc}
         </p>
         
         <button 

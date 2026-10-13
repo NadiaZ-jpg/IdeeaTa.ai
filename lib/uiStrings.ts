@@ -119,7 +119,7 @@ type UIStringsShape = {
   emailVerifyTitle: string; emailVerifyDesc: string; emailVerifyContinue: string;
   emailVerifyResend: string; emailVerifySent: string;
   cookieBannerBefore: string; cookiePolicyLabel: string; cookieEssentialOnly: string; cookieAccept: string;
-  continueFacebook: string; editBtn: string; exportBtn: string; deleteBtn: string;
+  continueFacebook: string; editBtn: string; exportBtn: string; deleteBtn: string; confirmDeleteItem: string;
   tabOverview: string; tabFinance: string; tabMarketing: string; tabSwot: string;
   alertValidPercentRange: string; budgetReducePrompt: string;
   // F4c — pricing / banners / mobile section titles
@@ -331,6 +331,7 @@ export const UI_STRINGS: Record<Locale, UIStringsShape> = {
     editBtn: "Editează",
     exportBtn: "Export",
     deleteBtn: "Șterge",
+    confirmDeleteItem: "Sigur vrei să ștergi „{{name}}”? Acțiunea nu poate fi anulată.",
     tabOverview: "📈 Prezentare",
     tabFinance: "💰 Finanțe",
     tabMarketing: "📣 Promovare",
@@ -593,6 +594,7 @@ export const UI_STRINGS: Record<Locale, UIStringsShape> = {
     editBtn: "Edit",
     exportBtn: "Export",
     deleteBtn: "Delete",
+    confirmDeleteItem: "Delete “{{name}}”? This can’t be undone.",
     tabOverview: "📈 Overview",
     tabFinance: "💰 Finance",
     tabMarketing: "📣 Marketing",
@@ -855,6 +857,7 @@ export const UI_STRINGS: Record<Locale, UIStringsShape> = {
     editBtn: "Editar",
     exportBtn: "Exportar",
     deleteBtn: "Eliminar",
+    confirmDeleteItem: "¿Seguro que quieres eliminar «{{name}}»? Esta acción no se puede deshacer.",
     tabOverview: "📈 Resumen",
     tabFinance: "💰 Finanzas",
     tabMarketing: "📣 Marketing",

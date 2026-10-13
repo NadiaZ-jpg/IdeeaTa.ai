@@ -102,7 +102,7 @@ export function MobileProToolsPanel({
         <h3 className="text-sm font-black text-white flex items-center gap-2">
           <span className="text-emerald-500">✨</span> {ui.toolsTitle}
         </h3>
-        <p className="text-[11px] text-zinc-400 leading-relaxed">{ui.toolsDesc}</p>
+        <p className="text-xs text-zinc-400 leading-relaxed">{ui.toolsDesc}</p>
       </div>
 
       <div className="flex flex-col gap-2">
@@ -213,7 +213,7 @@ export function MobileProToolsPanel({
         <div className="mt-1 p-3.5 bg-zinc-950 border border-zinc-800 rounded-xl animate-in fade-in slide-in-from-top-2 duration-200">
           <h4 className="text-xs font-bold text-zinc-200 mb-1.5">{activeAiPrompt.title}</h4>
           {activeAiPrompt.desc && (
-            <p className="text-[11px] text-zinc-400 mb-3 whitespace-pre-line">{activeAiPrompt.desc}</p>
+            <p className="text-xs text-zinc-400 mb-3 whitespace-pre-line">{activeAiPrompt.desc}</p>
           )}
 
           {!activeAiPrompt.isConfirm && (
@@ -228,7 +228,7 @@ export function MobileProToolsPanel({
                 }
               }}
               placeholder={activeAiPrompt.placeholder}
-              className="w-full bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-2.5 text-sm text-white mb-3 focus:outline-none focus:border-emerald-500 transition-colors min-h-[44px]"
+              className="w-full bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-2.5 text-base sm:text-sm text-white mb-3 focus:outline-none focus:border-emerald-500 transition-colors min-h-[44px]"
               autoFocus
             />
           )}

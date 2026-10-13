@@ -9,6 +9,7 @@ import { doc, setDoc, getDoc, increment, arrayUnion, onSnapshot, collection, get
 import { PricingModal } from '@/components/PricingModal';
 import { LanguageSwitcher } from '@/components/LanguageSwitcher';
 import { MobileHeaderMenu } from '@/components/MobileHeaderMenu';
+import { useMobileOverlay } from '@/hooks/useMobileOverlay';
 import BuyMeACoffeeModal from '@/components/BuyMeACoffeeModal';
 import { useExportActions } from "@/hooks/useExportActions";
 import { useCompleteMissingPlanFields } from "@/hooks/useCompleteMissingPlanFields";
@@ -78,6 +79,7 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
   const activeVersionIdRef = useRef<string>("original");
   const [activeVersionId, _setActiveVersionId] = useState<string>("original");
   const [showVersionDropdown, setShowVersionDropdown] = useState(false);
+  const versionDropdownRef = useRef<HTMLDivElement>(null);
 
   const setActiveVersionId = (id: string) => {
     activeVersionIdRef.current = id;
@@ -990,6 +992,29 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
     }
   };
 
+  // Bottom-sheet / modal: blocare scroll fundal + Escape
+  useMobileOverlay(showExportModal, () => setShowExportModal(false));
+  useMobileOverlay(showAuthModal, () => setShowAuthModal(false));
+
+  // Dropdown versiuni: închidere la atingere în afară / Escape
+  useEffect(() => {
+    if (!showVersionDropdown) return;
+    const handlePointerDown = (e: PointerEvent) => {
+      if (versionDropdownRef.current && !versionDropdownRef.current.contains(e.target as Node)) {
+        setShowVersionDropdown(false);
+      }
+    };
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setShowVersionDropdown(false);
+    };
+    document.addEventListener("pointerdown", handlePointerDown);
+    window.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("pointerdown", handlePointerDown);
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [showVersionDropdown]);
+
   if (isAuthLoading || isCheckingShared) {
     return <div className="min-h-screen bg-black" />;
   }
@@ -1082,13 +1107,14 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
             {/* Form Card */}
             <div className="bg-zinc-900/40 border border-zinc-800/80 rounded-2xl p-5 backdrop-blur-md space-y-4">
               <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-zinc-400">{t("businessIdeaLabel", locale)}</label>
+                <label htmlFor="demo-mobile-idea" className="text-xs font-semibold text-zinc-400">{t("businessIdeaLabel", locale)}</label>
                 <textarea
+                  id="demo-mobile-idea"
                   ref={inputRef}
                   value={skill}
                   onChange={(e) => setSkill(e.target.value)}
                   placeholder={ui.inputPlaceholder}
-                  className="w-full bg-zinc-950 border border-zinc-800 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500/30 rounded-xl px-4 py-3 text-sm text-white placeholder-zinc-500 h-28 outline-none resize-none transition-all"
+                  className="w-full bg-zinc-950 border border-zinc-800 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500/30 rounded-xl px-4 py-3 text-base sm:text-sm text-white placeholder-zinc-500 h-28 outline-none resize-none transition-all"
                 />
               </div>
 
@@ -1285,8 +1311,10 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
                 ) : null}
                 <button
                   onClick={handleShare}
+                  type="button"
                   className="bg-zinc-800 hover:bg-zinc-700 text-white font-bold p-2 rounded-lg text-xs transition-all active:scale-95 inline-flex items-center justify-center min-w-[44px] min-h-[44px]"
                   title={ui.shareLinkTitle}
+                  aria-label={ui.shareLinkTitle}
                 >
                   🔗
                 </button>
@@ -1312,9 +1340,11 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
               <div className="w-full lg:col-span-4 flex flex-col gap-4 sticky lg:top-20 z-20">
                 {/* Version History Selector Mobile */}
                 {!isSharedView && versions && Object.keys(versions).length > 0 && (
-                  <div className="relative z-20 font-sans">
+                  <div ref={versionDropdownRef} className="relative z-20 font-sans">
                     <button 
-                      onClick={() => setShowVersionDropdown(!showVersionDropdown)}
+                      type="button"
+                  aria-expanded={showVersionDropdown}
+                  onClick={() => setShowVersionDropdown(!showVersionDropdown)}
                       className="w-full px-4 py-3 rounded-xl bg-zinc-900/80 border border-zinc-800 hover:border-emerald-500/40 text-amber-300 hover:text-amber-200 font-bold text-xs flex items-center justify-between transition-all cursor-pointer shadow-sm"
                     >
                       <span className="flex items-center gap-1.5 flex-1 min-w-0">
@@ -1416,28 +1446,36 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
                 <div className="relative lg:static">
                   {/* Fade indicator — visible only while scrollable on mobile */}
                   <div className="pointer-events-none absolute inset-y-0 right-0 w-10 bg-gradient-to-l from-[#09090b] to-transparent rounded-r-xl z-10 lg:hidden" aria-hidden="true"></div>
-                <div className="flex lg:flex-col bg-zinc-950/90 backdrop-blur-md border border-zinc-800/80 rounded-xl p-1 overflow-x-auto lg:overflow-visible scrollbar-none lg:gap-1 w-full shadow-inner">
+                <div role="tablist" className="flex lg:flex-col bg-zinc-950/90 backdrop-blur-md border border-zinc-800/80 rounded-xl p-1 overflow-x-auto lg:overflow-visible scrollbar-none lg:gap-1 w-full shadow-inner">
                   <button
+                    role="tab"
+                    aria-selected={activeTab === "overview"}
                     onClick={() => setActiveTab("overview")}
-                    className={`flex-1 text-center lg:text-left py-3 lg:py-2.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap px-4 lg:px-5 ${activeTab === "overview" ? "bg-zinc-900 text-emerald-400 border border-zinc-800/80 shadow-md shadow-black/40" : "text-zinc-400 hover:text-white border border-transparent"}`}
+                    className={`flex-1 text-center lg:text-left py-3 lg:py-2.5 min-h-[44px] rounded-lg text-xs font-bold transition-all whitespace-nowrap px-4 lg:px-5 ${activeTab === "overview" ? "bg-zinc-900 text-emerald-400 border border-zinc-800/80 shadow-md shadow-black/40" : "text-zinc-400 hover:text-white border border-transparent"}`}
                   >
                     {ui.tabOverview}
                   </button>
                   <button
+                    role="tab"
+                    aria-selected={activeTab === "budget"}
                     onClick={() => setActiveTab("budget")}
-                    className={`flex-1 text-center lg:text-left py-3 lg:py-2.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap px-4 lg:px-5 ${activeTab === "budget" ? "bg-zinc-900 text-emerald-400 border border-zinc-800/80 shadow-md shadow-black/40" : "text-zinc-400 hover:text-white border border-transparent"}`}
+                    className={`flex-1 text-center lg:text-left py-3 lg:py-2.5 min-h-[44px] rounded-lg text-xs font-bold transition-all whitespace-nowrap px-4 lg:px-5 ${activeTab === "budget" ? "bg-zinc-900 text-emerald-400 border border-zinc-800/80 shadow-md shadow-black/40" : "text-zinc-400 hover:text-white border border-transparent"}`}
                   >
                     {ui.tabFinance}
                   </button>
                   <button
+                    role="tab"
+                    aria-selected={activeTab === "marketing"}
                     onClick={() => setActiveTab("marketing")}
-                    className={`flex-1 text-center lg:text-left py-3 lg:py-2.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap px-4 lg:px-5 ${activeTab === "marketing" ? "bg-zinc-900 text-emerald-400 border border-zinc-800/80 shadow-md shadow-black/40" : "text-zinc-400 hover:text-white border border-transparent"}`}
+                    className={`flex-1 text-center lg:text-left py-3 lg:py-2.5 min-h-[44px] rounded-lg text-xs font-bold transition-all whitespace-nowrap px-4 lg:px-5 ${activeTab === "marketing" ? "bg-zinc-900 text-emerald-400 border border-zinc-800/80 shadow-md shadow-black/40" : "text-zinc-400 hover:text-white border border-transparent"}`}
                   >
                     {ui.tabMarketing}
                   </button>
                   <button
+                    role="tab"
+                    aria-selected={activeTab === "swot"}
                     onClick={() => setActiveTab("swot")}
-                    className={`flex-1 text-center lg:text-left py-3 lg:py-2.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap px-4 lg:px-5 ${activeTab === "swot" ? "bg-zinc-900 text-emerald-400 border border-zinc-800/80 shadow-md shadow-black/40" : "text-zinc-400 hover:text-white border border-transparent"}`}
+                    className={`flex-1 text-center lg:text-left py-3 lg:py-2.5 min-h-[44px] rounded-lg text-xs font-bold transition-all whitespace-nowrap px-4 lg:px-5 ${activeTab === "swot" ? "bg-zinc-900 text-emerald-400 border border-zinc-800/80 shadow-md shadow-black/40" : "text-zinc-400 hover:text-white border border-transparent"}`}
                   >
                     {ui.tabSwot}
                   </button>
@@ -1627,10 +1665,12 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
 
       {/* Auth Modal Overlay */}
       {showAuthModal && (
-        <div className="fixed inset-0 bg-black/85 backdrop-blur-md z-50 flex items-center justify-center p-4">
-          <div className="bg-zinc-900 border border-zinc-800 rounded-3xl p-6 w-full max-w-sm space-y-6 relative animate-in zoom-in-95 duration-200">
+        <div className="fixed inset-0 bg-black/85 backdrop-blur-md z-50 flex items-center justify-center p-4" role="dialog" aria-modal="true">
+          <div className="bg-zinc-900 border border-zinc-800 rounded-3xl p-6 w-full max-w-sm max-h-[calc(100dvh-2rem)] overflow-y-auto overscroll-contain space-y-6 relative animate-in zoom-in-95 duration-200">
             <button
+              type="button"
               onClick={() => setShowAuthModal(false)}
+              aria-label={ui.closeBtn}
               className="absolute top-4 right-4 text-zinc-500 hover:text-white font-bold text-sm p-2 -m-2 inline-flex items-center justify-center min-w-[44px] min-h-[44px]"
             >
               ✕
@@ -1674,19 +1714,24 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
             <form onSubmit={handleEmailAuth} className="space-y-3.5">
               <input
                 type="email"
+                autoComplete="email"
+                inputMode="email"
+                aria-label={ui.emailPlaceholder}
                 placeholder={ui.emailPlaceholder}
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                className="w-full bg-zinc-950 border border-zinc-800 focus:border-emerald-500 rounded-xl px-4 py-3 text-xs text-white placeholder-zinc-500 outline-none"
+                className="w-full bg-zinc-950 border border-zinc-800 focus:border-emerald-500 rounded-xl px-4 py-3 text-base sm:text-xs text-white placeholder-zinc-500 outline-none min-h-[44px]"
               />
               <input
                 type="password"
+                autoComplete={isLoginMode ? "current-password" : "new-password"}
+                aria-label={ui.passwordPlaceholder}
                 placeholder={ui.passwordPlaceholder}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
-                className="w-full bg-zinc-950 border border-zinc-800 focus:border-emerald-500 rounded-xl px-4 py-3 text-xs text-white placeholder-zinc-500 outline-none"
+                className="w-full bg-zinc-950 border border-zinc-800 focus:border-emerald-500 rounded-xl px-4 py-3 text-base sm:text-xs text-white placeholder-zinc-500 outline-none min-h-[44px]"
               />
               <button
                 type="submit"
@@ -1759,12 +1804,12 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
       />
       {/* Meniu Exporturi Bottom-Sheet */}
       {showExportModal && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex flex-col justify-end">
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex flex-col justify-end" role="dialog" aria-modal="true">
           {/* Backdrop Touch Close */}
           <div className="flex-1" onClick={() => setShowExportModal(false)}></div>
           
           {/* Drawer Sheet */}
-          <div className="bg-zinc-900 border-t border-zinc-800 rounded-t-3xl p-6 max-h-[85vh] overflow-y-auto space-y-5 animate-in slide-in-from-bottom duration-300 flex flex-col w-full md:max-w-lg md:mx-auto md:left-1/2 md:-translate-x-1/2 md:right-auto">
+          <div className="bg-zinc-900 border-t border-zinc-800 rounded-t-3xl p-6 max-h-[85dvh] overflow-y-auto overscroll-contain space-y-5 animate-in slide-in-from-bottom duration-300 flex flex-col w-full md:max-w-lg md:mx-auto">
             <div className="flex justify-between items-center border-b border-zinc-800/60 pb-3">
               <h4 className="text-sm font-black text-white">{ui.exportOptionsTitle}</h4>
               <button onClick={() => setShowExportModal(false)} className="text-xs text-zinc-500 font-bold p-2 -m-2 inline-flex items-center justify-center min-w-[44px] min-h-[44px]">{ui.closeBtn}</button>

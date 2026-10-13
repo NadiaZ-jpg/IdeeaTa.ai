@@ -52,13 +52,15 @@ export function StudioMobileGenerateHint({
       <header className="h-16 px-4 flex items-center justify-between border-b border-zinc-800/80 sticky top-0 bg-[#09090b]/80 backdrop-blur-md z-30">
         <Link
           href={ui.routes.dashboard}
-          className="text-xs font-bold text-zinc-400 hover:text-white flex items-center gap-1 min-h-[44px] min-w-[44px]"
+          className="text-xs font-bold text-zinc-400 hover:text-white flex items-center gap-1 min-h-[44px] min-w-[44px] shrink-0"
         >
           <span>←</span>
           <span>{locale === "en" ? "Dashboard" : locale === "es" ? "Panel" : "Dashboard"}</span>
         </Link>
-        <span className="text-sm font-black">{ui.studioMobileBadge}</span>
-        <LanguageSwitcher currentLocale={locale} />
+        <span className="text-sm font-black truncate min-w-0 px-2">{ui.studioMobileBadge}</span>
+        <div className="shrink-0">
+          <LanguageSwitcher currentLocale={locale} touch />
+        </div>
       </header>
 
       <main className="flex-1 p-4 flex flex-col gap-6 max-w-lg mx-auto w-full">
@@ -84,7 +86,7 @@ export function StudioMobileGenerateHint({
               value={skill}
               onChange={(e) => setSkill(e.target.value)}
               placeholder={ui.inputPlaceholder || ui.animatedPlaceholder}
-              className="w-full bg-zinc-950 border border-zinc-800 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500/30 rounded-xl px-4 py-3 text-sm text-white placeholder-zinc-500 h-28 outline-none resize-none transition-all min-h-[112px]"
+              className="w-full bg-zinc-950 border border-zinc-800 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500/30 rounded-xl px-4 py-3 text-base sm:text-sm text-white placeholder-zinc-500 h-28 outline-none resize-none transition-all min-h-[112px]"
             />
           </div>
 

@@ -126,7 +126,7 @@ export function MobileHeaderMenu({
             </div>
           ) : (
             <div className="p-3 bg-zinc-950/60 rounded-xl border border-zinc-800/60 flex flex-col gap-2">
-              <p className="text-xs text-zinc-400">
+              <p className="text-xs text-zinc-400 leading-relaxed">
                 {ui.guestMenuHint}
               </p>
               {onRequireLogin ? (
@@ -138,7 +138,7 @@ export function MobileHeaderMenu({
                   }}
                   className="w-full flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2.5 px-4 rounded-lg text-xs transition-all active:scale-95 min-h-[44px]"
                 >
-                  <LogIn className="w-4 h-4" />
+                  <LogIn className="w-4 h-4 shrink-0" />
                   <span>{ui.logIn}</span>
                 </button>
               ) : (
@@ -147,7 +147,7 @@ export function MobileHeaderMenu({
                   onClick={() => setIsOpen(false)}
                   className="w-full flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2.5 px-4 rounded-lg text-xs transition-all active:scale-95 min-h-[44px]"
                 >
-                  <LogIn className="w-4 h-4" />
+                  <LogIn className="w-4 h-4 shrink-0" />
                   <span>{ui.logIn}</span>
                 </Link>
               )}

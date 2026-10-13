@@ -1348,7 +1348,7 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
                           await syncCurrentPlanToFirestore(updated, nextVersions);
                           localStorage.setItem("current_generated_plan", JSON.stringify(updated));
                         }}
-                        className="text-[11px] text-red-500 hover:text-red-450 font-semibold p-2 -m-2 inline-flex items-center justify-center min-w-[36px] min-h-[36px]"
+                        className="text-[11px] text-red-500 hover:text-red-400 font-semibold p-2 -m-2 inline-flex items-center justify-center min-w-[44px] min-h-[44px]"
                       >
                         {`✕ ${ui.deleteBtn}`}
                       </button>
@@ -1433,14 +1433,14 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
                                 <div className="flex items-center gap-0.5">
                                   <button
                                     onClick={() => setEditingBudgetItem({ index: idx, item: label, cost: String(costText || '0') })}
-                                    className="text-[11px] text-zinc-500 hover:text-white p-2 -m-1 inline-flex items-center justify-center min-w-[36px] min-h-[36px]"
+                                    className="text-[11px] text-zinc-500 hover:text-white p-2 -m-1 inline-flex items-center justify-center min-w-[44px] min-h-[44px]"
                                     title={ui.editBtn}
                                   >
                                     ✏️
                                   </button>
                                   <button
                                     onClick={() => handleDeleteBudgetItem(idx)}
-                                    className="text-[11px] text-red-500 hover:text-red-400 p-2 -m-1 inline-flex items-center justify-center min-w-[36px] min-h-[36px]"
+                                    className="text-[11px] text-red-500 hover:text-red-400 p-2 -m-1 inline-flex items-center justify-center min-w-[44px] min-h-[44px]"
                                     title={ui.deleteBtn}
                                   >
                                     ✕
@@ -1550,7 +1550,7 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
                           value: getSwotString(result.analiza_swot?.puncte_tari || result.analiza_swot?.puncte_forte)
                         });
                       }}
-                      className="text-[10px] text-zinc-500 hover:text-white p-2 -m-2 inline-flex items-center justify-center min-w-[36px] min-h-[36px]"
+                      className="text-[10px] text-zinc-500 hover:text-white p-2 -m-2 inline-flex items-center justify-center min-w-[44px] min-h-[44px]"
                     >
                       {`✏️ ${ui.editBtn}`}
                     </button>
@@ -1567,7 +1567,7 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
                         title: ui.weaknesses,
                         value: getSwotString(result.analiza_swot?.puncte_slabe)
                       })}
-                      className="text-[10px] text-zinc-500 hover:text-white p-2 -m-2 inline-flex items-center justify-center min-w-[36px] min-h-[36px]"
+                      className="text-[10px] text-zinc-500 hover:text-white p-2 -m-2 inline-flex items-center justify-center min-w-[44px] min-h-[44px]"
                     >
                       {`✏️ ${ui.editBtn}`}
                     </button>
@@ -1584,7 +1584,7 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
                         title: ui.opportunities,
                         value: getSwotString(result.analiza_swot?.oportunitati)
                       })}
-                      className="text-[10px] text-zinc-500 hover:text-white p-2 -m-2 inline-flex items-center justify-center min-w-[36px] min-h-[36px]"
+                      className="text-[10px] text-zinc-500 hover:text-white p-2 -m-2 inline-flex items-center justify-center min-w-[44px] min-h-[44px]"
                     >
                       {`✏️ ${ui.editBtn}`}
                     </button>
@@ -1601,7 +1601,7 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
                         title: ui.threats,
                         value: getSwotString(result.analiza_swot?.amenintari)
                       })}
-                      className="text-[10px] text-zinc-500 hover:text-white p-2 -m-2 inline-flex items-center justify-center min-w-[36px] min-h-[36px]"
+                      className="text-[10px] text-zinc-500 hover:text-white p-2 -m-2 inline-flex items-center justify-center min-w-[44px] min-h-[44px]"
                     >
                       {`✏️ ${ui.editBtn}`}
                     </button>

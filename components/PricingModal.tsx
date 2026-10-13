@@ -142,9 +142,12 @@ export function PricingModal({
           <div className="absolute -bottom-24 -right-24 w-72 h-72 bg-blue-500/10 rounded-full blur-[100px]"></div>
         </div>
 
+        {/* z-30: the header block below is positioned and painted later, so without it it covers the X. */}
         <button 
+          type="button"
           onClick={onClose}
-          className="absolute top-6 right-6 text-zinc-500 hover:text-white transition-colors text-xl p-2 cursor-pointer"
+          aria-label={ui.closeBtn}
+          className="absolute top-4 right-4 md:top-6 md:right-6 z-30 text-zinc-500 hover:text-white transition-colors text-xl p-2 min-w-[44px] min-h-[44px] inline-flex items-center justify-center cursor-pointer"
           disabled={loadingTier !== null}
         >
           ✕

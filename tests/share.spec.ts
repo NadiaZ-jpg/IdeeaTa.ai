@@ -95,8 +95,10 @@ test.describe("Demo - share plan flow", () => {
       }
     });
 
+    // preferred_language="en" previne router.replace("/en/demo") inutil din LocaleRedirectGuard
     await page.addInitScript(() => {
       localStorage.setItem("demoGenerateCount", "0");
+      localStorage.setItem("preferred_language", "en");
     });
 
     await page.goto("/en/demo");

@@ -61,10 +61,9 @@ test.describe("Demo - share plan flow", () => {
 
     // Fără autentificare Firebase, click pe Share afișează AuthWallModal
     // (handleShare verifică user și setShowAuthModal(true) dacă user=null)
-    const authModal = page.getByText(/Crea[ț|t]i-v[ă|a] un cont/i).or(
-      page.getByText(/Conectare.*Înregistrare/i)
-    );
-    await expect(authModal).toBeVisible({ timeout: 10_000 });
+    // AuthWallModal RO: <h3>Creează-ți un cont gratuit</h3>
+    const authModalHeading = page.getByRole("heading", { name: /un cont gratuit/i });
+    await expect(authModalHeading).toBeVisible({ timeout: 10_000 });
   });
 
   test("share button is visible and clickable after plan generation", async ({ page }) => {
@@ -76,9 +75,7 @@ test.describe("Demo - share plan flow", () => {
 
     // Click pe share (fără auth) → AuthWallModal se deschide
     await shareBtn.click();
-    const authModalTitle = page.getByText(/Crea[ț|t]i-v[ă|a] un cont/i).or(
-      page.getByText(/Conectare.*Înregistrare/i)
-    );
+    const authModalTitle = page.getByRole("heading", { name: /un cont gratuit/i });
     await expect(authModalTitle).toBeVisible({ timeout: 10_000 });
   });
 
@@ -114,10 +111,8 @@ test.describe("Demo - share plan flow", () => {
     const shareBtn = page.getByRole("button", { name: /Share/i });
     await shareBtn.click();
 
-    // Fără auth → AuthWallModal EN cu "Create a free account" sau "Login / Register"
-    const authModal = page.getByText(/Create a free account/i).or(
-      page.getByText(/Login.*Register/i)
-    );
-    await expect(authModal).toBeVisible({ timeout: 10_000 });
+    // Fără auth → AuthWallModal EN: heading-ul <h3> "Create a free account"
+    const authModalHeading = page.getByRole("heading", { name: /Create a free account/i });
+    await expect(authModalHeading).toBeVisible({ timeout: 10_000 });
   });
 });

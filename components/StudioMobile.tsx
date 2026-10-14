@@ -25,7 +25,7 @@ import {
   persistCurrentVersions,
   notifyVersionPersistFailed,
 } from '@/lib/persistVersionMap';
-import { canGenerateWithQuotas, readProPackRemaining, proPackTopupConfirmDialog, notifyProPackQuotaBlocked, proToolCostLabel } from '@/lib/proPackQuota';
+import { canGenerateWithQuotas, readProPackRemaining, proPackTopupConfirmDialog, notifyProPackQuotaBlocked, proToolCostLabel, proGenerateCostLabel } from '@/lib/proPackQuota';
 import { startProTopupCheckout } from '@/lib/proTopupCheckout';
 import { ProPackQuotaBar } from '@/components/ProPackQuotaBar';
 import { isAdminEmail } from '@/lib/adminEmails';
@@ -1039,6 +1039,7 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
           loading={loading}
           loadingMessage={loadingMessages[messageIndex]}
           onGenerate={() => void handleGenerate()}
+          generateCostLabel={user && hasProPackQuota && lifetimePlanCount >= FREE_ACCOUNT_PLAN_LIMIT ? proGenerateCostLabel(locale) : null}
           onInspire={() => {
             if (usedIdeasRef.current.length >= examplesList.length) {
               usedIdeasRef.current = [];

@@ -12,6 +12,7 @@ import { markPlanDeletedLocally, FREE_ACCOUNT_PLAN_LIMIT, clearLocalPlanState, h
 import {
   canGenerateWithQuotas,
   readProPackRemaining,
+  proGenerateCostLabel,
 } from '@/lib/proPackQuota';
 import { startProTopupCheckout } from '@/lib/proTopupCheckout';
 import { ProPackQuotaBar } from '@/components/ProPackQuotaBar';
@@ -370,6 +371,9 @@ export default function DashboardContent({ locale = "ro" }: { locale?: "ro" | "e
                   <span className="text-center leading-tight">
                     {isEn ? "Generate New Plan" : isEs ? "Generar Nuevo Plan" : "Generează Plan Nou"}
                   </span>
+                  {hasProPack && lifetimePlanCount >= FREE_ACCOUNT_PLAN_LIMIT && (
+                    <span className="text-[10px] font-bold uppercase tracking-wide bg-white/15 border border-white/25 px-2 py-0.5 rounded-md whitespace-nowrap">{proGenerateCostLabel(locale)}</span>
+                  )}
                 </button>
                 {showUpgradeCue ? (
                   <button

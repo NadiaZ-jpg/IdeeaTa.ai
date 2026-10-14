@@ -39,7 +39,7 @@ import {
   persistCurrentVersions,
   notifyVersionPersistFailed,
 } from "@/lib/persistVersionMap";
-import { canGenerateWithQuotas, readProPackRemaining, proPackTopupConfirmDialog, notifyProPackQuotaBlocked, proToolCostLabel } from "@/lib/proPackQuota";
+import { canGenerateWithQuotas, readProPackRemaining, proPackTopupConfirmDialog, notifyProPackQuotaBlocked, proToolCostLabel, proGenerateCostLabel } from "@/lib/proPackQuota";
 import { startProTopupCheckout } from "@/lib/proTopupCheckout";
 import { ProPackQuotaBar } from "@/components/ProPackQuotaBar";
 import { isAdminEmail } from "@/lib/adminEmails";
@@ -1172,6 +1172,7 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
                 >
                   <span>{ui.generatePlan}</span>
                   <span>→</span>
+                  {user && hasProPackQuota && lifetimePlanCount >= FREE_ACCOUNT_PLAN_LIMIT && <span className="text-[10px] font-bold uppercase tracking-wide bg-white/15 border border-white/25 px-2 py-0.5 rounded-md whitespace-nowrap">{proGenerateCostLabel(locale)}</span>}
                 </button>
               </div>
               {!user && (

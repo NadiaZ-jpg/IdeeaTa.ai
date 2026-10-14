@@ -29,6 +29,7 @@ import {
   proPackTopupConfirmDialog,
   notifyProPackQuotaBlocked,
   proToolCostLabel,
+  proGenerateCostLabel,
 } from '@/lib/proPackQuota';
 import {
   startProTopupCheckout,
@@ -1778,6 +1779,7 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
                   <button type="submit" disabled={loading} className="w-full sm:w-auto bg-white text-black px-8 py-4 rounded-xl font-black text-lg hover:bg-zinc-200 transition-all shadow-[0_0_20px_rgba(255,255,255,0.2)] flex items-center justify-center gap-2">
                     {loading ? loadingMessages[messageIndex] : ui.generatePlan}
                     {!loading && <span>&rarr;</span>}
+                    {!loading && user && hasProPackQuota && lifetimePlanCount >= FREE_ACCOUNT_PLAN_LIMIT && <span className="text-[10px] font-bold uppercase tracking-wide bg-black/10 border border-black/20 px-2 py-0.5 rounded-md whitespace-nowrap">{proGenerateCostLabel(locale)}</span>}
                   </button>
                 </div>
               </form>

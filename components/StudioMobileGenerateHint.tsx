@@ -17,6 +17,7 @@ export function StudioMobileGenerateHint({
   onGenerate,
   onInspire,
   inputRef,
+  generateCostLabel = null,
 }: {
   locale?: "ro" | "en" | "es";
   skill: string;
@@ -26,6 +27,8 @@ export function StudioMobileGenerateHint({
   onGenerate: () => void;
   onInspire: () => void;
   inputRef: RefObject<HTMLTextAreaElement | null>;
+  /** One-time pack: shown once free plans are used ("−1 generare") */
+  generateCostLabel?: string | null;
 }) {
   const ui = UI_STRINGS[locale];
 
@@ -107,6 +110,9 @@ export function StudioMobileGenerateHint({
             >
               <span>{ui.generatePlan}</span>
               <span>→</span>
+              {generateCostLabel && (
+                <span className="text-[10px] font-bold uppercase tracking-wide bg-white/15 border border-white/25 px-2 py-0.5 rounded-md whitespace-nowrap">{generateCostLabel}</span>
+              )}
             </button>
           </div>
         </div>

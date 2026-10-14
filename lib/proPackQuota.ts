@@ -262,3 +262,10 @@ export function proToolCostLabel(locale: ProPackLocale, onVariantTab: boolean): 
   if (locale === "es") return onVariantTab ? "−1 edición · −1 comb." : "−1 edición Pro";
   return onVariantTab ? "−1 editare · −1 combinație" : "−1 editare Pro";
 }
+
+/** Cost chip on "Generate" once the free plans are used and the one-time pack pays for it. */
+export function proGenerateCostLabel(locale: ProPackLocale): string {
+  if (locale === "en") return "−1 generation";
+  if (locale === "es") return "−1 generación";
+  return "−1 generare";
+}

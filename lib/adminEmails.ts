@@ -2,7 +2,6 @@
 export const ADMIN_EMAILS = [
   "contact@ideeata.ai",
   "nadiaramonaz@gmail.com",
-  "adrian@ideeata.ai",
 ] as const;
 
 export function isAdminEmail(email?: string | null): boolean {

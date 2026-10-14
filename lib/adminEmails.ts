@@ -1,6 +1,5 @@
 /** Canonical admin allowlist — keep Desktop / Mobile / API in sync. */
 export const ADMIN_EMAILS = [
-  "contact@ideeata.ai",
   "nadiaramonaz@gmail.com",
 ] as const;
 

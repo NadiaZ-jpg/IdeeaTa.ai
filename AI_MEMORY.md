@@ -953,7 +953,7 @@ Verificare: chunk-urile (`5229-…`, CSS, layout) → HTTP 200 pe `ideeata.ai`.
 
 ## FREEZE — 20 August 2026: Admin nelimitat (`ADMIN_EMAILS`)
 
-Emailuri: `contact@ideeata.ai`, `nadiaramonaz@gmail.com` (`lib/adminEmails.ts`).
+Emailuri: `nadiaramonaz@gmail.com` (`lib/adminEmails.ts`).
 
 Pentru `isAdminEmail === true`:
 - **Combine / version stack:** `getVersionStackLimit` → `Infinity` (nu mai e plafonul Full=4).

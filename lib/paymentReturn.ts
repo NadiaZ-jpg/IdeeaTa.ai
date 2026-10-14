@@ -39,6 +39,15 @@ export function paymentSuccessMessage(
     }
     return "Pachetul Instrumente Pro este deblocat! Ai generări, editări Pro și combinații.";
   }
+  if (tier === "standard" && !planName) {
+    if (locale === "en") {
+      return "Standard package active! You got 1 download credit: open the plan you want and download it in PDF, PPTX or Word.";
+    }
+    if (locale === "es") {
+      return "¡Paquete Standard activo! Recibiste 1 crédito de descarga: abre el plan que quieras y descárgalo en PDF, PPTX o Word.";
+    }
+    return "Pachetul Standard e activ! Ai primit 1 credit de descărcare: deschide planul dorit și descarcă-l în PDF, PPTX sau Word.";
+  }
   if (tier === "standard") {
     const name = planName || (locale === "en" ? "Plan" : locale === "es" ? "Plan" : "Plan");
     if (locale === "en") return `Standard package unlocked for “${name}”.`;

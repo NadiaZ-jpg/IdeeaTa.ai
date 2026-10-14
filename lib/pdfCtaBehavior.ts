@@ -112,8 +112,10 @@ export function attachPdfCtaLinks(
     pdf.link(0, 0, 1280, 720, { url: ctaUrl });
   }
 
-  // Footer pe fiecare pagină
-  pdf.link(300, 680, 680, 40, { url: ctaUrl });
+  // Footer pe fiecare pagină — doar la rezumatul gratuit (PDF-ul plătit nu are subsol)
+  if (isSummaryExport) {
+    pdf.link(300, 680, 680, 40, { url: ctaUrl });
+  }
 }
 
 /**

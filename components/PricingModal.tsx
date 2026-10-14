@@ -223,6 +223,9 @@ export function PricingModal({
                   <span>{ui.pricingStandardFeat5}</span>
                 </li>
               </ul>
+              {!planId && !planName && (
+                <p className="-mt-5 mb-6 text-xs text-zinc-500">{ui.pricingStandardNoPlanHint}</p>
+              )}
             </div>
 
             <button

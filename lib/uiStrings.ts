@@ -129,7 +129,7 @@ type UIStringsShape = {
   pricingModalTitle: string; pricingModalSubtitle: string;
   pricingStandardName: string; pricingOneTime: string;
   pricingStandardFeat1: string; pricingStandardFeat2: string; pricingStandardFeat3: string;
-  pricingStandardFeat4: string; pricingStandardFeat5: string; pricingChooseStandard: string;
+  pricingStandardFeat4: string; pricingStandardFeat5: string; pricingChooseStandard: string; pricingStandardNoPlanHint: string;
   pricingProBadge: string; pricingProName: string;
   pricingProFeat1: string; pricingProFeat2: string; pricingProFeat3: string;
   pricingProFeat4: string; pricingProFeat5: string; pricingChoosePro: string;
@@ -357,13 +357,14 @@ export const UI_STRINGS: Record<Locale, UIStringsShape> = {
     pricingStandardFeat3: "Fără watermark sau reclame",
     pricingStandardFeat4: "Editare text liberă în browser",
     pricingStandardFeat5: "Ton formal & creativ nelimitat (asistat)",
+    pricingStandardNoPlanHint: "Cumpărat de aici, primești 1 credit de descărcare pentru planul pe care îl alegi.",
     pricingChooseStandard: "Alege Standard",
     pricingProBadge: "Instrumente PRO",
     pricingProName: "Pachet Editare + Instrumente Profesionale",
     pricingProFeat1: "Tot ce include Pachetul Standard",
     pricingProFeat2: "Toate cele 4 tonuri + instrumente Pro (Fonduri UE, Investitori, Buget, Secțiuni)",
     pricingProFeat3: "10 generări noi de plan",
-    pricingProFeat4: "8 editări Pro",
+    pricingProFeat4: "8 editări Pro (tonurile Persuasiv și Prietenos consumă câte 1 editare)",
     pricingProFeat5: "Combină versiuni: 4 folosiri (max. 4 instrumente pe versiune)",
     pricingChoosePro: "Alege Instrumente Pro",
     pricingSsl: "🔒 Conexiune Securizată SSL",
@@ -622,13 +623,14 @@ export const UI_STRINGS: Record<Locale, UIStringsShape> = {
     pricingStandardFeat3: "No watermark or ads",
     pricingStandardFeat4: "Free text editing in browser",
     pricingStandardFeat5: "Unlimited formal & creative tone (assisted)",
+    pricingStandardNoPlanHint: "Bought from here, you get 1 download credit for the plan you choose.",
     pricingChooseStandard: "Choose Standard",
     pricingProBadge: "PRO Tools",
     pricingProName: "Editing + Professional Tools Package",
     pricingProFeat1: "Everything in the Standard Package",
     pricingProFeat2: "All 4 tones + Pro tools (EU Funds, Investors, Budget, Sections)",
     pricingProFeat3: "10 new plan generations",
-    pricingProFeat4: "8 Pro edits",
+    pricingProFeat4: "8 Pro edits (Persuasive and Friendly tones use 1 edit each)",
     pricingProFeat5: "Combine: 4 uses (max 4 tools per version)",
     pricingChoosePro: "Choose Pro Tools",
     pricingSsl: "🔒 Secure SSL Connection",
@@ -887,13 +889,14 @@ export const UI_STRINGS: Record<Locale, UIStringsShape> = {
     pricingStandardFeat3: "Sin marca de agua ni anuncios",
     pricingStandardFeat4: "Edición libre de texto en el navegador",
     pricingStandardFeat5: "Tono formal y creativo ilimitado (asistido)",
+    pricingStandardNoPlanHint: "Si lo compras desde aquí, recibes 1 crédito de descarga para el plan que elijas.",
     pricingChooseStandard: "Elegir Estándar",
     pricingProBadge: "Herramientas PRO",
     pricingProName: "Paquete de Edición + Herramientas Profesionales",
     pricingProFeat1: "Todo lo incluido en el Paquete Estándar",
     pricingProFeat2: "Los 4 tonos + herramientas Pro (Fondos UE, Inversores, Presupuesto, Secciones)",
     pricingProFeat3: "10 generaciones nuevas de plan",
-    pricingProFeat4: "8 ediciones Pro",
+    pricingProFeat4: "8 ediciones Pro (los tonos Persuasivo y Amigable usan 1 edición cada uno)",
     pricingProFeat5: "Combinar: 4 usos (máx. 4 herramientas por versión)",
     pricingChoosePro: "Elegir Herramientas Pro",
     pricingSsl: "🔒 Conexión SSL Segura",

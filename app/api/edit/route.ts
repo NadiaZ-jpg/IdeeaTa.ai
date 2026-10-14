@@ -28,6 +28,11 @@ import {
   refundProPackEditQuotas,
   type ProPackConsumeKind,
 } from "@/lib/proPackQuotaAdmin";
+import {
+  getVersionStack,
+  getVersionStackLimit,
+  stackLimitReachedMessage,
+} from "@/lib/versionStack";
 
 export const maxDuration = 60;
 
@@ -92,7 +97,8 @@ async function assertEditEntitlement(
   action: string,
   customStyle: string | undefined,
   isCombine: boolean,
-  locale: Locale
+  locale: Locale,
+  stackDepth: number
 ): Promise<NextResponse | EditAuthOk> {
   if (!ALLOWED_EDIT_ACTIONS.has(action)) {
     return NextResponse.json(
@@ -145,6 +151,27 @@ async function assertEditEntitlement(
       isAdmin: adminUser,
       subscriptionActive: !!data?.subscriptionActive,
     });
+
+    // Same max tools per version as the client gate (Free 1 / Standard 2 / Pro 4)
+    if (isCombine) {
+      const hasFullAccess = !!(data?.subscriptionActive || data?.euFundsUnlocked);
+      const isStandardOnly =
+        !hasFullAccess && hasStandardEntitlement(data, decoded.email);
+      const limit = getVersionStackLimit({
+        isAdmin: adminUser,
+        hasFullAccess,
+        hasStandardAccess: isStandardOnly,
+      });
+      if (stackDepth >= limit) {
+        return NextResponse.json(
+          {
+            error: stackLimitReachedMessage(locale, limit, isStandardOnly),
+            code: "STACK_LIMIT",
+          },
+          { status: 403 }
+        );
+      }
+    }
 
     // Combine on one-time Pro pack always counts toward Combine quota
     const packConsume = proPackConsumeForEdit({
@@ -327,6 +354,7 @@ export async function POST(req: NextRequest) {
       isRetry,
       currency,
       isCombine,
+      stackDepth: rawStackDepth,
     } = await req.json();
 
     const locale: Locale =
@@ -337,7 +365,11 @@ export async function POST(req: NextRequest) {
       action,
       customStyle,
       !!isCombine,
-      locale
+      locale,
+      Math.max(
+        getVersionStack(result).length,
+        Number.isFinite(Number(rawStackDepth)) ? Math.max(0, Number(rawStackDepth)) : 0
+      )
     );
     if (entitlement instanceof NextResponse) return entitlement;
     authOk = entitlement;

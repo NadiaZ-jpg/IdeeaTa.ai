@@ -436,6 +436,7 @@ export default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" | 
             isRetry,
             currency,
             isCombine,
+            stackDepth: currentStack.length,
           })
         }),
         new Promise(resolve => setTimeout(resolve, 2000))
@@ -2031,7 +2032,7 @@ export default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" | 
             currency={currency}
             setCurrency={setCurrency}
             isDownloading={isDownloading}
-            isPlanPaid={hasStandardAccess}
+            isPlanPaid={isPlanPaid || credits > 0}
             isEditing={isEditing}
             isSharedView={isSharedView}
             showCurrencyToggle={shouldShowCurrencyToggle(locale, isSharedView && !user)}

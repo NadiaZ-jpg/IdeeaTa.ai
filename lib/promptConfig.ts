@@ -1,3 +1,4 @@
+import { normalizeToneKey } from "@/lib/toneQuota";
 /**
  * promptConfig.ts
  * Centralized business plan configurations, JSON skeletons, rules and helpers for RO, EN, ES.
@@ -285,9 +286,11 @@ export function getEditInstruction(action: string, locale: "ro" | "en" | "es", c
   const isEs = locale === "es";
 
   // Map tone keys to full localized instructions
-  let mappedStyle = customStyle;
-  if (action === "professional_tone" && customStyle) {
-    const styleKey = customStyle.trim().toLowerCase();
+  // Legacy/descriptive tone strings are normalized so the prompt never receives
+  // a raw (possibly other-language) value instead of the localized description.
+  let mappedStyle: string | undefined = undefined;
+  if (action === "professional_tone") {
+    const styleKey = normalizeToneKey(customStyle) || "formal";
     if (isEn) {
       if (styleKey === "formal") mappedStyle = "formal, corporate and professional";
       else if (styleKey === "creative") mappedStyle = "enthusiastic, creative and energetic";
@@ -308,7 +311,7 @@ export function getEditInstruction(action: string, locale: "ro" | "en" | "es", c
 
   if (isEn) {
     if (action === "professional_tone") {
-      return `Rewrite the textual content to have a ${mappedStyle || 'formal, corporate and professional'} tone, keeping the exact structure. Do not change any numbers.`;
+      return `Rewrite the textual content so its tone is ${mappedStyle || "formal, corporate and professional"}, keeping the exact structure. Do not change any numbers.`;
     }
     if (action === "optimize_budget") {
       return `Reduce EVERY cost in 'plan_financiar.buget_investitii' by EXACTLY ${targetSection}% (new_cost = round(old_cost * (1 - ${targetSection}/100))). Do not invent different percentages per item. Update each 'explicatie' to briefly explain how that exact saving was achieved. Keep JSON keys 'item', 'cost', 'explicatie'. Keep currency labels consistent (EUR). Do not change other plan sections.`;

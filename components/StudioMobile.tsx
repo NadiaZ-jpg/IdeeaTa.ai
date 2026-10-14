@@ -1918,7 +1918,7 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
                 className="w-full bg-zinc-950 border border-zinc-800 text-zinc-300 hover:text-white font-bold py-3.5 rounded-xl text-xs transition-all active:scale-95 text-left px-4 flex justify-between items-center"
               >
                 <span>📝 {ui.wordDocxLabel}</span>
-                {!isPlanPaid && !(credits > 0) && <span className="text-[10px] bg-amber-500/10 text-amber-400 px-2 py-0.5 rounded font-black uppercase">🔒 PRO</span>}
+                {!isPlanPaid && !(credits > 0) && <span className="text-[10px] bg-amber-500/10 text-amber-400 px-2 py-0.5 rounded font-black uppercase">🔒 {locale === "es" ? "Estándar" : "Standard"}</span>}
               </button>
 
               {/* PowerPoint (PPTX) Premium */}
@@ -1931,7 +1931,7 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
                 className="w-full bg-zinc-950 border border-zinc-800 text-zinc-300 hover:text-white font-bold py-3.5 rounded-xl text-xs transition-all active:scale-95 text-left px-4 flex justify-between items-center"
               >
                 <span>📊 {ui.pptxLabel}</span>
-                {!isPlanPaid && !(credits > 0) && <span className="text-[10px] bg-amber-500/10 text-amber-400 px-2 py-0.5 rounded font-black uppercase">🔒 PRO</span>}
+                {!isPlanPaid && !(credits > 0) && <span className="text-[10px] bg-amber-500/10 text-amber-400 px-2 py-0.5 rounded font-black uppercase">🔒 {locale === "es" ? "Estándar" : "Standard"}</span>}
               </button>
 
               {/* PDF Complet Premium */}
@@ -1944,7 +1944,7 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
                 className="w-full bg-zinc-950 border border-zinc-800 text-zinc-300 hover:text-white font-bold py-3.5 rounded-xl text-xs transition-all active:scale-95 text-left px-4 flex justify-between items-center"
               >
                 <span>📕 {ui.fullPdfLabel}</span>
-                {!isPlanPaid && !(credits > 0) && <span className="text-[10px] bg-amber-500/10 text-amber-400 px-2 py-0.5 rounded font-black uppercase">🔒 PRO</span>}
+                {!isPlanPaid && !(credits > 0) && <span className="text-[10px] bg-amber-500/10 text-amber-400 px-2 py-0.5 rounded font-black uppercase">🔒 {locale === "es" ? "Estándar" : "Standard"}</span>}
               </button>
             </div>
           </div>

@@ -39,6 +39,8 @@ export default function DashboardContent({ locale = "ro" }: { locale?: "ro" | "e
     combine: 0,
   });
   const [euFundsUnlocked, setEuFundsUnlocked] = useState(false);
+  /** Standard bought from Dashboard → export credits (1 credit = 1 plan) */
+  const [exportCredits, setExportCredits] = useState(0);
   const [loading, setLoading] = useState(true);
   const [topupLoading, setTopupLoading] = useState(false);
   const [topupError, setTopupError] = useState<string | null>(null);
@@ -182,6 +184,7 @@ export default function DashboardContent({ locale = "ro" }: { locale?: "ro" | "e
           setIsPaidUser(isPaid);
           setEuFundsUnlocked(!!uData.euFundsUnlocked);
           setProPackRemaining(readProPackRemaining(uData));
+          setExportCredits(typeof uData.credits === "number" ? uData.credits : 0);
         } else {
           setIsPaidUser(false);
           setEuFundsUnlocked(false);
@@ -238,6 +241,7 @@ export default function DashboardContent({ locale = "ro" }: { locale?: "ro" | "e
             const uData = userDocSnap.data() || {};
             setEuFundsUnlocked(!!uData.euFundsUnlocked);
             setProPackRemaining(readProPackRemaining(uData));
+            setExportCredits(typeof uData.credits === "number" ? uData.credits : 0);
           }
           stripPaymentSuccessParams();
         }
@@ -317,6 +321,15 @@ export default function DashboardContent({ locale = "ro" }: { locale?: "ro" | "e
           </div>
           
           <div className="flex flex-col items-end gap-3 w-full md:max-w-2xl">
+            {exportCredits > 0 && (
+              <div className="w-full bg-emerald-950/40 border border-emerald-500/30 text-emerald-300 rounded-xl px-4 py-3 text-sm font-semibold">
+                {isEn
+                  ? `🎟️ You have ${exportCredits} download credit(s). 1 credit = 1 plan: open the plan you want and press PDF, PPTX or Word to unlock it.`
+                  : isEs
+                  ? `🎟️ Tienes ${exportCredits} crédito(s) de descarga. 1 crédito = 1 plan: abre el plan que quieras y pulsa PDF, PPTX o Word para desbloquearlo.`
+                  : `🎟️ Ai ${exportCredits} credit(e) de descărcare. 1 credit = 1 plan: deschide planul dorit și apasă PDF, PPTX sau Word ca să-l deblochezi.`}
+              </div>
+            )}
             {hasProPack && (
               <div className="w-full">
                 <ProPackQuotaBar

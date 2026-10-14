@@ -87,10 +87,10 @@ export function useExportActions({
       if (credits > 0) {
         const confirmUnlock = window.confirm(
           locale === "en"
-            ? `Downloading this document will consume 1 credit of the ${credits} available. Do you wish to continue?`
+            ? `You have ${credits} download credit(s). 1 credit = 1 plan.\n\nOK: use 1 credit for “${planName}”. This plan stays unlocked for good in PDF, PPTX and Word.\nCancel: keep the credit and open another plan from the Dashboard.`
             : locale === "es"
-            ? `Descargar este documento consumirá 1 crédito de los ${credits} disponibles. ¿Desea continuar?`
-            : `Descărcarea acestui document va consuma 1 credit din cele ${credits} disponibile. Dorești să continui?`
+            ? `Tienes ${credits} crédito(s) de descarga. 1 crédito = 1 plan.\n\nAceptar: usar 1 crédito para “${planName}”. Este plan queda desbloqueado para siempre en PDF, PPTX y Word.\nCancelar: guardar el crédito y abrir otro plan desde el Panel.`
+            : `Ai ${credits} credit(e) de descărcare. 1 credit = 1 plan.\n\nOK: folosești 1 credit pentru „${planName}”. Planul rămâne deblocat definitiv în PDF, PPTX și Word.\nAnulează: păstrezi creditul și alegi alt plan din Dashboard.`
         );
         if (!confirmUnlock) return;
 

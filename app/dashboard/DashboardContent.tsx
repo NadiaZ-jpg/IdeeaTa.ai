@@ -13,6 +13,7 @@ import {
   canGenerateWithQuotas,
   readProPackRemaining,
   proGenerateCostLabel,
+  proPackTopupConfirmDialog,
 } from '@/lib/proPackQuota';
 import { startProTopupCheckout } from '@/lib/proTopupCheckout';
 import { ProPackQuotaBar } from '@/components/ProPackQuotaBar';
@@ -77,7 +78,8 @@ export default function DashboardContent({ locale = "ro" }: { locale?: "ro" | "e
       setShowVerificationModal(true);
     } else if (!canGenerate) {
       if (hasProPack) {
-        void handleProTopupCheckout();
+        // Same explain-then-confirm dialog as Studio/Demo before opening top-up checkout
+        if (proPackTopupConfirmDialog(locale, "generate")) void handleProTopupCheckout();
       } else {
         setShowPricingModal(true);
       }

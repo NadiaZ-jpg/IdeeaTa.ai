@@ -303,6 +303,30 @@ async function refundFreeToneEdit(uid: string) {
   }
 }
 
+function isEmptyPlanValue(v: unknown): boolean {
+  if (v === null || v === undefined) return true;
+  if (typeof v === "string") return v.trim() === "";
+  if (Array.isArray(v)) return v.length === 0;
+  if (typeof v === "object") return Object.keys(v as object).length === 0;
+  return false;
+}
+
+/**
+ * Merge an AI-rewritten section over the original. A field the model returned
+ * empty (or a section that is not an object) never wipes filled original text —
+ * otherwise a box in Studio shows up blank after "Rescrie tonul".
+ */
+function mergeSectionKeepingFilled(original: any, next: any): any {
+  const base = original && typeof original === "object" && !Array.isArray(original) ? original : {};
+  if (!next || typeof next !== "object" || Array.isArray(next)) return original;
+  const merged: Record<string, any> = { ...base };
+  for (const [k, v] of Object.entries(next)) {
+    if (isEmptyPlanValue(v) && !isEmptyPlanValue(base[k])) continue;
+    merged[k] = v;
+  }
+  return merged;
+}
+
 // Returns only the subset of the plan needed for a given action
 function extractRelevantSection(result: any, action: string) {
   switch (action) {
@@ -536,11 +560,9 @@ export async function POST(req: NextRequest) {
     }
 
       let mergedResult = { ...result, ...parsed };
-      if (parsed.plan_financiar) mergedResult.plan_financiar = { ...result.plan_financiar, ...parsed.plan_financiar };
-      if (parsed.analiza_swot) mergedResult.analiza_swot = { ...result.analiza_swot, ...parsed.analiza_swot };
-      if (parsed.viziune_strategie) mergedResult.viziune_strategie = { ...result.viziune_strategie, ...parsed.viziune_strategie };
-      if (parsed.analiza_pietei) mergedResult.analiza_pietei = { ...result.analiza_pietei, ...parsed.analiza_pietei };
-      if (parsed.plan_operational) mergedResult.plan_operational = { ...result.plan_operational, ...parsed.plan_operational };
+      for (const key of ["plan_financiar", "analiza_swot", "viziune_strategie", "analiza_pietei", "plan_operational"]) {
+        if (parsed[key] !== undefined) mergedResult[key] = mergeSectionKeepingFilled(result[key], parsed[key]);
+      }
       if (parsed.sectiuni_aditionale) {
         mergedResult.sectiuni_aditionale = result.sectiuni_aditionale 
           ? [...result.sectiuni_aditionale, ...parsed.sectiuni_aditionale]

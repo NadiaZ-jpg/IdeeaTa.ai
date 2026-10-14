@@ -36,7 +36,7 @@ export function StudioBrochurePreview({
                     <h3 className="text-emerald-400 text-sm font-black uppercase mb-6 tracking-[0.2em]">{ui.sectionGeneral}</h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8 text-zinc-300 print:text-gray-800">
                       <div className="flex flex-col relative overflow-hidden">
-                        <div className="leading-relaxed text-left z-10 relative">
+                        <div className="leading-relaxed text-left md:text-justify md:hyphens-auto z-10 relative">
                           <p className="whitespace-pre-line"><strong className="text-white print:text-black block mb-1">{ui.fieldLegalForm}</strong> {result.date_generale?.forma_juridica}</p>
                           <p className="mt-4 whitespace-pre-line"><strong className="text-white print:text-black block mb-1">{ui.fieldCaenCode}</strong> {result.date_generale?.cod_caen}</p>
                           <p className="mt-4 whitespace-pre-line"><strong className="text-white print:text-black block mb-1">{ui.fieldContact}</strong> {result.date_generale?.date_contact}</p>
@@ -95,7 +95,7 @@ export function StudioBrochurePreview({
                         <p className="mt-4 whitespace-pre-line"><strong className="text-white print:text-black block mb-1">{ui.fieldObjectives35y}</strong>{formatNumberedText(result.viziune_strategie?.obiective_mediu)}</p>
                       </div>
                     </div>
-                    <div className="mt-6 pt-6 border-t border-zinc-800/50 text-zinc-300 print:border-gray-200 print:text-gray-800 text-left leading-relaxed">
+                    <div className="mt-6 pt-6 border-t border-zinc-800/50 text-zinc-300 print:border-gray-200 print:text-gray-800 text-left md:text-justify md:hyphens-auto leading-relaxed">
                         <p className="whitespace-pre-line"><strong className="text-white print:text-black">{ui.fieldMissionValues}</strong> {formatNumberedText(result.viziune_strategie?.misiune_valori || result.descriere)}</p>
                     </div>
                   </div>
@@ -103,7 +103,7 @@ export function StudioBrochurePreview({
                   {/* Analiza Pietei */}
                   <div id="section-market" className="pdf-section mb-10 bg-zinc-900/50 p-10 rounded-3xl border-l-4 border-emerald-500 shadow-inner print:shadow-none print:bg-transparent print:border-l-4 print:border-emerald-700 print:text-black">
                     <h3 className="text-emerald-400 text-sm font-black uppercase mb-6 tracking-[0.2em]">{ui.sectionMarket}</h3>
-                    <div className="space-y-6 text-zinc-300 print:text-gray-800 text-left leading-relaxed">
+                    <div className="space-y-6 text-zinc-300 print:text-gray-800 text-left md:text-justify md:hyphens-auto leading-relaxed">
                       <div><strong className="text-white print:text-black block mb-1">{ui.fieldTargetCustomers}</strong> <span className="italic whitespace-pre-line">{formatNumberedText(result.analiza_pietei?.clienti_tinta)}</span></div>
                       <div><strong className="text-white print:text-black block mb-1">{ui.fieldCompetition}</strong> <span className="italic whitespace-pre-line">{formatNumberedText(result.analiza_pietei?.concurenta)}</span></div>
                       <div><strong className="text-white print:text-black block mb-1">{ui.fieldMarketingStrategy}</strong> <span className="italic whitespace-pre-line">{formatNumberedText(result.analiza_pietei?.strategie_marketing)}</span></div>
@@ -129,7 +129,7 @@ export function StudioBrochurePreview({
                               className="bg-emerald-950/10 p-5 rounded-2xl border border-emerald-900/30 border-l-4 border-l-emerald-500 shadow-[inset_0_0_20px_rgba(52,211,153,0.05)] transition-all duration-300 hover:bg-[#960018] hover:border-[#ff4d6d] hover:border-l-[#ff4d6d] hover:-translate-y-1 hover:shadow-[0_0_20px_rgba(255,77,109,0.4)] group cursor-default print:border-gray-200 print:border-l-4 print:border-l-emerald-700 print:bg-transparent print:text-black print:break-inside-avoid print:p-3 print:shadow-none"
                             >
                               <span className="text-zinc-100 font-black text-xl block mb-2 group-hover:text-white transition-colors print:text-black uppercase tracking-wider print:text-lg">✦ {item.titlu || (typeof item === 'string' ? item : Object.values(item)[0])}</span>
-                              <p className="text-zinc-400 text-lg italic leading-relaxed text-left group-hover:text-white/90 transition-colors print:text-gray-700 print:text-base whitespace-pre-line">{formatNumberedText(getSwotItemExplanation(item))}</p>
+                              <p className="text-zinc-400 text-lg italic leading-relaxed text-left md:text-justify md:hyphens-auto group-hover:text-white/90 transition-colors print:text-gray-700 print:text-base whitespace-pre-line">{formatNumberedText(getSwotItemExplanation(item))}</p>
                             </div>
                           ))}
                         </div>
@@ -140,7 +140,7 @@ export function StudioBrochurePreview({
                   {/* Operational */}
                   <div id="section-operational" className="pdf-section mb-10 bg-zinc-900/50 p-10 rounded-3xl border-l-4 border-emerald-500 shadow-inner print:shadow-none print:bg-transparent print:border-l-4 print:border-emerald-700 print:text-black">
                     <h3 className="text-emerald-400 text-sm font-black uppercase mb-6 tracking-[0.2em]">{ui.sectionOperational}</h3>
-                    <ol className="space-y-6 text-zinc-300 print:text-gray-800 list-decimal pl-6 text-left leading-relaxed">
+                    <ol className="space-y-6 text-zinc-300 print:text-gray-800 list-decimal pl-6 text-left md:text-justify md:hyphens-auto leading-relaxed">
                       <li className="pl-2"><strong className="text-white print:text-black block mb-1">{ui.fieldTechFlow}</strong> <span className="italic whitespace-pre-line">{formatNumberedText(result.plan_operational?.descriere_flux)}</span></li>
                       <li className="pl-2"><strong className="text-white print:text-black block mb-1">{ui.fieldHumanResources}</strong> <span className="italic whitespace-pre-line">{formatNumberedText(result.plan_operational?.resurse_umane)}</span></li>
                       <li className="pl-2"><strong className="text-white print:text-black block mb-1">{ui.fieldLocationEquipment}</strong> <span className="italic whitespace-pre-line">{formatNumberedText(result.plan_operational?.locatie_dotari)}</span></li>
@@ -152,7 +152,7 @@ export function StudioBrochurePreview({
                     {result.sectiuni_aditionale?.map((sec: any, idx: number) => (
                       <div id={`custom-section-${idx}`} key={`custom-${idx}`} className="pdf-section mb-10 bg-zinc-900/50 p-10 rounded-3xl border-l-4 border-emerald-500 shadow-inner print:shadow-none print:bg-transparent print:border-l-4 print:border-emerald-700 print:text-black">
                         <h3 className="text-emerald-400 text-sm font-black uppercase mb-6 tracking-[0.2em]">{sec.titlu}</h3>
-                        <p className="text-zinc-300 italic text-left leading-relaxed print:text-gray-800 whitespace-pre-line">
+                        <p className="text-zinc-300 italic text-left md:text-justify md:hyphens-auto leading-relaxed print:text-gray-800 whitespace-pre-line">
                           {formatNumberedText(sec.continut)}
                         </p>
                       </div>
@@ -164,7 +164,7 @@ export function StudioBrochurePreview({
                        {ui.sectionFinancial}
                      </h3>
                      
-                     <div className="pdf-section text-zinc-300 italic text-left leading-relaxed max-w-4xl mx-auto mb-10 print:text-gray-700 whitespace-pre-line">
+                     <div className="pdf-section text-zinc-300 italic text-left md:text-justify md:hyphens-auto leading-relaxed max-w-4xl mx-auto mb-10 print:text-gray-700 whitespace-pre-line">
                        {formatNumberedText(result.plan_financiar?.strategie_financiara)}
                      </div>
       

@@ -11,6 +11,10 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
   try {
     const { id } = await params;
     if (!id) return NextResponse.json({ error: "Missing ID" }, { status: 400 });
+    // Firestore auto-ids / local hex ids only — keeps the local file fallback inside its folder
+    if (!/^[A-Za-z0-9_-]{1,64}$/.test(id)) {
+      return NextResponse.json({ error: "Plan negăsit" }, { status: 404 });
+    }
 
     if (!isFirebaseAdminReady) {
       const local = await readLocalSharedPlan(id);

@@ -12,7 +12,7 @@ import {
 } from "@/lib/normalizePlanResult";
 import { fillMissingPlanExplanations } from "@/lib/fillMissingPlanExplanations";
 import { adminAuth, adminDb } from "@/lib/firebase-admin";
-import { isAdminEmail } from "@/lib/adminEmails";
+import { isAdminToken } from "@/lib/adminEmails";
 import {
   FREE_TONE_EDIT_LIMIT,
   isFreeToneKey,
@@ -56,9 +56,9 @@ type EditAuthOk = {
   packConsume: ProPackConsumeKind;
 };
 
-function hasStandardEntitlement(data: any, email?: string | null): boolean {
+function hasStandardEntitlement(data: any, isAdmin: boolean): boolean {
   return !!(
-    isAdminEmail(email) ||
+    isAdmin ||
     data?.isPaid ||
     data?.standardPackageActive ||
     data?.promoCodeUnlocked ||
@@ -70,9 +70,9 @@ function hasStandardEntitlement(data: any, email?: string | null): boolean {
   );
 }
 
-function hasProEntitlement(data: any, email?: string | null): boolean {
+function hasProEntitlement(data: any, isAdmin: boolean): boolean {
   return !!(
-    isAdminEmail(email) ||
+    isAdmin ||
     data?.subscriptionActive ||
     data?.euFundsUnlocked ||
     data?.promoCodeTier === "eu-funds" ||
@@ -140,7 +140,7 @@ async function assertEditEntitlement(
   try {
     const decoded = await adminAuth.verifyIdToken(authHeader.substring(7));
     const uid = decoded.uid;
-    const adminUser = isAdminEmail(decoded.email);
+    const adminUser = isAdminToken(decoded);
     const needsPro =
       PRO_EDIT_ACTIONS.has(action) ||
       (action === "professional_tone" && isProToneKey(customStyle));
@@ -177,7 +177,7 @@ async function assertEditEntitlement(
     // Standard Combine (no Pro pack): allow free-tone combine without pack counters
     if (isCombine && !data?.euFundsUnlocked && !unlimitedEdits && !needsPro) {
       // formal/creative combine under Standard — no pack consume
-    } else if (isCombine && !hasProEntitlement(data, decoded.email) && needsPro) {
+    } else if (isCombine && !hasProEntitlement(data, adminUser) && needsPro) {
       return NextResponse.json(
         { error: "Forbidden", code: "PRO_REQUIRED" },
         { status: 403 }
@@ -185,7 +185,7 @@ async function assertEditEntitlement(
     }
 
     if (needsPro) {
-      if (!hasProEntitlement(data, decoded.email)) {
+      if (!hasProEntitlement(data, adminUser)) {
         return NextResponse.json(
           { error: "Forbidden", code: "PRO_REQUIRED" },
           { status: 403 }
@@ -231,7 +231,7 @@ async function assertEditEntitlement(
         }
         throw e;
       }
-      if (isFreeTone && !hasStandardEntitlement(data, decoded.email)) {
+      if (isFreeTone && !hasStandardEntitlement(data, adminUser)) {
         // still need free tone quota for free users who somehow combine — rare
       } else {
         return {
@@ -242,7 +242,7 @@ async function assertEditEntitlement(
       }
     }
 
-    if (isFreeTone && !hasStandardEntitlement(data, decoded.email)) {
+    if (isFreeTone && !hasStandardEntitlement(data, adminUser)) {
       try {
         await adminDb.runTransaction(async (tx: any) => {
           const snap = await tx.get(userRef);

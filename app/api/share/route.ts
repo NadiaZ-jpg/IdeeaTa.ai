@@ -3,7 +3,7 @@ import { adminAuth, adminDb, isFirebaseAdminReady } from "@/lib/firebase-admin";
 import { FieldValue } from "firebase-admin/firestore";
 import { saveLocalSharedPlan } from "@/lib/localSharedPlans";
 import { clientIpFromRequest, consumeRateLimit } from "@/lib/apiRateLimit";
-import { isAdminEmail } from "@/lib/adminEmails";
+import { isAdminToken } from "@/lib/adminEmails";
 
 const HOUR_MS = 60 * 60 * 1000;
 const MAX_PLAN_JSON_CHARS = 800_000;
@@ -22,7 +22,7 @@ export async function POST(req: NextRequest) {
       try {
         const decoded = await adminAuth.verifyIdToken(authHeader.substring(7));
         uid = decoded?.uid || null;
-        adminUser = isAdminEmail(decoded?.email);
+        adminUser = isAdminToken(decoded);
       } catch {
         // Invalid token → treat as guest (do not 401; PDF summary is guest-friendly)
         uid = null;

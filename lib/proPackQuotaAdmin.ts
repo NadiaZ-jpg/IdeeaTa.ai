@@ -97,8 +97,17 @@ export async function assertAndConsumeGenerateQuota(opts: {
   }
 
   if (lifetime < FREE_ACCOUNT_PLAN_LIMIT) {
-    await userRef.set({ lifetimePlanCount: lifetime + 1 }, { merge: true });
-    return { ok: true, consumed: "lifetime" };
+    // Transaction: parallel requests must not all pass on the same stale count.
+    const gotLifetime = await adminDb.runTransaction(async (tx: any) => {
+      const snap = await tx.get(userRef);
+      const d = snap.exists ? snap.data() || {} : {};
+      const current =
+        typeof d.lifetimePlanCount === "number" ? d.lifetimePlanCount : lifetime;
+      if (current >= FREE_ACCOUNT_PLAN_LIMIT) return false;
+      tx.set(userRef, { lifetimePlanCount: current + 1 }, { merge: true });
+      return true;
+    });
+    if (gotLifetime) return { ok: true, consumed: "lifetime" };
   }
 
   try {

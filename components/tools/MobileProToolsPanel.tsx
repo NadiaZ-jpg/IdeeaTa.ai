@@ -21,6 +21,8 @@ type Props = {
   user: any;
   result: any;
   hasProAccess: boolean;
+  /** Pack owners: cost chip on Pro tools (e.g. "−1 editare Pro") */
+  proToolCost?: string | null;
   isEditingAi: boolean;
   activeAiPrompt: MobileAiPrompt | null;
   setActiveAiPrompt: (v: MobileAiPrompt | null) => void;
@@ -72,6 +74,7 @@ export function MobileProToolsPanel({
   user,
   result,
   hasProAccess,
+  proToolCost = null,
   isEditingAi,
   activeAiPrompt,
   setActiveAiPrompt,
@@ -112,7 +115,8 @@ export function MobileProToolsPanel({
           label={isEditingAi ? ui.processing : ui.optimizedForEUGrants}
           disabled={isEditingAi}
           locale={locale}
-          badge={!hasProAccess ? "pro" : "none"}
+          badge={!hasProAccess ? "pro" : proToolCost ? "cost" : "none"}
+                        badgeLabel={hasProAccess && proToolCost ? proToolCost : undefined}
           onClick={() => {
             if (!user) {
               onRequireAuth();
@@ -137,7 +141,8 @@ export function MobileProToolsPanel({
           label={isEditingAi ? ui.processing : ui.investorPlanBtn}
           disabled={isEditingAi}
           locale={locale}
-          badge={!hasProAccess ? "pro" : "none"}
+          badge={!hasProAccess ? "pro" : proToolCost ? "cost" : "none"}
+                        badgeLabel={hasProAccess && proToolCost ? proToolCost : undefined}
           onClick={() => {
             if (!user) {
               onRequireAuth();
@@ -170,7 +175,8 @@ export function MobileProToolsPanel({
           label={isEditingAi ? ui.processing : ui.optimizeBudget}
           disabled={isEditingAi}
           locale={locale}
-          badge={!hasProAccess ? "pro" : "none"}
+          badge={!hasProAccess ? "pro" : proToolCost ? "cost" : "none"}
+                        badgeLabel={hasProAccess && proToolCost ? proToolCost : undefined}
           onClick={() => {
             if (!user) {
               onRequireAuth();

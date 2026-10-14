@@ -40,6 +40,7 @@ import {
   readProPackRemaining,
   proPackTopupConfirmDialog,
   notifyProPackQuotaBlocked,
+  proToolCostLabel,
 } from '@/lib/proPackQuota';
 import { startProTopupCheckout } from '@/lib/proTopupCheckout';
 import { isAdminEmail } from '@/lib/adminEmails';
@@ -1326,6 +1327,7 @@ export default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" | 
       aiPromptInput={aiPromptInput}
       setAiPromptInput={setAiPromptInput}
       showProPackQuotaTip={hasProPackQuota}
+      proToolCost={hasProPackQuota ? proToolCostLabel(locale, !!activeVersionId && activeVersionId !== "original") : null}
     />
   );
 

@@ -24,6 +24,7 @@ export function StudioLeftSidebar({
   aiPromptInput, 
   setAiPromptInput,
   showProPackQuotaTip = false,
+  proToolCost = null,
 }: any) {
   return (
       <div className="w-full lg:w-2/5 xl:w-1/3 flex flex-col gap-6 sticky top-8 print:hidden">
@@ -127,7 +128,8 @@ export function StudioLeftSidebar({
                         label={isEditingAi ? ui.processing : ui.optimizedForEUGrants}
                         disabled={isEditingAi}
                         locale={locale}
-                        badge={!hasProAccess ? "pro" : "none"}
+                        badge={!hasProAccess ? "pro" : proToolCost ? "cost" : "none"}
+                        badgeLabel={hasProAccess && proToolCost ? proToolCost : undefined}
                         onClick={() => {
                           if (!user) {
                             setShowAuthModal(true);
@@ -156,7 +158,8 @@ export function StudioLeftSidebar({
                         label={isEditingAi ? ui.processing : ui.optimizeBudget}
                         disabled={isEditingAi}
                         locale={locale}
-                        badge={!hasProAccess ? "pro" : "none"}
+                        badge={!hasProAccess ? "pro" : proToolCost ? "cost" : "none"}
+                        badgeLabel={hasProAccess && proToolCost ? proToolCost : undefined}
                         onClick={() => {
                           if (!user) {
                             setShowAuthModal(true);
@@ -203,7 +206,8 @@ export function StudioLeftSidebar({
                         label={isEditingAi ? ui.processing : ui.investorPlanBtn}
                         disabled={isEditingAi}
                         locale={locale}
-                        badge={!hasProAccess ? "pro" : "none"}
+                        badge={!hasProAccess ? "pro" : proToolCost ? "cost" : "none"}
+                        badgeLabel={hasProAccess && proToolCost ? proToolCost : undefined}
                         onClick={() => {
                         if (!user) {
                           setShowAuthModal(true);

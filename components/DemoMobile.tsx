@@ -39,7 +39,7 @@ import {
   persistCurrentVersions,
   notifyVersionPersistFailed,
 } from "@/lib/persistVersionMap";
-import { canGenerateWithQuotas, readProPackRemaining, proPackTopupConfirmDialog, notifyProPackQuotaBlocked } from "@/lib/proPackQuota";
+import { canGenerateWithQuotas, readProPackRemaining, proPackTopupConfirmDialog, notifyProPackQuotaBlocked, proToolCostLabel } from "@/lib/proPackQuota";
 import { startProTopupCheckout } from "@/lib/proTopupCheckout";
 import { ProPackQuotaBar } from "@/components/ProPackQuotaBar";
 import { isAdminEmail } from "@/lib/adminEmails";
@@ -1428,6 +1428,7 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
                   user={user}
                   result={result}
                   hasProAccess={hasProAccess}
+                  proToolCost={hasProPackQuota ? proToolCostLabel(locale, !!activeVersionId && activeVersionId !== "original") : null}
                   isEditingAi={isEditingAi}
                   activeAiPrompt={activeAiPrompt}
                   setActiveAiPrompt={setActiveAiPrompt}

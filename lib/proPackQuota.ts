@@ -255,3 +255,10 @@ export function notifyProPackQuotaBlocked(
     /* ignore */
   }
 }
+
+/** Cost chip on Pro tools for one-time pack owners: Original = 1 edit; variant tab = 1 edit + 1 combination. */
+export function proToolCostLabel(locale: ProPackLocale, onVariantTab: boolean): string {
+  if (locale === "en") return onVariantTab ? "−1 edit · −1 combo" : "−1 Pro edit";
+  if (locale === "es") return onVariantTab ? "−1 edición · −1 comb." : "−1 edición Pro";
+  return onVariantTab ? "−1 editare · −1 combinație" : "−1 editare Pro";
+}

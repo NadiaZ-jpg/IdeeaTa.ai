@@ -28,6 +28,7 @@ import {
   readProPackRemaining,
   proPackTopupConfirmDialog,
   notifyProPackQuotaBlocked,
+  proToolCostLabel,
 } from '@/lib/proPackQuota';
 import {
   startProTopupCheckout,
@@ -1344,6 +1345,7 @@ export default function StudioDesktop({ locale = "ro" }: { locale?: "ro" | "en" 
       aiPromptInput={aiPromptInput}
       setAiPromptInput={setAiPromptInput}
       showProPackQuotaTip={hasProPackQuota}
+      proToolCost={hasProPackQuota ? proToolCostLabel(locale, !!activeVersionId && activeVersionId !== "original") : null}
     />
   );
 

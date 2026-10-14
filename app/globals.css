@@ -88,3 +88,17 @@
   -ms-overflow-style: none !important;
   scrollbar-width: none !important;
 }
+
+/* Text curent aliniat la ambele margini (RO/EN/ES) de la tabletă în sus. Pe mobil rămâne
+   aliniat la stânga: pe coloane înguste justificarea lasă goluri mari între cuvinte.
+   Despărțirea în silabe urmează atributul lang din <html>. Stă în @layer base ca
+   utilitarele text-center/text-left să o poată suprascrie. */
+@layer base {
+  @media (min-width: 768px) {
+    p, li {
+      text-align: justify;
+      hyphens: auto;
+      -webkit-hyphens: auto;
+    }
+  }
+}

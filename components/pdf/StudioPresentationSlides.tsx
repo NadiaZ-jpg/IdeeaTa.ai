@@ -35,16 +35,16 @@ export function StudioPresentationSlides({
                       <div className="flex flex-col gap-4">
                         <div className="overflow-hidden">
                           <h3 className="text-xl font-bold text-emerald-700 mb-2">Obiective (1 an)</h3>
-                          <p className="text-base leading-relaxed text-left">{truncateText(result.viziune_strategie?.obiective_scurt, 280)}</p>
+                          <p className="text-base leading-relaxed text-left md:text-justify md:hyphens-auto">{truncateText(result.viziune_strategie?.obiective_scurt, 280)}</p>
                         </div>
                         <div className="overflow-hidden">
                           <h3 className="text-xl font-bold text-emerald-700 mb-2">Obiective (3-5 ani)</h3>
-                          <p className="text-base leading-relaxed text-left">{truncateText(result.viziune_strategie?.obiective_mediu, 280)}</p>
+                          <p className="text-base leading-relaxed text-left md:text-justify md:hyphens-auto">{truncateText(result.viziune_strategie?.obiective_mediu, 280)}</p>
                         </div>
                       </div>
                       <div className="overflow-hidden">
                         <h3 className="text-xl font-bold text-emerald-700 mb-2">Misiune și Valori</h3>
-                        <p className="text-base leading-relaxed text-left whitespace-pre-line">{truncateText(formatNumberedText(result.viziune_strategie?.misiune_valori || result.descriere), 500)}</p>
+                        <p className="text-base leading-relaxed text-left md:text-justify md:hyphens-auto whitespace-pre-line">{truncateText(formatNumberedText(result.viziune_strategie?.misiune_valori || result.descriere), 500)}</p>
                       </div>
                     </div>
                   </div>
@@ -77,7 +77,7 @@ export function StudioPresentationSlides({
                         {result.analiza_swot?.puncte_tari?.slice(0, 8).map((item: any, idx: number) => (
                           <div key={idx} className="flex flex-col gap-2">
                             <h4 className="text-2xl font-bold text-emerald-400 leading-snug">✦ {item.titlu || (typeof item === 'string' ? item : Object.values(item)[0])}</h4>
-                            <p className="text-lg text-zinc-300 leading-relaxed max-w-lg text-left">{item.explicatie_tehnica}</p>
+                            <p className="text-lg text-zinc-300 leading-relaxed max-w-lg text-left md:text-justify md:hyphens-auto">{item.explicatie_tehnica}</p>
                           </div>
                         ))}
                       </div>
@@ -115,7 +115,7 @@ export function StudioPresentationSlides({
                         {result.analiza_swot?.oportunitati?.slice(0, 8).map((item: any, idx: number) => (
                           <div key={idx} className="flex flex-col gap-2">
                             <h4 className="text-2xl font-bold text-blue-400 leading-snug">✦ {item.titlu || (typeof item === 'string' ? item : Object.values(item)[0])}</h4>
-                            <p className="text-lg text-zinc-300 leading-relaxed max-w-lg text-left">{item.explicatie_tehnica}</p>
+                            <p className="text-lg text-zinc-300 leading-relaxed max-w-lg text-left md:text-justify md:hyphens-auto">{item.explicatie_tehnica}</p>
                           </div>
                         ))}
                       </div>
@@ -134,7 +134,7 @@ export function StudioPresentationSlides({
                         {result.analiza_swot?.amenintari?.slice(0, 8).map((item: any, idx: number) => (
                           <div key={idx} className="flex flex-col gap-2">
                             <h4 className="text-2xl font-bold text-orange-400 leading-snug">✦ {item.titlu || (typeof item === 'string' ? item : Object.values(item)[0])}</h4>
-                            <p className="text-lg text-zinc-300 leading-relaxed max-w-lg text-left">{item.explicatie_tehnica}</p>
+                            <p className="text-lg text-zinc-300 leading-relaxed max-w-lg text-left md:text-justify md:hyphens-auto">{item.explicatie_tehnica}</p>
                           </div>
                         ))}
                       </div>

@@ -25,12 +25,12 @@ export function proTopupHintLabel(
 
 export function proTopupCheckoutError(locale: ProTopupLocale | string): string {
   if (locale === "en") {
-    return "Could not start checkout. Check Lemon env / restart server.";
+    return "Could not open the payment page. Please try again in a moment.";
   }
   if (locale === "es") {
-    return "No se pudo iniciar el pago. Revisa env Lemon / reinicia el servidor.";
+    return "No se pudo abrir la página de pago. Inténtalo de nuevo en un momento.";
   }
-  return "Nu s-a putut porni plata. Verifică env Lemon / restartează serverul.";
+  return "Nu s-a putut deschide pagina de plată. Încearcă din nou peste câteva momente.";
 }
 
 export async function startProTopupCheckout(opts: {

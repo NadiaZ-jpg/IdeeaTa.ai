@@ -1632,6 +1632,7 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
                       locale={locale}
                       hasStandardAccess={hasStandardAccess}
                       hasProAccess={hasProAccess}
+                      showProEditCost={hasProPackQuota}
                       isAdmin={isAdmin}
                       isEditingAi={isEditingAi}
                       setShowAuthModal={setShowAuthModal}

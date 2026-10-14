@@ -1608,6 +1608,7 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
                   locale={locale}
                   hasStandardAccess={isStudioPaid}
                   hasProAccess={hasProAccess}
+                  showProEditCost={hasProPackQuota}
                   isAdmin={isAdmin}
                   isEditingAi={isEditingAi}
                   setShowAuthModal={() => router.push(ui.routes.login)}

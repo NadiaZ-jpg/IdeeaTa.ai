@@ -25,6 +25,14 @@ function ensurePlanId(plan: any, index = 0): any {
  * Collect guest local plans for migration. Dedupe by **id only** (Sesiunea A2).
  * Same business name must NOT drop a distinct plan.
  */
+/** Plan ids end in `_<Date.now()>`; fall back to createdAt. */
+function planTimestamp(plan: any): number {
+  const fromId = Number(String(plan?.id || '').split('_').pop());
+  if (Number.isFinite(fromId) && fromId > 1_000_000_000_000) return fromId;
+  const fromDate = Date.parse(plan?.createdAt || '');
+  return Number.isFinite(fromDate) ? fromDate : 0;
+}
+
 function collectLocalPlansForMigration(deletedIds: Set<string>): any[] {
   const byId = new Map<string, any>();
 
@@ -88,7 +96,10 @@ export const migrateLocalPlansToFirebase = async (user: User) => {
     }
 
     const deletedIds = readDeletedPlanIds(user.uid);
-    const localPlans = collectLocalPlansForMigration(deletedIds);
+    // Newest first: if not all guest plans fit, the account keeps the most recent ones.
+    const localPlans = collectLocalPlansForMigration(deletedIds).sort(
+      (a, b) => planTimestamp(b) - planTimestamp(a)
+    );
 
     if (localPlans.length === 0) {
       localStorage.removeItem('demo_plans_list');
@@ -119,7 +130,8 @@ export const migrateLocalPlansToFirebase = async (user: User) => {
 
     let slotsLeft = unlimitedSlots
       ? Number.POSITIVE_INFINITY
-      : Math.max(0, FREE_ACCOUNT_PLAN_LIMIT - existingCount);
+      : // Keep the "+1 plan with a free account" slot free: guest plans fill at most LIMIT - 1.
+        Math.max(0, FREE_ACCOUNT_PLAN_LIMIT - 1 - existingCount);
 
     if (!unlimitedSlots && slotsLeft <= 0) {
       localStorage.setItem('demo_plans_list', JSON.stringify(localPlans));

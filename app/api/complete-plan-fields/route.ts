@@ -3,7 +3,7 @@ import { fillMissingPlanExplanations } from "@/lib/fillMissingPlanExplanations";
 import { planNeedsExplanationFill } from "@/lib/normalizePlanResult";
 import { adminAuth } from "@/lib/firebase-admin";
 import { clientIpFromRequest, consumeRateLimit } from "@/lib/apiRateLimit";
-import { isAdminEmail } from "@/lib/adminEmails";
+import { isAdminToken } from "@/lib/adminEmails";
 
 export const maxDuration = 60;
 
@@ -22,7 +22,7 @@ export async function POST(req: NextRequest) {
       try {
         const decoded = await adminAuth.verifyIdToken(authHeader.substring(7));
         uid = decoded.uid;
-        adminUser = isAdminEmail(decoded.email);
+        adminUser = isAdminToken(decoded);
       } catch {
         return NextResponse.json(
           { error: "Unauthorized", code: "AUTH_REQUIRED" },

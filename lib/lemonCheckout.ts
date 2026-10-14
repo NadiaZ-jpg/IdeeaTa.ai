@@ -242,6 +242,8 @@ export function buildPaymentReturnUrl(opts: {
   if (!path.startsWith("/")) path = `/${path}`;
   // Strip accidental locale prefix from returnPath
   path = path.replace(/^\/(en|es)(?=\/|$)/, "") || "/dashboard";
+  // "//host" or "/\host" would resolve to another origin (open redirect)
+  if (/^\/[\/\\]/.test(path) || path.includes("\\")) path = "/dashboard";
   const localized =
     locale === "en" ? `/en${path === "/" ? "" : path}` : locale === "es" ? `/es${path === "/" ? "" : path}` : path;
   const url = new URL(localized, origin);

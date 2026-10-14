@@ -8,7 +8,7 @@ import { fillMissingPlanExplanations } from "@/lib/fillMissingPlanExplanations";
 import { GUEST_IP_DAILY_PLAN_LIMIT, GUEST_IP_HOURLY_ABUSE_LIMIT } from "@/lib/planQuota";
 import { assertAndConsumeGenerateQuota, refundGenerateQuota, type GenerateQuotaConsume } from "@/lib/proPackQuotaAdmin";
 import { clientIpFromRequest, consumeRateLimit, peekRateLimitRemaining, refundRateLimit } from "@/lib/apiRateLimit";
-import { isAdminEmail } from "@/lib/adminEmails";
+import { isAdminToken } from "@/lib/adminEmails";
 
 export const maxDuration = 90;
 
@@ -57,7 +57,7 @@ export async function POST(req: NextRequest) {
       try {
         const decoded = await adminAuth.verifyIdToken(token);
         const userId = decoded.uid;
-        const adminUser = isAdminEmail(decoded.email);
+        const adminUser = isAdminToken(decoded);
 
         if (
           !adminUser &&

@@ -1,3 +1,4 @@
+import { normalizeToneKey } from "@/lib/toneQuota";
 /**
  * Version history + "Combine with…" rules for Studio (Desktop & Mobile).
  * Locales: RO / EN / ES.
@@ -108,8 +109,7 @@ export function toolStepFromAction(
   percent?: number | null
 ): VersionToolStep | null {
   if (action === "professional_tone") {
-    const tone = (String(customStyle || "formal").toLowerCase() ||
-      "formal") as VersionToneStyle;
+    const tone = (normalizeToneKey(customStyle) || "formal") as VersionToneStyle;
     return { type: "tone", tone };
   }
   if (action === "optimize_budget") {

@@ -82,6 +82,27 @@ function hasProEntitlement(data: any, email?: string | null): boolean {
 
 type Locale = "ro" | "en" | "es";
 
+const EDIT_ERRORS: Record<Locale, { empty: string; failed: string; busy: string; rate: string }> = {
+  ro: {
+    empty: "Sistemul a returnat un răspuns nevalid sau gol. Te rugăm să încerci din nou.",
+    failed: "Nu s-a putut edita documentul. Te rugăm să încerci din nou.",
+    busy: "Sistemul este momentan solicitat. Te rugăm să încerci din nou.",
+    rate: "Limită de utilizare depășită. Te rugăm să aștepți un minut.",
+  },
+  en: {
+    empty: "The system returned an invalid or empty response. Please try again.",
+    failed: "The document could not be edited. Please try again.",
+    busy: "The system is busy right now. Please try again.",
+    rate: "Usage limit exceeded. Please wait a minute.",
+  },
+  es: {
+    empty: "El sistema devolvió una respuesta no válida o vacía. Inténtalo de nuevo.",
+    failed: "No se pudo editar el documento. Inténtalo de nuevo.",
+    busy: "El sistema está ocupado en este momento. Inténtalo de nuevo.",
+    rate: "Límite de uso superado. Espera un minuto.",
+  },
+};
+
 /**
  * Bearer required — no guest edits.
  * Free tones: formal|creative + server freeToneEditCount (Standard+ skips).
@@ -282,6 +303,30 @@ async function refundFreeToneEdit(uid: string) {
   }
 }
 
+function isEmptyPlanValue(v: unknown): boolean {
+  if (v === null || v === undefined) return true;
+  if (typeof v === "string") return v.trim() === "";
+  if (Array.isArray(v)) return v.length === 0;
+  if (typeof v === "object") return Object.keys(v as object).length === 0;
+  return false;
+}
+
+/**
+ * Merge an AI-rewritten section over the original. A field the model returned
+ * empty (or a section that is not an object) never wipes filled original text —
+ * otherwise a box in Studio shows up blank after "Rescrie tonul".
+ */
+function mergeSectionKeepingFilled(original: any, next: any): any {
+  const base = original && typeof original === "object" && !Array.isArray(original) ? original : {};
+  if (!next || typeof next !== "object" || Array.isArray(next)) return original;
+  const merged: Record<string, any> = { ...base };
+  for (const [k, v] of Object.entries(next)) {
+    if (isEmptyPlanValue(v) && !isEmptyPlanValue(base[k])) continue;
+    merged[k] = v;
+  }
+  return merged;
+}
+
 // Returns only the subset of the plan needed for a given action
 function extractRelevantSection(result: any, action: string) {
   switch (action) {
@@ -317,6 +362,7 @@ function extractRelevantSection(result: any, action: string) {
 
 export async function POST(req: NextRequest) {
   let authOk: EditAuthOk | null = null;
+  let locale: Locale = "ro";
   try {
     const {
       result,
@@ -329,8 +375,7 @@ export async function POST(req: NextRequest) {
       isCombine,
     } = await req.json();
 
-    const locale: Locale =
-      rawLocale === "en" || rawLocale === "es" ? rawLocale : "ro";
+    locale = rawLocale === "en" || rawLocale === "es" ? rawLocale : "ro";
 
     const entitlement = await assertEditEntitlement(
       req,
@@ -347,7 +392,9 @@ export async function POST(req: NextRequest) {
     instruction += "\n\n" + getEditLanguageLock(locale || "ro");
 
 
-    if (isRetry) {
+    // Retry condenses content to beat timeouts; a tone rewrite must keep the full
+    // text (segments already run in parallel), so it never gets the condense limit.
+    if (isRetry && action !== "professional_tone") {
       if (locale === "en") {
         instruction += "\nCRITICAL RETRY LIMIT: Minimize information density. For each section, write only 1 short paragraph (max 2 sentences). Do not generate detailed bullet points or long structural narratives. Keep it ultra-condensed to process instantly.";
       } else if (locale === "es") {
@@ -461,7 +508,7 @@ export async function POST(req: NextRequest) {
       if (successCount === 0) {
         if (authOk?.refundFreeTone) await refundFreeToneEdit(authOk.uid);
         if (authOk?.packConsume) await refundProPackEditQuotas(authOk.uid, authOk.packConsume);
-        return NextResponse.json({ error: "Sistemul a returnat un răspuns nevalid sau gol. Te rugăm să încerci din nou." }, { status: 400 });
+        return NextResponse.json({ error: EDIT_ERRORS[locale].empty }, { status: 400 });
       }
     } else {
       const res = await callGemini(prompt);
@@ -513,11 +560,9 @@ export async function POST(req: NextRequest) {
     }
 
       let mergedResult = { ...result, ...parsed };
-      if (parsed.plan_financiar) mergedResult.plan_financiar = { ...result.plan_financiar, ...parsed.plan_financiar };
-      if (parsed.analiza_swot) mergedResult.analiza_swot = { ...result.analiza_swot, ...parsed.analiza_swot };
-      if (parsed.viziune_strategie) mergedResult.viziune_strategie = { ...result.viziune_strategie, ...parsed.viziune_strategie };
-      if (parsed.analiza_pietei) mergedResult.analiza_pietei = { ...result.analiza_pietei, ...parsed.analiza_pietei };
-      if (parsed.plan_operational) mergedResult.plan_operational = { ...result.plan_operational, ...parsed.plan_operational };
+      for (const key of ["plan_financiar", "analiza_swot", "viziune_strategie", "analiza_pietei", "plan_operational"]) {
+        if (parsed[key] !== undefined) mergedResult[key] = mergeSectionKeepingFilled(result[key], parsed[key]);
+      }
       if (parsed.sectiuni_aditionale) {
         mergedResult.sectiuni_aditionale = result.sectiuni_aditionale 
           ? [...result.sectiuni_aditionale, ...parsed.sectiuni_aditionale]
@@ -575,14 +620,14 @@ export async function POST(req: NextRequest) {
     const isServiceUnavailable = error?.status === 503 || error?.message?.includes('503') || error?.message?.includes('UNAVAILABLE');
     const isRateLimited = error?.status === 429 || error?.message?.includes('429') || error?.message?.includes('RESOURCE_EXHAUSTED');
 
-    let errorMessage = "Nu s-a putut edita documentul. Te rugăm să încerci din nou.";
+    let errorMessage = EDIT_ERRORS[locale].failed;
     let statusCode = 500;
 
     if (isServiceUnavailable) {
-      errorMessage = "Sistemul este momentan solicitat. Te rugăm să încerci din nou.";
+      errorMessage = EDIT_ERRORS[locale].busy;
       statusCode = 503;
     } else if (isRateLimited) {
-      errorMessage = "Limită de utilizare depășită. Te rugăm să aștepți un minut.";
+      errorMessage = EDIT_ERRORS[locale].rate;
       statusCode = 429;
     }
 

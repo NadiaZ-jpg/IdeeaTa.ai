@@ -1,6 +1,6 @@
 import React from "react";
 
-export type ToolAccessBadge = "locked" | "free" | "pro" | "modules" | "none";
+export type ToolAccessBadge = "locked" | "free" | "pro" | "modules" | "cost" | "none";
 
 type Locale = "ro" | "en" | "es";
 
@@ -64,6 +64,10 @@ export function ToolActionButton({
     ) : badge === "pro" ? (
       <span className="shrink-0 min-w-[3.25rem] text-center text-[9px] font-bold uppercase tracking-wide text-amber-400/90 border border-amber-500/30 bg-amber-500/5 px-2 py-1 rounded-md">
         {badgeLabel || "Pro"}
+      </span>
+    ) : badge === "cost" ? (
+      <span className="shrink-0 text-center text-[9px] font-bold uppercase tracking-wide text-zinc-400 border border-zinc-700 bg-zinc-900 px-2 py-1 rounded-md whitespace-nowrap">
+        {badgeLabel}
       </span>
     ) : badge === "modules" ? (
       <span className="shrink-0 text-[9px] font-bold uppercase tracking-wide text-emerald-400/90 border border-emerald-500/25 bg-emerald-500/5 px-2 py-1 rounded-md whitespace-nowrap">

@@ -142,29 +142,29 @@ export function proPackLimitMessage(
 ): string {
   if (kind === "generate") {
     if (locale === "en") {
-      return `You used all ${PRO_PACK_GENERATE_GRANT} plan generations from your package. Purchase again to continue.`;
+      return `You used all plan generations from your package.`;
     }
     if (locale === "es") {
-      return `Usaste las ${PRO_PACK_GENERATE_GRANT} generaciones de plan del paquete. Compra de nuevo para continuar.`;
+      return `Usaste todas las generaciones de plan del paquete.`;
     }
-    return `Ai folosit cele ${PRO_PACK_GENERATE_GRANT} generări de plan din pachet. Cumpără din nou pentru a continua.`;
+    return `Ai folosit toate generările de plan din pachet.`;
   }
   if (kind === "edit") {
     if (locale === "en") {
-      return `You used all ${PRO_PACK_EDIT_GRANT} Pro edits from your package. Purchase again to continue.`;
+      return `You used all Pro edits from your package.`;
     }
     if (locale === "es") {
-      return `Usaste las ${PRO_PACK_EDIT_GRANT} ediciones Pro del paquete. Compra de nuevo para continuar.`;
+      return `Usaste todas las ediciones Pro del paquete.`;
     }
-    return `Ai folosit cele ${PRO_PACK_EDIT_GRANT} editări Pro din pachet. Cumpără din nou pentru a continua.`;
+    return `Ai folosit toate editările Pro din pachet.`;
   }
   if (locale === "en") {
-    return `You used all ${PRO_PACK_COMBINE_GRANT} combinations from your package. Purchase again to continue.`;
+    return `You used all combinations from your package.`;
   }
   if (locale === "es") {
-    return `Usaste las ${PRO_PACK_COMBINE_GRANT} combinaciones del paquete. Compra de nuevo para continuar.`;
+    return `Usaste todas las combinaciones del paquete.`;
   }
-  return `Ai folosit cele ${PRO_PACK_COMBINE_GRANT} combinații din pachet. Cumpără din nou pentru a continua.`;
+  return `Ai folosit toate combinațiile din pachet.`;
 }
 
 /** confirm() — OK → top-up; Cancel → stay on page. Desktop+Mobile RO/EN/ES. */
@@ -175,10 +175,10 @@ export function proPackTopupConfirmDialog(
   if (typeof window === "undefined") return false;
   const suffix =
     locale === "en"
-      ? "OK opens top-up checkout. Cancel keeps you on this page."
+      ? `OK: top up for 5 EUR (+${PRO_TOPUP_GENERATE_GRANT} generations, +${PRO_TOPUP_EDIT_GRANT} Pro edits, +${PRO_TOPUP_COMBINE_GRANT} combinations).\nCancel: stay on this page.`
       : locale === "es"
-      ? "Aceptar abre el pago de recarga. Cancelar te deja en esta página."
-      : "OK deschide plata pentru reîncărcare. Anulează = rămâi pe pagină.";
+      ? `Aceptar: recargar por 5 EUR (+${PRO_TOPUP_GENERATE_GRANT} generaciones, +${PRO_TOPUP_EDIT_GRANT} ediciones Pro, +${PRO_TOPUP_COMBINE_GRANT} combinaciones).\nCancelar: quedarte en esta página.`
+      : `OK: reîncarci cu 25 RON (+${PRO_TOPUP_GENERATE_GRANT} generări, +${PRO_TOPUP_EDIT_GRANT} editări Pro, +${PRO_TOPUP_COMBINE_GRANT} combinații).\nAnulează: rămâi pe pagină.`;
   return window.confirm(`${proPackLimitMessage(locale, kind)}\n\n${suffix}`);
 }
 
@@ -254,4 +254,18 @@ export function notifyProPackQuotaBlocked(
   } catch {
     /* ignore */
   }
+}
+
+/** Cost chip on Pro tools for one-time pack owners: Original = 1 edit; variant tab = 1 edit + 1 combination. */
+export function proToolCostLabel(locale: ProPackLocale, onVariantTab: boolean): string {
+  if (locale === "en") return onVariantTab ? "−1 edit · −1 combo" : "−1 Pro edit";
+  if (locale === "es") return onVariantTab ? "−1 edición · −1 comb." : "−1 edición Pro";
+  return onVariantTab ? "−1 editare · −1 combinație" : "−1 editare Pro";
+}
+
+/** Cost chip on "Generate" once the free plans are used and the one-time pack pays for it. */
+export function proGenerateCostLabel(locale: ProPackLocale): string {
+  if (locale === "en") return "−1 generation";
+  if (locale === "es") return "−1 generación";
+  return "−1 generare";
 }

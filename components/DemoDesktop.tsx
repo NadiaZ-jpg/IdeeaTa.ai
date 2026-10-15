@@ -40,6 +40,8 @@ import {
   readProPackRemaining,
   proPackTopupConfirmDialog,
   notifyProPackQuotaBlocked,
+  proToolCostLabel,
+  proGenerateCostLabel,
 } from '@/lib/proPackQuota';
 import { startProTopupCheckout } from '@/lib/proTopupCheckout';
 import { isAdminEmail } from '@/lib/adminEmails';
@@ -436,6 +438,7 @@ export default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" | 
             isRetry,
             currency,
             isCombine,
+            stackDepth: currentStack.length,
           })
         }),
         new Promise(resolve => setTimeout(resolve, 2000))
@@ -1325,6 +1328,7 @@ export default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" | 
       aiPromptInput={aiPromptInput}
       setAiPromptInput={setAiPromptInput}
       showProPackQuotaTip={hasProPackQuota}
+      proToolCost={hasProPackQuota ? proToolCostLabel(locale, !!activeVersionId && activeVersionId !== "original") : null}
     />
   );
 
@@ -1743,6 +1747,7 @@ export default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" | 
                   <button type="submit" disabled={loading} className="w-full sm:w-auto bg-white text-black px-8 py-4 rounded-xl font-black text-lg hover:bg-zinc-200 transition-all shadow-[0_0_20px_rgba(255,255,255,0.2)] flex items-center justify-center gap-2">
                     {loading ? loadingMessages[messageIndex] : ui.generatePlan}
                     {!loading && <span>&rarr;</span>}
+                    {!loading && user && hasProPackQuota && lifetimePlanCount >= FREE_ACCOUNT_PLAN_LIMIT && <span className="text-[10px] font-bold uppercase tracking-wide bg-black/10 border border-black/20 px-2 py-0.5 rounded-md whitespace-nowrap">{proGenerateCostLabel(locale)}</span>}
                   </button>
                 </div>
                 {!user && (
@@ -2031,7 +2036,7 @@ export default function DemoDesktop({ locale = "ro" }: { locale?: "ro" | "en" | 
             currency={currency}
             setCurrency={setCurrency}
             isDownloading={isDownloading}
-            isPlanPaid={hasStandardAccess}
+            isPlanPaid={isPlanPaid || credits > 0}
             isEditing={isEditing}
             isSharedView={isSharedView}
             showCurrencyToggle={shouldShowCurrencyToggle(locale, isSharedView && !user)}

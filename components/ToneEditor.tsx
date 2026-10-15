@@ -18,6 +18,8 @@ interface ToneEditorProps {
   hasStandardAccess?: boolean;
   /** Pro unlock — persuasive / friendly tones */
   hasProAccess?: boolean;
+  /** One-time Pro pack: Persuasive / Friendly each use 1 Pro edit */
+  showProEditCost?: boolean;
   isAdmin?: boolean;
   isEditingAi: boolean;
   setShowAuthModal: (v: boolean) => void;
@@ -37,6 +39,7 @@ export function ToneEditor({
   locale = "ro",
   hasStandardAccess = false,
   hasProAccess = false,
+  showProEditCost = false,
   isAdmin = false,
   isEditingAi,
   setShowAuthModal,
@@ -74,6 +77,10 @@ export function ToneEditor({
     <span className="shrink-0 inline-flex items-center justify-center text-[9px] font-bold uppercase tracking-wide text-emerald-400/90 border border-emerald-500/25 bg-emerald-500/5 px-2 py-1 rounded-md whitespace-nowrap">
       {ui.freeWithAccountBadge}
     </span>
+  );
+
+  const proEditCostBadge = (
+    <span className="shrink-0 text-center text-[9px] font-bold uppercase tracking-wide text-zinc-400 border border-zinc-700 bg-zinc-900 px-2 py-1 rounded-md whitespace-nowrap">{ui.proToneEditCost}</span>
   );
 
   const proBadge = (
@@ -139,7 +146,7 @@ export function ToneEditor({
             className="w-full text-xs text-left px-4 py-2.5 rounded-lg hover:bg-zinc-900 text-zinc-400 hover:text-white transition-all font-semibold flex items-center justify-between gap-2 min-h-[44px]"
           >
             <span className="min-w-0">{ui.tonePersuasive}</span>
-            {(!user || !canUseProTones) && proBadge}
+            {(!user || !canUseProTones) ? proBadge : showProEditCost ? proEditCostBadge : null}
           </button>
           <button
             type="button"
@@ -148,7 +155,7 @@ export function ToneEditor({
             className="w-full text-xs text-left px-4 py-2.5 rounded-lg hover:bg-zinc-900 text-zinc-400 hover:text-white transition-all font-semibold flex items-center justify-between gap-2 min-h-[44px]"
           >
             <span className="min-w-0">{ui.toneFriendly}</span>
-            {(!user || !canUseProTones) && proBadge}
+            {(!user || !canUseProTones) ? proBadge : showProEditCost ? proEditCostBadge : null}
           </button>
         </div>
       )}

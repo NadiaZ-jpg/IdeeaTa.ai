@@ -97,6 +97,18 @@ export async function applyOrderGrantToUser(opts: {
   const customerId = opts.customerId ?? null;
 
   if (opts.tier === "standard") {
+    // Bought without a plan (e.g. from Dashboard) → 1 export credit for a plan of their choice
+    if (!opts.planId && !opts.planName) {
+      await userRef.set(
+        {
+          standardPackageActive: true,
+          credits: FieldValue.increment(1),
+          lemonSqueezyCustomerId: customerId,
+        },
+        { merge: true }
+      );
+      return;
+    }
     const planName = opts.planName || "Plan";
     const planId = opts.planId ? String(opts.planId) : null;
     const unlocked = opts.existingUnlockedPlans || [];
@@ -194,6 +206,9 @@ export async function refundLemonOrder(orderId: string): Promise<{
       updates.euFundsUnlocked = false;
     }
     await userRef.set(updates, { merge: true });
+  } else if (data.tier === "standard" && !data.planId && !data.planName) {
+    const credits = typeof userData.credits === "number" ? userData.credits : 0;
+    await userRef.set({ credits: Math.max(0, credits - 1) }, { merge: true });
   } else if (data.tier === "standard") {
     const planName = data.planName || "Plan";
     const planId = data.planId ? String(data.planId) : null;

@@ -39,7 +39,7 @@ import {
   persistCurrentVersions,
   notifyVersionPersistFailed,
 } from "@/lib/persistVersionMap";
-import { canGenerateWithQuotas, readProPackRemaining, proPackTopupConfirmDialog, notifyProPackQuotaBlocked } from "@/lib/proPackQuota";
+import { canGenerateWithQuotas, readProPackRemaining, proPackTopupConfirmDialog, notifyProPackQuotaBlocked, proToolCostLabel, proGenerateCostLabel } from "@/lib/proPackQuota";
 import { startProTopupCheckout } from "@/lib/proTopupCheckout";
 import { ProPackQuotaBar } from "@/components/ProPackQuotaBar";
 import { isAdminEmail } from "@/lib/adminEmails";
@@ -875,6 +875,7 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
           locale,
           currency: normalizePlanCurrency(baseSource?.selectedCurrency, locale),
           isCombine,
+          stackDepth: currentStack.length,
         })
       });
 
@@ -1171,6 +1172,7 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
                 >
                   <span>{ui.generatePlan}</span>
                   <span>→</span>
+                  {user && hasProPackQuota && lifetimePlanCount >= FREE_ACCOUNT_PLAN_LIMIT && <span className="text-[10px] font-bold uppercase tracking-wide bg-white/15 border border-white/25 px-2 py-0.5 rounded-md whitespace-nowrap">{proGenerateCostLabel(locale)}</span>}
                 </button>
               </div>
               {!user && (
@@ -1427,6 +1429,7 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
                   user={user}
                   result={result}
                   hasProAccess={hasProAccess}
+                  proToolCost={hasProPackQuota ? proToolCostLabel(locale, !!activeVersionId && activeVersionId !== "original") : null}
                   isEditingAi={isEditingAi}
                   activeAiPrompt={activeAiPrompt}
                   setActiveAiPrompt={setActiveAiPrompt}
@@ -1631,6 +1634,7 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
                       locale={locale}
                       hasStandardAccess={hasStandardAccess}
                       hasProAccess={hasProAccess}
+                      showProEditCost={hasProPackQuota}
                       isAdmin={isAdmin}
                       isEditingAi={isEditingAi}
                       setShowAuthModal={setShowAuthModal}
@@ -1874,7 +1878,7 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
                 className="w-full bg-zinc-950 border border-zinc-800 text-zinc-300 hover:text-white font-bold py-3.5 rounded-xl text-xs transition-all active:scale-95 text-left px-4 flex justify-between items-center"
               >
                 <span>📝 {ui.wordDocxLabel}</span>
-                {!isPlanPaid && <span className="text-[10px] bg-amber-500/10 text-amber-400 px-2 py-0.5 rounded font-black uppercase">🔒 PRO</span>}
+                {!isPlanPaid && !(credits > 0) && <span className="text-[10px] bg-amber-500/10 text-amber-400 px-2 py-0.5 rounded font-black uppercase">🔒 {locale === "es" ? "Estándar" : "Standard"}</span>}
               </button>
 
               {/* PowerPoint (PPTX) Premium */}
@@ -1887,7 +1891,7 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
                 className="w-full bg-zinc-950 border border-zinc-800 text-zinc-300 hover:text-white font-bold py-3.5 rounded-xl text-xs transition-all active:scale-95 text-left px-4 flex justify-between items-center"
               >
                 <span>📊 {ui.pptxLabel}</span>
-                {!isPlanPaid && <span className="text-[10px] bg-amber-500/10 text-amber-400 px-2 py-0.5 rounded font-black uppercase">🔒 PRO</span>}
+                {!isPlanPaid && !(credits > 0) && <span className="text-[10px] bg-amber-500/10 text-amber-400 px-2 py-0.5 rounded font-black uppercase">🔒 {locale === "es" ? "Estándar" : "Standard"}</span>}
               </button>
 
               {/* PDF Complet Premium */}
@@ -1900,7 +1904,7 @@ export default function DemoMobile({ locale = "ro" }: { locale?: "ro" | "en" | "
                 className="w-full bg-zinc-950 border border-zinc-800 text-zinc-300 hover:text-white font-bold py-3.5 rounded-xl text-xs transition-all active:scale-95 text-left px-4 flex justify-between items-center"
               >
                 <span>📕 {ui.fullPdfLabel}</span>
-                {!isPlanPaid && <span className="text-[10px] bg-amber-500/10 text-amber-400 px-2 py-0.5 rounded font-black uppercase">🔒 PRO</span>}
+                {!isPlanPaid && !(credits > 0) && <span className="text-[10px] bg-amber-500/10 text-amber-400 px-2 py-0.5 rounded font-black uppercase">🔒 {locale === "es" ? "Estándar" : "Standard"}</span>}
               </button>
             </div>
           </div>

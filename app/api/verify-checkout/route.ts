@@ -44,7 +44,8 @@ export async function GET(req: NextRequest) {
         data.isPaid ||
         data.promoCodeUnlocked ||
         (Array.isArray(data.unlockedPlans) && data.unlockedPlans.length > 0) ||
-        (Array.isArray(data.unlockedPlanIds) && data.unlockedPlanIds.length > 0)
+        (Array.isArray(data.unlockedPlanIds) && data.unlockedPlanIds.length > 0) ||
+        (typeof data.credits === "number" && data.credits > 0)
       );
     } else if (tier === "eu-funds") {
       isUnlocked = data.euFundsUnlocked === true;

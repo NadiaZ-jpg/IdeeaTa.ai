@@ -37,11 +37,15 @@ function isIpLike(value: string): boolean {
 }
 
 /**
- * Client IP behind a single trusted reverse proxy (Hetzner nginx / Cloudflare).
- * Prefer X-Real-IP (set by proxy to $remote_addr).
- * For X-Forwarded-For, use the RIGHTMOST hop (appended by proxy); leftmost is client-spoofable.
+ * Client IP behind Cloudflare + reverse proxy (Hetzner nginx).
+ * 1. Prefer CF-Connecting-IP (set by Cloudflare edge to the real visitor IP).
+ * 2. Fallback to X-Real-IP (set by nginx to $remote_addr when not behind Cloudflare).
+ * 3. For X-Forwarded-For, use the RIGHTMOST hop (appended by proxy); leftmost is client-spoofable.
  */
 export function clientIpFromRequest(req: { headers: Headers }): string {
+  const cf = req.headers.get("cf-connecting-ip")?.trim();
+  if (cf && isIpLike(cf)) return cf;
+
   const realIp = req.headers.get("x-real-ip")?.trim();
   if (realIp && isIpLike(realIp)) return realIp;
 
@@ -56,9 +60,6 @@ export function clientIpFromRequest(req: { headers: Headers }): string {
       if (isIpLike(parts[i])) return parts[i];
     }
   }
-
-  const cf = req.headers.get("cf-connecting-ip")?.trim();
-  if (cf && isIpLike(cf)) return cf;
 
   return "unknown";
 }

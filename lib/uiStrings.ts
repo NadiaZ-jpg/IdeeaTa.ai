@@ -66,6 +66,7 @@ type UIStringsShape = {
   studioMobileBadge: string; studioMobileTitle: string; studioGenerateDesktopOnly: string;
   studioGenerateDesktopHint: string; studioBackToDashboard: string; studioTryDemoMobile: string;
   studioLoadingWorkspace: string;
+  studioDesktopHint: string;
   examplesSwipeHint: string;
   examplesCounter: string;
   printBtn: string; resetBtn: string; newPlan: string; confirmUnlockPlan: string;
@@ -247,6 +248,7 @@ export const UI_STRINGS: Record<Locale, UIStringsShape> = {
     studioBackToDashboard: "Mergi la Dashboard",
     studioTryDemoMobile: "Încearcă Demo pe mobil",
     studioLoadingWorkspace: "Se încarcă spațiul tău de lucru Studio...",
+    studioDesktopHint: "💡 Sfat: Pentru editare avansată pe ecran mare, deschide IdeeaTa.ai de pe Desktop (sau ca aplicație PWA).",
     examplesSwipeHint: "Glisează pentru mai multe idei",
     examplesCounter: "{{current}} / {{total}}",
     printBtn: "Printează",
@@ -512,6 +514,7 @@ export const UI_STRINGS: Record<Locale, UIStringsShape> = {
     studioBackToDashboard: "Go to Dashboard",
     studioTryDemoMobile: "Try Demo on mobile",
     studioLoadingWorkspace: "Loading your Studio workspace...",
+    studioDesktopHint: "💡 Tip: For advanced editing on a larger screen, open IdeeaTa.ai on Desktop (or as a Desktop PWA).",
     examplesSwipeHint: "Swipe for more ideas",
     examplesCounter: "{{current}} / {{total}}",
     printBtn: "Print",
@@ -777,6 +780,7 @@ export const UI_STRINGS: Record<Locale, UIStringsShape> = {
     studioBackToDashboard: "Ir al Panel",
     studioTryDemoMobile: "Probar Demo en móvil",
     studioLoadingWorkspace: "Cargando tu espacio de trabajo de Studio...",
+    studioDesktopHint: "💡 Consejo: Para edición avanzada en pantalla grande, abre IdeeaTa.ai en Desktop (o como app PWA).",
     examplesSwipeHint: "Desliza para ver más ideas",
     examplesCounter: "{{current}} / {{total}}",
     printBtn: "Imprimir",

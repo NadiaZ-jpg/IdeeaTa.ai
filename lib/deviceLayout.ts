@@ -1,8 +1,8 @@
 /**
- * E-B: Mobile vs Desktop UI by viewport width (not User-Agent alone).
- * Threshold matches Tailwind `lg` (1024px): width < 1024 → Mobile UI.
+ * E-B / Pasul 3: Mobile vs Desktop UI by viewport width (not User-Agent alone).
+ * Threshold matches Tailwind `md` (768px): width < 768 → Mobile UI; Tablets (>= 768px) & Desktop → Desktop UI.
  */
-export const DEVICE_LAYOUT_MOBILE_MAX_PX = 1024;
+export const DEVICE_LAYOUT_MOBILE_MAX_PX = 768;
 
 export type DeviceLayout = "mobile" | "desktop";
 

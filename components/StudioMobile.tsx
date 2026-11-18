@@ -1179,6 +1179,9 @@ export default function StudioMobile({ locale = "ro" }: { locale?: "ro" | "en" |
               {ui.pricing}
             </button>
           </div>
+          <p className="text-[11px] text-zinc-400 leading-relaxed border-t border-zinc-800/70 pt-2.5">
+            {ui.studioDesktopHint}
+          </p>
         </div>
 
         {/* Tablet split layout container */}

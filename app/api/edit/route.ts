@@ -409,21 +409,39 @@ export async function POST(req: NextRequest) {
 
     const prompt = getEditPrompt(locale, inputData, instruction);
 
+    const startedAt = Date.now();
+    const TOTAL_DEADLINE_MS = 48_000;
+    const remainingBudgetMs = () => Math.max(0, TOTAL_DEADLINE_MS - (Date.now() - startedAt));
+
+    const isBigAction = action === "eu_funds_optimization" || action === "investor_ready" || action === "professional_tone";
+
     const callGemini = async (sysPrompt: string) => {
-      let retries = 3;
+      let retries = 2;
       while (retries > 0) {
+        const budget = remainingBudgetMs();
+        if (budget < 3000) throw new Error("Edit deadline exceeded");
+        const callTimeoutMs = Math.min(isBigAction ? 32_000 : 38_000, budget);
         try {
-          const response = await ai.models.generateContent({
-            model: "gemini-2.5-flash",
-            contents: sysPrompt,
-            config: { responseMimeType: "application/json" }
-          });
+          const response = await Promise.race([
+            ai.models.generateContent({
+              model: "gemini-2.5-flash",
+              contents: sysPrompt,
+              config: {
+                responseMimeType: "application/json",
+                maxOutputTokens: isBigAction ? 4096 : 8192,
+                thinkingConfig: { thinkingBudget: 0 },
+              },
+            }),
+            new Promise<never>((_, reject) =>
+              setTimeout(() => reject(new Error("Gemini edit timeout")), callTimeoutMs)
+            ),
+          ]);
           return response.text || "";
         } catch (e: any) {
           console.error(`Eroare Gemini:`, e.message);
           retries--;
-          if (retries === 0) throw e;
-          await sleep(1500);
+          if (retries === 0 || remainingBudgetMs() < 5000) throw e;
+          await sleep(1000);
         }
       }
       return "";
@@ -431,6 +449,7 @@ export async function POST(req: NextRequest) {
 
     const cleanJsonString = (raw: string) => {
       let t = raw.replace(/^```(json)?\n?/i, '').replace(/\n?```$/i, '').trim();
+      t = t.replace(/[„“”]/g, "'");
       const firstBrace = t.indexOf('{');
       const lastBrace = t.lastIndexOf('}');
       if (firstBrace !== -1 && lastBrace !== -1 && lastBrace >= firstBrace) {
@@ -444,7 +463,6 @@ export async function POST(req: NextRequest) {
     };
 
     let parsed: any = {};
-    const isBigAction = action === "eu_funds_optimization" || action === "investor_ready" || action === "professional_tone";
 
     if (isBigAction) {
       const pViziune = { viziune_strategie: result.viziune_strategie };
@@ -511,33 +529,48 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ error: EDIT_ERRORS[locale].empty }, { status: 400 });
       }
     } else {
-      const res = await callGemini(prompt);
-      const text = cleanJsonString(res);
-      
-      try {
-        parsed = JSON.parse(text);
-      } catch (parseErr: any) {
-        if (parseErr.message.includes('Unexpected non-whitespace character') || parseErr.message.includes('Unexpected token')) {
-          try {
-            const arrayFixed = '[' + text.replace(/\}\s*\{/g, '},{').replace(/\]\s*\[/g, '],[') + ']';
-            const parsedArray = JSON.parse(arrayFixed);
-            if (Array.isArray(parsedArray) && parsedArray.length > 0) {
-              parsed = parsedArray[0];
-            } else {
-              throw parseErr;
+      let jsonOk = false;
+      let lastParseErr: any = null;
+      let lastText = "";
+
+      for (let attempt = 0; attempt < 2 && !jsonOk; attempt++) {
+        const activePrompt =
+          attempt === 0
+            ? prompt
+            : `${prompt}\n\nCRITICAL JSON FIX: Your previous response had invalid JSON. Output ONLY valid JSON. Inside string values use single quotes (') and NEVER unescaped double quotes (").`;
+        const res = await callGemini(activePrompt);
+        const text = cleanJsonString(res);
+        lastText = text;
+
+        try {
+          parsed = JSON.parse(text);
+          jsonOk = true;
+        } catch (parseErr: any) {
+          if (parseErr.message.includes('Unexpected non-whitespace character') || parseErr.message.includes('Unexpected token')) {
+            try {
+              const arrayFixed = '[' + text.replace(/\}\s*\{/g, '},{').replace(/\]\s*\[/g, '],[') + ']';
+              const parsedArray = JSON.parse(arrayFixed);
+              if (Array.isArray(parsedArray) && parsedArray.length > 0) {
+                parsed = parsedArray[0];
+                jsonOk = true;
+              } else {
+                lastParseErr = parseErr;
+              }
+            } catch {
+              lastParseErr = parseErr;
             }
-          } catch {
-            console.error("JSON PARSE ERROR:", parseErr, text);
-            if (authOk?.refundFreeTone) await refundFreeToneEdit(authOk.uid);
-            if (authOk?.packConsume) await refundProPackEditQuotas(authOk.uid, authOk.packConsume);
-            return NextResponse.json({ error: "Eroare formatare: " + parseErr.message + "\n\nFragment primit: " + text.substring(0, 150) }, { status: 400 });
+          } else {
+            lastParseErr = parseErr;
           }
-        } else {
-          console.error("JSON PARSE ERROR:", parseErr, text);
-          if (authOk?.refundFreeTone) await refundFreeToneEdit(authOk.uid);
-          if (authOk?.packConsume) await refundProPackEditQuotas(authOk.uid, authOk.packConsume);
-          return NextResponse.json({ error: "Eroare formatare: " + parseErr.message + "\n\nFragment primit: " + text.substring(0, 150) }, { status: 400 });
         }
+        if (!jsonOk && remainingBudgetMs() < 6000) break;
+      }
+
+      if (!jsonOk) {
+        console.error("JSON PARSE ERROR:", lastParseErr, lastText);
+        if (authOk?.refundFreeTone) await refundFreeToneEdit(authOk.uid);
+        if (authOk?.packConsume) await refundProPackEditQuotas(authOk.uid, authOk.packConsume);
+        return NextResponse.json({ error: "Eroare formatare: " + (lastParseErr?.message || "Invalid JSON") + "\n\nFragment primit: " + lastText.substring(0, 150) }, { status: 400 });
       }
       
       // Safety checks for add_sections in case Gemini returns an array or raw object
@@ -600,11 +633,11 @@ export async function POST(req: NextRequest) {
           mergedResult.analiza_swot
         );
       }
-      if (planNeedsExplanationFill(mergedResult)) {
+      if (planNeedsExplanationFill(mergedResult) && remainingBudgetMs() >= 6000) {
         mergedResult = await fillMissingPlanExplanations(
           mergedResult,
           (locale === "en" || locale === "es" ? locale : "ro") as "ro" | "en" | "es",
-          45000
+          Math.min(18000, remainingBudgetMs() - 2000)
         );
       }
 

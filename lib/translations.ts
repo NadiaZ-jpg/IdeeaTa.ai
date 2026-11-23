@@ -74,7 +74,7 @@ export const translations = {
     tonePersuasive: "🔥 Persuasiv / Vânzări",
     toneFriendly: "✨ Prietenos / Modern",
     rewritePlanAi: "Rescrie Planul Asistat",
-    toneLimitReached: "Ai consumat cele 3 utilizări gratuite ale selectorului de ton. Upgradează contul pentru utilizare nelimitată.",
+    toneLimitReached: "Ai consumat cele 3 utilizări gratuite ale selectorului de ton. Cu Pachetul Standard, tonul formal și creativ e nelimitat.",
     unlockProTones: "🔒 Deblochează Tonurile PRO",
 
     // Studio Page
@@ -124,7 +124,7 @@ export const translations = {
     confirmDeleteQuestion: "Ești sigur că vrei să ștergi acest plan?",
     modifiedAtLabel: "Modificat la:",
     freePlanBadgeWarning: "Planul gratuit a fost folosit.",
-    freePlanBadgeWarningDesc: "Ai atins limita de 4 planuri gratuite. Upgradează contul pentru generări nelimitate și instrumente profesionale.",
+    freePlanBadgeWarningDesc: "Ai atins limita de 4 planuri gratuite. Pachetul Editare + Instrumente Profesionale îți dă 10 generări noi de plan și instrumentele Pro.",
     upgradeToProBtn: "Treci la PRO",
 
     // Login Page
@@ -260,7 +260,7 @@ export const translations = {
     tonePersuasive: "🔥 Persuasive / Sales",
     toneFriendly: "✨ Friendly / Modern",
     rewritePlanAi: "Rewrite Plan with Assistant",
-    toneLimitReached: "You have used your 3 free tone edits. Upgrade to the Professional Tools plan to continue editing.",
+    toneLimitReached: "You have used your 3 free tone edits. With the Standard Package, formal and creative tone is unlimited.",
     unlockProTones: "🔒 Unlock PRO Tones",
 
     // Studio Page
@@ -310,7 +310,7 @@ export const translations = {
     confirmDeleteQuestion: "Are you sure you want to delete this plan?",
     modifiedAtLabel: "Modified at:",
     freePlanBadgeWarning: "Free plan limit reached.",
-    freePlanBadgeWarningDesc: "You reached the free limit of 4 plans. Upgrade your account for unlimited generations and professional tools.",
+    freePlanBadgeWarningDesc: "You reached the free limit of 4 plans. The Editing + Professional Tools Package gives you 10 new plan generations and the Pro tools.",
     upgradeToProBtn: "Upgrade to PRO",
 
     // Login Page
@@ -446,7 +446,7 @@ export const translations = {
     tonePersuasive: "🔥 Persuasivo / Ventas",
     toneFriendly: "✨ Amigable / Modern",
     rewritePlanAi: "Reescribir Plan con Asistente",
-    toneLimitReached: "Has usado tus 3 ediciones de tono gratuitas. Actualiza a la cuenta PRO para un uso ilimitado.",
+    toneLimitReached: "Has usado tus 3 ediciones de tono gratuitas. Con el Paquete Estándar el tono formal y creativo es ilimitado.",
     unlockProTones: "🔒 Desbloquear Tonos PRO",
 
     // Studio Page
@@ -496,7 +496,7 @@ export const translations = {
     confirmDeleteQuestion: "¿Estás seguro de que quieres eliminar este plan?",
     modifiedAtLabel: "Modificado el:",
     freePlanBadgeWarning: "Límite de plan gratuito alcanzado.",
-    freePlanBadgeWarningDesc: "Has alcanzado el límite gratuito de 4 planes. Actualiza tu cuenta para generaciones ilimitadas y herramientas profesionales.",
+    freePlanBadgeWarningDesc: "Has alcanzado el límite gratuito de 4 planes. El Paquete de Edición + Herramientas Profesionales te da 10 generaciones nuevas de plan y las herramientas Pro.",
     upgradeToProBtn: "Actualizar a PRO",
 
     // Login Page

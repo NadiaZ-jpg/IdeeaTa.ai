@@ -87,10 +87,10 @@ export function useExportActions({
       if (credits > 0) {
         const confirmUnlock = window.confirm(
           locale === "en"
-            ? `Downloading this document will consume 1 credit of the ${credits} available. Do you wish to continue?`
+            ? `You have ${credits} download credit(s). 1 credit = 1 plan.\n\nOK: use 1 credit for “${planName}”. This plan stays unlocked for good in PDF, PPTX and Word.\nCancel: keep the credit and open another plan from the Dashboard.`
             : locale === "es"
-            ? `Descargar este documento consumirá 1 crédito de los ${credits} disponibles. ¿Desea continuar?`
-            : `Descărcarea acestui document va consuma 1 credit din cele ${credits} disponibile. Dorești să continui?`
+            ? `Tienes ${credits} crédito(s) de descarga. 1 crédito = 1 plan.\n\nAceptar: usar 1 crédito para “${planName}”. Este plan queda desbloqueado para siempre en PDF, PPTX y Word.\nCancelar: guardar el crédito y abrir otro plan desde el Panel.`
+            : `Ai ${credits} credit(e) de descărcare. 1 credit = 1 plan.\n\nOK: folosești 1 credit pentru „${planName}”. Planul rămâne deblocat definitiv în PDF, PPTX și Word.\nAnulează: păstrezi creditul și alegi alt plan din Dashboard.`
         );
         if (!confirmUnlock) return;
 
@@ -130,7 +130,8 @@ export function useExportActions({
     await new Promise(resolve => setTimeout(resolve, 500));
     try {
       let generatedShareId: string | null = null;
-      if (mode === 'pdf-summary' || mode === 'pdf') {
+      // Share link only feeds the free summary's CTA; the paid PDF has no links
+      if (mode === 'pdf-summary') {
         let token: string | null = null;
         try {
           token = auth.currentUser ? await auth.currentUser.getIdToken() : null;
@@ -203,22 +204,35 @@ export function useExportActions({
           window.innerWidth < DEVICE_LAYOUT_MOBILE_MAX_PX;
         const effectivePixelRatio = isMobileScreen ? 1.2 : 2;
 
-        for (let i = 0; i < slidesArray.length; i++) {
-          const slideElement = slidesArray[i] as HTMLElement;
-          const dataUrl = await toPng(slideElement, { quality: 1.0, pixelRatio: effectivePixelRatio });
-          if (i > 0) pdf.addPage([1280, 720], "landscape");
-          pdf.addImage(dataUrl, 'PNG', 0, 0, 1280, 720);
+        // Paid full PDF: hide the IdeeaTa.ai mark on slides while capturing (restored in finally)
+        const brandMarks =
+          mode === 'pdf'
+            ? (Array.from(document.querySelectorAll('.pdf-brand-mark')) as HTMLElement[])
+            : [];
+        brandMarks.forEach((el) => { el.style.visibility = 'hidden'; });
+        try {
+          for (let i = 0; i < slidesArray.length; i++) {
+            const slideElement = slidesArray[i] as HTMLElement;
+            const dataUrl = await toPng(slideElement, { quality: 1.0, pixelRatio: effectivePixelRatio });
+            if (i > 0) pdf.addPage([1280, 720], "landscape");
+            pdf.addImage(dataUrl, 'PNG', 0, 0, 1280, 720);
 
-          pdf.setTextColor(150, 150, 150);
-          pdf.setFontSize(14);
-          pdf.text(pdfFooters[exportLocale] || pdfFooters.ro, 640, 700, { align: 'center' });
+            // Paid full PDF: no branding footer ("fără watermark" in Pricing). Free summary keeps it.
+            if (mode === 'pdf-summary') {
+              pdf.setTextColor(150, 150, 150);
+              pdf.setFontSize(14);
+              pdf.text(pdfFooters[exportLocale] || pdfFooters.ro, 640, 700, { align: 'center' });
+            }
 
-          attachPdfCtaLinks(pdf, {
-            pageIndex: i,
-            totalPages: slidesArray.length,
-            isSummaryExport: mode === 'pdf-summary',
-            ctaUrl: pdfUrl,
-          });
+            attachPdfCtaLinks(pdf, {
+              pageIndex: i,
+              totalPages: slidesArray.length,
+              isSummaryExport: mode === 'pdf-summary',
+              ctaUrl: pdfUrl,
+            });
+          }
+        } finally {
+          brandMarks.forEach((el) => { el.style.visibility = ''; });
         }
         
         const suffix = mode === 'pdf-summary' ? `_${summaryFreeLabel}` : '';

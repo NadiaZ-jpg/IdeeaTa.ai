@@ -18,12 +18,12 @@ export function paymentSuccessMessage(
 ): string {
   if (tier === "pro-topup") {
     if (locale === "en") {
-      return "Credits added successfully! Your Pro Tools quotas were topped up.";
+      return "Top-up done! You got +5 plan generations, +4 Pro edits and +2 combinations.";
     }
     if (locale === "es") {
-      return "¡Créditos añadidos con éxito! Se recargaron tus cuotas de Herramientas Pro.";
+      return "¡Recarga hecha! Recibiste +5 generaciones de plan, +4 ediciones Pro y +2 combinaciones.";
     }
-    return "Credite adăugate cu succes! Cotele Instrumente Pro au fost reîncărcate.";
+    return "Reîncărcare reușită! Ai primit +5 generări de plan, +4 editări Pro și +2 combinații.";
   }
   if (tier === "pro") {
     if (locale === "en") return "Unlimited Pro access is now active!";
@@ -32,12 +32,21 @@ export function paymentSuccessMessage(
   }
   if (tier === "eu-funds") {
     if (locale === "en") {
-      return "Pro Tools package unlocked! You now have generations, Pro edits, and combinations.";
+      return "Editing + Professional Tools Package active! You got +10 plan generations, +8 Pro edits and +4 combinations, shared across all your plans.";
     }
     if (locale === "es") {
-      return "¡Paquete Herramientas Pro desbloqueado! Ya tienes generaciones, ediciones Pro y combinaciones.";
+      return "¡Paquete de Edición + Herramientas Profesionales activo! Recibiste +10 generaciones de plan, +8 ediciones Pro y +4 combinaciones, compartidas entre todos tus planes.";
     }
-    return "Pachetul Instrumente Pro este deblocat! Ai generări, editări Pro și combinații.";
+    return "Pachetul Editare + Instrumente Profesionale e activ! Ai primit +10 generări de plan, +8 editări Pro și +4 combinații, comune pentru toate planurile tale.";
+  }
+  if (tier === "standard" && !planName) {
+    if (locale === "en") {
+      return "Standard package active! You got 1 download credit: open the plan you want and download it in PDF, PPTX or Word.";
+    }
+    if (locale === "es") {
+      return "¡Paquete Standard activo! Recibiste 1 crédito de descarga: abre el plan que quieras y descárgalo en PDF, PPTX o Word.";
+    }
+    return "Pachetul Standard e activ! Ai primit 1 credit de descărcare: deschide planul dorit și descarcă-l în PDF, PPTX sau Word.";
   }
   if (tier === "standard") {
     const name = planName || (locale === "en" ? "Plan" : locale === "es" ? "Plan" : "Plan");

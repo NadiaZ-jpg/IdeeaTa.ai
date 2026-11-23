@@ -6,6 +6,11 @@ import {
   buildPaymentReturnUrl,
 } from "@/lib/lemonCheckout";
 import { adminAuth, adminDb } from "@/lib/firebase-admin";
+import {
+  createStripeCheckoutSession,
+  isStripeTier,
+  paymentProvider,
+} from "@/lib/stripeCheckout";
 
 export async function POST(req: NextRequest) {
   try {
@@ -65,6 +70,36 @@ export async function POST(req: NextRequest) {
       }
     }
 
+    const redirectUrl = buildPaymentReturnUrl({
+      locale,
+      tier,
+      returnPath:
+        typeof returnPath === "string" && returnPath.length > 0
+          ? returnPath
+          : "/dashboard",
+    });
+
+    if (paymentProvider() === "stripe") {
+      const stripeUrl = isStripeTier(tier)
+        ? await createStripeCheckoutSession({
+            tier,
+            userId: uid,
+            email: email || emailFromToken,
+            planName,
+            planId,
+            locale,
+            successUrl: redirectUrl,
+          })
+        : null;
+      if (!stripeUrl) {
+        return NextResponse.json(
+          { error: "Invalid package", code: "CHECKOUT_UNAVAILABLE" },
+          { status: 400 }
+        );
+      }
+      return NextResponse.json({ url: stripeUrl });
+    }
+
     const baseUrl = getLemonCheckoutUrl(tier, locale);
     if (!baseUrl) {
       return NextResponse.json(
@@ -72,17 +107,6 @@ export async function POST(req: NextRequest) {
         { status: 400 }
       );
     }
-
-    const redirectUrl = buildPaymentReturnUrl({
-      locale,
-      tier,
-      returnPath:
-        typeof returnPath === "string" && returnPath.length > 0
-          ? returnPath
-          : tier === "pro-topup"
-            ? "/dashboard"
-            : "/dashboard",
-    });
 
     const checkoutUrl = withCheckoutParams(baseUrl, {
       userId: uid,
@@ -95,7 +119,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ url: checkoutUrl });
   } catch (error: any) {
-    console.error("Error creating Lemon Squeezy checkout link:", error);
+    console.error("Error creating checkout:", error);
     return NextResponse.json(
       { error: error.message || "Checkout failed", code: "CHECKOUT_ERROR" },
       { status: 500 }

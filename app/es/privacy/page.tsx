@@ -14,7 +14,7 @@ export default function PrivacyPageEs() {
         <ul>
           <li><strong>Datos de Autenticación y Perfil:</strong> Nombre, dirección de correo electrónico, foto de perfil (cuando inicias sesión a través de Google o Facebook usando Firebase Auth).</li>
           <li><strong>Contenido Generado por el Usuario:</strong> Ideas de negocios introducidas, planes de negocios generados, opciones de presupuesto y enlaces compartidos. Estos se guardan de forma segura en nuestra base de datos Firestore para que puedas acceder a ellos desde tu panel de control.</li>
-          <li><strong>Datos de Transacción:</strong> Si actualizas a funciones premium, nosotros no recopilamos ni almacenamos directamente los datos de tu tarjeta. Todo el procesamiento de pagos lo realiza de forma segura <strong>Lemon Squeezy</strong>. Solo recibimos la confirmación del pago y un ID de transacción.</li>
+          <li><strong>Datos de Transacción:</strong> Si actualizas a funciones premium, nosotros no recopilamos ni almacenamos directamente los datos de tu tarjeta. Todo el procesamiento de pagos lo realiza de forma segura <strong>Stripe</strong> o <strong>Lemon Squeezy</strong>. Solo recibimos la confirmación del pago y un ID de transacción.</li>
           <li><strong>Datos Técnicos y de Uso:</strong> Dirección IP, tipo de navegador, dispositivo utilizado y datos analíticos básicos recopilados para optimizar la plataforma y prevenir abusos (por ejemplo, limitación de velocidad).</li>
         </ul>
 
@@ -22,7 +22,7 @@ export default function PrivacyPageEs() {
         <ul>
           <li><strong>Para proporcionar el servicio:</strong> Procesar tu idea a través de las APIs de IA (Google Gemini) para devolverte tu plan de negocios.</li>
           <li><strong>Para guardar el historial:</strong> Almacenar los planes en Firebase para que puedas acceder a ellos y editarlos más tarde.</li>
-          <li><strong>Para procesar pagos:</strong> Validar el acceso al "Studio de Edición AI" tras el pago a través de Lemon Squeezy.</li>
+          <li><strong>Para procesar pagos:</strong> Validar el acceso al "Studio de Edición AI" tras el pago a través de Stripe o Lemon Squeezy.</li>
           <li><strong>Para soporte y seguridad:</strong> Prevenir fraudes, investigar errores (seguimiento de fallos) y proporcionar soporte técnico si nos contactas.</li>
           <li><strong>Comunicación:</strong> Enviarte correos electrónicos transaccionales (recibos, restablecimiento de contraseñas) y, ocasionalmente, correos electrónicos informativos de los que puedes darte de baja en cualquier momento.</li>
         </ul>
@@ -32,7 +32,7 @@ export default function PrivacyPageEs() {
         <ul>
           <li><strong>Google (Firebase / Firestore):</strong> Para alojamiento de bases de datos, autenticación y almacenamiento de planes.</li>
           <li><strong>Google (Gemini AI):</strong> Para generar el texto. Ten en cuenta que solo enviamos los fragmentos de texto (prompts) que tú introduces. No enviamos tus datos de identificación personal al modelo de IA.</li>
-          <li><strong>Lemon Squeezy:</strong> Para procesar tus pagos de forma segura.</li>
+          <li><strong>Stripe y Lemon Squeezy:</strong> Para procesar tus pagos de forma segura.</li>
           <li><strong>Google AdSense:</strong> Si se muestran anuncios, los proveedores de publicidad pueden utilizar sus propias tecnologías para anuncios personalizados (ver Política de Cookies).</li>
         </ul>
 

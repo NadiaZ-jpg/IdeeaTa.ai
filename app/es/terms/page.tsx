@@ -31,7 +31,7 @@ export default function TermsPageEs() {
 
         <h2>4. Pagos y Política de Reembolso</h2>
         <ul>
-          <li><strong>Procesamiento de Pagos:</strong> Los pagos para desbloquear funciones premium (como el "Studio de Edición AI", exportaciones especiales) se procesan de forma segura exclusivamente a través de nuestro socio <strong>Lemon Squeezy</strong>.</li>
+          <li><strong>Procesamiento de Pagos:</strong> Los pagos para desbloquear funciones premium (como el "Studio de Edición AI", exportaciones especiales) se procesan de forma segura a través de nuestros socios <strong>Stripe</strong> y <strong>Lemon Squeezy</strong>, que actúan como vendedor registrado (merchant of record) y calculan el IVA en el pago.</li>
           <li><strong>Sin Reembolsos:</strong> Debido a la naturaleza digital y consumible de nuestros servicios (costes de procesamiento de IA no recuperables para cada generación), <strong>todas las compras son definitivas</strong>. No se ofrecen reembolsos después de haber completado la compra del plan o el desbloqueo de funciones, a menos que el servicio no haya estado disponible técnicamente por nuestra culpa.</li>
         </ul>
 

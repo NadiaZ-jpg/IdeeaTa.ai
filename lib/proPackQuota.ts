@@ -175,10 +175,10 @@ export function proPackTopupConfirmDialog(
   if (typeof window === "undefined") return false;
   const suffix =
     locale === "en"
-      ? `OK: top up for 5 EUR (+${PRO_TOPUP_GENERATE_GRANT} generations, +${PRO_TOPUP_EDIT_GRANT} Pro edits, +${PRO_TOPUP_COMBINE_GRANT} combinations).\nCancel: stay on this page.`
+      ? `OK: top up for 5 EUR + VAT (+${PRO_TOPUP_GENERATE_GRANT} generations, +${PRO_TOPUP_EDIT_GRANT} Pro edits, +${PRO_TOPUP_COMBINE_GRANT} combinations).\nCancel: stay on this page.`
       : locale === "es"
-      ? `Aceptar: recargar por 5 EUR (+${PRO_TOPUP_GENERATE_GRANT} generaciones, +${PRO_TOPUP_EDIT_GRANT} ediciones Pro, +${PRO_TOPUP_COMBINE_GRANT} combinaciones).\nCancelar: quedarte en esta página.`
-      : `OK: reîncarci cu 25 RON (+${PRO_TOPUP_GENERATE_GRANT} generări, +${PRO_TOPUP_EDIT_GRANT} editări Pro, +${PRO_TOPUP_COMBINE_GRANT} combinații).\nAnulează: rămâi pe pagină.`;
+      ? `Aceptar: recargar por 5 EUR + IVA (+${PRO_TOPUP_GENERATE_GRANT} generaciones, +${PRO_TOPUP_EDIT_GRANT} ediciones Pro, +${PRO_TOPUP_COMBINE_GRANT} combinaciones).\nCancelar: quedarte en esta página.`
+      : `OK: reîncarci cu 25 RON + TVA (+${PRO_TOPUP_GENERATE_GRANT} generări, +${PRO_TOPUP_EDIT_GRANT} editări Pro, +${PRO_TOPUP_COMBINE_GRANT} combinații).\nAnulează: rămâi pe pagină.`;
   return window.confirm(`${proPackLimitMessage(locale, kind)}\n\n${suffix}`);
 }
 

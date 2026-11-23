@@ -35,7 +35,7 @@ export default function TermeniPage() {
 
         <h2>4. Plăți și Politica de Rambursare (Refunds)</h2>
         <ul>
-          <li><strong>Procesarea Plăților:</strong> Plățile pentru deblocarea funcționalităților premium (ex: „Studio AI Interactiv”, exporturi speciale) sunt procesate securizat exclusiv prin partenerul nostru <strong>Lemon Squeezy</strong>.</li>
+          <li><strong>Procesarea Plăților:</strong> Plățile pentru deblocarea funcționalităților premium (ex: „Studio AI Interactiv”, exporturi speciale) sunt procesate securizat prin partenerii noștri <strong>Stripe</strong> și <strong>Lemon Squeezy</strong>, care acționează ca vânzător înregistrat (merchant of record) și calculează TVA-ul la plată.</li>
           <li><strong>Fără Rambursări (No Refunds):</strong> Datorită naturii digitale și consumabile ale serviciilor noastre (costuri irecuperabile de procesare AI pentru fiecare generare), <strong>toate achizițiile sunt finale</strong>. Nu se oferă rambursări după ce planul sau deblocarea funcțiilor a fost realizată, cu excepția cazului în care serviciul a fost indisponibil tehnic din cauza noastră.</li>
         </ul>
 
@@ -65,7 +65,8 @@ export default function TermeniPage() {
           </Link>
         </div>
       </div>
-    </div>
+    </div>
+
     </>
   );
 }

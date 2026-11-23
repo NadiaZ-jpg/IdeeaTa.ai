@@ -1,9 +1,11 @@
-/** Client-side Lemon checkout for Pro Tools top-up (5 EUR / 25 RON). */
+/** Client-side checkout for Pro Tools top-up (5 EUR / 25 RON, VAT added at checkout). */
 
 export type ProTopupLocale = "ro" | "en" | "es";
 
 export function proTopupPriceLabel(locale: ProTopupLocale | string): string {
-  return locale === "en" || locale === "es" ? "5 EUR" : "25 RON";
+  if (locale === "en") return "5 EUR + VAT";
+  if (locale === "es") return "5 EUR + IVA";
+  return "25 RON + TVA";
 }
 
 export function proTopupButtonLabel(locale: ProTopupLocale | string): string {

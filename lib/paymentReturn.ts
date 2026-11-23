@@ -1,4 +1,4 @@
-/** Strip Lemon return params; keep planId/view for Studio/Demo continuity. */
+/** Strip payment return params; keep planId/view for Studio/Demo continuity. */
 export function stripPaymentSuccessParams(): void {
   if (typeof window === "undefined") return;
   const url = new URL(window.location.href);

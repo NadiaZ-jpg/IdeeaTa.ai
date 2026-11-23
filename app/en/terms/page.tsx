@@ -31,7 +31,7 @@ export default function TermsPage() {
 
         <h2>4. Payments and Refund Policy</h2>
         <ul>
-          <li><strong>Payment Processing:</strong> Payments to unlock premium features (e.g., "Interactive AI Studio", special exports) are processed securely exclusively through our partner <strong>Lemon Squeezy</strong>.</li>
+          <li><strong>Payment Processing:</strong> Payments to unlock premium features (e.g., "Interactive AI Studio", special exports) are processed securely through our partners <strong>Stripe</strong> and <strong>Lemon Squeezy</strong>, who act as merchant of record and calculate VAT at checkout.</li>
           <li><strong>No Refunds:</strong> Due to the digital and consumable nature of our services (non-recoverable AI processing costs for each generation), <strong>all purchases are final</strong>. No refunds are offered after the plan or feature unlock has been completed, unless the service was technically unavailable due to our fault.</li>
         </ul>
 

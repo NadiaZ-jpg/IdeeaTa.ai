@@ -22,7 +22,7 @@ export default function CookiesPage() {
         <p>These cookies are essential for the IdeeaTa.ai application to function correctly. They cannot be turned off.</p>
         <ul>
           <li><strong>Authentication (Firebase):</strong> Keep your session active after you log in with Google or Facebook. Without them, you would have to log in again with every click.</li>
-          <li><strong>Payment Processing (Lemon Squeezy):</strong> Lemon Squeezy uses cookies and local storage to detect fraud and ensure the security of transaction data during payment.</li>
+          <li><strong>Payment Processing (Stripe, Lemon Squeezy):</strong> Our payment processors use cookies and local storage to detect fraud and ensure the security of transaction data during payment.</li>
           <li><strong>Temporary Plan Saving (Local Storage):</strong> We temporarily save the plan you write in the browser memory (Local Storage) so that if you accidentally close the window, you do not lose your work.</li>
         </ul>
 

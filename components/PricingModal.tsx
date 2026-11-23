@@ -202,6 +202,7 @@ export function PricingModal({
               </div>
               <div className="flex items-baseline gap-1 mb-6">
                 <span className="text-3xl font-black text-white">{getPriceDisplay("standard")}</span>
+                <span className="text-sm font-bold text-zinc-400">{ui.pricingVat}</span>
               </div>
               
               <ul className="space-y-3 mb-8 text-sm text-zinc-400">
@@ -256,6 +257,7 @@ export function PricingModal({
               </div>
               <div className="flex items-baseline gap-1 mb-6">
                 <span className="text-3xl font-black text-white">{getPriceDisplay("eu-funds")}</span>
+                <span className="text-sm font-bold text-zinc-400">{ui.pricingVat}</span>
               </div>
               
               <ul className="space-y-3 mb-8 text-sm text-zinc-400">

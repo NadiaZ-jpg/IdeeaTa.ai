@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { adminAuth, adminDb } from "@/lib/firebase-admin";
 
 /**
- * Poll entitlement after Lemon return URL.
+ * Poll entitlement after the payment return URL (Lemon or Stripe).
  * Auth required — userId always from token (never from query spoof).
  */
 export async function GET(req: NextRequest) {

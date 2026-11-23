@@ -134,7 +134,7 @@ type UIStringsShape = {
   pricingProBadge: string; pricingProName: string;
   pricingProFeat1: string; pricingProFeat2: string; pricingProFeat3: string;
   pricingProFeat4: string; pricingProFeat5: string; pricingChoosePro: string;
-  pricingSsl: string; pricingPci: string; pricingLemon: string;
+  pricingSsl: string; pricingPci: string; pricingLemon: string; pricingVat: string;
   sharedPreviewTitle: string; sharedPreviewDesc: string; generateFreePlanCta: string;
   planTempStoredTitle: string; planTempStoredDesc: string; savePlanToAccountCta: string;
   businessDescription: string; marketOpportunity: string; targetAudience: string;
@@ -372,7 +372,8 @@ export const UI_STRINGS: Record<Locale, UIStringsShape> = {
     pricingChoosePro: "Alege Instrumente Pro",
     pricingSsl: "🔒 Conexiune Securizată SSL",
     pricingPci: "🛡 PCI-DSS Securitate Card",
-    pricingLemon: "💳 Procesat Securizat prin Lemon Squeezy",
+    pricingLemon: "💳 Plată procesată securizat",
+    pricingVat: "+ TVA",
     sharedPreviewTitle: "Previzualizezi un plan de afaceri partajat",
     sharedPreviewDesc: "Vrei să generezi propriul tău plan complet gratuit, personalizat în detaliu de asistent pentru ideea ta de afacere?",
     generateFreePlanCta: "Generează Plan Gratuit",
@@ -640,7 +641,8 @@ export const UI_STRINGS: Record<Locale, UIStringsShape> = {
     pricingChoosePro: "Choose Pro Tools",
     pricingSsl: "🔒 Secure SSL Connection",
     pricingPci: "🛡 PCI-DSS Card Security",
-    pricingLemon: "💳 Securely Processed via Lemon Squeezy",
+    pricingLemon: "💳 Securely Processed Payment",
+    pricingVat: "+ VAT",
     sharedPreviewTitle: "You are previewing a shared business plan",
     sharedPreviewDesc: "Want to generate your own plan completely free, customized in detail by assistant for your business idea?",
     generateFreePlanCta: "Generate Free Plan",
@@ -908,7 +910,8 @@ export const UI_STRINGS: Record<Locale, UIStringsShape> = {
     pricingChoosePro: "Elegir Herramientas Pro",
     pricingSsl: "🔒 Conexión SSL Segura",
     pricingPci: "🛡 Seguridad de Tarjeta PCI-DSS",
-    pricingLemon: "💳 Procesado de Forma Segura a través de Lemon Squeezy",
+    pricingLemon: "💳 Pago Procesado de Forma Segura",
+    pricingVat: "+ IVA",
     sharedPreviewTitle: "Estás previsualizando un plan de negocios compartido",
     sharedPreviewDesc: "¿Quieres generar tu propio plan de forma completamente gratuita, personalizado en detalle por el asistente para tu idea de negocio?",
     generateFreePlanCta: "Generar Plan Gratis",

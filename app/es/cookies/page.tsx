@@ -22,7 +22,7 @@ export default function CookiesPageEs() {
         <p>Estas cookies son esenciales para que la aplicación IdeeaTa.ai funcione correctamente. No se pueden desactivar.</p>
         <ul>
           <li><strong>Autenticación (Firebase):</strong> Mantiene activa tu sesión después de iniciar sesión con Google o Facebook. Sin ellas, tendrías que volver a iniciar sesión con cada clic.</li>
-          <li><strong>Procesamiento de Pagos (Lemon Squeezy):</strong> Lemon Squeezy utiliza cookies y almacenamiento local para detectar fraudes y garantizar la seguridad de los datos de la transacción durante el pago.</li>
+          <li><strong>Procesamiento de Pagos (Stripe, Lemon Squeezy):</strong> Nuestros procesadores de pago utilizan cookies y almacenamiento local para detectar fraudes y garantizar la seguridad de los datos de la transacción durante el pago.</li>
           <li><strong>Guardado Temporal del Plan (Almacenamiento Local):</strong> Guardamos temporalmente el plan que escribes en la memoria del navegador (Almacenamiento Local) para que, si cierras la ventana accidentalmente, no pierdas tu trabajo.</li>
         </ul>
 

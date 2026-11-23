@@ -1,6 +1,8 @@
 /**
- * Lemon webhook idempotency + order grant ledger (Admin SDK only).
+ * Order grant ledger + webhook idempotency (Admin SDK only).
  * Collection: lemon_orders/{orderId}
+ * Lemon orders use the Lemon order id; Stripe orders use `stripe_<payment_intent id>`.
+ * The collection keeps its historical name so existing Lemon refunds still resolve.
  */
 
 import { adminDb } from "@/lib/firebase-admin";
@@ -92,9 +94,17 @@ export async function applyOrderGrantToUser(opts: {
   planId?: string | null;
   existingUnlockedPlans?: string[];
   existingUnlockedPlanIds?: string[];
+  /** Which user field stores the payment provider's customer id. */
+  customerField?: "lemonSqueezyCustomerId" | "stripeCustomerId";
 }): Promise<void> {
   const userRef = adminDb.collection("users").doc(opts.userId);
   const customerId = opts.customerId ?? null;
+  const field = opts.customerField ?? "lemonSqueezyCustomerId";
+  // Lemon keeps its old behaviour (always written); Stripe only writes a real id.
+  const customerFields: Record<string, unknown> =
+    customerId !== null || field === "lemonSqueezyCustomerId"
+      ? { [field]: customerId }
+      : {};
 
   if (opts.tier === "standard") {
     // Bought without a plan (e.g. from Dashboard) → 1 export credit for a plan of their choice
@@ -103,7 +113,7 @@ export async function applyOrderGrantToUser(opts: {
         {
           standardPackageActive: true,
           credits: FieldValue.increment(1),
-          lemonSqueezyCustomerId: customerId,
+          ...customerFields,
         },
         { merge: true }
       );
@@ -121,7 +131,7 @@ export async function applyOrderGrantToUser(opts: {
         standardPackageActive: true,
         unlockedPlans: updatedPlans,
         unlockedPlanIds: updatedIds,
-        lemonSqueezyCustomerId: customerId,
+        ...customerFields,
       },
       { merge: true }
     );
@@ -132,7 +142,7 @@ export async function applyOrderGrantToUser(opts: {
     await userRef.set(
       {
         ...proPackGrantFields((n) => FieldValue.increment(n)),
-        lemonSqueezyCustomerId: customerId,
+        ...customerFields,
       },
       { merge: true }
     );
@@ -143,7 +153,7 @@ export async function applyOrderGrantToUser(opts: {
     await userRef.set(
       {
         ...proTopupGrantFields((n) => FieldValue.increment(n)),
-        lemonSqueezyCustomerId: customerId,
+        ...customerFields,
       },
       { merge: true }
     );
@@ -155,7 +165,7 @@ export async function applyOrderGrantToUser(opts: {
       {
         subscriptionActive: true,
         isPaid: true,
-        lemonSqueezyCustomerId: customerId,
+        ...customerFields,
       },
       { merge: true }
     );

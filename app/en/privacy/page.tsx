@@ -14,7 +14,7 @@ export default function PrivacyPage() {
         <ul>
           <li><strong>Authentication and Profile Data:</strong> Name, email address, profile picture (when you log in via Google or Facebook using Firebase Auth).</li>
           <li><strong>User Generated Content:</strong> Business ideas entered, business plans generated, budget options, and shared links. These are safely stored in our Firestore database to allow you to access them from your dashboard.</li>
-          <li><strong>Transaction Data:</strong> If you upgrade to premium features, we do not directly collect or store your card details. All payment processing is performed securely by <strong>Lemon Squeezy</strong>. We only receive payment confirmation and a transaction ID.</li>
+          <li><strong>Transaction Data:</strong> If you upgrade to premium features, we do not directly collect or store your card details. All payment processing is performed securely by <strong>Stripe</strong> or <strong>Lemon Squeezy</strong>. We only receive payment confirmation and a transaction ID.</li>
           <li><strong>Technical and Usage Data:</strong> IP address, browser type, device used, and basic analytics data collected to optimize the platform and prevent abuse (e.g., rate limiting).</li>
         </ul>
 
@@ -22,7 +22,7 @@ export default function PrivacyPage() {
         <ul>
           <li><strong>To provide the service:</strong> Processing your idea through AI APIs (Google Gemini) to return your business plan.</li>
           <li><strong>To save history:</strong> Storing plans in Firebase so you can access and edit them later.</li>
-          <li><strong>To process payments:</strong> Validating access to the "Interactive AI Studio" following payment through Lemon Squeezy.</li>
+          <li><strong>To process payments:</strong> Validating access to the "Interactive AI Studio" following payment through Stripe or Lemon Squeezy.</li>
           <li><strong>For support and security:</strong> Preventing fraud, investigating errors (bug tracking), and providing technical support if you contact us.</li>
           <li><strong>Communication:</strong> Sending you transactional emails (receipts, password resets) and, occasionally, onboarding emails from which you can unsubscribe at any time.</li>
         </ul>
@@ -32,7 +32,7 @@ export default function PrivacyPage() {
         <ul>
           <li><strong>Google (Firebase / Firestore):</strong> For database hosting, authentication, and plan storage.</li>
           <li><strong>Google (Gemini AI):</strong> To generate the text. Note that we only send the text fragments (prompts) entered by you. We do not send your personal identification data to the AI model.</li>
-          <li><strong>Lemon Squeezy:</strong> To safely process your payments.</li>
+          <li><strong>Stripe and Lemon Squeezy:</strong> To safely process your payments.</li>
           <li><strong>Google AdSense:</strong> If advertisements are displayed, advertising providers may use their own technologies for personalized ads (see Cookies Policy).</li>
         </ul>
 
